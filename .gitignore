@@ -1,0 +1,41 @@
+# Dependencies and generated output
+node_modules/
+.next/
+dist/
+build/
+out/
+coverage/
+*.tsbuildinfo
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Secrets and machine-specific configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Runtime files and local backups
+*.log
+*.pid
+*.sql.gz
+*.dump
+*backup*.sql
+.tmp*/
+.tmp/
+.temp/
+locations.csv
+ims-backend/profile picture/*
+!ims-backend/profile picture/.gitkeep
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+
+# Database backup directories
+backups/
+

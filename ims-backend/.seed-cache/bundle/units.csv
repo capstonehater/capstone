@@ -1,0 +1,9 @@
+id,name,conversion_factor
+1,g,1.0
+2,kg,1000.0
+3,ml,1.0
+4,L,1000.0
+5,pcs,1.0
+6,pack,1.0
+7,bottle,1.0
+8,can,1.0

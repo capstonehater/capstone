@@ -1,0 +1,9 @@
+id,name,created_by,total_cost,notes,created_at
+1,October Opening Inventory Run,admin,18500.0,Initial pantry stocking before soft opening,2025-10-10 06:30:00
+2,Weekend Wet Market Run,maria,6420.0,"Fresh meats, seafood, produce",2025-11-08 07:10:00
+3,Coffee and Dairy Refill,josh,5380.0,"Beans, milk, cream, syrups",2025-12-02 08:00:00
+4,Holiday Peak Stock Run,maria,12150.0,Additional stock for December demand,2025-12-20 06:45:00
+5,New Year Refill,admin,8940.0,Replenishment after holiday rush,2026-01-05 07:30:00
+6,Mid January Fresh Goods,josh,5775.0,"Proteins, dairy, vegetables, fruit",2026-01-16 08:10:00
+7,February Coffee + Pantry Run,maria,7340.0,"Beans, milk, chocolate, matcha, sauces",2026-02-10 08:20:00
+8,Late March Refill,admin,9680.0,Regular refill with expiring stock rotation,2026-03-20 07:15:00

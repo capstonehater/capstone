@@ -1,0 +1,9 @@
+process.env.NODE_ENV = 'test';
+process.env.ENABLE_BACKGROUND_JOBS = 'false';
+process.env.DATABASE_URL =
+  'postgresql://test:test@127.0.0.1:5432/ims_test_disabled?schema=public';
+process.env.SESSION_TOKEN_SECRET ??= 'test-session-secret';
+process.env.RESET_TOKEN_SECRET ??= 'test-reset-secret';
+process.env.FRONTEND_ORIGIN ??= 'http://localhost:3000';
+process.env.FRONTEND_APP_URL ??= 'http://localhost:3000';
+process.env.SESSION_COOKIE_NAME ??= 'ims_session';

@@ -1,0 +1,19 @@
+id,group_id,name,price_adjustment
+1,1,Garlic Parmesan,0
+2,1,KBBQ,0
+3,1,Siracha,0
+4,1,Salted Egg,50
+5,2,Extra Espresso Shot,30
+6,2,Oat Milk,40
+7,2,Whipped Cream,20
+8,2,Caramel Drizzle,15
+9,2,Biscoff Crumbs,25
+10,3,No Sugar,0
+11,3,Less Sugar,0
+12,3,Regular Sugar,0
+13,3,Extra Sweet,0
+14,4,No Ice,0
+15,4,Less Ice,0
+16,4,Regular Ice,0
+17,5,Spicy,0
+18,5,Non Spicy,0
