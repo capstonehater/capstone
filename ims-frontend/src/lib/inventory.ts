@@ -348,6 +348,14 @@ export async function createSupplier(input: {
   return response.supplier;
 }
 
+export async function deleteSupplier(supplierId: string) {
+  const response = await apiJsonFetch<{ supplier: Supplier }>(
+    `/suppliers/${encodeURIComponent(supplierId)}`,
+    { method: "DELETE" }
+  );
+  return response.supplier;
+}
+
 export async function updateSupplier(
   supplierId: string,
   input: {

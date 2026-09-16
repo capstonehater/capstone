@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import styles from "@/components/layout/ApplicationShell.module.css";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 
@@ -12,20 +13,19 @@ export default function AdminDashboardLayout({
   children,
 }: AdminDashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   return (
-    <main className="min-h-screen bg-[#e9e1d6]">
+    <div className={styles.shell}>
       <AdminSidebar
         isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+        onClose={closeSidebar}
       />
 
-      <div className="lg:ml-[280px]">
-        <div className="p-4 md:p-6">
-          <AdminHeader onMenuClick={() => setSidebarOpen(true)} />
-          <div className="mt-6">{children}</div>
-        </div>
+      <div className={styles.body}>
+        <AdminHeader sidebarOpen={sidebarOpen} onMenuClick={() => setSidebarOpen(true)} />
+        <main className={styles.content}>{children}</main>
       </div>
-    </main>
+    </div>
   );
 }

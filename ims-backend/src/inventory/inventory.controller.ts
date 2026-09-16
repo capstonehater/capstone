@@ -22,15 +22,29 @@ import { UpdateRawMaterialDto } from './dto/update-raw-material.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { InventoryActionsService } from './inventory-actions.service';
 import { InventoryService } from './inventory.service';
+import { StoreAvailabilityService } from './store-availability.service';
 
 const INVENTORY_READ_ROLES = [Role.ADMINISTRATOR, Role.STAFF] as const;
 
 @Controller()
 export class InventoryController {
   constructor(
+    private readonly storeAvailabilityService: StoreAvailabilityService,
     private readonly inventoryService: InventoryService,
     private readonly inventoryActionsService: InventoryActionsService,
   ) {}
+
+  @Get('raw-materials/:id/store-availability')
+  @Roles(Role.ADMINISTRATOR)
+  async storeAvailability(@Param('id') id: string) {
+    return { search: await this.storeAvailabilityService.latest(id) };
+  }
+
+  @Post('raw-materials/:id/store-availability')
+  @Roles(Role.ADMINISTRATOR)
+  async searchStoreAvailability(@Param('id') id: string) {
+    return { search: await this.storeAvailabilityService.start(id) };
+  }
 
   @Get('units')
   @Roles(...INVENTORY_READ_ROLES)
@@ -150,6 +164,14 @@ export class InventoryController {
   ) {
     return {
       supplier: await this.inventoryService.updateSupplier(supplierId, dto),
+    };
+  }
+
+  @Delete('suppliers/:id')
+  @Roles(Role.ADMINISTRATOR)
+  async deleteSupplier(@Param('id') supplierId: string) {
+    return {
+      supplier: await this.inventoryService.deleteSupplier(supplierId),
     };
   }
 

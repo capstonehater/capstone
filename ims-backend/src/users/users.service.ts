@@ -26,6 +26,7 @@ const authUserSelect = {
   email: true,
   username: true,
   passwordHash: true,
+  profilePictureUrl: true,
   firstName: true,
   lastName: true,
   middleInitial: true,

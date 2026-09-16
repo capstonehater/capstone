@@ -7,6 +7,7 @@ export type AuthUser = {
   email: string;
   name: string;
   role: Role;
+  profilePictureUrl?: string | null;
 };
 
 type LoginResponse = {

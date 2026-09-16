@@ -6,18 +6,17 @@ import ProductsWorkspace from "@/components/admin/products/ProductsWorkspace";
 export default function ProductsPage() {
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6">
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-neutral-900">Product Management</h1>
-          <p className="mt-2 text-sm text-neutral-600">
+      <div className="flex h-[calc(100vh-86px)] min-h-0 flex-col gap-3 overflow-hidden">
+        <section className="border-b border-slate-200 pb-3">
+          <h1 className="text-3xl font-black tracking-tight text-neutral-900">PRODUCTS</h1>
+          <p className="mt-1 text-sm text-neutral-600">
             Manage menu products, variants, recipes, archive lifecycle, and ingredient usage in a
             focused master-detail workspace.
           </p>
         </section>
 
-        <ProductsWorkspace />
+        <div className="min-h-0 flex-1 overflow-hidden"><ProductsWorkspace /></div>
       </div>
     </AdminDashboardLayout>
   );
 }
-

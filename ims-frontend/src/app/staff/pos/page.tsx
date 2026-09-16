@@ -1,5 +1,10 @@
-import StaffPOSPage from "../../../components/staff-pos/StaffPOSPage";
+import StaffPOSPage from "@/components/staff-pos/StaffPOSPage";
+import StaffDashboardLayout from "@/components/staff-pos/StaffDashboardLayout";
 
 export default function Page() {
-  return <StaffPOSPage />;
+  return (
+    <StaffDashboardLayout>
+      <StaffPOSPage />
+    </StaffDashboardLayout>
+  );
 }

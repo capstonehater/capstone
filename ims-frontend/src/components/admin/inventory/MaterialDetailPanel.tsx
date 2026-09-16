@@ -7,6 +7,7 @@ import {
   FlaskConical,
   Loader2,
   RefreshCcw,
+  Store,
 } from "lucide-react";
 import {
   InventoryField,
@@ -91,6 +92,7 @@ type MaterialDetailPanelProps = {
   onAdjustment: () => void;
   onWaste: () => void;
   onArchive: () => void;
+  onStoreAvailability: () => void;
   formatQuantity: (value: string) => string;
   formatMoney: (value: string) => string;
   formatDate: (value: string | null | undefined) => string;
@@ -120,6 +122,7 @@ export default function MaterialDetailPanel({
   onAdjustment,
   onWaste,
   onArchive,
+  onStoreAvailability,
   formatQuantity,
   formatMoney,
   formatDate,
@@ -161,6 +164,7 @@ export default function MaterialDetailPanel({
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <InlineActionButton label="Store Availability" icon={<Store size={15} />} onClick={onStoreAvailability} />
           <InlineActionButton label="Edit" icon={<ClipboardList size={15} />} onClick={onEdit} />
           <InlineActionButton
             label="Adjustment"

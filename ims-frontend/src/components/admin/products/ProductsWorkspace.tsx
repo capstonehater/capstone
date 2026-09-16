@@ -34,6 +34,7 @@ import {
 import { getTodayDateInput } from "@/lib/report-date-range";
 import ArchiveProductDialog from "./ArchiveProductDialog";
 import DeleteProductDialog from "./DeleteProductDialog";
+import DisableProductDialog from "./DisableProductDialog";
 import ProductDetailPanel from "./ProductDetailPanel";
 import ProductFormDialog from "./ProductFormDialog";
 import ProductsMasterPanel from "./ProductsMasterPanel";
@@ -151,6 +152,7 @@ export default function ProductsWorkspace() {
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [materials, setMaterials] = useState<InventorySummaryItem[]>([]);
   const [listResponse, setListResponse] = useState<ProductListResponse | null>(null);
+  const [productCounts, setProductCounts] = useState({ active: 0, archived: 0 });
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -170,6 +172,7 @@ export default function ProductsWorkspace() {
   const [productDialog, setProductDialog] = useState<ProductDialogState | null>(null);
   const [variantDialog, setVariantDialog] = useState<VariantDialogState | null>(null);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [disableDialogOpen, setDisableDialogOpen] = useState(false);
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [dialogError, setDialogError] = useState<string | null>(null);
@@ -248,7 +251,7 @@ export default function ProductsWorkspace() {
       setListError(null);
 
       try {
-        const response = await listProducts({
+        const baseFilters = {
           search: search || undefined,
           categoryId: categoryId || undefined,
           manualAvailability:
@@ -258,15 +261,18 @@ export default function ProductsWorkspace() {
                 ? "DISABLED"
                 : undefined,
           effectiveStatus: effectiveAvailability || undefined,
-          archiveState: view === "archived" ? "ARCHIVED" : "ACTIVE",
           sortBy: "name",
           sortDirection: "asc",
-          page,
-          pageSize: PAGE_SIZE,
           signal: controller.signal,
-        });
+        };
+        const [response, activeCount, archivedCount] = await Promise.all([
+          listProducts({ ...baseFilters, archiveState: view === "archived" ? "ARCHIVED" : "ACTIVE", page, pageSize: PAGE_SIZE }),
+          listProducts({ ...baseFilters, archiveState: "ACTIVE", page: 1, pageSize: 1 }),
+          listProducts({ ...baseFilters, archiveState: "ARCHIVED", page: 1, pageSize: 1 }),
+        ]);
 
         setListResponse(response);
+        setProductCounts({ active: activeCount.pagination.totalItems, archived: archivedCount.pagination.totalItems });
       } catch (error) {
         if (!controller.signal.aborted) {
           setListError(
@@ -854,7 +860,7 @@ export default function ProductsWorkspace() {
   const isMobileDetailView = Boolean(selectedProductId);
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden">
       {workspaceError ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {workspaceError}
@@ -873,8 +879,8 @@ export default function ProductsWorkspace() {
         </div>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[392px_minmax(0,1fr)]">
-        <div className={isMobileDetailView ? "hidden xl:block" : "block"}>
+      <div className="grid min-h-0 flex-1 gap-5 overflow-hidden xl:grid-cols-[380px_minmax(0,1fr)]">
+        <div className={`${isMobileDetailView ? "hidden xl:block" : "block"} min-h-0`}>
           <ProductsMasterPanel
             categories={categories}
             search={searchInput}
@@ -911,6 +917,7 @@ export default function ProductsWorkspace() {
               )
             }
             onAddProduct={() => setProductDialog({ mode: "create" })}
+            productCounts={productCounts}
             onSelectProduct={(productId) =>
               updateQuery(
                 {
@@ -927,7 +934,7 @@ export default function ProductsWorkspace() {
           />
         </div>
 
-        <div className={isMobileDetailView ? "block" : "hidden xl:block"}>
+        <div className={`${isMobileDetailView ? "block" : "hidden xl:block"} min-h-0`}>
           <ProductDetailPanel
             productId={selectedProductId}
             product={selectedProduct}
@@ -966,7 +973,13 @@ export default function ProductsWorkspace() {
                 selectedProductId ? { mode: "edit", productId: selectedProductId } : null,
               )
             }
-            onToggleManualAvailability={() => void handleToggleProductManualAvailability()}
+            onToggleManualAvailability={() => {
+              if (selectedProduct?.manualAvailability === "DISABLED") {
+                void handleToggleProductManualAvailability();
+              } else {
+                setDisableDialogOpen(true);
+              }
+            }}
             onArchive={() => setArchiveDialogOpen(true)}
             onRestore={() => setRestoreDialogOpen(true)}
             onDelete={() => setDeleteDialogOpen(true)}
@@ -1032,6 +1045,17 @@ export default function ProductsWorkspace() {
         submitting={submittingAction === "archive-product"}
         onClose={() => setArchiveDialogOpen(false)}
         onConfirm={handleArchiveProduct}
+      />
+
+      <DisableProductDialog
+        open={disableDialogOpen}
+        product={selectedProduct}
+        submitting={submittingAction === "toggle-product"}
+        onClose={() => setDisableDialogOpen(false)}
+        onConfirm={async () => {
+          await handleToggleProductManualAvailability();
+          setDisableDialogOpen(false);
+        }}
       />
 
       <RestoreProductDialog

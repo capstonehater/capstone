@@ -1,116 +1,75 @@
 "use client";
 
 import Link from "next/link";
-import {
-  LayoutDashboard,
-  Boxes,
-  Package2,
-  FileText,
-  Bell,
-  UsersRound,
-  Settings,
-  X,
-} from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { X } from "lucide-react";
+import { adminNavigation, matchesShellRoute } from "@/components/layout/shell-navigation";
+import styles from "@/components/layout/ApplicationShell.module.css";
 
-type AdminSidebarProps = {
-  isOpen: boolean;
-  onClose: () => void;
-};
+type AdminSidebarProps = { isOpen: boolean; onClose: () => void };
 
-const navItems = [
-  {
-    label: "Dashboard",
-    href: "/admin/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Inventory",
-    href: "/admin/inventory",
-    icon: Boxes,
-  },
-  {
-    label: "Products",
-    href: "/admin/products",
-    icon: Package2,
-  },
-  {
-    label: "Reports",
-    href: "/admin/reports",
-    icon: FileText,
-  },
-  {
-    label: "Alerts",
-    href: "/admin/alerts",
-    icon: Bell,
-  },
-  {
-    label: "User",
-    href: "/admin/users",
-    icon: UsersRound,
-  },
-  {
-    label: "Settings",
-    href: "/admin/settings",
-    icon: Settings,
-  },
-];
+export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
+  const pathname = usePathname();
+  const sidebarRef = useRef<HTMLElement>(null);
 
-export default function AdminSidebar({
-  isOpen,
-  onClose,
-}: AdminSidebarProps) {
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    if (!isOpen || desktop.matches) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    sidebarRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+      if (event.key !== "Tab") return;
+      const nodes = sidebarRef.current?.querySelectorAll<HTMLElement>("a[href], button");
+      if (!nodes?.length) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    const handleResize = () => { if (desktop.matches) onClose(); };
+    desktop.addEventListener("change", handleResize);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKey);
+      desktop.removeEventListener("change", handleResize);
+      previousFocus?.focus();
+    };
+  }, [isOpen, onClose]);
+
   return (
     <>
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
-          onClick={onClose}
-        />
-      )}
-
-      <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-[280px] flex-col bg-[#f45a1f] text-white transition-transform duration-300 lg:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="border-b border-white/20 px-5 py-5">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="text-[15px] font-bold uppercase leading-5 tracking-wide break-words">
-                Inventory Management System
-              </h1>
-              <p className="mt-2 text-[11px] leading-4 text-white/80">
-                Smart Inventory Management
-              </p>
-            </div>
-
-            <button
-              onClick={onClose}
-              className="shrink-0 rounded-md p-1 hover:bg-white/10 lg:hidden"
-              aria-label="Close sidebar"
-            >
-              <X size={20} />
-            </button>
-          </div>
+      {isOpen && <button type="button" className={styles.overlay} onClick={onClose} aria-label="Close navigation" tabIndex={-1} />}
+      <aside id="admin-navigation" ref={sidebarRef} aria-label="Administrator navigation" className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""}`}>
+        <div className={styles.brand}>
+          <div><strong>Cafe Salvacion</strong><p>POS Management</p></div>
+          <button type="button" onClick={onClose} className={styles.mobileClose} aria-label="Close navigation"><X size={20} /></button>
         </div>
-
-        <nav className="flex-1 space-y-2 px-3 py-4">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white no-underline transition hover:bg-white/15"
-              >
-                <Icon size={18} />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+        <nav className={styles.navigation}>
+          {adminNavigation.map(group => (
+            <div key={group.label} className={styles.group}>
+              <h2 className={styles.groupTitle}>{group.label}</h2>
+              {group.items.map(item => (
+                <div key={item.href} className={styles.navItemWrap}>
+                  <Link href={item.href} onClick={onClose} className={styles.navLink} aria-current={matchesShellRoute(pathname, item.href) ? "page" : undefined}>
+                    <item.icon size={19} aria-hidden="true" /><span>{item.label}</span>
+                  </Link>
+                  {"children" in item ? <div className={`${styles.navSubmenu} ${item.children.some(child => matchesShellRoute(pathname, child.href.split("#")[0])) ? styles.navSubmenuOpen : ""}`}>{item.children.map(child => <Link key={child.href} href={child.href} onClick={onClose} className={styles.navSubLink} aria-current={matchesShellRoute(pathname, child.href.split("#")[0]) ? "page" : undefined}><child.icon size={14} aria-hidden="true" /><span>{child.label}</span></Link>)}</div> : null}
+                </div>
+              ))}
+            </div>
+          ))}
         </nav>
+        <footer className={styles.footer}>Cafe Salvacion IMS</footer>
       </aside>
     </>
   );

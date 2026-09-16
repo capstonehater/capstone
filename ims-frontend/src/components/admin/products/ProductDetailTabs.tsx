@@ -15,16 +15,16 @@ const tabs: Array<{ value: DetailTab; label: string }> = [
 
 export default function ProductDetailTabs({ activeTab, onChange }: Props) {
   return (
-    <div className="inline-flex rounded-2xl border border-slate-200 bg-slate-50 p-1">
+    <div className="flex border-b border-slate-200">
       {tabs.map((tab) => (
         <button
           key={tab.value}
           type="button"
           onClick={() => onChange(tab.value)}
-          className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+          className={`border-b-2 px-4 py-2 text-xs font-semibold transition ${
             activeTab === tab.value
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-500 hover:text-slate-800"
+              ? "border-[#1f9d32] text-[#1f7a2a]"
+              : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
           {tab.label}
@@ -33,4 +33,3 @@ export default function ProductDetailTabs({ activeTab, onChange }: Props) {
     </div>
   );
 }
-

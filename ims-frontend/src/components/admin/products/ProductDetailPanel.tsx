@@ -107,7 +107,7 @@ export default function ProductDetailPanel({
   }
 
   return (
-    <section className="flex h-full min-h-[65vh] flex-col rounded-[28px] bg-white p-6 shadow-sm">
+    <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-300 bg-white p-5 shadow-none">
       <ProductDetailHeader
         product={product}
         mobileBackVisible={mobileBackVisible}
@@ -124,7 +124,7 @@ export default function ProductDetailPanel({
         <ProductDetailTabs activeTab={activeTab} onChange={onChangeTab} />
       </div>
 
-      <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
+      <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-2">
         {activeTab === "overview" ? (
           <ProductOverviewTab product={product} />
         ) : null}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Copy, ExternalLink, Navigation } from "lucide-react";
 import type { Map as LeafletMap, Marker } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { inventoryInputClasses } from "./InventoryField";
@@ -20,6 +21,31 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
   const [results, setResults] = useState<Result[]>([]);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [copyStatus, setCopyStatus] = useState({ url: "", message: "" });
+  const lat = Number(latitude);
+  const lon = Number(longitude);
+  const journeyUrl = latitude.trim() && longitude.trim() &&
+    Number.isFinite(lat) && Number.isFinite(lon) &&
+    Math.abs(lat) <= 90 && Math.abs(lon) <= 180
+      ? "https://www.google.com/maps/dir/?" + new URLSearchParams({
+          api: "1",
+          origin: "14.31452,120.941044",
+          destination: lat.toFixed(6) + "," + lon.toFixed(6),
+          travelmode: "driving",
+          dir_action: "navigate",
+        }).toString()
+      : "";
+
+  const copyJourneyLink = async () => {
+    if (!journeyUrl) return;
+    try {
+      await navigator.clipboard.writeText(journeyUrl);
+      setCopyStatus({ url: journeyUrl, message: "Journey link copied." });
+    } catch {
+      setCopyStatus({ url: journeyUrl, message: "Select the link above and copy it manually." });
+    }
+  };
+
 
   useEffect(() => {
     callback.current = onChange;
@@ -165,6 +191,47 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
       <div ref={container} aria-label="Supplier location map" className="relative z-0 h-72 rounded-xl border border-slate-200" />
       <p role="status" className="text-xs text-slate-600">{message}</p>
       <p className="text-sm text-slate-700">{address || (latitude && longitude ? "Coordinates selected" : "No location selected")}</p>
+      {journeyUrl ? (
+        <section aria-labelledby="supplier-journey-title" className="min-w-0 overflow-hidden rounded-2xl border border-orange-100 bg-orange-50/40">
+          <div className="space-y-4 p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-orange-100 bg-white text-[#f45a1f]">
+                <Navigation aria-hidden="true" className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <h4 id="supplier-journey-title" className="text-sm font-semibold leading-5 text-slate-900">Google Maps journey</h4>
+                <p className="mt-1 text-xs leading-5 text-slate-600">Plan your drive to the selected supplier location.</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="supplier-journey-link" className="block text-xs font-semibold text-slate-600">Directions link</label>
+              <input id="supplier-journey-link" type="url" readOnly value={journeyUrl}
+                onFocus={(event) => event.target.select()}
+                className="block h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-600 outline-none transition focus:border-[#f45a1f] focus:ring-2 focus:ring-[#f45a1f]/15" />
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <a href={journeyUrl} target="_blank" rel="noopener noreferrer"
+                className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-transparent bg-[#f45a1f] px-3 py-3 text-center text-sm font-semibold leading-5 text-white !no-underline transition hover:bg-[#d94d18] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f45a1f] focus-visible:ring-offset-2">
+                <ExternalLink aria-hidden="true" className="h-4 w-4 shrink-0" />
+                <span>Open Google Maps</span>
+              </a>
+              <button type="button" onClick={() => void copyJourneyLink()}
+                className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 text-center text-sm font-semibold leading-5 text-slate-700 transition hover:border-orange-200 hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f45a1f] focus-visible:ring-offset-2">
+                <Copy aria-hidden="true" className="h-4 w-4 shrink-0" />
+                <span>Copy journey link</span>
+              </button>
+            </div>
+            {copyStatus.url === journeyUrl && copyStatus.message ? (
+              <p role="status" className="text-xs leading-5 text-slate-600">{copyStatus.message}</p>
+            ) : null}
+          </div>
+          <p className="border-t border-orange-100 px-4 py-3 text-xs leading-5 text-slate-500 sm:px-5">
+            Starting point: 14.31452, 120.941044. Destination: the selected supplier pin.
+          </p>
+        </section>
+      ) : <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-xs leading-5 text-slate-500">Select a location to generate a Google Maps journey link.</p>}
       <a href="https://locationiq.com" target="_blank" rel="noreferrer" className="text-xs text-slate-500 underline">Search by LocationIQ.com</a>
     </div>
   );

@@ -342,6 +342,7 @@ model Unit {
 }
 
 model RawMaterial {
+  storeSearches StoreAvailabilitySearch[]
   id           String   @id @default(uuid())
   unitId       String   @map("unit_id")
   name         String
@@ -365,6 +366,31 @@ model RawMaterial {
   @@index([unitId])
   @@index([isActive])
   @@map("raw_materials")
+}
+
+model StoreAvailabilitySearch {
+  id String @id @default(uuid())
+  rawMaterialId String @map("raw_material_id")
+  productName String @map("product_name")
+  status String @default("PENDING")
+  error String?
+  createdAt DateTime @default(now()) @map("created_at")
+  completedAt DateTime? @map("completed_at")
+  rawMaterial RawMaterial @relation(fields: [rawMaterialId], references: [id], onDelete: Cascade)
+  results StoreAvailabilityResult[]
+
+  @@index([rawMaterialId, createdAt])
+  @@map("store_availability_searches")
+}
+
+model StoreAvailabilityResult {
+  id String @id @default(uuid())
+  searchId String @map("search_id")
+  payload Json
+  search StoreAvailabilitySearch @relation(fields: [searchId], references: [id], onDelete: Cascade)
+
+  @@index([searchId])
+  @@map("store_availability_results")
 }
 
 model Supplier {
@@ -777,4 +803,56 @@ model OutboxEvent {
 
   @@index([status, availableAt])
   @@map("outbox_events")
+}
+
+
+model ForecastRun {
+  id          String   @id @default(uuid())
+  status      String   @default("RUNNING")
+  activeKey   String?  @unique @map("active_key")
+  startDate   DateTime @map("start_date") @db.Date
+  endDate     DateTime @map("end_date") @db.Date
+  historyEnd  DateTime? @map("history_end") @db.Date
+  sourceHash  String?  @map("source_hash")
+  warnings    Json     @default("[]")
+  error       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  completedAt DateTime? @map("completed_at")
+  series      ForecastSeries[]
+  @@index([status, createdAt])
+  @@map("forecast_runs")
+}
+
+model ForecastSeries {
+  id          String @id @default(uuid())
+  runId       String @map("run_id")
+  materialId  String @map("material_id")
+  name        String
+  unit        String
+  metadata    Json
+  run         ForecastRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  points      ForecastPoint[]
+  recommendation ForecastRecommendation?
+  @@unique([runId, materialId])
+  @@map("forecast_series")
+}
+
+model ForecastPoint {
+  id       String @id @default(uuid())
+  seriesId String @map("series_id")
+  date     DateTime @db.Date
+  forecast Decimal @db.Decimal(18, 4)
+  lower95  Decimal @map("lower_95") @db.Decimal(18, 4)
+  upper95  Decimal @map("upper_95") @db.Decimal(18, 4)
+  series   ForecastSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  @@unique([seriesId, date])
+  @@map("forecast_points")
+}
+
+model ForecastRecommendation {
+  id       String @id @default(uuid())
+  seriesId String @unique @map("series_id")
+  data     Json
+  series   ForecastSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  @@map("forecast_recommendations")
 }

@@ -77,6 +77,7 @@ export default function SettingsWorkspace() {
       email: response.user.email,
       name: response.user.name,
       role: response.user.role,
+      profilePictureUrl: response.user.profilePictureUrl,
     });
     setNotice(response.message || "Account settings updated.");
   }

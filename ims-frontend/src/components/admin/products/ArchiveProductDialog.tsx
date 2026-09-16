@@ -1,66 +1,6 @@
 "use client";
-
 import { useState } from "react";
-import { inventoryTextareaClasses } from "@/components/admin/inventory/InventoryField";
-import InventoryModal from "@/components/admin/inventory/InventoryModal";
+import { X } from "lucide-react";
 import type { ProductDetail } from "@/lib/products";
-
-type Props = {
-  open: boolean;
-  product: ProductDetail | null;
-  submitting: boolean;
-  onClose: () => void;
-  onConfirm: (reason: string) => Promise<void>;
-};
-
-export default function ArchiveProductDialog({
-  open,
-  product,
-  submitting,
-  onClose,
-  onConfirm,
-}: Props) {
-  const [reason, setReason] = useState("Archived from admin product workspace");
-
-  if (!open || !product) {
-    return null;
-  }
-
-  return (
-    <InventoryModal
-      title="Archive Product"
-      description="This removes the product from the active list while preserving all related history."
-      onClose={onClose}
-    >
-      <div className="space-y-5">
-        <div className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
-          You are archiving <span className="font-semibold">{product.name}</span>.
-        </div>
-        <textarea
-          value={reason}
-          onChange={(event) => setReason(event.target.value)}
-          className={inventoryTextareaClasses}
-          placeholder="Reason for archiving"
-        />
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => void onConfirm(reason)}
-            disabled={submitting}
-            className="rounded-full bg-amber-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
-          >
-            {submitting ? "Archiving..." : "Archive Product"}
-          </button>
-        </div>
-      </div>
-    </InventoryModal>
-  );
-}
-
+type Props={open:boolean;product:ProductDetail|null;submitting:boolean;onClose:()=>void;onConfirm:(reason:string)=>Promise<void>};
+export default function ArchiveProductDialog({open,product,submitting,onClose,onConfirm}:Props){const [reason,setReason]=useState("Archived from admin product workspace"); if(!open||!product)return null; return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4"><div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl"><header className="flex items-start justify-between border-b border-slate-200 px-6 py-5"><div><h2 className="text-xl font-bold text-slate-900">Archive Product</h2><p className="mt-1 text-sm text-slate-500">Remove this product from active selling while preserving its history.</p></div><button onClick={onClose} className="rounded p-1 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5"/></button></header><div className="space-y-4 p-6"><div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">This product will be hidden from active product lists. Historical usage and sales records are preserved.</div><div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-sm"><p><b>Product:</b> {product.name}</p><p><b>Category:</b> {product.category.name}</p><p><b>Current status:</b> {product.archive.state}</p></div><label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" defaultChecked/> Preserve historical usage data</label><textarea value={reason} onChange={e=>setReason(e.target.value)} className="min-h-20 w-full rounded-md border border-slate-300 p-3 text-sm" placeholder="Reason for archiving"/><footer className="flex justify-end gap-3 border-t border-slate-200 pt-4"><button onClick={onClose} className="rounded-md border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-700">Cancel</button><button onClick={()=>void onConfirm(reason)} disabled={submitting} className="rounded-md bg-amber-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">{submitting?"Archiving...":"Archive Product"}</button></footer></div></div></div>}

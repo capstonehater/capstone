@@ -1,10 +1,12 @@
 "use client";
 
+import styles from "@/components/layout/ApplicationShell.module.css";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import ProfileAvatar from "@/components/auth/ProfileAvatar";
 import { useLogout } from "@/hooks/useLogout";
 import {
   Bell,
-  CircleUserRound,
   User,
   Settings,
   Shield,
@@ -14,6 +16,7 @@ import {
 import { useAuthStore } from "../../store/authStore";
 
 export default function StaffHeader() {
+  const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
   const performLogout = useLogout();
 
@@ -42,37 +45,34 @@ export default function StaffHeader() {
   };
 
   return (
-    <header className="flex flex-col gap-4 rounded-2xl bg-[#f45a1f] px-4 py-4 text-white shadow-sm md:flex-row md:items-center md:justify-between md:px-6">
+    <header className={styles.header}>
       <div>
-        <h1 className="text-2xl font-bold leading-tight md:text-3xl">
-          STAFF DASHBOARD
+        <h1 className={styles.title}>
+          {pathname === "/staff/pos" ? "STAFF POS" : "STAFF DASHBOARD"}
         </h1>
-        <p className="text-sm text-white/85">
+        <p className={styles.subtitle}>
           Welcome back! Here’s your POS and daily transaction overview.
         </p>
       </div>
 
-      <div className="flex items-center justify-end gap-4">
-        <button className="relative rounded-full p-2 transition hover:bg-white/10">
+      <div className={styles.actions}>
+        <button type="button" disabled className={styles.iconButton} aria-label="Staff notifications unavailable" title="Staff notifications are not available">
           <Bell size={20} />
-          <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-yellow-300" />
         </button>
 
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setOpenDropdown((prev) => !prev)}
-            className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-white/10"
+            className={styles.profile}
+            aria-label="Open account menu"
+            aria-expanded={openDropdown}
           >
-            <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium">
-                {user?.email ?? "staff@stockscout.com"}
-              </p>
-              <p className="text-xs text-white/80">Staff</p>
+            <div className={styles.identity}>
+              <p className={styles.role}>{user?.role.toLowerCase().replaceAll("_", " ") ?? "Staff"}</p>
+              <p className={styles.email}>{user?.email ?? "Account"}</p>
             </div>
 
-            <div className="rounded-full bg-[#e9e1d6] p-2 text-[#3d3434]">
-              <CircleUserRound size={24} />
-            </div>
+            <ProfileAvatar />
 
             <ChevronDown
               size={18}
@@ -86,22 +86,22 @@ export default function StaffHeader() {
             <div className="absolute right-0 top-full z-50 mt-3 w-56 overflow-hidden rounded-2xl bg-white py-2 text-[#3d3434] shadow-xl">
               <div className="border-b border-gray-100 px-4 py-3">
                 <p className="text-sm font-semibold">
-                  {user?.email ?? "staff@stockscout.com"}
+                  {user?.email ?? "Account"}
                 </p>
                 <p className="text-xs text-gray-500">Staff Account</p>
               </div>
 
-              <button className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-50">
+              <button type="button" disabled title="Not available for staff" className="flex w-full cursor-not-allowed items-center gap-3 px-4 py-3 text-sm opacity-50">
                 <User size={18} />
                 <span>My Profile</span>
               </button>
 
-              <button className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-50">
+              <button type="button" disabled title="Not available for staff" className="flex w-full cursor-not-allowed items-center gap-3 px-4 py-3 text-sm opacity-50">
                 <Settings size={18} />
                 <span>Account Settings</span>
               </button>
 
-              <button className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-50">
+              <button type="button" disabled title="Not available for staff" className="flex w-full cursor-not-allowed items-center gap-3 px-4 py-3 text-sm opacity-50">
                 <Shield size={18} />
                 <span>Privacy & Security</span>
               </button>

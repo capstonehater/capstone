@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { adminNavigation, matchesShellRoute } from "@/components/layout/shell-navigation";
+import styles from "@/components/layout/ApplicationShell.module.css";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   Menu,
   Bell,
-  CircleUserRound,
   User,
   Settings,
   Shield,
@@ -16,11 +18,13 @@ import {
   X,
 } from "lucide-react";
 import { acknowledgeAlert, dismissAlert, fetchAlerts, fetchUnreadAlertCount, type AlertRecord } from "@/lib/alerts";
+import ProfileAvatar from "@/components/auth/ProfileAvatar";
 import { useLogout } from "@/hooks/useLogout";
 import { useAuthStore } from "@/store/authStore";
 
 type AdminHeaderProps = {
   onMenuClick: () => void;
+  sidebarOpen: boolean;
 };
 
 function formatDateTime(value: string | null | undefined) {
@@ -44,7 +48,9 @@ function alertTone(alert: AlertRecord) {
   return "border-slate-200 bg-slate-50 text-slate-700";
 }
 
-export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
+export default function AdminHeader({ onMenuClick, sidebarOpen }: AdminHeaderProps) {
+  const pathname = usePathname();
+  const page = adminNavigation.flatMap(group => group.items).find(item => matchesShellRoute(pathname, item.href));
   const user = useAuthStore((state) => state.user);
   const performLogout = useLogout();
 
@@ -150,43 +156,46 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
     : "Administrator";
 
   return (
-    <header className="flex flex-col gap-4 rounded-2xl bg-[#f45a1f] px-4 py-4 text-white shadow-sm md:flex-row md:items-center md:justify-between md:px-6">
+    <header className={styles.header}>
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="rounded-lg p-2 hover:bg-white/10 lg:hidden"
+          className={`${styles.iconButton} ${styles.mobileMenu}`}
+          aria-expanded={sidebarOpen}
+          aria-controls="admin-navigation"
           aria-label="Open sidebar"
         >
           <Menu size={22} />
         </button>
 
         <div>
-          <h1 className="text-2xl font-bold leading-tight md:text-3xl">
-            DASHBOARD
+          <h1 className={styles.title}>
+            {page?.label.toUpperCase() ?? "CAFE SALVACION"}
           </h1>
-          <p className="text-sm text-white/85">
-            Welcome back! Here&apos;s your inventory overview.
+          <p className={styles.subtitle}>
+            {page?.subtitle ?? "Inventory management"}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-4">
+      <div className={styles.actions}>
         <div className="relative" ref={alertsRef}>
           <button
             onClick={() => setAlertsOpen((current) => !current)}
-            className="relative rounded-full p-2 transition hover:bg-white/10"
+            className={styles.iconButton}
+            aria-expanded={alertsOpen}
             aria-label="Open alerts"
           >
             <Bell size={20} />
             {unreadCount > 0 ? (
-              <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-yellow-300 px-1 text-[10px] font-bold text-slate-900">
+              <span className={styles.badge}>
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             ) : null}
           </button>
 
           {alertsOpen ? (
-            <div className="absolute right-0 top-full z-50 mt-3 w-[25rem] overflow-hidden rounded-2xl bg-white text-[#3d3434] shadow-xl">
+            <div className={styles.alertPanel}>
               <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold">Operational Alerts</p>
@@ -269,18 +278,16 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setOpenDropdown((prev) => !prev)}
-            className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-white/10"
+            className={styles.profile}
+            aria-label="Open account menu"
+            aria-expanded={openDropdown}
           >
-            <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium">
-                {user?.email ?? "admin@stockscout.com"}
-              </p>
-              <p className="text-xs text-white/80">{formattedRole}</p>
+            <div className={styles.identity}>
+              <p className={styles.role}>{formattedRole.toLowerCase()}</p>
+              <p className={styles.email}>{user?.email ?? "Account"}</p>
             </div>
 
-            <div className="rounded-full bg-[#e9e1d6] p-2 text-[#3d3434]">
-              <CircleUserRound size={24} />
-            </div>
+            <ProfileAvatar />
 
             <ChevronDown
               size={18}
@@ -292,7 +299,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
             <div className="absolute right-0 top-full z-50 mt-3 w-56 overflow-hidden rounded-2xl bg-white py-2 text-[#3d3434] shadow-xl">
               <div className="border-b border-gray-100 px-4 py-3">
                 <p className="text-sm font-semibold">
-                  {user?.email ?? "admin@stockscout.com"}
+                  {user?.email ?? "Account"}
                 </p>
                 <p className="text-xs text-gray-500">{formattedRole} Account</p>
               </div>

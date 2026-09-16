@@ -1,6 +1,5 @@
 "use client";
 
-import { inventoryInputClasses } from "@/components/admin/inventory/InventoryField";
 import type { ProductCategory, ProductEffectiveStatus } from "@/lib/products";
 
 type Props = {
@@ -39,15 +38,14 @@ export default function ProductFilters({
   onClearFilters,
 }: Props) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      <label className="space-y-1 text-sm font-medium text-slate-700">
-        <span>Category</span>
+    <div className="grid grid-cols-3 gap-3">
+      <label className="min-w-0">
         <select
           value={categoryId}
           onChange={(event) => onCategoryChange(event.target.value)}
-          className={inventoryInputClasses}
+          className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-[11px] text-slate-600 outline-none focus:border-slate-500"
         >
-          <option value="">All categories</option>
+            <option value="">All Categories</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
@@ -56,23 +54,21 @@ export default function ProductFilters({
         </select>
       </label>
 
-      <label className="space-y-1 text-sm font-medium text-slate-700">
-        <span>Manual availability</span>
+      <label className="min-w-0">
         <select
           value={manualAvailability}
           onChange={(event) =>
             onManualAvailabilityChange(event.target.value as "" | "enabled" | "disabled")
           }
-          className={inventoryInputClasses}
+          className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-[11px] text-slate-600 outline-none focus:border-slate-500"
         >
-          <option value="">All</option>
+          <option value="">All Status</option>
           <option value="enabled">Enabled</option>
           <option value="disabled">Disabled</option>
         </select>
       </label>
 
-      <label className="space-y-1 text-sm font-medium text-slate-700 sm:col-span-2">
-        <span>Effective availability</span>
+      <label className="min-w-0">
         <select
           value={effectiveAvailability}
           onChange={(event) =>
@@ -80,9 +76,9 @@ export default function ProductFilters({
               event.target.value as "" | ProductEffectiveStatus,
             )
           }
-          className={inventoryInputClasses}
+          className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-[11px] text-slate-600 outline-none focus:border-slate-500"
         >
-          <option value="">All statuses</option>
+          <option value="">All Availability</option>
           {effectiveAvailabilityOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -91,16 +87,6 @@ export default function ProductFilters({
         </select>
       </label>
 
-      <div className="sm:col-span-2">
-        <button
-          type="button"
-          onClick={onClearFilters}
-          className="text-sm font-semibold text-[#f45a1f] transition hover:text-[#d94f1a]"
-        >
-          Clear filters
-        </button>
-      </div>
     </div>
   );
 }
-

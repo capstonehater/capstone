@@ -7,11 +7,13 @@ import { InventoryDailySnapshotService } from './inventory-daily-snapshot.servic
 import { InventoryLedgerService } from './inventory-ledger.service';
 import { InventoryService } from './inventory.service';
 import { FEFOAllocator } from './fefo-allocator.service';
+import { StoreAvailabilityService } from './store-availability.service';
 
 @Module({
   imports: [AvailabilityModule, EventsModule],
   controllers: [InventoryController],
   providers: [
+    StoreAvailabilityService,
     InventoryService,
     InventoryActionsService,
     InventoryLedgerService,

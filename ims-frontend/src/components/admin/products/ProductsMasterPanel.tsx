@@ -27,6 +27,7 @@ type Props = {
   onEffectiveAvailabilityChange: (value: "" | ProductEffectiveStatus) => void;
   onClearFilters: () => void;
   onAddProduct: () => void;
+  productCounts: { active: number; archived: number };
   onSelectProduct: (productId: string) => void;
   onPageChange: (page: number) => void;
 };
@@ -48,6 +49,7 @@ export default function ProductsMasterPanel({
   onEffectiveAvailabilityChange,
   onClearFilters,
   onAddProduct,
+  productCounts,
   onSelectProduct,
   onPageChange,
 }: Props) {
@@ -55,16 +57,17 @@ export default function ProductsMasterPanel({
   const pagination = listResponse?.pagination;
 
   return (
-    <section className="flex h-full min-h-[65vh] flex-col rounded-[28px] bg-white p-5 shadow-sm">
+    <section className="flex h-full min-h-0 flex-col rounded-xl border border-slate-300 bg-white p-4 shadow-none">
       <ProductListToolbar
         search={search}
         view={view}
         onSearchChange={onSearchChange}
         onViewChange={onViewChange}
         onAddProduct={onAddProduct}
+        productCounts={productCounts}
       />
 
-      <div className="mt-4 rounded-3xl border border-slate-200 bg-slate-50/70 p-4">
+      <div className="mt-3">
         <ProductFilters
           categories={categories}
           categoryId={categoryId}
@@ -77,7 +80,7 @@ export default function ProductsMasterPanel({
         />
       </div>
 
-      <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+      <div className="mt-3 min-h-0 flex-1 overflow-hidden pr-1">
         <ProductList
           items={items}
           loading={loading}
@@ -99,4 +102,3 @@ export default function ProductsMasterPanel({
     </section>
   );
 }
-

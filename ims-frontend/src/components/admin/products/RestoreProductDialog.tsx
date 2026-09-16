@@ -1,56 +1,5 @@
 "use client";
-
-import InventoryModal from "@/components/admin/inventory/InventoryModal";
+import { X } from "lucide-react";
 import type { ProductDetail } from "@/lib/products";
-
-type Props = {
-  open: boolean;
-  product: ProductDetail | null;
-  submitting: boolean;
-  onClose: () => void;
-  onConfirm: () => Promise<void>;
-};
-
-export default function RestoreProductDialog({
-  open,
-  product,
-  submitting,
-  onClose,
-  onConfirm,
-}: Props) {
-  if (!open || !product) {
-    return null;
-  }
-
-  return (
-    <InventoryModal
-      title="Restore Product"
-      description="This moves the product back into the active product workspace."
-      onClose={onClose}
-    >
-      <div className="space-y-5">
-        <div className="rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
-          Restore <span className="font-semibold">{product.name}</span> to the active view.
-        </div>
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => void onConfirm()}
-            disabled={submitting}
-            className="rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
-          >
-            {submitting ? "Restoring..." : "Restore Product"}
-          </button>
-        </div>
-      </div>
-    </InventoryModal>
-  );
-}
-
+type Props={open:boolean;product:ProductDetail|null;submitting:boolean;onClose:()=>void;onConfirm:()=>Promise<void>};
+export default function RestoreProductDialog({open,product,submitting,onClose,onConfirm}:Props){if(!open||!product)return null;return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4"><div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl"><header className="flex items-start justify-between border-b border-slate-200 px-6 py-5"><div><h2 className="text-xl font-bold text-slate-900">Restore Product</h2><p className="mt-1 text-sm text-slate-500">Return this archived product to the active product workspace.</p></div><button onClick={onClose} aria-label="Close" className="rounded p-1 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5"/></button></header><div className="space-y-4 p-6"><div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">This product will become visible in active product lists again. Existing history and configuration will be preserved.</div><div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-sm"><p><b>Product:</b> {product.name}</p><p><b>Category:</b> {product.category.name}</p><p><b>Current lifecycle:</b> Archived</p><p><b>Variants:</b> {product.variantCount} &nbsp; <b>Ingredients:</b> {product.ingredientCount}</p></div><footer className="flex justify-end gap-3 border-t border-slate-200 pt-4"><button onClick={onClose} className="rounded-md border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-700">Cancel</button><button onClick={()=>void onConfirm()} disabled={submitting} className="rounded-md bg-emerald-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">{submitting?"Restoring...":"Restore Product"}</button></footer></div></div></div>}

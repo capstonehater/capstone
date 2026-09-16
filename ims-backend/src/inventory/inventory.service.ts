@@ -164,6 +164,18 @@ export class InventoryService {
     });
   }
 
+  async deleteSupplier(supplierId: string) {
+    try {
+      // Existing foreign keys use SetNull to retain stock and purchasing history.
+      return await this.prisma.supplier.delete({ where: { id: supplierId } });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundException('Supplier not found');
+      }
+      throw error;
+    }
+  }
+
   async listSuppliers() {
     return this.prisma.supplier.findMany({
       orderBy: { name: 'asc' },

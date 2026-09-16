@@ -34,8 +34,8 @@ export default function ProductDetailHeader({
   const isArchived = product.archive.state === "ARCHIVED";
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div className="space-y-3">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           {mobileBackVisible ? (
             <button
@@ -46,21 +46,21 @@ export default function ProductDetailHeader({
               Back to products
             </button>
           ) : null}
-          <h2 className="text-2xl font-bold text-slate-900">{product.name}</h2>
-          <p className="mt-2 text-sm text-slate-500">{product.category.name}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="flex items-center gap-3"><h2 className="text-xl font-bold text-slate-900">{product.name}</h2><span className="rounded bg-green-100 px-2 py-1 text-[10px] font-bold uppercase text-green-700">{isArchived ? "Archived" : "Enabled"}</span></div>
+          <p className="mt-1 text-xs text-slate-600">Category: <span className="text-blue-600">{product.category.name}</span></p>
+          <div className="mt-2 flex flex-wrap gap-3 text-xs">
             <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${archiveStateBadgeClasses(product.archive.state)}`}
+              className={`font-medium ${archiveStateBadgeClasses(product.archive.state)}`}
             >
               {isArchived ? "Archived" : "Active"}
             </span>
             <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${manualAvailabilityBadgeClasses(product.manualAvailability)}`}
+              className={`font-medium ${manualAvailabilityBadgeClasses(product.manualAvailability)}`}
             >
               {summarizeAvailabilityLabel(product.manualAvailability)}
             </span>
             <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${effectiveStatusBadgeClasses(product.effectiveStatus)}`}
+              className={`font-medium ${effectiveStatusBadgeClasses(product.effectiveStatus)}`}
             >
               {product.effectiveStatusLabel}
             </span>
@@ -72,7 +72,7 @@ export default function ProductDetailHeader({
             type="button"
             onClick={onEdit}
             disabled={Boolean(submittingAction)}
-            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+            className="rounded border border-blue-300 bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-700 disabled:opacity-50"
           >
             Edit Product
           </button>
@@ -80,7 +80,7 @@ export default function ProductDetailHeader({
             type="button"
             onClick={onToggleManualAvailability}
             disabled={Boolean(submittingAction)}
-            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+            className="rounded border border-amber-300 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-700 disabled:opacity-50"
           >
             {submittingAction === "toggle-product"
               ? "Saving..."
@@ -93,7 +93,7 @@ export default function ProductDetailHeader({
               type="button"
               onClick={onRestore}
               disabled={Boolean(submittingAction)}
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+              className="rounded border border-slate-300 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-700 disabled:opacity-50"
             >
               {submittingAction === "restore-product" ? "Restoring..." : "Restore Product"}
             </button>
@@ -102,7 +102,7 @@ export default function ProductDetailHeader({
               type="button"
               onClick={onArchive}
               disabled={Boolean(submittingAction)}
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+              className="rounded border border-red-300 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 disabled:opacity-50"
             >
               {submittingAction === "archive-product" ? "Archiving..." : "Archive Product"}
             </button>
@@ -111,7 +111,7 @@ export default function ProductDetailHeader({
             type="button"
             onClick={onDelete}
             disabled={Boolean(submittingAction)}
-            className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50"
+            className="rounded border border-red-300 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 disabled:opacity-50"
           >
             Delete
           </button>
@@ -120,4 +120,3 @@ export default function ProductDetailHeader({
     </div>
   );
 }
-

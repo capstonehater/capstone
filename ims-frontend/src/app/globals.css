@@ -3,6 +3,9 @@
 :root {
   --background: #f3ede3;
   --foreground: #1f1f1f;
+  --font-sans: Arial, Helvetica, sans-serif;
+  --bs-font-sans-serif: var(--font-sans);
+  --bs-body-font-family: var(--font-sans);
 }
 
 html,
@@ -10,8 +13,36 @@ body {
   background: var(--background);
   color: var(--foreground);
   min-height: 100%;
+  font-family: var(--font-sans);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Keep large headings and summary values bold above Bootstrap's defaults. */
+.text-xl,
+.text-2xl,
+.text-3xl,
+.text-4xl,
+.text-5xl,
+.text-6xl,
+.text-7xl,
+.text-8xl,
+.text-9xl {
+  font-weight: 700;
+}
+
+a,
+a:hover,
+a:focus,
+a:active {
+  text-decoration: none;
 }

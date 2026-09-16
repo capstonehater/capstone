@@ -1,3 +1,4 @@
+import { ForecastingModule } from './forecasting/forecasting.module';
 import { Module } from '@nestjs/common';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
@@ -28,6 +29,7 @@ import { SettingsModule } from './settings/settings.module';
     ReportsModule,
     AlertsModule,
     SettingsModule,
+    ForecastingModule,
   ],
 })
 export class AppModule {}

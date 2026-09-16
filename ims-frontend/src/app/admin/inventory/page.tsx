@@ -19,6 +19,7 @@ import RawMaterialModals from "@/components/admin/inventory/RawMaterialModals";
 import StockRunModals from "@/components/admin/inventory/StockRunModals";
 import StockRunsPanel from "@/components/admin/inventory/StockRunsPanel";
 import InventorySummaryPanel from "@/components/admin/inventory/InventorySummaryPanel";
+import StoreAvailabilityModal from "@/components/admin/inventory/StoreAvailabilityModal";
 import SupplierManagementModal from "@/components/admin/inventory/SupplierManagementModal";
 import WasteModal from "@/components/admin/inventory/WasteModal";
 import { fetchAlerts, type AlertRecord } from "@/lib/alerts";
@@ -30,6 +31,7 @@ import {
   addStockRunItem,
   archiveRawMaterial,
   createSupplier,
+  deleteSupplier,
   createInventoryAdjustment,
   createInventoryWaste,
   createRawMaterial,
@@ -222,6 +224,7 @@ export default function InventoryPage() {
   const setHistoryTo = useInventoryStore((state) => state.setHistoryTo);
   const setHistorySearch = useInventoryStore((state) => state.setHistorySearch);
 
+  const [availabilityMaterial, setAvailabilityMaterial] = useState<{ id: string; name: string } | null>(null);
   const [summaries, setSummaries] = useState<InventorySummaryItem[]>([]);
   const [units, setUnits] = useState<InventoryUnit[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -278,11 +281,11 @@ export default function InventoryPage() {
   const selectedSummary =
     summaries.find((item) => item.rawMaterialId === selectedRawMaterialId) ?? null;
 
-  async function loadInventorySummary() {
+  async function loadInventorySummary(supplierFilter = supplierId) {
     const nextSummaries = await fetchInventorySummary({
       search,
       status: statusFilter || undefined,
-      supplierId: supplierId || undefined,
+      supplierId: supplierFilter || undefined,
     });
     setSummaries(nextSummaries);
     if (!selectedRawMaterialId && nextSummaries[0]) setSelectedRawMaterialId(nextSummaries[0].rawMaterialId);
@@ -494,6 +497,35 @@ export default function InventoryPage() {
     }
   };
 
+  const handleDeleteSupplier = async (deletedSupplierId: string) => {
+    setSubmitting(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const deleted = await deleteSupplier(deletedSupplierId);
+      setSuppliers((current) => current.filter((supplier) => supplier.id !== deletedSupplierId));
+      if (supplierId === deletedSupplierId) setSupplierId("");
+      setStockRunItemForm((current) => current.supplierId === deletedSupplierId ? { ...current, supplierId: "" } : current);
+      setAdjustmentForm((current) => current.supplierId === deletedSupplierId ? { ...current, supplierId: "" } : current);
+      setMessage(`Deleted supplier ${deleted.name}.`);
+      try {
+        await Promise.all([
+          loadSupportData(),
+          loadInventorySummary(supplierId === deletedSupplierId ? "" : supplierId),
+          ...(selectedRawMaterialId ? [loadMaterialBase(selectedRawMaterialId)] : []),
+          ...(activeStockRunId ? [loadActiveStockRun(activeStockRunId)] : []),
+        ]);
+      } catch {
+        setError("Supplier deleted, but some inventory details could not refresh. Reload the page.");
+      }
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Failed to delete supplier");
+      throw nextError;
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleUpdateSupplier = async (
     supplierId: string,
     input: {
@@ -636,6 +668,7 @@ export default function InventoryPage() {
             onEdit={() => { setMaterialForm(defaultMaterialForm(selectedMaterial, units[0]?.id)); setActivePanel("edit-material"); }}
             onAdjustment={() => setActivePanel("adjustment")}
             onWaste={() => setActivePanel("waste")}
+            onStoreAvailability={() => { if (selectedRawMaterialId && selectedSummary) setAvailabilityMaterial({ id: selectedRawMaterialId, name: selectedSummary.name }); }}
             onArchive={() => setActivePanel("archive-material")}
             formatQuantity={formatQuantity}
             formatMoney={formatMoney}
@@ -816,6 +849,7 @@ export default function InventoryPage() {
           formatQuantity={formatQuantity}
         />
 
+        {availabilityMaterial && <StoreAvailabilityModal key={availabilityMaterial.id} materialId={availabilityMaterial.id} materialName={availabilityMaterial.name} onClose={() => setAvailabilityMaterial(null)} onJourney={() => { setAvailabilityMaterial(null); setActivePanel("supplier-management"); }} />}
         <SupplierManagementModal
           open={activePanel === "supplier-management"}
           suppliers={suppliers}
@@ -823,6 +857,7 @@ export default function InventoryPage() {
           onClose={() => setActivePanel(null)}
           onCreateSupplier={handleCreateSupplier}
           onUpdateSupplier={handleUpdateSupplier}
+          onDeleteSupplier={handleDeleteSupplier}
         />
 
         <BatchTransactionModal

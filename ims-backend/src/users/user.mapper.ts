@@ -3,7 +3,7 @@ import { AuthenticatedUser } from '../common/types/authenticated-user.type';
 
 type PublicUserSource = Pick<
   User,
-  'id' | 'email' | 'firstName' | 'middleInitial' | 'lastName' | 'role'
+  'id' | 'email' | 'firstName' | 'middleInitial' | 'lastName' | 'role' | 'profilePictureUrl'
 >;
 type AuthUserSource = Pick<
   User,
@@ -14,6 +14,7 @@ type AuthUserSource = Pick<
   | 'lastName'
   | 'role'
   | 'isActive'
+  | 'profilePictureUrl'
 >;
 
 export function buildUserName(input: {
@@ -30,12 +31,14 @@ export function toPublicUser(user: PublicUserSource): {
   email: string;
   name: string;
   role: Role;
+  profilePictureUrl: string | null;
 } {
   return {
     id: user.id,
     email: user.email,
     name: buildUserName(user),
     role: user.role,
+    profilePictureUrl: user.profilePictureUrl,
   };
 }
 
