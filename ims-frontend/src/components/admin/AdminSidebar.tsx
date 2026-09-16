@@ -60,10 +60,9 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
               <h2 className={styles.groupTitle}>{group.label}</h2>
               {group.items.map(item => (
                 <div key={item.href} className={styles.navItemWrap}>
-                  <Link href={item.href} onClick={onClose} className={styles.navLink} aria-current={matchesShellRoute(pathname, item.href) ? "page" : undefined}>
+                  <Link href={item.href} onClick={onClose} className={styles.navLink} aria-current={matchesShellRoute(pathname, item.href.split("#")[0]) ? "page" : undefined}>
                     <item.icon size={19} aria-hidden="true" /><span>{item.label}</span>
                   </Link>
-                  {"children" in item ? <div className={`${styles.navSubmenu} ${item.children.some(child => matchesShellRoute(pathname, child.href.split("#")[0])) ? styles.navSubmenuOpen : ""}`}>{item.children.map(child => <Link key={child.href} href={child.href} onClick={onClose} className={styles.navSubLink} aria-current={matchesShellRoute(pathname, child.href.split("#")[0]) ? "page" : undefined}><child.icon size={14} aria-hidden="true" /><span>{child.label}</span></Link>)}</div> : null}
                 </div>
               ))}
             </div>

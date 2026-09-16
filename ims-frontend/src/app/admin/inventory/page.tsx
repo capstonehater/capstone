@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { usePathname } from "next/navigation";
 import {
   Boxes,
   Building2,
@@ -205,6 +206,7 @@ function getTransactionCost(transaction: InventoryTransaction) {
 }
 
 export default function InventoryPage() {
+  const pathname = usePathname();
   const search = useInventoryStore((state) => state.search);
   const statusFilter = useInventoryStore((state) => state.statusFilter);
   const supplierId = useInventoryStore((state) => state.supplierId);
@@ -219,6 +221,8 @@ export default function InventoryPage() {
   const setSupplierId = useInventoryStore((state) => state.setSupplierId);
   const setSelectedRawMaterialId = useInventoryStore((state) => state.setSelectedRawMaterialId);
   const setActivePanel = useInventoryStore((state) => state.setActivePanel);
+  useEffect(() => {
+  }, [pathname, setActivePanel]);
   const setHistoryType = useInventoryStore((state) => state.setHistoryType);
   const setHistoryFrom = useInventoryStore((state) => state.setHistoryFrom);
   const setHistoryTo = useInventoryStore((state) => state.setHistoryTo);
@@ -553,6 +557,10 @@ export default function InventoryPage() {
     }
   };
 
+  if (pathname === "/admin/suppliers" || pathname === "/admin/inventory/suppliers") {
+    return <AdminDashboardLayout><div className="min-h-full bg-white p-6"><header className="mb-6 border-b border-slate-200 pb-4"><h1 className="text-3xl font-black text-slate-900">Supplier Management</h1><p className="mt-1 text-sm text-slate-600">Create suppliers, inspect supplier details, and update purchasing references used by stock runs and adjustments.</p></header><SupplierManagementModal open suppliers={suppliers} submitting={submitting} onClose={() => {}} onCreateSupplier={handleCreateSupplier} onUpdateSupplier={handleUpdateSupplier} onDeleteSupplier={handleDeleteSupplier} pageMode /></div></AdminDashboardLayout>;
+  }
+
   return (
     <AdminDashboardLayout>
       <div className="flex flex-col gap-6 xl:min-h-full">
@@ -858,6 +866,7 @@ export default function InventoryPage() {
           onCreateSupplier={handleCreateSupplier}
           onUpdateSupplier={handleUpdateSupplier}
           onDeleteSupplier={handleDeleteSupplier}
+          pageMode={pathname === "/admin/suppliers" || pathname === "/admin/inventory/suppliers"}
         />
 
         <BatchTransactionModal

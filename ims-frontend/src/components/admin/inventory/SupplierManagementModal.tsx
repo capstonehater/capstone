@@ -40,6 +40,7 @@ type SupplierManagementModalProps = {
       contactInfo?: string;
     }
   ) => Promise<Supplier>;
+  pageMode?: boolean;
 };
 
 function defaultSupplierForm(supplier?: Supplier | null): SupplierFormState {
@@ -60,6 +61,7 @@ export default function SupplierManagementModal({
   onCreateSupplier,
   onUpdateSupplier,
   onDeleteSupplier,
+  pageMode = false,
 }: SupplierManagementModalProps) {
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -149,9 +151,10 @@ export default function SupplierManagementModal({
       description="Create suppliers, inspect supplier details, and update purchasing references used by stock runs and adjustments."
       onClose={onClose}
       wide
+      pageMode={pageMode}
     >
       <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
-        <section className="rounded-2xl border border-slate-200 bg-white">
+        <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
             <div>
               <h3 className="text-sm font-semibold text-slate-900">Suppliers</h3>
@@ -214,7 +217,7 @@ export default function SupplierManagementModal({
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <h3 className="text-lg font-semibold text-slate-900">

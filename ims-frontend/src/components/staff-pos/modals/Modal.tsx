@@ -16,7 +16,7 @@ export default function Modal({
       <div
         className={`w-full ${
           wide ? "max-w-5xl" : "max-w-2xl"
-        } rounded-3xl bg-white shadow-2xl`}
+        } flex max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl`}
       >
         <div className="flex items-center justify-between border-b px-6 py-4">
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
@@ -28,7 +28,7 @@ export default function Modal({
             Close
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-6">{children}</div>
       </div>
     </div>
   );
