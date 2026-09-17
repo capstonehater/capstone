@@ -377,29 +377,6 @@ export async function updateSupplier(
   return response.supplier;
 }
 
-export async function createInventoryAdjustment(input: {
-  direction: "INCREASE" | "DECREASE";
-  rawMaterialId: string;
-  batchId?: string;
-  quantity: number;
-  reasonCode: string;
-  note?: string;
-  costPerUnit?: number;
-  supplierId?: string;
-  expirationDate?: string;
-  receivedAt?: string;
-}) {
-  const response = await apiJsonFetch<{ transaction: InventoryTransaction }>(
-    "/inventory/adjustments",
-    {
-      method: "POST",
-      body: JSON.stringify(input),
-    }
-  );
-
-  return response.transaction;
-}
-
 export async function createInventoryWaste(input: {
   rawMaterialId: string;
   batchId: string;

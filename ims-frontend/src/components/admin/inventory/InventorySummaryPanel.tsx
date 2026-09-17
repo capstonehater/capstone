@@ -10,7 +10,7 @@ import type { InventorySummaryItem, Supplier } from "@/lib/inventory";
 function statusClasses(status: InventorySummaryItem["status"]) {
   switch (status) {
     case "IN_STOCK":
-      return "bg-emerald-100 text-emerald-700";
+      return "bg-lime-100 text-[#28511a]";
     case "LOW_STOCK":
       return "bg-amber-100 text-amber-800";
     case "OUT_OF_STOCK":
@@ -54,25 +54,25 @@ export default function InventorySummaryPanel({
   formatMoney,
 }: InventorySummaryPanelProps) {
   return (
-    <section className="flex min-h-[36rem] flex-col rounded-[28px] border border-black/5 bg-white/95 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] xl:h-[68rem] xl:overflow-hidden">
+    <section className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">Inventory Summary</h2>
+          <h2 className="text-lg font-bold text-[#232d46]">Materials</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Search raw materials and keep the scroll locked to this table.
+            Search and filter materials by stock status or supplier.
           </p>
         </div>
         <button
           type="button"
           onClick={onRefresh}
-          className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-[#232d46] transition hover:border-slate-300 hover:bg-slate-50"
         >
           <RefreshCcw size={15} />
           Refresh
         </button>
       </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
         <InventoryField htmlFor="summary-search" label="Search">
           <input
             id="summary-search"
@@ -113,10 +113,10 @@ export default function InventorySummaryPanel({
         </InventoryField>
       </div>
 
-      <div className="mt-5 flex min-h-[18rem] flex-1 overflow-hidden rounded-2xl border border-slate-200">
-        <div className="min-h-[18rem] flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
+        <div className="max-h-[34rem] overflow-auto">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-slate-50 text-left text-xs uppercase tracking-[0.18em] text-slate-400">
+            <thead className="sticky top-0 z-10 bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-600">
               <tr>
                 <th className="px-4 py-3">Material</th>
                 <th className="px-4 py-3">Status</th>
@@ -142,25 +142,25 @@ export default function InventorySummaryPanel({
                   <tr
                     key={item.rawMaterialId}
                     onClick={() => onSelectRawMaterial(item.rawMaterialId)}
-                    className={`cursor-pointer border-t border-slate-100 transition hover:bg-slate-50 ${
-                      item.rawMaterialId === selectedRawMaterialId ? "bg-orange-50" : "bg-white"
+                    className={`cursor-pointer border-t border-slate-100 transition hover:bg-lime-50 ${
+                      item.rawMaterialId === selectedRawMaterialId ? "bg-lime-50" : "bg-white"
                     }`}
                   >
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2.5">
                       <div className="font-semibold text-slate-900">{item.name}</div>
                       <div className="mt-1 text-xs text-slate-500">
                         {item.sku} · {item.unit.name}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2.5">
                       <span
                         className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClasses(item.status)}`}
                       >
                         {item.status.replaceAll("_", " ")}
                       </span>
                     </td>
-                    <td className="px-4 py-3">{formatQuantity(item.summary.usableQuantity)}</td>
-                    <td className="px-4 py-3">{formatMoney(item.inventoryValue)}</td>
+                    <td className="px-3 py-2.5 text-sm text-slate-700">{formatQuantity(item.summary.usableQuantity)}</td>
+                    <td className="px-3 py-2.5 text-sm font-medium text-slate-700">{formatMoney(item.inventoryValue)}</td>
                   </tr>
                 ))
               )}

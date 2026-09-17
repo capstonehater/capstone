@@ -3,7 +3,7 @@ import { Bell, Boxes, FileText, LayoutDashboard, Package2, Settings, UsersRound,
 export const adminNavigation = [
   { label: "Main", items: [
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, subtitle: "Welcome back! Here's your inventory overview." },
-    { label: "Inventory", href: "/admin/inventory", icon: Boxes, subtitle: "Monitor stock, receiving, adjustments, and waste." },
+    { label: "Inventory", href: "/admin/inventory", icon: Boxes, subtitle: "Monitor stock, receiving, and waste." },
     { label: "Products", href: "/admin/products", icon: Package2, subtitle: "Manage menu products, variants, and recipes." },
     { label: "Suppliers", href: "/admin/inventory/suppliers", icon: UsersRound, subtitle: "Manage suppliers and store locations." },
   ] },

@@ -20,12 +20,12 @@ export default function StockRunsPanel({
   formatDateTime,
 }: StockRunsPanelProps) {
   return (
-    <section className="flex min-h-[24rem] flex-col rounded-[28px] border border-black/5 bg-white/95 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] xl:h-[28rem] xl:overflow-hidden">
+    <section className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">Recent Stock Runs</h2>
+          <h2 className="text-lg font-bold text-[#232d46]">Recent Stock Runs</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Drafts reopen in a modal workspace. Posted runs stay visible as receipts.
+            Review posted receipts or continue a draft stock run.
           </p>
         </div>
         <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
@@ -33,10 +33,10 @@ export default function StockRunsPanel({
         </span>
       </div>
 
-      <div className="mt-5 flex min-h-[12rem] flex-1 overflow-hidden rounded-2xl border border-slate-200 xl:min-h-0">
-        <div className="min-h-[12rem] flex-1 overflow-y-auto overflow-x-hidden xl:min-h-0">
+      <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
+        <div className="max-h-[26rem] overflow-auto">
           <table className="min-w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-slate-50 text-left text-xs uppercase tracking-[0.18em] text-slate-400">
+            <thead className="sticky top-0 z-10 bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-600">
               <tr>
                 <th className="px-4 py-3">Run</th>
                 <th className="px-4 py-3">Status</th>
@@ -85,7 +85,7 @@ export default function StockRunsPanel({
                             <button
                               type="button"
                               onClick={() => onOpenDraft(stockRun.id)}
-                              className="rounded-full border border-orange-200 px-3 py-1.5 text-xs font-semibold text-[#f45a1f] transition hover:border-orange-300 hover:bg-orange-50"
+                              className="rounded-md border border-[#232d46] bg-[#232d46] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#303d5c]"
                             >
                               Open
                             </button>
@@ -110,9 +110,6 @@ export default function StockRunsPanel({
         </div>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-dashed border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-700">
-        Supplier recommendation remains mock-only and is intentionally excluded from this UX pass.
-      </div>
     </section>
   );
 }

@@ -12,10 +12,6 @@ import { AvailabilityService } from '../availability/availability.service';
 import { toDecimal } from '../common/utils/decimal.util';
 import { OutboxService } from '../events/outbox.service';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  CreateInventoryAdjustmentDto,
-  InventoryAdjustmentDirection,
-} from './dto/create-inventory-adjustment.dto';
 import { CreateInventoryWasteDto } from './dto/create-inventory-waste.dto';
 import { ListInventoryTransactionsDto } from './dto/list-inventory-transactions.dto';
 import { InventoryLedgerService } from './inventory-ledger.service';
@@ -30,152 +26,6 @@ export class InventoryActionsService {
     private readonly availabilityService: AvailabilityService,
     private readonly outboxService: OutboxService,
   ) {}
-
-  async createAdjustment(
-    dto: CreateInventoryAdjustmentDto,
-    actorUserId: string,
-  ) {
-    return this.prisma.$transaction(async (tx) => {
-      await this.ensureRawMaterialExists(tx, dto.rawMaterialId);
-
-      if (dto.supplierId) {
-        await this.ensureSupplierExists(tx, dto.supplierId);
-      }
-
-      if (dto.direction === InventoryAdjustmentDirection.INCREASE) {
-        const quantity = toDecimal(dto.quantity);
-        const costPerUnit = toDecimal(dto.costPerUnit);
-        const receivedAt = dto.receivedAt
-          ? new Date(dto.receivedAt)
-          : new Date();
-
-        const batch = await tx.stockBatch.create({
-          data: {
-            rawMaterialId: dto.rawMaterialId,
-            supplierId: dto.supplierId ?? null,
-            initialQuantity: quantity,
-            remainingQuantity: quantity,
-            costPerUnit,
-            expirationDate: dto.expirationDate
-              ? new Date(dto.expirationDate)
-              : null,
-            receivedAt,
-          },
-        });
-
-        const transaction = await this.inventoryLedgerService.appendTransaction(
-          tx,
-          {
-            type: InventoryTransactionType.ADJUSTMENT,
-            sourceType: InventorySourceType.INVENTORY_ADJUSTMENT,
-            sourceId: batch.id,
-            actorUserId,
-            reasonCode: dto.reasonCode,
-            metadata: {
-              direction: dto.direction,
-              rawMaterialId: dto.rawMaterialId,
-              supplierId: dto.supplierId ?? null,
-            },
-            note: dto.note ?? null,
-            occurredAt: receivedAt,
-            lines: [
-              {
-                rawMaterialId: dto.rawMaterialId,
-                stockBatchId: batch.id,
-                quantityDelta: quantity,
-                unitCostSnapshot: costPerUnit,
-                totalCostDelta: quantity.mul(costPerUnit),
-              },
-            ],
-          },
-        );
-
-        await this.refreshInventoryReadModels(tx, dto.rawMaterialId);
-        await this.outboxService.enqueue(tx, {
-          aggregateType: 'inventory_adjustment',
-          aggregateId: transaction.id,
-          eventType: 'inventory.adjusted',
-          payload: {
-            transactionId: transaction.id,
-            rawMaterialId: dto.rawMaterialId,
-            direction: dto.direction,
-            quantity: quantity.toString(),
-          },
-        });
-
-        return this.getTransactionById(tx, transaction.id);
-      }
-
-      if (!dto.batchId) {
-        throw new BadRequestException(
-          'A batch is required for negative adjustments',
-        );
-      }
-
-      const quantity = toDecimal(dto.quantity);
-      const batch = await this.ensureUsableBatch(
-        tx,
-        dto.batchId,
-        dto.rawMaterialId,
-      );
-
-      if (batch.remainingQuantity.lessThan(quantity)) {
-        throw new BadRequestException(
-          'Adjustment quantity exceeds remaining batch quantity',
-        );
-      }
-
-      await tx.stockBatch.update({
-        where: { id: batch.id },
-        data: {
-          remainingQuantity: batch.remainingQuantity.minus(quantity),
-        },
-      });
-
-      const transaction = await this.inventoryLedgerService.appendTransaction(
-        tx,
-        {
-          type: InventoryTransactionType.ADJUSTMENT,
-          sourceType: InventorySourceType.INVENTORY_ADJUSTMENT,
-          sourceId: batch.id,
-          actorUserId,
-          reasonCode: dto.reasonCode,
-          metadata: {
-            direction: dto.direction,
-            rawMaterialId: dto.rawMaterialId,
-            batchId: batch.id,
-          },
-          note: dto.note ?? null,
-          occurredAt: new Date(),
-          lines: [
-            {
-              rawMaterialId: dto.rawMaterialId,
-              stockBatchId: batch.id,
-              quantityDelta: quantity.negated(),
-              unitCostSnapshot: batch.costPerUnit,
-              totalCostDelta: quantity.mul(batch.costPerUnit).negated(),
-            },
-          ],
-        },
-      );
-
-      await this.refreshInventoryReadModels(tx, dto.rawMaterialId);
-      await this.outboxService.enqueue(tx, {
-        aggregateType: 'inventory_adjustment',
-        aggregateId: transaction.id,
-        eventType: 'inventory.adjusted',
-        payload: {
-          transactionId: transaction.id,
-          rawMaterialId: dto.rawMaterialId,
-          direction: dto.direction,
-          quantity: quantity.toString(),
-          batchId: batch.id,
-        },
-      });
-
-      return this.getTransactionById(tx, transaction.id);
-    });
-  }
 
   async logWaste(dto: CreateInventoryWasteDto, actorUserId: string) {
     return this.prisma.$transaction(async (tx) => {
@@ -462,17 +312,6 @@ export class InventoryActionsService {
 
     if (!rawMaterial) {
       throw new NotFoundException('Raw material not found');
-    }
-  }
-
-  private async ensureSupplierExists(tx: TxClient, supplierId: string) {
-    const supplier = await tx.supplier.findUnique({
-      where: { id: supplierId },
-      select: { id: true },
-    });
-
-    if (!supplier) {
-      throw new NotFoundException('Supplier not found');
     }
   }
 

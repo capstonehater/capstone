@@ -6,7 +6,6 @@ import {
   ClipboardList,
   FlaskConical,
   Loader2,
-  RefreshCcw,
   Store,
 } from "lucide-react";
 import {
@@ -23,7 +22,7 @@ import type {
 function statusClasses(status: InventorySummaryItem["status"]) {
   switch (status) {
     case "IN_STOCK":
-      return "bg-emerald-100 text-emerald-700";
+      return "bg-lime-100 text-[#28511a]";
     case "LOW_STOCK":
       return "bg-amber-100 text-amber-800";
     case "OUT_OF_STOCK":
@@ -35,11 +34,11 @@ function statusClasses(status: InventorySummaryItem["status"]) {
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-slate-50 p-4">
-      <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
         {label}
       </div>
-      <div className="mt-3 font-semibold text-slate-900">{value}</div>
+      <div className="mt-2 font-semibold text-slate-900">{value}</div>
     </div>
   );
 }
@@ -62,7 +61,7 @@ function InlineActionButton({
       className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
         destructive
           ? "border-rose-200 text-rose-700 hover:border-rose-300 hover:bg-rose-50"
-          : "border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+          : "border-slate-200 text-[#232d46] hover:border-slate-300 hover:bg-slate-50"
       }`}
     >
       {icon}
@@ -89,7 +88,6 @@ type MaterialDetailPanelProps = {
   onHistorySearchInputChange: (value: string) => void;
   onSelectBatch: (batch: StockBatch) => void;
   onEdit: () => void;
-  onAdjustment: () => void;
   onWaste: () => void;
   onArchive: () => void;
   onStoreAvailability: () => void;
@@ -119,7 +117,6 @@ export default function MaterialDetailPanel({
   onHistorySearchInputChange,
   onSelectBatch,
   onEdit,
-  onAdjustment,
   onWaste,
   onArchive,
   onStoreAvailability,
@@ -134,7 +131,7 @@ export default function MaterialDetailPanel({
 
   if (!selectedRawMaterialId) {
     return (
-      <section className="flex min-h-[24rem] flex-col rounded-[28px] border border-black/5 bg-white/95 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+      <section className="flex min-h-72 flex-col rounded-xl border border-slate-200 bg-white p-4">
         <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">
           Select a material to inspect summary, batches, and transaction history.
         </div>
@@ -143,11 +140,11 @@ export default function MaterialDetailPanel({
   }
 
   return (
-    <section className="flex min-h-[44rem] flex-col rounded-[28px] border border-black/5 bg-white/95 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] xl:h-[68rem] xl:min-h-0 xl:overflow-hidden">
+    <section className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-xl font-semibold text-slate-900">
+            <h2 className="text-lg font-bold text-[#232d46]">
               {selectedMaterial?.name ?? selectedSummary?.name ?? "Raw Material"}
             </h2>
             {selectedSummary ? (
@@ -166,12 +163,7 @@ export default function MaterialDetailPanel({
         <div className="flex flex-wrap gap-2">
           <InlineActionButton label="Store Availability" icon={<Store size={15} />} onClick={onStoreAvailability} />
           <InlineActionButton label="Edit" icon={<ClipboardList size={15} />} onClick={onEdit} />
-          <InlineActionButton
-            label="Adjustment"
-            icon={<RefreshCcw size={15} />}
-            onClick={onAdjustment}
-          />
-          <InlineActionButton label="Waste" icon={<FlaskConical size={15} />} onClick={onWaste} />
+          <InlineActionButton label="Record Waste" icon={<FlaskConical size={15} />} onClick={onWaste} />
           <InlineActionButton
             label="Archive"
             icon={<Archive size={15} />}
@@ -189,31 +181,31 @@ export default function MaterialDetailPanel({
               <p className="font-semibold">{selectedSummary.name} needs attention</p>
               <p className="mt-1 text-amber-800">
                 This material is {selectedSummary.status.replaceAll("_", " ").toLowerCase()}. Use
-                a stock run, adjustment, or waste entry so the ledger and summaries stay aligned.
+                a stock run or waste entry so the ledger and summaries stay aligned.
               </p>
             </div>
           </div>
         </div>
       ) : null}
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricTile label="SKU" value={selectedMaterial?.sku ?? selectedSummary?.sku ?? "N/A"} />
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
         <MetricTile
           label="On Hand"
-          value={formatQuantity(selectedMaterial?.summary?.onHandQuantity ?? "0")}
+          value={selectedMaterial?.summary ? formatQuantity(selectedMaterial.summary.onHandQuantity) : "—"}
         />
         <MetricTile
           label="Usable"
-          value={formatQuantity(selectedMaterial?.summary?.usableQuantity ?? "0")}
+          value={selectedMaterial?.summary ? formatQuantity(selectedMaterial.summary.usableQuantity) : "—"}
         />
         <MetricTile
           label="Reorder Point"
-          value={formatQuantity(selectedMaterial?.reorderPoint ?? "0")}
+          value={selectedMaterial ? formatQuantity(selectedMaterial.reorderPoint) : "—"}
         />
+        <MetricTile label="Inventory Value" value={selectedSummary ? formatMoney(selectedSummary.inventoryValue) : "—"} />
       </div>
 
-      <div className="mt-5 grid flex-1 gap-4 xl:min-h-0 xl:grid-rows-[minmax(0,0.82fr)_minmax(0,1.18fr)] xl:overflow-hidden">
-        <section className="flex min-h-[18rem] flex-col overflow-hidden rounded-2xl border border-slate-200 xl:min-h-0">
+      <div className="mt-4 grid gap-4">
+        <section className="flex min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200">
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -230,9 +222,9 @@ export default function MaterialDetailPanel({
               ) : null}
             </div>
           </div>
-          <div className="min-h-[16rem] flex-1 overflow-y-auto overflow-x-hidden xl:min-h-0">
+          <div className="max-h-72 overflow-auto">
             <table className="w-full table-fixed text-sm">
-              <thead className="sticky top-0 z-10 bg-white text-left text-xs uppercase tracking-[0.18em] text-slate-400">
+              <thead className="sticky top-0 z-10 bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-600">
                 <tr>
                   <th className="px-4 py-3">Batch</th>
                   <th className="px-4 py-3">Remaining</th>
@@ -252,12 +244,12 @@ export default function MaterialDetailPanel({
                 ) : (
                   batches.map((batch) => (
                     <tr key={batch.id} className="border-t border-slate-100">
-                      <td className="px-4 py-3 font-medium text-slate-900">{batch.id.slice(0, 8)}</td>
-                      <td className="px-4 py-3">{formatQuantity(batch.remainingQuantity)}</td>
-                      <td className="px-4 py-3">{formatMoney(batch.costPerUnit)}</td>
-                      <td className="px-4 py-3">{formatDate(batch.expirationDate)}</td>
-                      <td className="px-4 py-3">{batch.supplier?.name ?? "N/A"}</td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-3 py-2 font-medium text-slate-900">{batch.id.slice(0, 8)}</td>
+                      <td className="px-3 py-2">{formatQuantity(batch.remainingQuantity)}</td>
+                      <td className="px-3 py-2">{formatMoney(batch.costPerUnit)}</td>
+                      <td className="px-3 py-2">{formatDate(batch.expirationDate)}</td>
+                      <td className="px-3 py-2">{batch.supplier?.name ?? "N/A"}</td>
+                      <td className="px-3 py-2 text-right">
                         <button
                           type="button"
                           onClick={() => onSelectBatch(batch)}
@@ -340,7 +332,7 @@ export default function MaterialDetailPanel({
             </div>
           </div>
 
-          <div className="min-h-[18rem] flex-1 overflow-x-auto overflow-y-auto xl:min-h-0">
+          <div className="max-h-[30rem] overflow-auto">
             <table className="min-w-[52rem] text-sm">
               <thead className="sticky top-0 z-10 bg-white text-left text-xs uppercase tracking-[0.18em] text-slate-400">
                 <tr>

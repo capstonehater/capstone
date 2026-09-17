@@ -14,10 +14,8 @@ type PanelMode =
   | null
   | "create-material"
   | "edit-material"
-  | "supplier-management"
   | "stock-run-create"
   | "stock-run-manage"
-  | "adjustment"
   | "waste"
   | "archive-material"
   | "delete-draft";

@@ -1,18 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Boxes,
-  Building2,
-  FlaskConical,
   Plus,
-  RefreshCcw,
-  AlertTriangle,
   Trash2,
 } from "lucide-react";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
-import AdjustmentModal from "@/components/admin/inventory/AdjustmentModal";
 import BatchTransactionModal from "@/components/admin/inventory/BatchTransactionModal";
 import InventoryBusinessInsights from "@/components/admin/inventory/InventoryBusinessInsights";
 import MaterialDetailPanel from "@/components/admin/inventory/MaterialDetailPanel";
@@ -21,19 +16,12 @@ import StockRunModals from "@/components/admin/inventory/StockRunModals";
 import StockRunsPanel from "@/components/admin/inventory/StockRunsPanel";
 import InventorySummaryPanel from "@/components/admin/inventory/InventorySummaryPanel";
 import StoreAvailabilityModal from "@/components/admin/inventory/StoreAvailabilityModal";
-import SupplierManagementModal from "@/components/admin/inventory/SupplierManagementModal";
 import WasteModal from "@/components/admin/inventory/WasteModal";
 import { fetchAlerts, type AlertRecord } from "@/lib/alerts";
-import {
-  getDefaultAdjustmentReasonCode,
-  getDefaultWasteReasonCode,
-} from "@/lib/inventory-reason-options";
+import { getDefaultWasteReasonCode } from "@/lib/inventory-reason-options";
 import {
   addStockRunItem,
   archiveRawMaterial,
-  createSupplier,
-  deleteSupplier,
-  createInventoryAdjustment,
   createInventoryWaste,
   createRawMaterial,
   createStockRun,
@@ -50,7 +38,6 @@ import {
   fetchUnits,
   postStockRun,
   updateRawMaterial,
-  updateSupplier,
   type InventorySummaryItem,
   type InventoryTransaction,
   type InventoryUnit,
@@ -73,10 +60,8 @@ type PanelMode =
   | null
   | "create-material"
   | "edit-material"
-  | "supplier-management"
   | "stock-run-create"
   | "stock-run-manage"
-  | "adjustment"
   | "waste"
   | "archive-material"
   | "delete-draft";
@@ -86,19 +71,6 @@ type MaterialFormState = {
   sku: string;
   unitId: string;
   reorderPoint: string;
-};
-
-type AdjustmentFormState = {
-  direction: "INCREASE" | "DECREASE";
-  rawMaterialId: string;
-  batchId: string;
-  quantity: string;
-  reasonCode: string;
-  note: string;
-  costPerUnit: string;
-  supplierId: string;
-  expirationDate: string;
-  receivedAt: string;
 };
 
 type WasteFormState = {
@@ -141,21 +113,6 @@ function defaultMaterialForm(material?: RawMaterial | null, unitId?: string): Ma
     sku: material?.sku ?? "",
     unitId: material?.unitId ?? unitId ?? "",
     reorderPoint: material?.reorderPoint ?? "0",
-  };
-}
-
-function defaultAdjustmentForm(rawMaterialId?: string | null): AdjustmentFormState {
-  return {
-    direction: "INCREASE",
-    rawMaterialId: rawMaterialId ?? "",
-    batchId: "",
-    quantity: "",
-    reasonCode: getDefaultAdjustmentReasonCode("INCREASE"),
-    note: "",
-    costPerUnit: "",
-    supplierId: "",
-    expirationDate: "",
-    receivedAt: "",
   };
 }
 
@@ -206,7 +163,7 @@ function getTransactionCost(transaction: InventoryTransaction) {
 }
 
 export default function InventoryPage() {
-  const pathname = usePathname();
+  const router = useRouter();
   const search = useInventoryStore((state) => state.search);
   const statusFilter = useInventoryStore((state) => state.statusFilter);
   const supplierId = useInventoryStore((state) => state.supplierId);
@@ -221,8 +178,6 @@ export default function InventoryPage() {
   const setSupplierId = useInventoryStore((state) => state.setSupplierId);
   const setSelectedRawMaterialId = useInventoryStore((state) => state.setSelectedRawMaterialId);
   const setActivePanel = useInventoryStore((state) => state.setActivePanel);
-  useEffect(() => {
-  }, [pathname, setActivePanel]);
   const setHistoryType = useInventoryStore((state) => state.setHistoryType);
   const setHistoryFrom = useInventoryStore((state) => state.setHistoryFrom);
   const setHistoryTo = useInventoryStore((state) => state.setHistoryTo);
@@ -257,7 +212,6 @@ export default function InventoryPage() {
   const [summarySearchInput, setSummarySearchInput] = useState(search);
   const [historySearchInput, setHistorySearchInput] = useState(historySearch);
   const [materialForm, setMaterialForm] = useState<MaterialFormState>(defaultMaterialForm());
-  const [adjustmentForm, setAdjustmentForm] = useState<AdjustmentFormState>(defaultAdjustmentForm());
   const [wasteForm, setWasteForm] = useState<WasteFormState>(defaultWasteForm());
   const [stockRunForm, setStockRunForm] = useState<StockRunFormState>({ name: "", notes: "" });
   const [stockRunItemForm, setStockRunItemForm] = useState<StockRunItemFormState>({
@@ -271,16 +225,6 @@ export default function InventoryPage() {
   });
 
   const hydratedRef = useRef(false);
-
-  const stats = {
-    totalMaterials: summaries.length,
-    inStock: summaries.filter((item) => item.status === "IN_STOCK").length,
-    lowStock: summaries.filter((item) => item.status === "LOW_STOCK").length,
-    outOfStock: summaries.filter((item) => item.status === "OUT_OF_STOCK").length,
-    inventoryValue: currencyFormatter.format(
-      summaries.reduce((sum, item) => sum + Number(item.inventoryValue), 0)
-    ),
-  };
 
   const selectedSummary =
     summaries.find((item) => item.rawMaterialId === selectedRawMaterialId) ?? null;
@@ -459,7 +403,6 @@ export default function InventoryPage() {
   }, [activeStockRunId]);
 
   useEffect(() => {
-    setAdjustmentForm((current) => ({ ...current, rawMaterialId: selectedRawMaterialId || "", batchId: current.rawMaterialId === selectedRawMaterialId ? current.batchId : "" }));
     setWasteForm((current) => ({ ...current, rawMaterialId: selectedRawMaterialId || "", batchId: current.rawMaterialId === selectedRawMaterialId ? current.batchId : "" }));
     setStockRunItemForm((current) => ({ ...current, rawMaterialId: selectedRawMaterialId || "" }));
   }, [selectedRawMaterialId]);
@@ -477,114 +420,29 @@ export default function InventoryPage() {
     }
   };
 
-  const handleCreateSupplier = async (input: {
-    name: string;
-    latitude?: number;
-    longitude?: number;
-    address?: string;
-    contactInfo?: string;
-  }) => {
-    setSubmitting(true);
-    setError(null);
-    setMessage(null);
-
-    try {
-      const supplier = await createSupplier(input);
-      await loadSupportData();
-      setMessage(`Created supplier ${supplier.name}.`);
-      return supplier;
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : "Failed to create supplier");
-      throw nextError;
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDeleteSupplier = async (deletedSupplierId: string) => {
-    setSubmitting(true);
-    setError(null);
-    setMessage(null);
-    try {
-      const deleted = await deleteSupplier(deletedSupplierId);
-      setSuppliers((current) => current.filter((supplier) => supplier.id !== deletedSupplierId));
-      if (supplierId === deletedSupplierId) setSupplierId("");
-      setStockRunItemForm((current) => current.supplierId === deletedSupplierId ? { ...current, supplierId: "" } : current);
-      setAdjustmentForm((current) => current.supplierId === deletedSupplierId ? { ...current, supplierId: "" } : current);
-      setMessage(`Deleted supplier ${deleted.name}.`);
-      try {
-        await Promise.all([
-          loadSupportData(),
-          loadInventorySummary(supplierId === deletedSupplierId ? "" : supplierId),
-          ...(selectedRawMaterialId ? [loadMaterialBase(selectedRawMaterialId)] : []),
-          ...(activeStockRunId ? [loadActiveStockRun(activeStockRunId)] : []),
-        ]);
-      } catch {
-        setError("Supplier deleted, but some inventory details could not refresh. Reload the page.");
-      }
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : "Failed to delete supplier");
-      throw nextError;
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleUpdateSupplier = async (
-    supplierId: string,
-    input: {
-      name?: string;
-      latitude?: number;
-      longitude?: number;
-      address?: string;
-      contactInfo?: string;
-    }
-  ) => {
-    setSubmitting(true);
-    setError(null);
-    setMessage(null);
-
-    try {
-      const supplier = await updateSupplier(supplierId, input);
-      await loadSupportData();
-      setMessage(`Updated supplier ${supplier.name}.`);
-      return supplier;
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : "Failed to update supplier");
-      throw nextError;
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  if (pathname === "/admin/suppliers" || pathname === "/admin/inventory/suppliers") {
-    return <AdminDashboardLayout><div className="min-h-full bg-white p-6"><header className="mb-6 border-b border-slate-200 pb-4"><h1 className="text-3xl font-black text-slate-900">Supplier Management</h1><p className="mt-1 text-sm text-slate-600">Create suppliers, inspect supplier details, and update purchasing references used by stock runs and adjustments.</p></header><SupplierManagementModal open suppliers={suppliers} submitting={submitting} onClose={() => {}} onCreateSupplier={handleCreateSupplier} onUpdateSupplier={handleUpdateSupplier} onDeleteSupplier={handleDeleteSupplier} pageMode /></div></AdminDashboardLayout>;
-  }
-
   return (
     <AdminDashboardLayout>
-      <div className="flex flex-col gap-6 xl:min-h-full">
-        <section className="overflow-hidden rounded-[36px] bg-[linear-gradient(135deg,#1f2937_0%,#334155_42%,#f45a1f_100%)] p-6 text-white shadow-[0_26px_80px_rgba(15,23,42,0.18)] md:p-8">
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-            <div className="max-w-3xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-100/90">Admin Inventory Control</p>
-              <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">Keep purchasing, waste, and adjustments focused.</h1>
-              <p className="mt-3 max-w-2xl text-sm text-slate-100/85 md:text-base">The backend stays untouched while the admin workspace moves into clearer modal flows, stable filtering, and table-first scrolling.</p>
+      <div className="flex flex-col gap-5 bg-[#f5f5f5] text-[#232d46]">
+        <section className="overflow-hidden rounded-xl bg-[linear-gradient(115deg,#202b45_0%,#1d355a_55%,#0875a6_100%)] p-5 text-white shadow-sm md:p-6">
+          <div className="grid gap-5 2xl:grid-cols-[minmax(18rem,0.8fr)_minmax(0,2fr)] 2xl:items-center">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-200">Inventory Overview</p>
+              <h1 className="mt-4 max-w-md text-2xl font-semibold leading-tight tracking-tight md:text-3xl">Inventory Management</h1>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <HeroButton label="Add Raw Material" icon={<Plus size={16} />} onClick={() => { setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }} />
-              <HeroButton label="Manage Suppliers" icon={<Building2 size={16} />} onClick={() => setActivePanel("supplier-management")} />
-              <HeroButton label="New Stock Run" icon={<Boxes size={16} />} onClick={() => { setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }} />
-              <HeroButton label="Record Adjustment" icon={<RefreshCcw size={16} />} onClick={() => setActivePanel("adjustment")} />
-              <HeroButton label="Record Waste" icon={<Trash2 size={16} />} onClick={() => setActivePanel("waste")} />
+            <div className="min-w-0">
+              <div className="flex flex-wrap gap-2">
+                <BannerActionButton label="Add Raw Material" icon={<Plus size={14} />} onClick={() => { setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }} />
+                <BannerActionButton label="New Stock Run" icon={<Boxes size={14} />} onClick={() => { setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }} />
+                <BannerActionButton label="Record Waste" icon={<Trash2 size={14} />} onClick={() => setActivePanel("waste")} />
+              </div>
+              <div aria-label="Inventory overview metrics" className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+                <MetricCard label="Materials" value={inventoryHealth ? String(inventoryHealth.summary.totalMaterials) : "—"} />
+                <MetricCard label="In Stock" value={inventoryHealth ? String(inventoryHealth.summary.inStockCount) : "—"} />
+                <MetricCard label="Low Stock" value={inventoryHealth ? String(inventoryHealth.summary.lowStockCount) : "—"} />
+                <MetricCard label="Out of Stock" value={inventoryHealth ? String(inventoryHealth.summary.outOfStockCount) : "—"} />
+                <MetricCard label="Inventory Value" value={inventoryHealth ? formatMoney(inventoryHealth.summary.totalInventoryValue) : "—"} />
+              </div>
             </div>
-          </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <MetricCard label="Materials" value={String(stats.totalMaterials)} />
-            <MetricCard label="In Stock" value={String(stats.inStock)} />
-            <MetricCard label="Low Stock" value={String(stats.lowStock)} />
-            <MetricCard label="Out of Stock" value={String(stats.outOfStock)} />
-            <MetricCard label="Inventory Value" value={stats.inventoryValue} />
           </div>
         </section>
 
@@ -595,50 +453,14 @@ export default function InventoryPage() {
           inventoryHealth={inventoryHealth}
           stockRunSpend={stockRunSpend}
           wasteSummary={wasteSummary}
+          alerts={activeAlerts}
           loading={initialLoading || reportLoading}
           formatMoney={formatMoney}
           formatQuantity={formatQuantity}
           formatDate={formatDate}
         />
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900">Active Alerts</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Operational alerts generated from stock activity and expiry reevaluation.
-              </p>
-            </div>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-              {activeAlerts.length} active
-            </span>
-          </div>
-          <div className="mt-4 grid gap-3 lg:grid-cols-3">
-            {activeAlerts.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500 lg:col-span-3">
-                No active alerts right now.
-              </div>
-            ) : (
-              activeAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className="rounded-2xl border border-amber-200 bg-amber-50 p-4"
-                >
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <h3 className="font-semibold text-slate-900">{alert.title}</h3>
-                    <AlertTriangle className="h-4 w-4 text-[#f45a1f]" />
-                  </div>
-                  <p className="text-sm text-slate-600">{alert.message}</p>
-                  <p className="mt-3 text-xs uppercase tracking-wide text-slate-500">
-                    {alert.type.replaceAll("_", " ")} • {alert.severity}
-                  </p>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-
-        <div className="grid gap-6 xl:grid-cols-[0.95fr_1.45fr] xl:items-start">
+        <div className="grid items-start gap-4 2xl:grid-cols-[minmax(19rem,0.85fr)_minmax(0,1.65fr)]">
           <InventorySummaryPanel
             summarySearchInput={summarySearchInput}
             statusFilter={statusFilter}
@@ -674,7 +496,6 @@ export default function InventoryPage() {
             onHistorySearchInputChange={setHistorySearchInput}
             onSelectBatch={(batch) => void openBatchDrilldown(batch)}
             onEdit={() => { setMaterialForm(defaultMaterialForm(selectedMaterial, units[0]?.id)); setActivePanel("edit-material"); }}
-            onAdjustment={() => setActivePanel("adjustment")}
             onWaste={() => setActivePanel("waste")}
             onStoreAvailability={() => { if (selectedRawMaterialId && selectedSummary) setAvailabilityMaterial({ id: selectedRawMaterialId, name: selectedSummary.name }); }}
             onArchive={() => setActivePanel("archive-material")}
@@ -810,30 +631,6 @@ export default function InventoryPage() {
           formatDate={formatDate}
         />
 
-        <AdjustmentModal
-          activePanel={activePanel}
-          submitting={submitting}
-          summaries={summaries}
-          suppliers={suppliers}
-          batches={batches}
-          adjustmentForm={adjustmentForm}
-          onClose={() => setActivePanel(null)}
-          onAdjustmentFormChange={setAdjustmentForm}
-          onSubmitAdjustment={(event) => {
-            event.preventDefault();
-            void runAction(async () => {
-              await createInventoryAdjustment({ direction: adjustmentForm.direction, rawMaterialId: adjustmentForm.rawMaterialId, batchId: adjustmentForm.direction === "DECREASE" ? adjustmentForm.batchId : undefined, quantity: Number(adjustmentForm.quantity), reasonCode: adjustmentForm.reasonCode, note: adjustmentForm.note || undefined, costPerUnit: adjustmentForm.direction === "INCREASE" ? Number(adjustmentForm.costPerUnit) : undefined, supplierId: adjustmentForm.supplierId || undefined, expirationDate: adjustmentForm.expirationDate || undefined, receivedAt: adjustmentForm.receivedAt || undefined });
-              setAdjustmentForm(defaultAdjustmentForm(selectedRawMaterialId));
-              setActivePanel(null);
-              setMessage("Inventory adjustment recorded.");
-              await refreshEverything(true);
-              await loadBusinessReports();
-            }, "Failed to record adjustment");
-          }}
-          onSelectRawMaterial={setSelectedRawMaterialId}
-          formatQuantity={formatQuantity}
-        />
-
         <WasteModal
           activePanel={activePanel}
           submitting={submitting}
@@ -857,17 +654,7 @@ export default function InventoryPage() {
           formatQuantity={formatQuantity}
         />
 
-        {availabilityMaterial && <StoreAvailabilityModal key={availabilityMaterial.id} materialId={availabilityMaterial.id} materialName={availabilityMaterial.name} onClose={() => setAvailabilityMaterial(null)} onJourney={() => { setAvailabilityMaterial(null); setActivePanel("supplier-management"); }} />}
-        <SupplierManagementModal
-          open={activePanel === "supplier-management"}
-          suppliers={suppliers}
-          submitting={submitting}
-          onClose={() => setActivePanel(null)}
-          onCreateSupplier={handleCreateSupplier}
-          onUpdateSupplier={handleUpdateSupplier}
-          onDeleteSupplier={handleDeleteSupplier}
-          pageMode={pathname === "/admin/suppliers" || pathname === "/admin/inventory/suppliers"}
-        />
+        {availabilityMaterial && <StoreAvailabilityModal key={availabilityMaterial.id} materialId={availabilityMaterial.id} materialName={availabilityMaterial.name} onClose={() => setAvailabilityMaterial(null)} onJourney={() => { setAvailabilityMaterial(null); router.push("/admin/inventory/suppliers"); }} />}
 
         <BatchTransactionModal
           batch={selectedBatch}
@@ -884,10 +671,10 @@ export default function InventoryPage() {
   );
 }
 
-function HeroButton({ label, icon, onClick }: { label: string; icon: React.ReactNode; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/15">{icon}{label}</button>;
+function BannerActionButton({ label, icon, onClick }: { label: string; icon: React.ReactNode; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/35 bg-white/5 px-3 py-2 text-xs font-medium text-white transition hover:bg-white/15">{icon}{label}</button>;
 }
 
 function MetricCard({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-[24px] border border-white/15 bg-white/10 px-5 py-4 text-white"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-100/85">{label}</p><p className="mt-3 text-3xl font-semibold">{value}</p></div>;
+  return <div className="rounded-lg border border-white/30 bg-[#17243c]/35 px-3 py-2.5 text-white"><p className="text-[11px] font-medium text-slate-200">{label}</p><p className="mt-1 text-xl font-semibold">{value}</p></div>;
 }

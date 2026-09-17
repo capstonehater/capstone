@@ -1,240 +1,135 @@
 "use client";
 
-import type {
-  InventoryHealthReport,
-  StockRunSpendReport,
-  WasteSummaryReport,
-} from "@/lib/reports";
+import { AlertTriangle, Bell, Boxes, ChartNoAxesCombined, Clock3, PackageSearch, Truck } from "lucide-react";
+import type { AlertRecord } from "@/lib/alerts";
+import type { InventoryHealthReport, StockRunSpendReport, WasteSummaryReport } from "@/lib/reports";
 
 type InventoryBusinessInsightsProps = {
   inventoryHealth: InventoryHealthReport | null;
   stockRunSpend: StockRunSpendReport | null;
   wasteSummary: WasteSummaryReport | null;
+  alerts: AlertRecord[];
   loading: boolean;
   formatMoney: (value: string) => string;
   formatQuantity: (value: string) => string;
   formatDate: (value: string | null | undefined) => string;
 };
 
-function InsightCard({
-  label,
-  value,
-  description,
-}: {
-  label: string;
-  value: string;
-  description: string;
-}) {
+function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-black/5 bg-white/95 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-semibold text-slate-900">{value}</p>
-      <p className="mt-2 text-sm text-slate-500">{description}</p>
-    </div>
-  );
-}
-
-function InsightPanel({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-[28px] border border-black/5 bg-white/95 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-        <p className="mt-1 text-sm text-slate-500">{description}</p>
-      </div>
+    <section className="rounded-xl border border-slate-200 bg-white p-4">
+      <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#232d46]">
+        <span className="text-[#232d46]">{icon}</span>{title}
+      </h3>
       {children}
     </section>
   );
+}
+
+function Empty({ children }: { children: React.ReactNode }) {
+  return <p className="rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500">{children}</p>;
 }
 
 export default function InventoryBusinessInsights({
   inventoryHealth,
   stockRunSpend,
   wasteSummary,
+  alerts,
   loading,
   formatMoney,
   formatQuantity,
   formatDate,
 }: InventoryBusinessInsightsProps) {
-  if (loading) {
-    return (
-      <section className="rounded-[28px] border border-black/5 bg-white/95 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-        <p className="text-sm text-slate-500">Loading business monitoring data...</p>
-      </section>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <InsightCard
-          label="Low Stock"
-          value={String(inventoryHealth?.summary.lowStockCount ?? 0)}
-          description="Materials at or below reorder point."
-        />
-        <InsightCard
-          label="Out of Stock"
-          value={String(inventoryHealth?.summary.outOfStockCount ?? 0)}
-          description="Materials that need replenishment now."
-        />
-        <InsightCard
-          label="Near Expiry"
-          value={String(inventoryHealth?.summary.nearExpiryBatchCount ?? 0)}
-          description="Batches expiring within the next two weeks."
-        />
-        <InsightCard
-          label="Stock-Run Spend"
-          value={formatMoney(stockRunSpend?.totals.totalSpend ?? "0")}
-          description="Posted purchasing spend for the selected period."
-        />
+    <section className="space-y-3">
+      <div>
+        <h2 className="text-lg font-bold text-[#232d46]">Inventory Overview</h2>
+        <p className="text-sm text-slate-600">Stock risks, value, waste, and purchasing activity at a glance.</p>
       </div>
-
-      <div className="grid gap-6 xl:grid-cols-3">
-        <InsightPanel
-          title="High-Value Materials"
-          description="Focus attention on the most expensive inventory positions."
-        >
-          <div className="space-y-3">
-            {(inventoryHealth?.highValueMaterials ?? []).slice(0, 5).map((material) => (
-              <div key={material.rawMaterialId} className="rounded-2xl bg-slate-50 px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-semibold text-slate-900">{material.name}</div>
-                    <div className="mt-1 text-xs text-slate-500">{material.sku}</div>
+      {loading ? (
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-500">Loading inventory insights…</div>
+      ) : (
+        <div className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <Panel title="High-Value Inventory" icon={<Boxes size={16} />}>
+            {inventoryHealth?.highValueMaterials.length ? (
+              <div className="divide-y divide-slate-100">
+                {inventoryHealth.highValueMaterials.slice(0, 4).map((item) => (
+                  <div key={item.rawMaterialId} className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
+                    <div className="min-w-0"><p className="truncate text-sm font-medium text-slate-800">{item.name}</p><p className="text-xs text-slate-500">{formatQuantity(item.summary.usableQuantity)} usable</p></div>
+                    <span className="shrink-0 text-sm font-semibold text-[#232d46]">{formatMoney(item.inventoryValue)}</span>
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-slate-900">
-                      {formatMoney(material.inventoryValue)}
-                    </div>
-                    <div className="mt-1 text-xs text-slate-500">
-                      {formatQuantity(material.summary.usableQuantity)} usable
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </InsightPanel>
+            ) : <Empty>{inventoryHealth ? "No high-value inventory records." : "Inventory health data unavailable."}</Empty>}
+          </Panel>
 
-        <InsightPanel
-          title="Waste Cost Watch"
-          description="Highest-cost waste reasons for the selected period."
-        >
-          <div className="space-y-3">
-            {(wasteSummary?.byReason ?? []).slice(0, 5).map((reason) => (
-              <div key={reason.reasonCode} className="rounded-2xl bg-slate-50 px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-semibold text-slate-900">{reason.reasonCode}</div>
-                    <div className="mt-1 text-xs text-slate-500">
-                      {reason.eventCount} event{reason.eventCount === 1 ? "" : "s"}
-                    </div>
+          <Panel title="Waste Insights" icon={<ChartNoAxesCombined size={16} />}>
+            {wasteSummary?.byReason.length ? (
+              <div className="divide-y divide-slate-100">
+                {wasteSummary.byReason.slice(0, 4).map((reason) => (
+                  <div key={reason.reasonCode} className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
+                    <div><p className="text-sm font-medium text-slate-800">{reason.reasonCode.replaceAll("_", " ")}</p><p className="text-xs text-slate-500">{reason.eventCount} entries · {formatQuantity(reason.quantity)}</p></div>
+                    <span className="text-sm font-semibold text-amber-700">{formatMoney(reason.cost)}</span>
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-slate-900">
-                      {formatMoney(reason.cost)}
-                    </div>
-                    <div className="mt-1 text-xs text-slate-500">
-                      {formatQuantity(reason.quantity)} wasted
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </InsightPanel>
+            ) : <Empty>{wasteSummary ? "No waste recorded for this period." : "Waste report unavailable."}</Empty>}
+          </Panel>
 
-        <InsightPanel
-          title="Supplier Spend"
-          description="Supplier concentration based on posted stock runs."
-        >
-          <div className="space-y-3">
-            {(stockRunSpend?.bySupplier ?? []).slice(0, 5).map((supplier) => (
-              <div
-                key={supplier.supplierId ?? supplier.supplierName}
-                className="rounded-2xl bg-slate-50 px-4 py-3"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-semibold text-slate-900">{supplier.supplierName}</div>
-                    <div className="mt-1 text-xs text-slate-500">
-                      {supplier.lineCount} line{supplier.lineCount === 1 ? "" : "s"}
-                    </div>
+          <Panel title="Supplier Spend" icon={<Truck size={16} />}>
+            {stockRunSpend?.bySupplier.length ? (
+              <div className="divide-y divide-slate-100">
+                {stockRunSpend.bySupplier.slice(0, 4).map((supplier) => (
+                  <div key={supplier.supplierId ?? supplier.supplierName} className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
+                    <div className="min-w-0"><p className="truncate text-sm font-medium text-slate-800">{supplier.supplierName}</p><p className="text-xs text-slate-500">{supplier.lineCount} stock-run lines</p></div>
+                    <span className="shrink-0 text-sm font-semibold text-[#232d46]">{formatMoney(supplier.totalSpend)}</span>
                   </div>
-                  <div className="font-semibold text-slate-900">
-                    {formatMoney(supplier.totalSpend)}
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </InsightPanel>
-      </div>
+            ) : <Empty>{stockRunSpend ? "No posted supplier spend for this period." : "Stock-run spend report unavailable."}</Empty>}
+          </Panel>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <InsightPanel
-          title="Near Expiry Batches"
-          description="Use FEFO and stock-run timing to prevent avoidable waste."
-        >
-          <div className="space-y-3">
-            {(inventoryHealth?.nearExpiryBatches ?? []).slice(0, 5).map((batch) => (
-              <div key={batch.id} className="rounded-2xl bg-slate-50 px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-semibold text-slate-900">
-                      {batch.rawMaterial.name}
-                    </div>
-                    <div className="mt-1 text-xs text-slate-500">
-                      Batch {batch.id.slice(0, 8)} • {batch.supplier?.name ?? "No supplier"}
-                    </div>
+          <Panel title="Near Expiry" icon={<Clock3 size={16} />}>
+            {inventoryHealth?.nearExpiryBatches.length ? (
+              <div className="divide-y divide-slate-100">
+                {inventoryHealth.nearExpiryBatches.slice(0, 4).map((batch) => (
+                  <div key={batch.id} className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
+                    <div className="min-w-0"><p className="truncate text-sm font-medium text-slate-800">{batch.rawMaterial.name}</p><p className="text-xs text-slate-500">{formatQuantity(batch.remainingQuantity)} remaining</p></div>
+                    <span className="shrink-0 text-right text-xs font-semibold text-amber-700">{formatDate(batch.expirationDate)}</span>
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-slate-900">
-                      {formatDate(batch.expirationDate)}
-                    </div>
-                    <div className="mt-1 text-xs text-slate-500">
-                      {formatQuantity(batch.remainingQuantity)} left
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </InsightPanel>
+            ) : <Empty>{inventoryHealth ? "No batches nearing expiry." : "Inventory health data unavailable."}</Empty>}
+          </Panel>
 
-        <InsightPanel
-          title="Low-Stock Materials"
-          description="Operational watchlist for replenishment planning."
-        >
-          <div className="space-y-3">
-            {(inventoryHealth?.lowStockMaterials ?? []).slice(0, 5).map((material) => (
-              <div key={material.rawMaterialId} className="rounded-2xl bg-slate-50 px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-semibold text-slate-900">{material.name}</div>
-                    <div className="mt-1 text-xs text-slate-500">{material.sku}</div>
+          <Panel title="Low Stock" icon={<PackageSearch size={16} />}>
+            {inventoryHealth?.lowStockMaterials.length ? (
+              <div className="divide-y divide-slate-100">
+                {inventoryHealth.lowStockMaterials.slice(0, 4).map((item) => (
+                  <div key={item.rawMaterialId} className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
+                    <div className="min-w-0"><p className="truncate text-sm font-medium text-slate-800">{item.name}</p><p className="text-xs text-slate-500">Reorder at {formatQuantity(item.reorderPoint)}</p></div>
+                    <span className="shrink-0 text-sm font-semibold text-amber-700">{formatQuantity(item.summary.usableQuantity)} usable</span>
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-slate-900">
-                      {formatQuantity(material.summary.usableQuantity)}
-                    </div>
-                    <div className="mt-1 text-xs text-slate-500">
-                      reorder at {formatQuantity(material.reorderPoint)}
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </InsightPanel>
-      </div>
-    </div>
+            ) : <Empty>{inventoryHealth ? "No low-stock materials." : "Inventory health data unavailable."}</Empty>}
+          </Panel>
+
+          <Panel title="Active Alerts" icon={<Bell size={16} />}>
+            {alerts.length ? (
+              <div className="max-h-48 divide-y divide-slate-100 overflow-y-auto pr-1">
+                {alerts.slice(0, 6).map((alert) => (
+                  <div key={alert.id} className="py-2 first:pt-0 last:pb-0">
+                    <div className="flex items-start justify-between gap-2"><p className="text-sm font-medium text-slate-800">{alert.title}</p><AlertTriangle size={14} className="mt-0.5 shrink-0 text-amber-600" /></div>
+                    <p className="mt-0.5 text-xs text-slate-500">{alert.message}</p>
+                    <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{alert.type.replaceAll("_", " ")} · {alert.severity}</p>
+                  </div>
+                ))}
+              </div>
+            ) : <Empty>No active alerts right now.</Empty>}
+          </Panel>
+        </div>
+      )}
+    </section>
   );
 }

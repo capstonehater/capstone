@@ -12,7 +12,6 @@ import { Role } from '@prisma/client';
 import { Roles } from '../auth/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user.type';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { CreateInventoryAdjustmentDto } from './dto/create-inventory-adjustment.dto';
 import { CreateInventoryWasteDto } from './dto/create-inventory-waste.dto';
 import { CreateRawMaterialDto } from './dto/create-raw-material.dto';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
@@ -191,20 +190,6 @@ export class InventoryController {
     return {
       transactions:
         await this.inventoryActionsService.listTransactions(filters),
-    };
-  }
-
-  @Post('inventory/adjustments')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
-  async createAdjustment(
-    @Body() dto: CreateInventoryAdjustmentDto,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return {
-      transaction: await this.inventoryActionsService.createAdjustment(
-        dto,
-        user.id,
-      ),
     };
   }
 
