@@ -17,7 +17,6 @@ import StockRunsPanel from "@/components/admin/inventory/StockRunsPanel";
 import InventorySummaryPanel from "@/components/admin/inventory/InventorySummaryPanel";
 import StoreAvailabilityModal from "@/components/admin/inventory/StoreAvailabilityModal";
 import WasteModal from "@/components/admin/inventory/WasteModal";
-import { fetchAlerts, type AlertRecord } from "@/lib/alerts";
 import { getDefaultWasteReasonCode } from "@/lib/inventory-reason-options";
 import {
   addStockRunItem,
@@ -196,7 +195,6 @@ export default function InventoryPage() {
   const [inventoryHealth, setInventoryHealth] = useState<InventoryHealthReport | null>(null);
   const [stockRunSpend, setStockRunSpend] = useState<StockRunSpendReport | null>(null);
   const [wasteSummary, setWasteSummary] = useState<WasteSummaryReport | null>(null);
-  const [activeAlerts, setActiveAlerts] = useState<AlertRecord[]>([]);
   const [selectedBatch, setSelectedBatch] = useState<StockBatch | null>(null);
   const [batchTransactions, setBatchTransactions] = useState<InventoryTransaction[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -310,16 +308,14 @@ export default function InventoryPage() {
   async function loadBusinessReports() {
     setReportLoading(true);
     try {
-      const [nextInventoryHealth, nextStockRunSpend, nextWasteSummary, nextAlerts] = await Promise.all([
+      const [nextInventoryHealth, nextStockRunSpend, nextWasteSummary] = await Promise.all([
         fetchInventoryHealth({ limit: 5 }),
         fetchStockRunSpend({ limit: 5 }),
         fetchWasteSummary({ limit: 5 }),
-        fetchAlerts({ state: "ACTIVE", limit: 6 }),
       ]);
       setInventoryHealth(nextInventoryHealth);
       setStockRunSpend(nextStockRunSpend);
       setWasteSummary(nextWasteSummary);
-      setActiveAlerts(nextAlerts);
     } finally {
       setReportLoading(false);
     }
@@ -453,14 +449,13 @@ export default function InventoryPage() {
           inventoryHealth={inventoryHealth}
           stockRunSpend={stockRunSpend}
           wasteSummary={wasteSummary}
-          alerts={activeAlerts}
           loading={initialLoading || reportLoading}
           formatMoney={formatMoney}
           formatQuantity={formatQuantity}
           formatDate={formatDate}
         />
 
-        <div className="grid items-start gap-4 2xl:grid-cols-[minmax(19rem,0.85fr)_minmax(0,1.65fr)]">
+        <div className="grid items-start gap-4 2xl:items-stretch 2xl:grid-cols-[minmax(19rem,0.85fr)_minmax(0,1.65fr)]">
           <InventorySummaryPanel
             summarySearchInput={summarySearchInput}
             statusFilter={statusFilter}

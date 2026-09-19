@@ -54,7 +54,7 @@ export default function InventorySummaryPanel({
   formatMoney,
 }: InventorySummaryPanelProps) {
   return (
-    <section className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4">
+    <section className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4 2xl:h-[42rem] 2xl:min-h-0">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-[#232d46]">Materials</h2>
@@ -113,8 +113,8 @@ export default function InventorySummaryPanel({
         </InventoryField>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
-        <div className="max-h-[34rem] overflow-auto">
+      <div className="mt-4 flex min-h-0 flex-1 overflow-hidden rounded-lg border border-slate-200">
+        <div className="max-h-[34rem] min-h-0 flex-1 overflow-auto 2xl:max-h-none">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-600">
               <tr>

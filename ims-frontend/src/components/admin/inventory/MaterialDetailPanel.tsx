@@ -131,7 +131,7 @@ export default function MaterialDetailPanel({
 
   if (!selectedRawMaterialId) {
     return (
-      <section className="flex min-h-72 flex-col rounded-xl border border-slate-200 bg-white p-4">
+      <section className="flex min-h-72 flex-col rounded-xl border border-slate-200 bg-white p-4 2xl:h-[42rem]">
         <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">
           Select a material to inspect summary, batches, and transaction history.
         </div>
@@ -140,7 +140,7 @@ export default function MaterialDetailPanel({
   }
 
   return (
-    <section className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4">
+    <section className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4 2xl:h-[42rem] 2xl:overflow-x-hidden 2xl:overflow-y-auto">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
@@ -222,7 +222,7 @@ export default function MaterialDetailPanel({
               ) : null}
             </div>
           </div>
-          <div className="max-h-72 overflow-auto">
+          <div className="max-h-72 overflow-auto 2xl:max-h-none 2xl:overflow-visible">
             <table className="w-full table-fixed text-sm">
               <thead className="sticky top-0 z-10 bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-600">
                 <tr>
@@ -332,7 +332,7 @@ export default function MaterialDetailPanel({
             </div>
           </div>
 
-          <div className="max-h-[30rem] overflow-auto">
+          <div className="max-h-[30rem] overflow-auto 2xl:max-h-none 2xl:overflow-visible">
             <table className="min-w-[52rem] text-sm">
               <thead className="sticky top-0 z-10 bg-white text-left text-xs uppercase tracking-[0.18em] text-slate-400">
                 <tr>

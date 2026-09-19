@@ -28,7 +28,7 @@ Presentation redesign of `/admin/inventory`, followed by the requested complete 
 ## Components changed
 
 - The Inventory route now has a compact page header, existing operational action buttons, live overview metrics, business insights, material master-detail workspace, and recent stock runs.
-- `InventoryBusinessInsights` now presents high-value materials, waste, supplier spend, near-expiry batches, low-stock materials, and active alerts in compact cards.
+- `InventoryBusinessInsights` now presents high-value materials, waste, supplier spend, near-expiry batches, and low-stock materials in compact cards. Active Alerts is not duplicated here because it has its own page.
 - `InventorySummaryPanel` retains its search, status/supplier filters, selection, refresh, and summary data while presenting a denser material table.
 - `MaterialDetailPanel` retains the selected-material information, actions, batches, and transaction history. Its metric tiles show On Hand, Usable, Reorder Point, and Inventory Value.
 - `StockRunsPanel` retains draft open/delete actions and posted-run history.
@@ -39,13 +39,13 @@ Presentation redesign of `/admin/inventory`, followed by the requested complete 
 - Overview metrics show Materials, In Stock, Low Stock Items, Out of Stock Items, and Inventory Value from the inventory health response. Values show an em dash until data loads.
 - Moved active alerts into the Inventory Overview cards to avoid a separate duplicate section.
 - Kept the material list and detail as a master-detail workspace, with the list narrower than the detail at wide desktop sizes and stacked layouts at smaller widths.
-- Removed fixed-height wrappers from the main list, detail, and stock-run panels. The material, batch, history, and stock-run tables use bounded scrolling where needed; the page itself remains normally scrollable.
+- The material list and detail workspace share an aligned 42rem desktop height: the material table fills and scrolls within the left panel, while the right detail panel scrolls vertically through its content. Smaller screens retain a stacked layout. Stock-run tables and insight table bodies use bounded scrolling; the page itself remains normally scrollable.
 - Applied the requested #f5f5f5 page background, white panels, #232d46 primary controls/text, lime active indicators, and orange warning states with thin borders and minimal shadow.
 
 ## Data sources and behavior preserved
 
 - Existing `fetchInventorySummary` search/filter request and selection behavior.
-- Existing `fetchInventoryHealth`, `fetchStockRunSpend`, `fetchWasteSummary`, and `fetchAlerts` calls.
+- Existing `fetchInventoryHealth`, `fetchStockRunSpend`, and `fetchWasteSummary` calls.
 - Existing `fetchRawMaterial`, `fetchRawMaterialBatches`, and `fetchRawMaterialTransactions` detail requests.
 - Existing create/edit/archive material, stock-run, waste, batch drilldown, and store-availability handlers and modals.
 - Supplier management continues to navigate to the existing standalone Suppliers route.
