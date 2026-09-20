@@ -50,6 +50,7 @@ export default function AdminHeader({ onMenuClick, sidebarOpen }: AdminHeaderPro
   const pathname = usePathname();
   const page = adminNavigation.flatMap(group => group.items).find(item => matchesShellRoute(pathname, item.href));
   const user = useAuthStore((state) => state.user);
+  const settingsHref = user?.role === "MANAGER" ? "/manager/settings" : "/admin/settings";
   const performLogout = useLogout();
 
   const [openDropdown, setOpenDropdown] = useState(false);
@@ -303,7 +304,7 @@ export default function AdminHeader({ onMenuClick, sidebarOpen }: AdminHeaderPro
               </div>
 
               <Link
-                href="/admin/settings"
+                href={settingsHref}
                 onClick={() => setOpenDropdown(false)}
                 className="flex w-full items-center gap-3 px-4 py-3 text-sm text-[#3d3434] no-underline hover:bg-gray-50"
               >

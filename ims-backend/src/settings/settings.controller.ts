@@ -21,7 +21,7 @@ import { UpdateAccountSettingsDto } from './dto/update-account-settings.dto';
 import { SettingsService } from './settings.service';
 
 @Controller('settings')
-@Roles(Role.ADMINISTRATOR)
+@Roles(Role.ADMINISTRATOR, Role.STAFF, Role.MANAGER)
 export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
 

@@ -13,13 +13,16 @@ export default function AdminDashboardLayout({
   children,
 }: AdminDashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   return (
-    <div className={styles.shell}>
+    <div className={`${styles.shell} ${sidebarCollapsed ? styles.adminShellCollapsed : ""}`}>
       <AdminSidebar
         isOpen={sidebarOpen}
         onClose={closeSidebar}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((value) => !value)}
       />
 
       <div className={styles.body}>

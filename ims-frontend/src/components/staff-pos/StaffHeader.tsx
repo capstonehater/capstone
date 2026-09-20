@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "@/components/layout/ApplicationShell.module.css";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import ProfileAvatar from "@/components/auth/ProfileAvatar";
@@ -89,10 +90,10 @@ export default function StaffHeader() {
                 <p className="text-xs text-gray-500">Staff Account</p>
               </div>
 
-              <button type="button" disabled title="Not available for staff" className="flex w-full cursor-not-allowed items-center gap-3 px-4 py-3 text-sm opacity-50">
+              <Link href="/staff/settings" onClick={() => setOpenDropdown(false)} className="flex w-full items-center gap-3 px-4 py-3 text-sm text-[#3d3434] no-underline hover:bg-gray-50">
                 <Settings size={18} />
                 <span>Account Settings</span>
-              </button>
+              </Link>
 
               <div className="my-1 border-t border-gray-100" />
 
