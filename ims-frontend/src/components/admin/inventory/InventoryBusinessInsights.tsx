@@ -13,9 +13,9 @@ type InventoryBusinessInsightsProps = {
   formatDate: (value: string | null | undefined) => string;
 };
 
-function Panel({ title, icon, children, className = "" }: { title: string; icon: React.ReactNode; children: React.ReactNode; className?: string }) {
+function Panel({ title, icon, children, className = "", id }: { title: string; icon: React.ReactNode; children: React.ReactNode; className?: string; id?: string }) {
   return (
-    <section className={`h-full rounded-xl border border-slate-200 bg-white p-6 ${className}`}>
+    <section id={id} className={`h-full rounded-xl border border-slate-200 bg-white p-6 ${className}`}>
       <h3 className="mb-5 flex items-center gap-2 text-xl font-semibold text-[#232d46]">
         <span className="text-[#232d46]">{icon}</span>{title}
       </h3>
@@ -51,7 +51,7 @@ export default function InventoryBusinessInsights({
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-500">Loading inventory insights…</div>
       ) : (
         <div className="grid w-full items-stretch gap-6 md:grid-cols-2 xl:grid-cols-6">
-          <Panel title="Low Stock" icon={<PackageSearch size={16} />} className="xl:col-span-2">
+          <Panel id="low-stock" title="Low Stock" icon={<PackageSearch size={16} />} className="xl:col-span-2">
             {inventoryHealth?.lowStockMaterials.length ? (
               <div className="overflow-hidden rounded-lg border border-slate-200">
                 <div className="max-h-72 overflow-auto">
@@ -66,7 +66,7 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{inventoryHealth ? "No low-stock materials." : "Inventory health data unavailable."}</Empty>}
           </Panel>
 
-          <Panel title="Near Expiry" icon={<Clock3 size={16} />} className="xl:col-span-2">
+          <Panel id="near-expiry" title="Near Expiry" icon={<Clock3 size={16} />} className="xl:col-span-2">
             {inventoryHealth?.nearExpiryBatches.length ? (
               <div className="overflow-hidden rounded-lg border border-slate-200">
                 <div className="max-h-72 overflow-auto">
@@ -81,7 +81,7 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{inventoryHealth ? "No batches nearing expiry." : "Inventory health data unavailable."}</Empty>}
           </Panel>
 
-          <Panel title="Waste Insights" icon={<ChartNoAxesCombined size={16} />} className="xl:col-span-2">
+          <Panel id="waste-insights" title="Waste Insights" icon={<ChartNoAxesCombined size={16} />} className="xl:col-span-2">
             {wasteSummary?.byReason.length ? (
               <div className="overflow-hidden rounded-lg border border-slate-200">
                 <div className="max-h-72 overflow-auto">
@@ -96,7 +96,7 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{wasteSummary ? "No waste recorded for this period." : "Waste report unavailable."}</Empty>}
           </Panel>
 
-          <Panel title="High-Value Inventory" icon={<Boxes size={16} />} className="xl:col-span-3">
+          <Panel id="high-value" title="High-Value Inventory" icon={<Boxes size={16} />} className="xl:col-span-3">
             {inventoryHealth?.highValueMaterials.length ? (
               <div className="overflow-hidden rounded-lg border border-slate-200">
                 <div className="max-h-72 overflow-auto">
@@ -111,7 +111,7 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{inventoryHealth ? "No high-value inventory records." : "Inventory health data unavailable."}</Empty>}
           </Panel>
 
-          <Panel title="Supplier Spend" icon={<Truck size={16} />} className="xl:col-span-3">
+          <Panel id="supplier-spend" title="Supplier Spend" icon={<Truck size={16} />} className="xl:col-span-3">
             {stockRunSpend?.bySupplier.length ? (
               <div className="overflow-hidden rounded-lg border border-slate-200">
                 <div className="max-h-72 overflow-auto">

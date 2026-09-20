@@ -17,6 +17,7 @@ import StockRunsPanel from "@/components/admin/inventory/StockRunsPanel";
 import InventorySummaryPanel from "@/components/admin/inventory/InventorySummaryPanel";
 import StoreAvailabilityModal from "@/components/admin/inventory/StoreAvailabilityModal";
 import WasteModal from "@/components/admin/inventory/WasteModal";
+import ActionAlert from "@/components/feedback/ActionAlert";
 import { getDefaultWasteReasonCode } from "@/lib/inventory-reason-options";
 import {
   addStockRunItem,
@@ -419,7 +420,7 @@ export default function InventoryPage() {
   return (
     <AdminDashboardLayout>
       <div className="flex flex-col gap-5 bg-[#f5f5f5] text-[#232d46]">
-        <section className="overflow-hidden rounded-xl bg-[linear-gradient(115deg,#202b45_0%,#1d355a_55%,#0875a6_100%)] p-5 text-white shadow-sm md:p-6">
+        <section id="overview" className="overflow-hidden rounded-xl bg-[linear-gradient(115deg,#202b45_0%,#1d355a_55%,#0875a6_100%)] p-5 text-white shadow-sm md:p-6">
           <div className="grid gap-5 2xl:grid-cols-[minmax(18rem,0.8fr)_minmax(0,2fr)] 2xl:items-center">
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-200">Inventory Overview</p>
@@ -442,8 +443,8 @@ export default function InventoryPage() {
           </div>
         </section>
 
-        {message ? <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{message}</div> : null}
-        {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
+        {message ? <ActionAlert tone="success" title="Saved!" message={message} onDismiss={() => setMessage(null)} /> : null}
+        {error ? <ActionAlert tone="error" title="Action failed" message={error} onDismiss={() => setError(null)} /> : null}
 
         <InventoryBusinessInsights
           inventoryHealth={inventoryHealth}

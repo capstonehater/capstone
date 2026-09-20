@@ -22,6 +22,7 @@ import {
   inventoryInputClasses,
 } from "@/components/admin/inventory/InventoryField";
 import InventoryModal from "@/components/admin/inventory/InventoryModal";
+import ActionAlert from "@/components/feedback/ActionAlert";
 import { useAuthStore } from "@/store/authStore";
 import {
   createManagedUser,
@@ -620,11 +621,11 @@ export default function UsersWorkspace() {
   return (
     <div className="space-y-5">
       {workspaceError ? (
-        <Feedback tone="error" message={workspaceError} onDismiss={() => setWorkspaceError(null)} />
+        <ActionAlert tone="error" title="Action failed" message={workspaceError} onDismiss={() => setWorkspaceError(null)} />
       ) : null}
-      {listError ? <Feedback tone="error" message={listError} /> : null}
+      {listError ? <ActionAlert tone="error" title="Unable to load users" message={listError} /> : null}
       {notice ? (
-        <Feedback tone="success" message={notice} onDismiss={() => setNotice(null)} />
+        <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} />
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[430px_minmax(0,1fr)]">
@@ -853,33 +854,6 @@ export default function UsersWorkspace() {
         }}
         onConfirm={handleAction}
       />
-    </div>
-  );
-}
-
-function Feedback({
-  tone,
-  message,
-  onDismiss,
-}: {
-  tone: "success" | "error";
-  message: string;
-  onDismiss?: () => void;
-}) {
-  return (
-    <div
-      className={`flex items-start justify-between gap-3 rounded-2xl border px-4 py-3 text-sm ${
-        tone === "success"
-          ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-          : "border-rose-200 bg-rose-50 text-rose-700"
-      }`}
-    >
-      <span>{message}</span>
-      {onDismiss ? (
-        <button type="button" onClick={onDismiss} className="font-semibold">
-          Dismiss
-        </button>
-      ) : null}
     </div>
   );
 }

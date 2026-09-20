@@ -24,6 +24,7 @@ import VoidConfirmationModal from "./modals/VoidConfirmationModal";
 import PaymentModal, { type PaymentState } from "./modals/PaymentModal";
 import ReceiptModal from "./modals/ReceiptModal";
 import TransactionHistoryModal from "./modals/TransactionHistoryModal";
+import ActionAlert from "@/components/feedback/ActionAlert";
 import OrderReversalModal from "./modals/OrderReversalModal";
 
 type DiscountOption = { value: string; label: string; rate: number };
@@ -335,8 +336,8 @@ export default function StaffPOSPage() {
         </header>
 
         {!isOnline ? <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">Offline mode is active. Menu browsing stays available from cache, and new checkouts are queued locally until sync succeeds.</div> : null}
-        {notice ? <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div> : null}
-        {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div> : null}
+        {notice ? <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} /> : null}
+        {error ? <ActionAlert tone="error" title="Action failed" message={error} onDismiss={() => setError(null)} /> : null}
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,2.2fr)_minmax(20rem,0.82fr)]">
           <section className="rounded-3xl bg-white p-4 shadow-sm md:p-5">

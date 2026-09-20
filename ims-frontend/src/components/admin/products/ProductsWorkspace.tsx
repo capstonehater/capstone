@@ -36,6 +36,7 @@ import ArchiveProductDialog from "./ArchiveProductDialog";
 import DeleteProductDialog from "./DeleteProductDialog";
 import DisableProductDialog from "./DisableProductDialog";
 import ProductDetailPanel from "./ProductDetailPanel";
+import ActionAlert from "@/components/feedback/ActionAlert";
 import ProductFormDialog from "./ProductFormDialog";
 import ProductsMasterPanel from "./ProductsMasterPanel";
 import RestoreProductDialog from "./RestoreProductDialog";
@@ -861,23 +862,9 @@ export default function ProductsWorkspace() {
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden">
-      {workspaceError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {workspaceError}
-        </div>
-      ) : null}
-
-      {listError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {listError}
-        </div>
-      ) : null}
-
-      {notice ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {notice}
-        </div>
-      ) : null}
+      {workspaceError ? <ActionAlert tone="error" title="Action failed" message={workspaceError} onDismiss={() => setWorkspaceError(null)} /> : null}
+      {listError ? <ActionAlert tone="error" title="Unable to load products" message={listError} onDismiss={() => setListError(null)} /> : null}
+      {notice ? <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} /> : null}
 
       <div className="grid min-h-0 flex-1 gap-6 overflow-hidden xl:grid-cols-[420px_minmax(0,1fr)]">
         <div className={`${isMobileDetailView ? "hidden xl:block" : "block"} min-h-0`}>

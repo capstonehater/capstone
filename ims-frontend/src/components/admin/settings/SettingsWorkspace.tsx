@@ -13,6 +13,7 @@ import {
   type UpdateSettingsAccountResponse,
 } from "@/lib/settings";
 import { useAuthStore } from "@/store/authStore";
+import ActionAlert from "@/components/feedback/ActionAlert";
 
 export default function SettingsWorkspace() {
   const router = useRouter();
@@ -115,14 +116,7 @@ export default function SettingsWorkspace() {
 
   return (
     <div className="space-y-6">
-      {notice ? (
-        <div
-          role="status"
-          className="rounded-3xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-700"
-        >
-          {notice}
-        </div>
-      ) : null}
+      {notice ? <ActionAlert tone="success" title="Saved!" message={notice} onDismiss={() => setNotice(null)} /> : null}
 
       <AccountSettingsCard account={account} onEdit={() => setEditOpen(true)} />
       <SecuritySettingsCard onChangePassword={() => setPasswordOpen(true)} />

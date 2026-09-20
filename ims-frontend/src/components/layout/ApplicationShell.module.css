@@ -37,6 +37,10 @@
 .navLink { display: flex; align-items: center; gap: 12px; min-height: 36px; margin: 4px 0; padding: 6px 12px; border-left: 2px solid transparent; color: #eef0f5; font-size: 15px; line-height: 1.4; }
 .navLink:hover { color: white; background: #ffffff0d; }
 .navLink[aria-current="page"] { border-left-color: var(--shell-accent); color: var(--shell-accent); }
+.navDropdown { display: none; padding: 2px 0 6px 31px; }
+.navItemHasChildren:hover .navDropdown, .navItemHasChildren:focus-within .navDropdown { display: grid; gap: 2px; }
+.navSubLink { display: block; padding: 5px 10px; color: #b5bac6; font-size: 12px; text-decoration: none; border-left: 1px solid #ffffff30; }
+.navSubLink:hover { color: var(--shell-accent); border-left-color: var(--shell-accent); }
 .footer { padding: 18px 22px; border-top: 1px solid #ffffff60; color: #b5bac6; font-size: 13px; }
 .mobileClose, .mobileMenu { display: none; }
 .overlay { position: fixed; inset: 0; z-index: 55; border: 0; background: #11182780; }
