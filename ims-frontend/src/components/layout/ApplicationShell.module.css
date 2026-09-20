@@ -30,6 +30,7 @@
 .brand { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 108px; padding: 20px; border-bottom: 1px solid #ffffff60; }
 .brand strong { display: block; font-size: 20px; line-height: 1.3; }
 .brand p { margin: 0; color: #b5bac6; font-size: 14px; }
+.sidebarBrandLogo { display: flex; flex-direction: column; align-items: center; gap: 5px; }
 .navigation { flex: 1; overflow-y: auto; padding: 22px 12px; }
 .group + .group { margin-top: 18px; }
 .groupTitle { margin: 0 10px 8px; font-size: 12px; font-weight: 400; color: #b5bac6; text-transform: uppercase; }
@@ -50,6 +51,7 @@
 .staffSidebar { position: fixed; inset: 0 auto 0 0; z-index: 60; display: flex; flex-direction: column; width: 240px; height: 100dvh; background: var(--shell-navy); color: #f4f5f8; transition: width .25s ease, transform .25s ease; }
 .staffSidebarCollapsed { width: 76px; }
 .staffBrand { display: flex; align-items: center; justify-content: space-between; min-height: 86px; padding: 20px; border-bottom: 1px solid #ffffff40; font-size: 16px; }
+.staffBrand { justify-content: center; }
 .staffNavigation { flex: 1; padding: 22px 12px; }
 .staffNavLink { display: flex; align-items: center; gap: 12px; min-height: 42px; margin: 6px 0; padding: 9px 12px; border-left: 2px solid transparent; color: #eef0f5; font-size: 14px; text-decoration: none; transition: background .2s ease, color .2s ease; }
 .staffNavLink:hover { background: #ffffff12; color: white; }
@@ -58,6 +60,11 @@
 .staffCollapseButton:hover { background: #ffffff12; }
 .staffMobileMenu { display: none; }
 .adminSidebarCollapsed { width: 76px; overflow-x: hidden; }
+.adminSidebarCollapsed .brand { padding-inline: 8px; }
+.adminSidebarCollapsed .sidebarBrandLogo { width: 100%; }
+.adminSidebarCollapsed .navLink { justify-content: center; gap: 0; padding-inline: 0; }
+.staffSidebarCollapsed .staffBrand { padding-inline: 8px; }
+.staffSidebarCollapsed .staffNavLink { justify-content: center; gap: 0; padding-inline: 0; }
 .adminShellCollapsed .body { margin-left: 76px; }
 .adminCollapseButton { position: absolute; top: 50%; right: -18px; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; transform: translateY(-50%); border: 1px solid #ffffff40; border-radius: 50%; background: var(--shell-navy); color: white; cursor: pointer; transition: background .2s ease, transform .25s ease; }
 .adminCollapseButton svg { transition: transform .25s ease; }

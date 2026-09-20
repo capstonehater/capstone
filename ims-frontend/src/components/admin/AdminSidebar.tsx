@@ -51,7 +51,10 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
       {isOpen && <button type="button" className={styles.overlay} onClick={onClose} aria-label="Close navigation" tabIndex={-1} />}
       <aside id="admin-navigation" ref={sidebarRef} aria-label="Administrator navigation" className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""} ${collapsed ? styles.adminSidebarCollapsed : ""}`}>
         <div className={styles.brand}>
-          <div><strong>{collapsed ? "CS" : "Cafe Salvacion"}</strong>{collapsed ? null : <p>POS Management</p>}</div>
+          <div className={styles.sidebarBrandLogo}>
+            <strong>{collapsed ? "CS" : "Cafe Salvacion"}</strong>
+            {collapsed ? null : <p>POS Management</p>}
+          </div>
           <button type="button" onClick={onClose} className={styles.mobileClose} aria-label="Close navigation"><X size={20} /></button>
         </div>
         <nav className={styles.navigation}>

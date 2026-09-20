@@ -282,7 +282,7 @@ export default function AdminHeader({ onMenuClick, sidebarOpen }: AdminHeaderPro
             aria-expanded={openDropdown}
           >
             <div className={styles.identity}>
-              <p className={styles.role}>{formattedRole.toLowerCase()}</p>
+              <p className={styles.role}>{user?.name ?? formattedRole}</p>
               <p className={styles.email}>{user?.email ?? "Account"}</p>
             </div>
 
@@ -298,9 +298,9 @@ export default function AdminHeader({ onMenuClick, sidebarOpen }: AdminHeaderPro
             <div className="absolute right-0 top-full z-50 mt-3 w-56 overflow-hidden rounded-2xl bg-white py-2 text-[#3d3434] shadow-xl">
               <div className="border-b border-gray-100 px-4 py-3">
                 <p className="text-sm font-semibold">
-                  {user?.email ?? "Account"}
+                  {user?.name ?? "Account"}
                 </p>
-                <p className="text-xs text-gray-500">{formattedRole} Account</p>
+                <p className="text-xs text-gray-500">{user?.email ?? "Account"}</p>
               </div>
 
               <Link
