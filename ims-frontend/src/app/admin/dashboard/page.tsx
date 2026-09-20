@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  AlertTriangle,
+  Bell,
   Clock3,
-  PackageX,
-  ShoppingCart,
 } from "lucide-react";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
-import { fetchAlerts, type AlertRecord } from "@/lib/alerts";
+import { acknowledgeAlert, dismissAlert, fetchAlerts, type AlertRecord } from "@/lib/alerts";
 import {
   fetchInventoryHealth,
   fetchSalesOverview,
@@ -52,6 +52,17 @@ export default function AdminDashboardPage() {
   const [salesPeriod, setSalesPeriod] = useState("Last 30 Days");
   const [activeModal, setActiveModal] = useState<"orders" | "expiry" | "waste" | null>(null);
   const [activeAlerts, setActiveAlerts] = useState<AlertRecord[]>([]);
+
+  async function updateAlert(alertId: string, action: "acknowledge" | "dismiss") {
+    try {
+      if (action === "acknowledge") await acknowledgeAlert(alertId);
+      else await dismissAlert(alertId);
+      const refreshedAlerts = await fetchAlerts({ state: "ACTIVE", limit: 5 });
+      setActiveAlerts(refreshedAlerts);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Failed to update alert");
+    }
+  }
 
   useEffect(() => {
     const range = defaultReportRange(salesPeriod === "Last 7 Days" ? 7 : salesPeriod === "Last 90 Days" ? 90 : 30);
@@ -168,7 +179,6 @@ export default function AdminDashboardPage() {
             <div className={styles.metric}><p className={styles.metricLabel}>Total Suppliers</p><p className={styles.metricValue}>{loading ? "..." : supplierCount}</p></div>
           </div></div></div>
       </section>
-
       <section className={styles.rowThree}>
 
         <div className={styles.panel}><div className={styles.panelHeader}><h2 className={styles.panelTitle}>Near Expiry Watchlist</h2><button className={styles.viewAll} type="button" onClick={() => setActiveModal("expiry")}>View All</button></div><div className={styles.panelBody}><div className={styles.list}>
@@ -206,6 +216,35 @@ export default function AdminDashboardPage() {
             ))}
           </div></div></div>
       </section>
+      <section className={styles.alertPanel}>
+        <div className={styles.alertHeader}>
+          <h2><Bell size={15} /> Alerts</h2>
+          <a className={styles.viewAll} href="/admin/alerts">View All</a>
+        </div>
+        <div className={styles.alertList}>
+          {activeAlerts.length === 0 ? <div className={styles.empty}>No active alerts.</div> : activeAlerts.map((alert) => (
+            <article key={alert.id} className={styles.alertRow}>
+              <div className={styles.alertIcon}><AlertTriangle size={14} /></div>
+              <div className={styles.alertContent}>
+                <strong>{alert.title}</strong>
+                <span>{alert.message}</span>
+                <small>Material: {alert.rawMaterial?.name ?? "N/A"} · Batch: {alert.stockBatch?.id.slice(0, 8) ?? "N/A"} · Expiry: {formatDate(alert.expiryDate)}</small>
+              </div>
+              <div className={styles.alertTags}>
+                <span className={styles.alertTagWarning}>{alert.type.replaceAll("_", " ")}</span>
+                <span className={styles.alertTagActive}>{alert.state}</span>
+                <span className={styles.alertTagSeverity}>{alert.severity}</span>
+              </div>
+              <div className={styles.alertActions}>
+                <button type="button" onClick={() => void updateAlert(alert.id, "acknowledge")}>Mark as Read</button>
+                <button type="button" onClick={() => void updateAlert(alert.id, "dismiss")}>Dismiss</button>
+              </div>
+              <time>{formatDateTime(alert.lastTriggeredAt)}</time>
+            </article>
+          ))}
+        </div>
+      </section>
+
       {activeModal ? <div className={styles.modalBackdrop} role="presentation" onMouseDown={() => setActiveModal(null)}><section className={styles.modal} role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><div className={styles.modalHeader}><h2>{activeModal === "orders" ? "Recent Orders" : activeModal === "expiry" ? "Near Expiry Watchlist" : "Waste Breakdown"}</h2><button type="button" className={styles.modalClose} onClick={() => setActiveModal(null)} aria-label="Close">×</button></div><p className={styles.muted}>Live dashboard details</p>{activeModal === "orders" ? <div className={styles.modalList}>{(salesOverview?.recentOrders ?? []).map((order) => <div className={styles.modalRow} key={order.id}><strong>{order.id}</strong><span>{formatDateTime(order.completedAt)}</span><span>{formatPeso(order.totalAmount)}</span></div>)}</div> : activeModal === "expiry" ? <div className={styles.modalList}>{(inventoryHealth?.nearExpiryBatches ?? []).map((batch) => <div className={styles.modalRow} key={batch.id}><strong>{batch.rawMaterial.name}</strong><span>{formatDate(batch.expirationDate)}</span><span>{batch.remainingQuantity}</span></div>)}</div> : <div className={styles.modalList}>{(wasteSummary?.byReason ?? []).map((reason) => <div className={styles.modalRow} key={reason.reasonCode}><strong>{reason.reasonCode}</strong><span>{reason.eventCount} events</span><span>{formatPeso(reason.cost)}</span></div>)}</div>}<a className={styles.modalRoute} href={activeModal === "orders" ? "/admin/reports/pos" : activeModal === "expiry" ? "/admin/inventory" : "/admin/reports/inventory"}>Open full workspace →</a></section></div> : null}
       </div>
     </AdminDashboardLayout>

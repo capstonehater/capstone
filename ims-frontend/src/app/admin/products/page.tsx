@@ -6,9 +6,9 @@ import ProductsWorkspace from "@/components/admin/products/ProductsWorkspace";
 export default function ProductsPage() {
   return (
     <AdminDashboardLayout>
-      <div className="flex h-[calc(100vh-86px)] min-h-0 flex-col gap-3 overflow-hidden">
-        <section className="border-b border-slate-200 pb-3">
-          <h1 className="text-3xl font-black tracking-tight text-neutral-900">PRODUCTS</h1>
+      <div className="flex h-[calc(100vh-60px)] min-h-0 flex-col gap-4 overflow-hidden">
+        <section className="border-b border-slate-200 pb-4">
+          <h1 className="text-4xl font-black tracking-tight text-neutral-900">PRODUCTS</h1>
           <p className="mt-1 text-sm text-neutral-600">
             Manage menu products, variants, recipes, archive lifecycle, and ingredient usage in a
             focused master-detail workspace.

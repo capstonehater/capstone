@@ -88,7 +88,11 @@ export default function AlertsPage() {
       } else {
         await dismissAlert(alertId);
       }
+      // Re-fetch after the mutation so the list reflects the server state,
+      // including any alert reevaluation or ordering changes.
       await loadAlerts();
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Failed to update alert");
     } finally {
       setActionId(null);
     }

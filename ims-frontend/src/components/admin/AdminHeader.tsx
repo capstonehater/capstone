@@ -8,9 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Menu,
   Bell,
-  User,
   Settings,
-  Shield,
   LogOut,
   ChevronDown,
   AlertTriangle,
@@ -309,26 +307,8 @@ export default function AdminHeader({ onMenuClick, sidebarOpen }: AdminHeaderPro
                 onClick={() => setOpenDropdown(false)}
                 className="flex w-full items-center gap-3 px-4 py-3 text-sm text-[#3d3434] no-underline hover:bg-gray-50"
               >
-                <User size={18} />
-                <span>My Profile</span>
-              </Link>
-
-              <Link
-                href="/admin/settings"
-                onClick={() => setOpenDropdown(false)}
-                className="flex w-full items-center gap-3 px-4 py-3 text-sm text-[#3d3434] no-underline hover:bg-gray-50"
-              >
                 <Settings size={18} />
                 <span>Account Settings</span>
-              </Link>
-
-              <Link
-                href="/admin/settings#security"
-                onClick={() => setOpenDropdown(false)}
-                className="flex w-full items-center gap-3 px-4 py-3 text-sm text-[#3d3434] no-underline hover:bg-gray-50"
-              >
-                <Shield size={18} />
-                <span>Privacy & Security</span>
               </Link>
 
               <div className="my-1 border-t border-gray-100" />

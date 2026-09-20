@@ -879,7 +879,7 @@ export default function ProductsWorkspace() {
         </div>
       ) : null}
 
-      <div className="grid min-h-0 flex-1 gap-5 overflow-hidden xl:grid-cols-[380px_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 gap-6 overflow-hidden xl:grid-cols-[420px_minmax(0,1fr)]">
         <div className={`${isMobileDetailView ? "hidden xl:block" : "block"} min-h-0`}>
           <ProductsMasterPanel
             categories={categories}

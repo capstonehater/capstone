@@ -7,9 +7,7 @@ import ProfileAvatar from "@/components/auth/ProfileAvatar";
 import { useLogout } from "@/hooks/useLogout";
 import {
   Bell,
-  User,
   Settings,
-  Shield,
   LogOut,
   ChevronDown,
 } from "lucide-react";
@@ -92,18 +90,8 @@ export default function StaffHeader() {
               </div>
 
               <button type="button" disabled title="Not available for staff" className="flex w-full cursor-not-allowed items-center gap-3 px-4 py-3 text-sm opacity-50">
-                <User size={18} />
-                <span>My Profile</span>
-              </button>
-
-              <button type="button" disabled title="Not available for staff" className="flex w-full cursor-not-allowed items-center gap-3 px-4 py-3 text-sm opacity-50">
                 <Settings size={18} />
                 <span>Account Settings</span>
-              </button>
-
-              <button type="button" disabled title="Not available for staff" className="flex w-full cursor-not-allowed items-center gap-3 px-4 py-3 text-sm opacity-50">
-                <Shield size={18} />
-                <span>Privacy & Security</span>
               </button>
 
               <div className="my-1 border-t border-gray-100" />

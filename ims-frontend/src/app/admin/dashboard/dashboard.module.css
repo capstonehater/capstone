@@ -3,6 +3,26 @@
 .kpis { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 24px; }
 .row { display: grid; grid-template-columns: minmax(0,2fr) minmax(280px,1fr); gap: 24px; margin-top: 24px; }
 .rowThree { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; margin-top: 24px; }
+.alertPanel { margin-top: 24px; border: 1px solid #c7c7c7; border-radius: 8px; background: #fff; box-shadow: 0 1px 2px #0000000d; }
+.alertHeader { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px 12px; }
+.alertHeader h2 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 16px; font-weight: 700; }
+.alertList { padding: 0 22px 12px; }
+.alertRow { display: grid; grid-template-columns: 24px minmax(220px,1.4fr) auto auto auto; align-items: center; gap: 12px; border-top: 1px solid #eef0f3; padding: 13px 0; font-size: 11px; }
+.alertIcon { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid #fed7aa; border-radius: 50%; color: #f59e0b; background: #fff7ed; }
+.alertContent { display: grid; gap: 3px; min-width: 0; }
+.alertContent strong { color: #17233c; font-size: 12px; }
+.alertContent span { overflow: hidden; color: #6b7280; text-overflow: ellipsis; white-space: nowrap; }
+.alertContent small { color: #6b7280; font-size: 9px; }
+.alertTags { display: flex; gap: 7px; }
+.alertTags span { border-radius: 999px; padding: 3px 10px; font-size: 9px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+.alertTagWarning { color: #d97706; background: #fef3c7; }
+.alertTagActive { color: #15803d; background: #dcfce7; }
+.alertTagSeverity { color: #be123c; background: #fce7eb; }
+.alertActions { display: flex; gap: 8px; }
+.alertActions button { border: 1px solid #c7c7c7; border-radius: 999px; background: #fff; padding: 3px 11px; color: #17233c; font-size: 9px; font-weight: 700; cursor: pointer; }
+.alertActions button:last-child { border-color: #fda4af; color: #be123c; }
+.alertActions button:hover { background: #f3f4f6; }
+.alertRow time { color: #4b5563; font-size: 9px; white-space: nowrap; }
 .panel { min-width: 0; border: 1px solid #c7c7c7; border-radius: 8px; background: #fff; box-shadow: 0 1px 2px #0000000d; }
 .panelHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 22px 12px; }
 .panelTitle { margin: 0; font-size: 16px; font-weight: 700; }
@@ -63,6 +83,7 @@
 .action { display: flex; align-items: center; justify-content: space-between; padding: 14px 15px; border-radius: 12px; color: #17233c; background: #f5f8fc; font-size: .86rem; font-weight: 700; text-decoration: none; }
 .action:hover { background: #e9f1fb; color: #164d8d; }
 @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2,minmax(0,1fr)); } .row, .rowThree { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .alertRow { grid-template-columns: 24px minmax(0,1fr) auto; } .alertTags { grid-column: 2; } .alertActions { grid-column: 3; grid-row: 1 / span 2; flex-direction: column; } .alertRow time { grid-column: 2 / -1; } }
 @media (max-width: 1100px) { .analyticsRow { grid-template-columns: 1fr; } }
 @media (max-width: 900px) { .overview { grid-template-columns: 1fr; gap: 18px; } .overviewStats { grid-template-columns: repeat(5,minmax(110px,1fr)); overflow-x: auto; } }
 @media (max-width: 560px) { .kpis { grid-template-columns: 1fr; } .panelHeader { padding-inline: 16px; } .panelBody { padding-inline: 16px; } .itemMain { flex-direction: column; } .itemValue { text-align: left; } .overview { padding: 22px 18px; } .overviewStats { grid-template-columns: repeat(2,1fr); overflow: visible; } }
