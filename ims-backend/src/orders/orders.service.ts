@@ -337,19 +337,6 @@ export class OrdersService {
     return order;
   }
 
-  async voidOrder(orderId: string, dto: ReverseOrderDto, actorUserId: string) {
-    return this.reverseOrder(
-      orderId,
-      dto,
-      actorUserId,
-      OrderReversalType.VOID,
-      OrderStatus.VOIDED,
-      InventoryTransactionType.VOID,
-      InventorySourceType.ORDER_VOID,
-      'order.voided',
-    );
-  }
-
   async refundOrder(
     orderId: string,
     dto: ReverseOrderDto,
@@ -731,7 +718,7 @@ export class OrdersService {
         },
         note:
           dto.note ??
-          `${reversalType === OrderReversalType.VOID ? 'Void' : 'Refund'} processed for order ${order.id}`,
+          `Refund processed for order ${order.id}`,
         occurredAt: new Date(),
         lines: checkoutTransaction.lines.map((line) => ({
           rawMaterialId: line.rawMaterialId,

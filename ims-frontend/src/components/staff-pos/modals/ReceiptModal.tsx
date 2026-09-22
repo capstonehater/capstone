@@ -5,7 +5,6 @@ import Modal from "./Modal";
 
 type Props = {
   receipt: PosOrder;
-  onVoid?: (order: PosOrder) => void;
   onRefund?: (order: PosOrder) => void;
   reversalSubmitting?: boolean;
   onClose: () => void;
@@ -13,8 +12,6 @@ type Props = {
 
 function statusTone(status: PosOrder["status"]) {
   switch (status) {
-    case "VOIDED":
-      return "bg-rose-100 text-rose-700";
     case "REFUNDED":
       return "bg-amber-100 text-amber-700";
     default:
@@ -24,7 +21,6 @@ function statusTone(status: PosOrder["status"]) {
 
 export default function ReceiptModal({
   receipt,
-  onVoid,
   onRefund,
   reversalSubmitting = false,
   onClose,
@@ -114,7 +110,7 @@ export default function ReceiptModal({
           {receipt.reversal ? (
             <div className="mt-2 rounded-xl border border-slate-200 bg-white px-3 py-3">
               <p className="font-medium text-slate-900">
-                {receipt.reversal.type === "VOID" ? "Voided" : "Refunded"} by{" "}
+                Refunded by{" "}
                 {formatName(receipt.reversal.actorUser)}
               </p>
               <p className="mt-1 text-xs text-slate-500">
@@ -130,14 +126,7 @@ export default function ReceiptModal({
         <div className="mt-5 flex justify-end gap-2">
           {receipt.status === "COMPLETED" ? (
             <>
-              <button
-                type="button"
-                disabled={reversalSubmitting}
-                onClick={() => onVoid?.(receipt)}
-                className="rounded-2xl border border-rose-200 px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50 disabled:opacity-60"
-              >
-                Void Order
-              </button>
+
               <button
                 type="button"
                 disabled={reversalSubmitting}

@@ -5,7 +5,7 @@ import Modal from "./Modal";
 
 type Props = {
   order: PosOrder;
-  type: "VOID" | "REFUND";
+  type: "REFUND";
   approverEmail: string;
   approverPassword: string;
   reasonCode: string;
@@ -23,7 +23,6 @@ type Props = {
 
 export default function OrderReversalModal({
   order,
-  type,
   approverEmail,
   approverPassword,
   reasonCode,
@@ -38,7 +37,7 @@ export default function OrderReversalModal({
   onClose,
   onConfirm,
 }: Props) {
-  const title = type === "VOID" ? "Void Completed Order" : "Refund Completed Order";
+  const title = "Refund Completed Order";
 
   return (
     <Modal title={title} onClose={onClose}>
@@ -94,7 +93,7 @@ export default function OrderReversalModal({
             <input
               value={reasonCode}
               onChange={(event) => onReasonCodeChange(event.target.value)}
-              placeholder={type === "VOID" ? "VOID_APPROVED" : "CUSTOMER_REFUND"}
+              placeholder="CUSTOMER_REFUND"
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
             />
           </label>
@@ -140,7 +139,7 @@ export default function OrderReversalModal({
             onClick={onConfirm}
             className="rounded-2xl bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-300"
           >
-            {submitting ? "Submitting..." : type === "VOID" ? "Void Order" : "Refund Order"}
+            {submitting ? "Submitting..." : "Refund Order"}
           </button>
         </div>
       </div>

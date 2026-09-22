@@ -2,7 +2,7 @@ import { apiJsonFetch } from "./api";
 
 export type DecimalString = string;
 export type PaymentMethod = "CASH" | "GCASH" | "MAYA" | "CARD" | "OTHER";
-export type OrderStatus = "COMPLETED" | "VOIDED" | "REFUNDED";
+export type OrderStatus = "COMPLETED" | "REFUNDED";
 export type AvailabilityBlockingReason =
   | "NONE"
   | "DISABLED_PRODUCT"
@@ -185,7 +185,7 @@ export type PosOrderReversal = {
   id: string;
   orderId: string;
   actorUserId: string;
-  type: "VOID" | "REFUND";
+  type: "REFUND";
   reasonCode: string;
   note: string | null;
   amount: DecimalString;
@@ -274,14 +274,6 @@ export async function fetchOrders(params: {
 
 export async function fetchOrder(orderId: string) {
   const response = await apiJsonFetch<{ order: PosOrder }>(`/orders/${orderId}`);
-  return response.order;
-}
-
-export async function voidOrder(orderId: string, payload: ReverseOrderPayload) {
-  const response = await apiJsonFetch<{ order: PosOrder }>(`/orders/${orderId}/void`, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
   return response.order;
 }
 

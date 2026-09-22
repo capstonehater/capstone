@@ -1,7 +1,6 @@
 import type { PosOrder } from "@/lib/pos";
 import type { OfflineCheckoutEntry } from "@/lib/pos-offline";
 import { formatDateTime, formatName, formatPeso } from "@/lib/pos-utils";
-import Modal from "./Modal";
 
 type Props = {
   history: PosOrder[];
@@ -9,7 +8,6 @@ type Props = {
   loading: boolean;
   onSelectOrder: (order: PosOrder) => void;
   onReverseOrder?: (order: PosOrder, type: "REFUND") => void;
-  onClose: () => void;
 };
 
 function statusTone(status: PosOrder["status"]) {
@@ -21,16 +19,15 @@ function statusTone(status: PosOrder["status"]) {
   }
 }
 
-export default function TransactionHistoryModal({
+export default function TransactionHistoryPanel({
   history,
   queuedCheckouts = [],
   loading,
   onSelectOrder,
   onReverseOrder,
-  onClose,
 }: Props) {
   return (
-    <Modal title="My Transaction History" onClose={onClose} wide>
+    <div>
       {queuedCheckouts.length > 0 ? (
         <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
           <p className="text-sm font-semibold text-amber-800">Pending Sync Queue</p>
@@ -64,8 +61,8 @@ export default function TransactionHistoryModal({
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200">
-        <div className="grid grid-cols-[1.2fr_1fr_1fr_0.8fr_1fr_180px] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <div className="max-h-[65dvh] overflow-auto rounded-xl border border-slate-200 bg-white">
+        <div className="grid min-w-[960px] grid-cols-[1.2fr_1fr_1fr_0.8fr_1fr_180px] sticky top-0 z-10 gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
           <span>Transaction</span>
           <span>Date & Time</span>
           <span>Staff</span>
@@ -82,7 +79,7 @@ export default function TransactionHistoryModal({
           history.map((txn) => (
             <div
               key={txn.id}
-              className="grid grid-cols-[1.2fr_1fr_1fr_0.8fr_1fr_180px] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
+              className="grid min-w-[960px] grid-cols-[1.2fr_1fr_1fr_0.8fr_1fr_180px] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
             >
               <div>
                 <p className="font-semibold">{txn.id}</p>
@@ -124,6 +121,6 @@ export default function TransactionHistoryModal({
           ))
         )}
       </div>
-    </Modal>
+    </div>
   );
 }

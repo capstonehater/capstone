@@ -13,14 +13,11 @@ export const POS_PAYMENT_METHOD_OPTIONS: Array<{
 
 export const POS_STATUS_OPTIONS: Array<{ value: OrderStatus; label: string }> = [
   { value: "COMPLETED", label: "Completed" },
-  { value: "VOIDED", label: "Voided" },
   { value: "REFUNDED", label: "Refunded" },
 ];
 
 export function statusTone(status: OrderStatus) {
   switch (status) {
-    case "VOIDED":
-      return "bg-rose-100 text-rose-700";
     case "REFUNDED":
       return "bg-amber-100 text-amber-700";
     default:

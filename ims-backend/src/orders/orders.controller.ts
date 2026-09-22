@@ -36,18 +36,6 @@ export class OrdersController {
     };
   }
 
-  @Post('orders/:id/void')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
-  async voidOrder(
-    @Param('id') orderId: string,
-    @Body() dto: ReverseOrderDto,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return {
-      order: await this.ordersService.voidOrder(orderId, dto, user.id),
-    };
-  }
-
   @Post('orders/:id/refund')
   @Roles(Role.ADMINISTRATOR, Role.STAFF)
   async refundOrder(

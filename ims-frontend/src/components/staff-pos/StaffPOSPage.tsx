@@ -4,33 +4,33 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import {
   ArrowLeft, Search, ShoppingCart, Coffee, Cookie, Sandwich, Trash2, Minus, Plus,
-  StickyNote, History, Pencil, Loader2, Wifi, WifiOff, RotateCcw,
+  StickyNote, Pencil, Loader2, Wifi, WifiOff, RotateCcw,
 } from "lucide-react";
 import type {
   ConfiguredPosCartItemInput, PaymentMethod, PosCartItem, PosCheckoutPayload,
   PosMenuProduct, PosOrder,
 } from "@/lib/pos";
 import {
-  checkoutPos, fetchOrder, fetchOrders, fetchPosMenu, refundOrder, voidOrder,
+  checkoutPos, fetchPosMenu, refundOrder,
 } from "@/lib/pos";
 import {
   cacheMenuSnapshot, createOfflineOperationId, enqueueQueuedCheckout,
   getCachedMenuSnapshot, loadQueuedCheckouts, removeQueuedCheckout,
   updateQueuedCheckout, type OfflineCheckoutEntry,
 } from "@/lib/pos-offline";
-import { calculateIncludedVat, formatName, formatPeso } from "@/lib/pos-utils";
+import { calculateIncludedVat, formatPeso } from "@/lib/pos-utils";
 import ProductConfiguratorModal from "./modals/ProductConfiguratorModal";
 import VoidConfirmationModal from "./modals/VoidConfirmationModal";
 import PaymentModal, { type PaymentState } from "./modals/PaymentModal";
 import ReceiptModal from "./modals/ReceiptModal";
-import TransactionHistoryModal from "./modals/TransactionHistoryModal";
 import ActionAlert from "@/components/feedback/ActionAlert";
 import OrderReversalModal from "./modals/OrderReversalModal";
+import styles from "./StaffPOSPage.module.css";
 
 type DiscountOption = { value: string; label: string; rate: number };
 type ReversalState = {
   order: PosOrder | null;
-  type: "VOID" | "REFUND";
+  type: "REFUND";
   approverEmail: string;
   approverPassword: string;
   reasonCode: string;
@@ -67,7 +67,7 @@ function buildCartItem(payload: ConfiguredPosCartItemInput, existing?: PosCartIt
 }
 
 const getDiscountConfig = (discountValue: string) => DISCOUNT_OPTIONS.find((option) => option.value === discountValue) ?? DISCOUNT_OPTIONS[0];
-const defaultReversalState = (): ReversalState => ({ order: null, type: "VOID", approverEmail: "", approverPassword: "", reasonCode: "", note: "", paymentReference: "" });
+const defaultReversalState = (): ReversalState => ({ order: null, type: "REFUND", approverEmail: "", approverPassword: "", reasonCode: "", note: "", paymentReference: "" });
 const isNetworkError = (error: unknown) => error instanceof TypeError || String(error).toLowerCase().includes("failed to fetch") || String(error).toLowerCase().includes("network");
 
 function iconForCategory(categoryName: string) {
@@ -86,7 +86,6 @@ export default function StaffPOSPage() {
   const [menuProducts, setMenuProducts] = useState<PosMenuProduct[]>([]);
   const [menuLoading, setMenuLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [historyLoading, setHistoryLoading] = useState(false);
   const [syncingQueue, setSyncingQueue] = useState(false);
   const [reversalSubmitting, setReversalSubmitting] = useState(false);
   const [configuratorProduct, setConfiguratorProduct] = useState<PosMenuProduct | null>(null);
@@ -94,11 +93,9 @@ export default function StaffPOSPage() {
   const [transactionNote, setTransactionNote] = useState("");
   const [discount, setDiscount] = useState("none");
   const [payments, setPayments] = useState<PaymentState>({ cash: "", gcash: "", maya: "", card: "" });
-  const [history, setHistory] = useState<PosOrder[]>([]);
   const [latestReceipt, setLatestReceipt] = useState<PosOrder | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
   const [voidTargetItem, setVoidTargetItem] = useState<PosCartItem | null>(null);
   const [queuedCheckouts, setQueuedCheckouts] = useState<OfflineCheckoutEntry[]>([]);
   const [isOnline, setIsOnline] = useState(true);
@@ -153,18 +150,6 @@ export default function StaffPOSPage() {
     }
   }
 
-  async function loadHistory() {
-    if (!user?.id) return;
-    setHistoryLoading(true);
-    try {
-      setHistory(await fetchOrders({ createdByUserId: user.id }));
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : "Failed to load order history");
-    } finally {
-      setHistoryLoading(false);
-    }
-  }
-
   async function syncQueuedOrders() {
     if (!navigator.onLine || syncInFlightRef.current) return;
     const queue = loadQueuedCheckouts();
@@ -198,7 +183,7 @@ export default function StaffPOSPage() {
       }
       if (syncedCount > 0) {
         setNotice(syncedCount === 1 ? "Queued checkout synced successfully." : `${syncedCount} queued checkouts synced successfully.`);
-        await loadHistory();
+
       }
     } finally {
       syncInFlightRef.current = false;
@@ -223,7 +208,6 @@ export default function StaffPOSPage() {
   }, []);
 
   useEffect(() => { void loadMenu(); }, []);
-  useEffect(() => { void loadHistory(); }, [user?.id]);
   useEffect(() => { if (isOnline) void syncQueuedOrders(); }, [isOnline]);
 
   const addConfiguredItem = (payload: ConfiguredPosCartItemInput) => { setCart((current) => [...current, buildCartItem(payload)]); closeConfigurator(); };
@@ -281,7 +265,7 @@ export default function StaffPOSPage() {
     setCheckoutLoading(true); setError(null);
     try {
       const response = await checkoutPos(payload);
-      setLatestReceipt(response.order); setShowPayment(false); setShowReceipt(true); resetTransaction(); await loadHistory(); setNotice(null);
+      setLatestReceipt(response.order); setShowPayment(false); setShowReceipt(true); resetTransaction();  setNotice(null);
     } catch (nextError) {
       if (isNetworkError(nextError)) queueCheckoutForSync(payload);
       else setError(nextError instanceof Error ? nextError.message : "Failed to complete checkout");
@@ -290,28 +274,16 @@ export default function StaffPOSPage() {
     }
   };
 
-  const handleSelectOrderFromHistory = async (order: PosOrder) => {
-    try {
-      setLatestReceipt(await fetchOrder(order.id));
-      setShowHistory(false);
-      setShowReceipt(true);
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : "Failed to load receipt");
-    }
-  };
-
-  const openReversalModal = (order: PosOrder, type: "VOID" | "REFUND") => setReversalState({
-    order, type, approverEmail: "", approverPassword: "", reasonCode: type === "VOID" ? "VOID_APPROVED" : "CUSTOMER_REFUND", note: "", paymentReference: "",
+  const openReversalModal = (order: PosOrder, type: "REFUND") => setReversalState({
+    order, type, approverEmail: "", approverPassword: "", reasonCode: "CUSTOMER_REFUND", note: "", paymentReference: "",
   });
   const submitReversal = async () => {
     if (!reversalState.order || !reversalState.reasonCode.trim()) return;
     setReversalSubmitting(true); setError(null);
     try {
-      const order = reversalState.type === "VOID"
-        ? await voidOrder(reversalState.order.id, { approverEmail: reversalState.approverEmail.trim(), approverPassword: reversalState.approverPassword, reasonCode: reversalState.reasonCode.trim(), note: reversalState.note || undefined, paymentReference: reversalState.paymentReference || undefined })
-        : await refundOrder(reversalState.order.id, { approverEmail: reversalState.approverEmail.trim(), approverPassword: reversalState.approverPassword, reasonCode: reversalState.reasonCode.trim(), note: reversalState.note || undefined, paymentReference: reversalState.paymentReference || undefined });
-      setLatestReceipt(order); setShowReceipt(true); setReversalState(defaultReversalState()); await loadHistory();
-      setNotice(reversalState.type === "VOID" ? "Order void processed successfully." : "Order refund processed successfully.");
+      const order = await refundOrder(reversalState.order.id, { approverEmail: reversalState.approverEmail.trim(), approverPassword: reversalState.approverPassword, reasonCode: reversalState.reasonCode.trim(), note: reversalState.note || undefined, paymentReference: reversalState.paymentReference || undefined });
+      setLatestReceipt(order); setShowReceipt(true); setReversalState(defaultReversalState());
+      setNotice("Order refund processed successfully.");
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "Failed to process order reversal");
     } finally {
@@ -332,7 +304,6 @@ export default function StaffPOSPage() {
             <span className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium ${isOnline ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{isOnline ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}{isOnline ? "Online" : "Offline"}</span>
             <span className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">Pending Sync: {pendingSyncCount}</span>
             {pendingSyncCount > 0 ? <button onClick={() => void syncQueuedOrders()} type="button" disabled={!isOnline || syncingQueue} className="inline-flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-60"><RotateCcw className={`h-4 w-4 ${syncingQueue ? "animate-spin" : ""}`} />{syncingQueue ? "Syncing..." : "Sync Queue"}</button> : null}
-            <button onClick={() => setShowHistory(true)} type="button" className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"><History className="h-4 w-4" />My Transactions</button>
           </div>
         </header>
 
@@ -340,6 +311,7 @@ export default function StaffPOSPage() {
         {notice ? <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} /> : null}
         {error ? <ActionAlert tone="error" title="Action failed" message={error} onDismiss={() => setError(null)} /> : null}
 
+        <div key={choosingCategory ? "categories" : "products"} className={choosingCategory ? styles.returnToCategories : styles.openCategory}>
         {choosingCategory ? (
           <section aria-labelledby="pos-categories-title" className="min-h-[60dvh] w-full py-4">
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -453,13 +425,13 @@ export default function StaffPOSPage() {
             </div>
           </aside>
         </div>}
+        </div>
       </div>
 
       {configuratorProduct ? <ProductConfiguratorModal product={configuratorProduct} initialItem={editingCartItem} onClose={closeConfigurator} onSubmit={editingCartItem ? updateConfiguredItem : addConfiguredItem} submitLabel={editingCartItem ? "Save Changes" : "Add to Cart"} /> : null}
       {voidTargetItem ? <VoidConfirmationModal item={voidTargetItem} onClose={() => setVoidTargetItem(null)} onConfirm={() => { if (!voidTargetItem) return; setCart((current) => current.filter((item) => item.cartId !== voidTargetItem.cartId)); if (editingCartItem?.cartId === voidTargetItem.cartId) closeConfigurator(); setVoidTargetItem(null); }} /> : null}
       {showPayment ? <PaymentModal total={totals.total} cartCount={cart.length} payments={payments} setPayments={setPayments} onClose={() => setShowPayment(false)} onConfirm={() => void handleConfirmPayment()} /> : null}
-      {showReceipt && latestReceipt ? <ReceiptModal receipt={latestReceipt} reversalSubmitting={reversalSubmitting} onVoid={(order) => openReversalModal(order, "VOID")} onRefund={(order) => openReversalModal(order, "REFUND")} onClose={() => setShowReceipt(false)} /> : null}
-      {showHistory ? <TransactionHistoryModal history={history} queuedCheckouts={queuedCheckouts} loading={historyLoading} onSelectOrder={(order) => void handleSelectOrderFromHistory(order)} onReverseOrder={(order, type) => openReversalModal(order, type)} onClose={() => setShowHistory(false)} /> : null}
+      {showReceipt && latestReceipt ? <ReceiptModal receipt={latestReceipt} reversalSubmitting={reversalSubmitting} onRefund={(order) => openReversalModal(order, "REFUND")} onClose={() => setShowReceipt(false)} /> : null}
       {reversalState.order ? <OrderReversalModal order={reversalState.order} type={reversalState.type} approverEmail={reversalState.approverEmail} approverPassword={reversalState.approverPassword} reasonCode={reversalState.reasonCode} note={reversalState.note} paymentReference={reversalState.paymentReference} submitting={reversalSubmitting} onApproverEmailChange={(value) => setReversalState((current) => ({ ...current, approverEmail: value }))} onApproverPasswordChange={(value) => setReversalState((current) => ({ ...current, approverPassword: value }))} onReasonCodeChange={(value) => setReversalState((current) => ({ ...current, reasonCode: value }))} onNoteChange={(value) => setReversalState((current) => ({ ...current, note: value }))} onPaymentReferenceChange={(value) => setReversalState((current) => ({ ...current, paymentReference: value }))} onClose={() => setReversalState(defaultReversalState())} onConfirm={() => void submitReversal()} /> : null}
     </div>
   );

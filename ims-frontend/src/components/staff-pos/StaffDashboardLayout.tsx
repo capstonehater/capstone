@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Bell, ChevronLeft, ClipboardList, LayoutDashboard, Menu, Settings, X } from "lucide-react";
+import { ChevronLeft, ClipboardList, LayoutDashboard, Menu, Settings, X } from "lucide-react";
 import styles from "@/components/layout/ApplicationShell.module.css";
 import StaffHeader from "./StaffHeader";
 
@@ -20,7 +20,6 @@ export default function StaffDashboardLayout({
   const links = [
     { label: "POS Dashboard", href: "/staff/dashboard", icon: LayoutDashboard },
     { label: "Transaction History", href: "/staff/transactions", icon: ClipboardList },
-    { label: "Alerts", href: "/staff/alerts", icon: Bell },
     { label: "Account Settings", href: "/staff/settings", icon: Settings },
   ];
 

@@ -46,10 +46,10 @@ export default function StaffHeader() {
     <header className={styles.header}>
       <div>
         <h1 className={styles.title}>
-          {pathname === "/staff/pos" ? "STAFF POS" : "STAFF DASHBOARD"}
+          {pathname === "/staff/transactions" ? "TRANSACTION HISTORY" : pathname === "/staff/pos" ? "STAFF POS" : "STAFF DASHBOARD"}
         </h1>
         <p className={styles.subtitle}>
-          Welcome back! Here’s your POS and daily transaction overview.
+          {pathname === "/staff/transactions" ? "Review your transactions and receipts." : "Welcome back! Here’s your POS and daily transaction overview."}
         </p>
       </div>
 

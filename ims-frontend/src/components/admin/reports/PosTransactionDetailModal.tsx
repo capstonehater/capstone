@@ -11,8 +11,6 @@ type Props = {
 
 function statusTone(status: PosOrder["status"]) {
   switch (status) {
-    case "VOIDED":
-      return "bg-rose-100 text-rose-700";
     case "REFUNDED":
       return "bg-amber-100 text-amber-700";
     default:
@@ -166,7 +164,7 @@ export default function PosTransactionDetailModal({
                     {order.reversal ? (
                       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                         <p className="font-semibold text-slate-900">
-                          {order.reversal.type === "VOID" ? "Voided" : "Refunded"} by{" "}
+                          Refunded by{" "}
                           {order.reversal.actorUser.firstName} {order.reversal.actorUser.lastName}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">

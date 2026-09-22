@@ -336,7 +336,6 @@ export default function MaterialDetailPanel({
                     <option value="ADJUSTMENT">Adjustment</option>
                     <option value="WASTE">Waste</option>
                     <option value="CHECKOUT">Checkout</option>
-                    <option value="VOID">Void</option>
                     <option value="REFUND">Refund</option>
                   </select>
                 </InventoryField>
