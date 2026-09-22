@@ -9,6 +9,7 @@ import type {
 import type { OrderStatus, PaymentMethod, PosMenuCategory, PosOrder } from "./pos";
 
 type ReportFilters = {
+  includeAllGroups?: boolean;
   from?: string;
   to?: string;
   limit?: number;
@@ -29,6 +30,7 @@ function toQueryString(params: Record<string, string | undefined | null>) {
 
 function buildReportQuery(filters: ReportFilters) {
   return toQueryString({
+    includeAllGroups: filters.includeAllGroups ? "true" : undefined,
     from: filters.from,
     to: filters.to,
     limit: filters.limit ? String(filters.limit) : undefined,

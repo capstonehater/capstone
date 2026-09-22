@@ -342,7 +342,7 @@ export class ReportsService {
       },
       byReason: [...reasonMap.values()]
         .sort((left, right) => right.cost.comparedTo(left.cost))
-        .slice(0, limit),
+        .slice(0, filters.includeAllGroups === 'true' ? undefined : limit),
       byMaterial: [...materialMap.values()]
         .sort((left, right) => right.cost.comparedTo(left.cost))
         .slice(0, limit),
@@ -436,7 +436,7 @@ export class ReportsService {
       },
       bySupplier: [...bySupplier.values()]
         .sort((left, right) => right.totalSpend.comparedTo(left.totalSpend))
-        .slice(0, limit),
+        .slice(0, filters.includeAllGroups === 'true' ? undefined : limit),
       recentRuns: stockRuns.slice(0, limit).map((run) => ({
         id: run.id,
         name: run.name,

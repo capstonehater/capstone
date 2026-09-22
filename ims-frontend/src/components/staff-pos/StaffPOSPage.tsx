@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import {
-  Search, ShoppingCart, Coffee, Cookie, Sandwich, Trash2, Minus, Plus,
+  ArrowLeft, Search, ShoppingCart, Coffee, Cookie, Sandwich, Trash2, Minus, Plus,
   StickyNote, History, Pencil, Loader2, Wifi, WifiOff, RotateCcw,
 } from "lucide-react";
 import type {
@@ -81,6 +81,7 @@ export default function StaffPOSPage() {
   const user = useAuthStore((state) => state.user);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
+  const [choosingCategory, setChoosingCategory] = useState(true);
   const [cart, setCart] = useState<PosCartItem[]>([]);
   const [menuProducts, setMenuProducts] = useState<PosMenuProduct[]>([]);
   const [menuLoading, setMenuLoading] = useState(true);
@@ -339,25 +340,47 @@ export default function StaffPOSPage() {
         {notice ? <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} /> : null}
         {error ? <ActionAlert tone="error" title="Action failed" message={error} onDismiss={() => setError(null)} /> : null}
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,2.2fr)_minmax(20rem,0.82fr)]">
+        {choosingCategory ? (
+          <section aria-labelledby="pos-categories-title" className="min-h-[60dvh] w-full py-4">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 id="pos-categories-title" className="text-2xl font-bold text-[#232d46]">Choose a Category</h2>
+                <p className="mt-1 text-sm text-slate-500">Select a category to browse products.</p>
+              </div>
+              {cart.length > 0 && <button type="button" onClick={() => setChoosingCategory(false)} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-3 font-semibold text-[#232d46]"><ShoppingCart size={18} />Current Cart ({cart.length}) · {formatPeso(totals.total)}</button>}
+            </div>
+            {menuLoading ? (
+              <p role="status" className="flex items-center gap-2 py-8 text-slate-500"><Loader2 className="h-5 w-5 animate-spin" />Loading categories...</p>
+            ) : menuProducts.length === 0 ? (
+              <p className="py-8 text-slate-500">No menu categories available.</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 xl:gap-6">
+                {categories.map((item) => (
+                  <button key={item} type="button" onClick={() => { setCategory(item); setSearch(""); setChoosingCategory(false); }} className="flex min-h-28 items-center justify-center rounded-md border border-white/20 bg-[linear-gradient(115deg,#232d46_0%,#096b94_100%)] px-6 py-6 text-center text-lg font-bold uppercase leading-snug text-white shadow-sm transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-500 motion-reduce:transition-none">
+                    {item === "All" ? "All Products" : item}
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : <div className="grid gap-4 xl:grid-cols-[minmax(0,2.2fr)_minmax(20rem,0.82fr)]">
           <section className="rounded-3xl bg-white p-4 shadow-sm md:p-5">
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="relative w-full md:max-w-xl">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by product, category, or SKU" className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none focus:border-[#f45a1f]" />
               </div>
-              <div className="flex flex-wrap gap-2">
-                {categories.map((item) => <button key={item} onClick={() => setCategory(item)} type="button" className={`rounded-2xl px-4 py-2 text-sm font-medium transition ${category === item ? "bg-[#f45a1f] text-white" : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}>{item}</button>)}
-              </div>
+              <button type="button" onClick={() => { setChoosingCategory(true); setSearch(""); }} className="order-first inline-flex shrink-0 items-center gap-2 rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-[#232d46] hover:bg-slate-50"><ArrowLeft size={18} />Back to Categories</button>
             </div>
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Menu</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{category === "All" ? "All Products" : category}</h2>
               <span className="text-xs text-slate-400">{menuLoading ? "Loading..." : `${filteredProducts.length} products`}</span>
             </div>
             {menuLoading ? (
               <div className="flex min-h-[360px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500"><span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Loading menu</span></div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
+                {filteredProducts.length === 0 && <p className="col-span-full py-8 text-center text-slate-500">No products match your search in this category.</p>}
                 {filteredProducts.map((product) => {
                   const sellableVariants = product.variants.filter((variant) => variant.isEnabled && variant.availability?.isSellable);
                   const cheapestVariant = [...product.variants].sort((left, right) => Number(left.price) - Number(right.price))[0];
@@ -429,7 +452,7 @@ export default function StaffPOSPage() {
               <button onClick={() => setShowPayment(true)} type="button" disabled={cart.length === 0} className="rounded-2xl bg-[#f45a1f] px-4 py-3 text-sm font-semibold text-white hover:bg-[#d94f1a] disabled:cursor-not-allowed disabled:bg-slate-300">{checkoutLoading ? "Processing..." : isOnline ? "Process Order" : "Queue Checkout"}</button>
             </div>
           </aside>
-        </div>
+        </div>}
       </div>
 
       {configuratorProduct ? <ProductConfiguratorModal product={configuratorProduct} initialItem={editingCartItem} onClose={closeConfigurator} onSubmit={editingCartItem ? updateConfiguredItem : addConfiguredItem} submitLabel={editingCartItem ? "Save Changes" : "Add to Cart"} /> : null}

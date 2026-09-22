@@ -7,17 +7,19 @@ import AdminHeader from "@/components/admin/AdminHeader";
 
 type AdminDashboardLayoutProps = {
   children: React.ReactNode;
+  fillContent?: boolean;
 };
 
 export default function AdminDashboardLayout({
   children,
+  fillContent = false,
 }: AdminDashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   return (
-    <div className={`${styles.shell} ${sidebarCollapsed ? styles.adminShellCollapsed : ""}`}>
+    <div className={`${styles.shell} ${sidebarCollapsed ? styles.adminShellCollapsed : ""} ${fillContent ? styles.fillContent : ""}`}>
       <AdminSidebar
         isOpen={sidebarOpen}
         onClose={closeSidebar}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   AlertTriangle,
   Archive,
@@ -127,7 +128,24 @@ export default function MaterialDetailPanel({
   getTransactionDelta,
   getTransactionCost,
 }: MaterialDetailPanelProps) {
+  const [batchSearch, setBatchSearch] = useState("");
+  const [batchStatus, setBatchStatus] = useState("");
+  const [batchSupplier, setBatchSupplier] = useState("");
+  const [batchOrder, setBatchOrder] = useState("desc");
   const activeBatches = batches.filter((batch) => Number(batch.remainingQuantity) > 0);
+  const batchSuppliers = [...new Map(batches.filter((batch) => batch.supplier).map((batch) => [batch.supplier!.id, batch.supplier!])).values()];
+  const matchingBatches = batches.filter((batch) => {
+    const matchesSearch = `${batch.id} ${batch.supplier?.name ?? ""} ${batch.stockRunItem?.stockRun.name ?? ""}`.toLowerCase().includes(batchSearch.trim().toLowerCase());
+    const remaining = Number(batch.remainingQuantity);
+    return matchesSearch
+      && (!batchStatus || (batchStatus === "active" ? remaining > 0 : remaining <= 0))
+      && (!batchSupplier || (batchSupplier === "none" ? !batch.supplierId : batch.supplierId === batchSupplier));
+  });
+  const recentBatches = [...matchingBatches]
+    .sort((a, b) => Date.parse(b.receivedAt) - Date.parse(a.receivedAt) || b.id.localeCompare(a.id));
+  if (batchOrder === "asc") recentBatches.reverse();
+  const recentTransactions = [...transactions]
+    .sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt) || b.id.localeCompare(a.id));
 
   if (!selectedRawMaterialId) {
     return (
@@ -204,14 +222,14 @@ export default function MaterialDetailPanel({
         <MetricTile label="Inventory Value" value={selectedSummary ? formatMoney(selectedSummary.inventoryValue) : "—"} />
       </div>
 
-      <div className="mt-4 grid gap-4">
+      <div className="mt-4 grid shrink-0 gap-4">
         <section className="flex min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200">
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm font-semibold text-slate-900">Batches</h3>
                 <p className="mt-1 text-xs text-slate-500">
-                  {activeBatches.length} active batch{activeBatches.length === 1 ? "" : "es"}.
+                  {activeBatches.length} active batch{activeBatches.length === 1 ? "" : "es"}. {matchingBatches.length} matching batches. Scroll to view more.
                 </p>
               </div>
               {detailLoading ? (
@@ -222,8 +240,29 @@ export default function MaterialDetailPanel({
               ) : null}
             </div>
           </div>
-          <div className="max-h-72 overflow-auto 2xl:max-h-none 2xl:overflow-visible">
-            <table className="w-full table-fixed text-sm">
+          <div className="grid gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 sm:grid-cols-2 xl:grid-cols-4">
+            <InventoryField htmlFor="batch-search" label="Search batches">
+              <input id="batch-search" value={batchSearch} onChange={(event) => setBatchSearch(event.target.value)} placeholder="Batch ID, supplier, or stock run" className={inventoryInputClasses} />
+            </InventoryField>
+            <InventoryField htmlFor="batch-status" label="Status">
+              <select id="batch-status" value={batchStatus} onChange={(event) => setBatchStatus(event.target.value)} className={inventoryInputClasses}>
+                <option value="">All statuses</option><option value="active">Remaining stock</option><option value="depleted">Depleted</option>
+              </select>
+            </InventoryField>
+            <InventoryField htmlFor="batch-supplier" label="Supplier">
+              <select id="batch-supplier" value={batchSupplier} onChange={(event) => setBatchSupplier(event.target.value)} className={inventoryInputClasses}>
+                <option value="">All suppliers</option><option value="none">No supplier</option>
+                {batchSuppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
+              </select>
+            </InventoryField>
+            <InventoryField htmlFor="batch-order" label="Received date order">
+              <select id="batch-order" value={batchOrder} onChange={(event) => setBatchOrder(event.target.value)} className={inventoryInputClasses}>
+                <option value="desc">Newest first</option><option value="asc">Oldest first</option>
+              </select>
+            </InventoryField>
+          </div>
+          <div tabIndex={0} role="region" aria-label="Batches table" className="h-[17rem] min-h-0 shrink-0 overflow-x-auto overflow-y-scroll [scrollbar-gutter:stable]">
+            <table className="w-full min-w-[40rem] table-fixed text-sm">
               <thead className="sticky top-0 z-10 bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-600">
                 <tr>
                   <th className="px-4 py-3">Batch</th>
@@ -235,14 +274,14 @@ export default function MaterialDetailPanel({
                 </tr>
               </thead>
               <tbody>
-                {batches.length === 0 ? (
+                {recentBatches.length === 0 ? (
                   <tr>
                     <td className="px-4 py-6 text-slate-500" colSpan={6}>
-                      No batches found for this material.
+                      No batches match the current filters.
                     </td>
                   </tr>
                 ) : (
-                  batches.map((batch) => (
+                  recentBatches.map((batch) => (
                     <tr key={batch.id} className="border-t border-slate-100">
                       <td className="px-3 py-2 font-medium text-slate-900">{batch.id.slice(0, 8)}</td>
                       <td className="px-3 py-2">{formatQuantity(batch.remainingQuantity)}</td>
@@ -273,7 +312,7 @@ export default function MaterialDetailPanel({
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900">Inventory History</h3>
                   <p className="mt-1 text-xs text-slate-500">
-                    Filter the ledger without kicking focus out of the search field.
+                    {transactions.length} matching transactions, newest first. Scroll to view older records.
                   </p>
                 </div>
                 {historyLoading ? (
@@ -332,8 +371,8 @@ export default function MaterialDetailPanel({
             </div>
           </div>
 
-          <div className="max-h-[30rem] overflow-auto 2xl:max-h-none 2xl:overflow-visible">
-            <table className="min-w-[52rem] text-sm">
+          <div tabIndex={0} role="region" aria-label="Inventory history table" className="h-[30rem] min-h-0 shrink-0 overflow-x-auto overflow-y-scroll [scrollbar-gutter:stable]">
+            <table className="w-full min-w-[52rem] text-sm">
               <thead className="sticky top-0 z-10 bg-white text-left text-xs uppercase tracking-[0.18em] text-slate-400">
                 <tr>
                   <th className="px-4 py-3">Occurred</th>
@@ -345,14 +384,14 @@ export default function MaterialDetailPanel({
                 </tr>
               </thead>
               <tbody>
-                {transactions.length === 0 ? (
+                {recentTransactions.length === 0 ? (
                   <tr>
                     <td className="px-4 py-6 text-slate-500" colSpan={6}>
                       No transactions matched the current filters.
                     </td>
                   </tr>
                 ) : (
-                  transactions.map((transaction) => {
+                  recentTransactions.map((transaction) => {
                     const delta = getTransactionDelta(transaction);
                     const totalCost = getTransactionCost(transaction);
                     const actor = transaction.actorUser

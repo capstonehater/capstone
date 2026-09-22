@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from "react";
 import ProfileAvatar from "@/components/auth/ProfileAvatar";
 import { useLogout } from "@/hooks/useLogout";
 import {
-  Bell,
   Settings,
   LogOut,
   ChevronDown,
@@ -55,10 +54,6 @@ export default function StaffHeader() {
       </div>
 
       <div className={styles.actions}>
-        <button type="button" disabled className={styles.iconButton} aria-label="Staff notifications unavailable" title="Staff notifications are not available">
-          <Bell size={20} />
-        </button>
-
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setOpenDropdown((prev) => !prev)}

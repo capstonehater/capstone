@@ -8,6 +8,11 @@
   background: var(--shell-background);
 }
 .body { min-width: 0; transition: margin-left .25s ease; }
+@media (min-width: 1280px) {
+  .fillContent .body { height: 100dvh; display: flex; flex-direction: column; }
+  .fillContent .header { flex-shrink: 0; }
+  .fillContent .content { display: flex; flex: 1; min-height: 0; }
+}
 .content { min-width: 0; padding: 28px 32px 40px; }
 .header { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 64px; padding: 10px 32px; border-bottom: 1px solid var(--shell-border); background: var(--shell-background); color: #111; }
 .heading { min-width: 0; }

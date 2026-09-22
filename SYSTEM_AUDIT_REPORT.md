@@ -1,11 +1,11 @@
 # SYSTEM AUDIT REPORT
 ## Café Salvacion Inventory Management System
 
-**Audit date:** 15 September 2026  
-**Scope:** Current working tree at `C:\Users\Deej\Desktop\salvacion`, including modified and untracked implementation files.  
-**Method:** Repository inspection, controller/DTO/schema enumeration, transaction tracing, TypeScript checks, existing isolated tests and non-fixing lint. Only this report is intentionally created. No application edits, migrations, seeds, business transactions, provider requests or dependency installations were performed.
+**Audit date:** 20 September 2026
+**Scope:** Current working tree at `C:\Users\Deej\Desktop\salvacion`, as present during this audit; no implementation edits were made.
+**Method:** Repository inspection, controller/DTO/schema enumeration, transaction tracing, TypeScript checks, existing isolated tests and non-fixing lint. Only this requested report is updated. The prior report was used as an index; endpoint coverage was compared against every registered controller and all entity field declarations were compared against the current Prisma schema. No application edits, migrations, seeds, business transactions, provider requests or dependency installations were performed.
 
-**Evidence limits:** “Implemented” means the relevant code and connections exist; it does not certify a successful production workflow. Findings based on concurrency interleavings are static analyses, not reproduced database races. The live schema, deployed configuration, real external-provider responses, browser appearance/accessibility and forecast accuracy were not verified. Existing documentation is background evidence, not proof of current behavior. Environment variable names were inspected without reproducing secret values.
+**Evidence limits:** “Implemented” means the relevant code and connections exist; it does not certify a successful production workflow. Findings based on concurrency interleavings are static analyses, not reproduced database races. The live schema, deployed configuration, real external-provider responses, browser appearance/accessibility and forecast accuracy were not verified. Existing documentation is background evidence, not proof of current behavior. Environment configuration source and variable names were inspected without reading or reproducing secret values. Current deployment environment values were not verified. This is a repository audit, not a penetration test or a live database certification.
 
 ## 1. Executive Summary
 
@@ -15,7 +15,7 @@ The strongest foundation is checkout: server-side pricing, recipe/modifier resol
 
 **Highest-priority findings:**
 
-1. **Stock can diverge from its ledger under concurrent waste/negative adjustments.** Both read a balance without a row lock and later write an absolute replacement.
+1. **Stock can diverge from its ledger under concurrent waste operations.** Waste reads a balance without a row lock and later writes an absolute replacement.
 2. **Archived products can still be checked out by ID.** Menu filtering excludes them, but checkout checks only enable flags and recipes.
 3. **Changing a material’s unit reinterprets existing stock and recipes without conversion or a usage restriction.**
 4. **Refunds always return ingredients to their original batches**, even for already-prepared food/drinks.
@@ -24,7 +24,7 @@ The strongest foundation is checkout: server-side pricing, recipe/modifier resol
 7. **The public Next.js geocoding route can consume the server’s LocationIQ quota without authentication or throttling.**
 8. **Production packaging is incomplete:** the start path differs from existing output, Prisma Client is a development dependency, and the default Python environment cannot load worker dependencies.
 
-Current checks: both TypeScript projects pass; 52 backend unit tests and 40 API integration tests pass. The API integration suite mocks Prisma and does not validate PostgreSQL transaction behavior. Python test discovery fails on missing dependencies in both installed interpreter entry points checked. See Section 12 for precise commands and lint results.
+Current checks: backend TypeScript passes; frontend TypeScript fails with three product-filter errors. All 52 backend unit tests pass. HTTP tests pass 38/40; two outdated settings-access expectations fail. Python discovery fails because the default interpreter lacks pandas and requests. Frontend lint has 19 warnings; backend lint has 272 errors and 16 warnings. See Section 12.
 
 ### Target capability comparison
 
@@ -32,7 +32,7 @@ Current checks: both TypeScript projects pass; 52 backend unit tests and 40 API 
 | --- | --- | --- |
 | Inventory management | Implemented with correctness gaps | `inventory-actions.service.ts`, `inventory.service.ts`, admin inventory workspace; concurrency, units and expired-waste findings |
 | POS and sales processing | Implemented with partial payment/receipt workflow | `orders.service.ts`, `StaffPOSPage.tsx`; payments are recorded manually, Print Receipt is inert |
-| Supplier management | Implemented | Inventory controller/service and supplier modal; deletion removes supplier attribution from linked historical records |
+| Supplier management | Implemented | Inventory controller/service and standalone supplier page; deletion removes supplier attribution from linked historical records |
 | AI-driven store recommendations | Implemented within inventory | Python store workers and StoreAvailabilityModal; dedicated recommendations route remains a placeholder |
 | Inventory forecasting | Implemented integration; runtime blocked in checked Python environments | Forecasting module, SARIMA, live POS history, stored series and admin visualization |
 | Geolocation | Partially meets broad target | Leaflet map, geocoding, coordinates, straight-line distance and external directions; no in-app road routing/travel-time service |
@@ -59,7 +59,7 @@ Current checks: both TypeScript projects pass; 52 backend unit tests and 40 API 
 | `docs/architecture`, `md files` | Historical reviews, planning and implementation reports |
 | Root/backend SQL files and seed caches | Database exports/import aids; not the authoritative migration chain |
 
-The working tree already contains many edits and untracked AI/forecasting files. The deleted root `geolocation.py` is not an active component; current maps/geocoding live in Next.js and store distance logic lives in the Python workers. A checkout of HEAD alone would not reproduce this audited tree.
+The working tree was clean at the initial git-status check. Current maps/geocoding live in Next.js and store distance logic lives in the Python workers. Existing SQL exports and historical audit documents are not proof of live database state.
 
 ### System map
 
@@ -101,7 +101,7 @@ The backend is a modular monolith, not a microservice deployment. Python runs as
 | API | NestJS **^11.0.1**, Express platform adapter | Controllers/services/modules; global ValidationPipe |
 | Persistence | Prisma/Prisma Client **^6.19.2**, PostgreSQL | Client is incorrectly categorized under devDependencies for production-only installation |
 | Auth/images | bcrypt **^6.0.0**, Sharp **^0.35.4** | JWT/Passport dependencies declared, but active guards use opaque sessions |
-| Testing | Jest **^30**, ts-jest **^29.2.5**, Supertest **^7** | Existing combinations passed the executed suites |
+| Testing | Jest **^30**, ts-jest **^29.2.5**, Supertest **^7** | Unit suites pass; two HTTP authorization expectations are stale |
 | Forecasting | NumPy, pandas, SciPy, statsmodels, scikit-learn, holidays, Plotly | Version ranges in `python/requirements.txt`; no Python lockfile |
 | Store AI | requests, python-dotenv, Groq SDK | `AI-Store Reco/requirements.txt`; model ID configured in source |
 
@@ -111,7 +111,7 @@ Versions above come from package manifests, not assertions about every installed
 
 - `ims-backend/src/config/env.validation.ts` loads `.env`, requires database/session secrets, configures origins, cookies, TTLs and background jobs. It does not enforce production HTTPS, secret entropy, or valid combinations such as SameSite=None with Secure.
 - Frontend `NEXT_PUBLIC_API_BASE_URL` defaults to `http://localhost:4000`. `LOCATIONIQ_API_KEY` is server-only in the route implementation.
-- Python executable/script overrides are read directly from environment in the services, outside central validation. No Python override appeared in the inspected backend environment; the code therefore defaults to `python`.
+- Python executable/script overrides are read directly from environment in the services, outside central validation. When overrides are unset, the code defaults to `python`; that executable failed the dependency checks in this audit. The deployed override values were not inspected.
 - `ims-backend/package.json` uses `node dist/main` for production. Existing build output is under `dist/src`, and `tsconfig.build.json` also includes non-src TypeScript such as seed/scripts. Existing output is evidence, not a fresh build result.
 - `prisma/seed.ts:29` expects a seed ZIP/CSV under the operator’s Downloads directory unless overridden. This is not a self-contained clean-clone setup.
 - Profile pictures use a local directory relative to process.cwd(); Python defaults require sibling directories. Production requires the correct working directory, Python dependencies, CSV inputs and persistent upload storage.
@@ -133,9 +133,9 @@ Versions above come from package manifests, not assertions about every installed
 
 | Area | Implemented UI | Problems / gaps |
 | --- | --- | --- |
-| Authentication | Login, forgot/reset forms, bootstrap, protected role layouts, logout | Production delivery gap; failed logout still clears UI while server session may survive; no staff settings/password-change page |
+| Authentication | Login, forgot/reset forms, bootstrap, protected role layouts, logout | Production delivery gap; failed logout still clears UI while server session may survive; manager routing incomplete; staff settings now exists |
 | Products | Search/filter list, create/edit, variants, recipe editor, availability, archive/restore/delete eligibility, usage drilldowns | No equivalent full CRUD UI/API for categories, modifier groups, modifiers or units |
-| Inventory | Material CRUD/archive, summary, batches, transaction history, stock-run drafts/posting, adjustments, waste, suppliers | Underlying expired-waste/unit/concurrency defects; archive has no restore endpoint |
+| Inventory | Material CRUD/archive, summary, batches, transaction history, stock-run drafts/posting and waste; suppliers have a separate page | Underlying expired-waste/unit/concurrency defects; archive has no restore endpoint |
 | POS | Live menu, categories/search, variant/modifier configuration, cart, discount selection, split payments, checkout, history, receipts and approved reversals | Inert print button; change is displayed but not modeled in persistence; queue ownership and retry concerns |
 | Dashboard | Server-derived sales/margins, inventory value, low stock, expiry, waste, stock-run spend and recent orders | Error paths can leave default zero metrics; not all fetched state is displayed |
 | Reports | Inventory/POS workspaces, date filters, charts, transaction drilldown and CSV/print-to-PDF export code | Expensive data loading; payment reconciliation; print export API assumptions require browser verification |
@@ -155,6 +155,27 @@ Evidence: `components/staff-pos/StaffPOSPage.tsx`; `components/admin/inventory/*
 - **F-06: UI architecture has legacy duplication.** Generic `components/inventory`, `src/data/products.ts`, `lib/staff-pos/data.ts`, and older modals coexist with the live admin/POS implementation. Their presence does not prove they are active features. Establish reachability before removing them.
 - **F-07: Accessibility remains unverified.** Custom dialogs/dropdowns/chart controls exist. No automated keyboard, focus-trap, screen-reader or browser-layout checks were found. Do not infer accessible behavior from component names.
 
+### Findings from the current redesign
+
+- **F-08 / High, release blocker ? Frontend type check fails.** `ims-frontend/src/components/admin/products/ProductsWorkspace.tsx:254` builds an unannotated baseFilters object. Its string properties widen before three listProducts calls (270?272), producing TS2345. Type the shared filter object against the client contract and verify sort fields as well; no fix was made during audit.
+- **F-09 / Medium ? Alert removal timer is cancelled by its own state update.** `ims-frontend/src/components/feedback/ActionAlert.tsx:17` sets closing=true and schedules onDismiss after 400ms. closing changes the dismiss callback identity, triggering effect cleanup (26?28), which clears closeTimer. This leaves the parent message set even if CSS hides the alert. Inline parent onDismiss functions also restart the five-second effect on unrelated renders while the CSS timer continues. Separate lifecycle timers from changing callback identities and test actual removal, repeat alerts and manual close with fake timers and a browser.
+- **F-10 / Medium ? Notification migration is incomplete and alerts overlap.** ActionAlert is used by products, users, settings, inventory and POS. SupplierWorkspace, forecasting, authentication and report actions still have separate feedback. Multiple ActionAlert instances share one fixed top-center position without a stack; title/message updates do not reset closing/animation state. Instances without onDismiss cannot auto-remove. The demo's maximum-three queue is not implemented. A shared notification host with IDs, queue and independent lifetimes is the recommended future fix. Keep field validation and persistent operational stock alerts distinguishable from transient action feedback.
+- **F-11 / Medium ? Staff sidebar has dead links.** `ims-frontend/src/components/staff-pos/StaffDashboardLayout.tsx:24` links to `/staff/transactions` and `/staff/alerts`, but neither route exists in src/app. History currently works through the POS modal. AlertsController permits ADMINISTRATOR only; adding a staff page alone would not complete this workflow. Agree staff visibility before changing API roles.
+- **F-12 / Medium ? Manager settings lacks a route-level guard.** `/manager/settings/page.tsx` renders AdminDashboardLayout and SettingsWorkspace, but there is no manager layout/AuthGuard. AdminDashboardLayout is presentation only. Backend session guards still protect settings data, so this is an unguarded shell/navigation problem rather than anonymous account data exposure. `lib/auth.ts:34` still routes managers to unsupportedRole=MANAGER. Add an intentional manager entry route/guard and appropriate navigation in a later phase.
+- **F-13 / Low ? Collapsing admin navigation changes vertical positions.** AdminSidebar removes group headings and brand subtitle conditionally; centering icons alone does not preserve section heights. Inventory hover links are hidden when collapsed, so the collapsed inventory icon cannot expose the new section shortcuts. Validate keyboard/touch behavior and keep reserved heading space if stable positions are required.
+- **F-14 / Medium ? ?All Products? still requests ACTIVE records.** ProductsWorkspace list query maps every non-archived view to archiveState=ACTIVE. The active count is fetched separately but excludes archived products. If ?All Products? means all lifecycle states, label, count and request semantics disagree; define this before adjusting queries.
+
+### Current page responsibilities
+
+`/admin/inventory` composes InventorySummaryPanel (filters/master list), MaterialDetailPanel (selected material/batches/history), InventoryBusinessInsights (five report-backed tables), StockRunsPanel and operation dialogs. Zustand inventoryStore retains selected material, filters and active modal. Inventory section shortcuts use IDs in the page/panels.
+
+Suppliers now use `/admin/inventory/suppliers` -> SupplierWorkspace -> SupplierLocationPicker; `/admin/suppliers` aliases that page. Supplier selection/create/update/delete refresh the list independently of inventory modal state. This is a standalone page, not the former supplier modal workflow.
+
+Staff settings uses SettingsWorkspace under StaffDashboardLayout and the STAFF route guard. Administrator settings uses the same workspace under the ADMINISTRATOR guard. Both headers read name/email from authStore; successful non-email profile edits update that store. Email changes deliberately require sign-in; cross-tab profile synchronization is not implemented.
+
+Manual Record Adjustment UI/API has been removed: there is no POST /inventory/adjustments controller method or adjustment DTO. Historical ADJUSTMENT enum values still exist in Prisma/ledger history. Do not reinstate this intentionally removed feature as an audit fix. ModifierRecipeAdjustment is a separate recipe feature and remains active.
+
+
 ## 5. Backend Audit
 
 ### Architecture and module responsibilities
@@ -165,14 +186,14 @@ Evidence: `components/staff-pos/StaffPOSPage.tsx`; `components/admin/inventory/*
 | Users | Admin CRUD/status changes, safe projections, sessions/activity, protected-history and last-admin checks | Role/status updates and last-admin checks need concurrency tests; no general immutable administrative audit log |
 | Catalog | Public-to-authenticated menu/read APIs; admin product/variant/archive/recipe management; Prisma and Availability | Archive not enforced at checkout; non-atomic master-data/derived-summary updates; no master-data CRUD for several lookup types |
 | Recipes | Required group/selection validation and material requirements including modifier deltas | No recipe version entity; live recipe changes during offline delay alter consumption |
-| Inventory | Material/supplier management, batches, ledger, adjustments/waste, daily snapshots, store worker | Lost updates, mutable unit, expired-waste block, history attribution loss on supplier deletion |
+| Inventory | Material/supplier management, batches, ledger, waste, daily snapshots, store worker | Lost updates, mutable unit, expired-waste block, history attribution loss on supplier deletion |
 | StockRuns | Draft creation/items/deletion and atomic posting into batches/ledger/outbox | Draft editing and posting are not serialized around the same parent record |
 | Orders | Checkout pricing, payments, FEFO, COGS, ledger/read models/outbox; order history and admin-approved reversals | Discount/tender/reversal semantics, archived checkout, idempotency race and ownership |
 | Availability | Raw-material/variant summaries, required modifier feasibility, stockout/availability history and summary repair | Some business-date logic depends on server timezone; archive omission; derived projections need reconciliation |
 | Events | Transactional enqueue, polling claim, retry, dispatch to alert refresh | PROCESSING records have no reclaim lease after worker crash |
 | Alerts | Low stock/expiry states, acknowledgement/dismissal, periodic reevaluation | In-process scheduling; no external notification delivery verified |
 | Reports | 17 inventory/POS reports from orders/ledger/summaries/history | Large service and in-memory aggregation; no real-DB automated report reconciliation |
-| Settings | Administrator profile/email/password changes and safe image conversion | Staff excluded; local filesystem persistence; sensitive account changes depend on revocation sequencing |
+| Settings | Administrator, staff and manager own-profile/email/password changes and safe image conversion | Manager UI guard/routing gap; local filesystem persistence; sensitive account changes depend on revocation sequencing |
 | Forecasting | Protected run API, global active-key guard, snapshot, bounded child process, validation/persistence | Runtime dependencies missing locally; non-durable execution; CSV policy dependency and limited provenance |
 | Prisma | Shared client connect/disconnect lifecycle | Runtime dependency packaging; migrations and production schema state unverified |
 
@@ -182,7 +203,7 @@ Nest built-in exceptions handle many errors. There is no common application exce
 
 ### API contract inventory
 
-The following inventory covers **101 registered Nest controller routes**, plus the Next.js geolocation route and static image route. The unregistered sample root controller is excluded. Dates/Decimals in Prisma-derived responses serialize as JSON date/decimal strings; frontend contract types are in `lib/inventory.ts`, `lib/pos.ts`, `lib/products/types.ts`, `lib/reports.ts`, `lib/user-management.ts` and `lib/forecasting.ts`.
+The following inventory covers **100 registered Nest controller routes**, plus the Next.js geolocation route and static image route. The unregistered sample root controller is excluded. Dates/Decimals in Prisma-derived responses serialize as JSON date/decimal strings; frontend contract types are in `lib/inventory.ts`, `lib/pos.ts`, `lib/products/types.ts`, `lib/reports.ts`, `lib/user-management.ts` and `lib/forecasting.ts`.
 
 **Shared authentication/database effects:** Every non-public Nest route first validates the session and normally updates AuthSession.lastSeenAt/idleExpiresAt. “Read only” below refers to business tables and excludes this session write. Unsafe requests also pass the Origin/Referer middleware. Role “any authenticated role” includes MANAGER in the current enum. No tenant/store ownership boundary exists.
 
@@ -204,7 +225,7 @@ Output: { alerts: Alert[] } with linked operational context.
 
 Database impact: Read alerts and related records.
 
-Evidence: `ims-backend/src/alerts/alerts.controller.ts:15` (listAlerts).
+Evidence: `ims-backend/src/alerts/alerts.controller.ts:16` (listAlerts).
 
 #### GET /alerts/unread-count
 
@@ -221,7 +242,7 @@ Output: Count payload from AlertsService.getUnreadCount.
 
 Database impact: Read alerts.
 
-Evidence: `ims-backend/src/alerts/alerts.controller.ts:22` (getUnreadCount).
+Evidence: `ims-backend/src/alerts/alerts.controller.ts:23` (getUnreadCount).
 
 #### POST /alerts/:id/acknowledge
 
@@ -238,7 +259,7 @@ Output: { alert }.
 
 Database impact: Update Alert state, acknowledgement user/time and metadata.
 
-Evidence: `ims-backend/src/alerts/alerts.controller.ts:27` (acknowledgeAlert).
+Evidence: `ims-backend/src/alerts/alerts.controller.ts:28` (acknowledgeAlert).
 
 #### POST /alerts/:id/dismiss
 
@@ -255,7 +276,7 @@ Output: { alert }.
 
 Database impact: Update Alert state, dismissal user/time and metadata.
 
-Evidence: `ims-backend/src/alerts/alerts.controller.ts:42` (dismissAlert).
+Evidence: `ims-backend/src/alerts/alerts.controller.ts:43` (dismissAlert).
 
 #### POST /auth/login
 
@@ -272,7 +293,7 @@ Output: { message, user }; Set-Cookie.
 
 Database impact: Read User; update login/lock counters; create AuthSession.
 
-Evidence: `ims-backend/src/auth/auth.controller.ts:23` (login).
+Evidence: `ims-backend/src/auth/auth.controller.ts:24` (login).
 
 #### POST /auth/logout
 
@@ -289,7 +310,7 @@ Output: { message }; cookie cleared.
 
 Database impact: Update AuthSession revocation.
 
-Evidence: `ims-backend/src/auth/auth.controller.ts:42` (logout).
+Evidence: `ims-backend/src/auth/auth.controller.ts:43` (logout).
 
 #### GET /auth/me
 
@@ -306,7 +327,7 @@ Output: { user: { id, email, name, role, profilePictureUrl } }.
 
 Database impact: No extra business write.
 
-Evidence: `ims-backend/src/auth/auth.controller.ts:60` (getMe).
+Evidence: `ims-backend/src/auth/auth.controller.ts:61` (getMe).
 
 #### POST /auth/forgot-password
 
@@ -323,7 +344,7 @@ Output: { message }; optional debugResetToken/debugResetUrl only under developme
 
 Database impact: Invalidate old reset tokens and create a new PasswordResetToken for eligible account; notifier currently does not deliver mail.
 
-Evidence: `ims-backend/src/auth/auth.controller.ts:74` (forgotPassword).
+Evidence: `ims-backend/src/auth/auth.controller.ts:75` (forgotPassword).
 
 #### POST /auth/reset-password
 
@@ -340,7 +361,7 @@ Output: { message }.
 
 Database impact: Update User hash/status/lock fields; mark reset tokens used; revoke sessions.
 
-Evidence: `ims-backend/src/auth/auth.controller.ts:82` (resetPassword).
+Evidence: `ims-backend/src/auth/auth.controller.ts:83` (resetPassword).
 
 #### GET /variants/:id/availability
 
@@ -357,7 +378,7 @@ Output: { availability }.
 
 Database impact: Read cached VariantAvailabilitySummary; if absent, refresh and persist variant summaries/availability history before returning. This GET can write business projections.
 
-Evidence: `ims-backend/src/availability/availability.controller.ts:8` (getVariantAvailability).
+Evidence: `ims-backend/src/availability/availability.controller.ts:9` (getVariantAvailability).
 
 #### GET /admin/products
 
@@ -374,7 +395,7 @@ Output: Admin product rows, availability/lifecycle metadata and pagination.
 
 Database impact: Read Product/Variant/Category and availability/usage data.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:34` (listProducts).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:35` (listProducts).
 
 #### GET /admin/products/:id
 
@@ -391,7 +412,7 @@ Output: Product detail with variants, recipes, availability, archive and usage c
 
 Database impact: Read Product and related catalog/history data.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:39` (getProduct).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:40` (getProduct).
 
 #### POST /admin/products
 
@@ -408,7 +429,7 @@ Output: Admin product detail payload.
 
 Database impact: Create Product and ProductVariant records; initialize/refresh availability.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:44` (createProduct).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:45` (createProduct).
 
 #### PATCH /admin/products/:id
 
@@ -425,7 +446,7 @@ Output: Admin product detail payload.
 
 Database impact: Update Product and relevant derived availability.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:52` (updateProduct).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:53` (updateProduct).
 
 #### PATCH /admin/products/:id/manual-availability
 
@@ -442,7 +463,7 @@ Output: Admin product detail payload.
 
 Database impact: Update Product.isEnabled and refresh variant summaries/history.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:60` (setProductManualAvailability).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:61` (setProductManualAvailability).
 
 #### POST /admin/products/:id/archive
 
@@ -459,7 +480,7 @@ Output: Admin product detail payload.
 
 Database impact: Set archive timestamp/user/reason; refresh availability.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:71` (archiveProduct).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:72` (archiveProduct).
 
 #### POST /admin/products/:id/restore
 
@@ -476,7 +497,7 @@ Output: Admin product detail payload.
 
 Database impact: Clear archive fields; refresh availability.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:84` (restoreProduct).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:85` (restoreProduct).
 
 #### GET /admin/products/:id/delete-eligibility
 
@@ -493,7 +514,7 @@ Output: Eligibility and dependency details.
 
 Database impact: Read variants, recipes and protected usage/history dependencies.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:89` (getDeleteEligibility).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:90` (getDeleteEligibility).
 
 #### DELETE /admin/products/:id
 
@@ -510,7 +531,7 @@ Output: Deletion result from ProductManagementService.
 
 Database impact: Remove eligible dependent catalog records and Product; historical usage blocks deletion.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:94` (deleteProduct).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:95` (deleteProduct).
 
 #### POST /admin/products/:id/variants
 
@@ -527,7 +548,7 @@ Output: Product/variant management result.
 
 Database impact: Create ProductVariant and derived availability.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:99` (createVariant).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:100` (createVariant).
 
 #### PATCH /admin/variants/:id
 
@@ -544,7 +565,7 @@ Output: Product/variant management result.
 
 Database impact: Update ProductVariant and relevant availability.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:107` (updateVariant).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:108` (updateVariant).
 
 #### PATCH /admin/variants/:id/manual-availability
 
@@ -561,7 +582,7 @@ Output: Product/variant management result.
 
 Database impact: Update ProductVariant.isEnabled and availability/history.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:115` (setVariantManualAvailability).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:116` (setVariantManualAvailability).
 
 #### DELETE /admin/variants/:id
 
@@ -578,7 +599,7 @@ Output: Deletion result.
 
 Database impact: Delete variant and eligible dependent recipe/summary records; historical usage restricts deletion.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:126` (deleteVariant).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:127` (deleteVariant).
 
 #### GET /admin/variants/:id/recipe
 
@@ -595,7 +616,7 @@ Output: Recipe detail including material/unit data.
 
 Database impact: Read VariantRecipeItem and RawMaterial/Unit.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:131` (getVariantRecipe).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:132` (getVariantRecipe).
 
 #### PUT /admin/variants/:id/recipe
 
@@ -612,7 +633,7 @@ Output: Updated recipe result.
 
 Database impact: Replace VariantRecipeItem rows transactionally; refresh availability/history.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:136` (replaceVariantRecipe).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:137` (replaceVariantRecipe).
 
 #### GET /admin/products/:id/ingredient-usage
 
@@ -629,7 +650,7 @@ Output: Usage aggregate/drilldown payload.
 
 Database impact: Read checkout ledger/order/variant/material data.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:144` (getProductIngredientUsage).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:145` (getProductIngredientUsage).
 
 #### GET /admin/products/:id/orders/:orderId/ingredient-usage
 
@@ -646,7 +667,7 @@ Output: Per-order ingredient breakdown.
 
 Database impact: Read OrderItem and InventoryTransactionLine with linked batch/material data.
 
-Evidence: `ims-backend/src/catalog/admin-products.controller.ts:155` (getOrderIngredientUsage).
+Evidence: `ims-backend/src/catalog/admin-products.controller.ts:156` (getOrderIngredientUsage).
 
 #### GET /categories
 
@@ -663,7 +684,7 @@ Output: { categories }.
 
 Database impact: Read Category.
 
-Evidence: `ims-backend/src/catalog/catalog.controller.ts:8` (listCategories).
+Evidence: `ims-backend/src/catalog/catalog.controller.ts:9` (listCategories).
 
 #### GET /products
 
@@ -680,7 +701,7 @@ Output: { products }.
 
 Database impact: Read Product with Category.
 
-Evidence: `ims-backend/src/catalog/catalog.controller.ts:15` (listProducts).
+Evidence: `ims-backend/src/catalog/catalog.controller.ts:16` (listProducts).
 
 #### GET /products/:id/variants
 
@@ -697,7 +718,7 @@ Output: { variants }.
 
 Database impact: Read Product/ProductVariant and availability summaries.
 
-Evidence: `ims-backend/src/catalog/catalog.controller.ts:22` (listProductVariants).
+Evidence: `ims-backend/src/catalog/catalog.controller.ts:23` (listProductVariants).
 
 #### GET /pos/menu
 
@@ -714,7 +735,7 @@ Output: { categories, products } with variants, modifierGroups and availability.
 
 Database impact: Read catalog, recipe adjustments and inventory summaries.
 
-Evidence: `ims-backend/src/catalog/catalog.controller.ts:29` (getPosMenu).
+Evidence: `ims-backend/src/catalog/catalog.controller.ts:30` (getPosMenu).
 
 #### GET /forecasting/products
 
@@ -799,7 +820,7 @@ Output: { search } including result payloads or null.
 
 Database impact: Read StoreAvailabilitySearch/Result; mark overdue pending searches FAILED.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:37` (storeAvailability).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:38` (storeAvailability).
 
 #### POST /raw-materials/:id/store-availability
 
@@ -816,7 +837,7 @@ Output: { search } returned before completion.
 
 Database impact: Read material/suppliers; create search; asynchronously persist evidence/results and terminal state.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:43` (searchStoreAvailability).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:44` (searchStoreAvailability).
 
 #### GET /units
 
@@ -833,7 +854,7 @@ Output: { units }.
 
 Database impact: Read Unit.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:49` (listUnits).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:50` (listUnits).
 
 #### GET /raw-materials
 
@@ -850,7 +871,7 @@ Output: { rawMaterials }.
 
 Database impact: Read RawMaterial, Unit and summary.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:57` (listRawMaterials).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:58` (listRawMaterials).
 
 #### POST /raw-materials
 
@@ -867,7 +888,7 @@ Output: { rawMaterial }.
 
 Database impact: Create RawMaterial, then separately upsert RawMaterialInventorySummary.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:65` (createRawMaterial).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:66` (createRawMaterial).
 
 #### GET /raw-materials/:id
 
@@ -884,7 +905,7 @@ Output: { rawMaterial }.
 
 Database impact: Read material, unit and summary.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:73` (getRawMaterial).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:74` (getRawMaterial).
 
 #### PATCH /raw-materials/:id
 
@@ -901,7 +922,7 @@ Output: { rawMaterial }.
 
 Database impact: Update RawMaterial; existing stock/recipe quantities are not converted.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:82` (updateRawMaterial).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:83` (updateRawMaterial).
 
 #### DELETE /raw-materials/:id
 
@@ -918,7 +939,7 @@ Output: { rawMaterial }.
 
 Database impact: Set RawMaterial.isActive=false; not a physical deletion.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:96` (archiveRawMaterial).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:97` (archiveRawMaterial).
 
 #### GET /raw-materials/:id/batches
 
@@ -935,7 +956,7 @@ Output: { batches }.
 
 Database impact: Read StockBatch with supplier/stock-run context.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:105` (listRawMaterialBatches).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:106` (listRawMaterialBatches).
 
 #### GET /raw-materials/:id/transactions
 
@@ -952,7 +973,7 @@ Output: { transactions }.
 
 Database impact: Read InventoryTransaction/Line and related actors/materials/batches.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:114` (listRawMaterialTransactions).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:115` (listRawMaterialTransactions).
 
 #### GET /stock-batches/:id/transactions
 
@@ -969,7 +990,7 @@ Output: { transactions }.
 
 Database impact: Read InventoryTransaction/Line and context.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:129` (listBatchTransactions).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:130` (listBatchTransactions).
 
 #### GET /suppliers
 
@@ -986,7 +1007,7 @@ Output: { suppliers }.
 
 Database impact: Read Supplier.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:143` (listSuppliers).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:144` (listSuppliers).
 
 #### POST /suppliers
 
@@ -1003,7 +1024,7 @@ Output: { supplier }.
 
 Database impact: Insert Supplier.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:151` (createSupplier).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:152` (createSupplier).
 
 #### PATCH /suppliers/:id
 
@@ -1020,7 +1041,7 @@ Output: { supplier }.
 
 Database impact: Update Supplier; prior searches retain snapshots.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:159` (updateSupplier).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:160` (updateSupplier).
 
 #### DELETE /suppliers/:id
 
@@ -1037,7 +1058,7 @@ Output: { supplier } deleted record.
 
 Database impact: Delete Supplier; SetNull foreign keys clear historical supplier associations.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:170` (deleteSupplier).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:171` (deleteSupplier).
 
 #### GET /inventory/summary
 
@@ -1054,7 +1075,7 @@ Output: { summaries }.
 
 Database impact: Read material, unit, batch/supplier and summary data.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:178` (listInventorySummary).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:179` (listInventorySummary).
 
 #### GET /inventory/transactions
 
@@ -1071,24 +1092,7 @@ Output: { transactions }.
 
 Database impact: Read InventoryTransaction/Line and related entities.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:186` (listInventoryTransactions).
-
-#### POST /inventory/adjustments
-
-METHOD: POST  
-ENDPOINT: `/inventory/adjustments`
-
-Purpose: Record a positive or negative quantity adjustment.
-
-Authentication: ADMINISTRATOR, STAFF; opaque session cookie.
-
-Input: Body: CreateInventoryAdjustmentDto
-
-Output: { transaction } with lines/context.
-
-Database impact: Transactionally create/increment stock via new batch for increase, or replace existing balance for decrease; append ledger, refresh summaries/history, enqueue outbox.
-
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:197` (createAdjustment).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:187` (listInventoryTransactions).
 
 #### POST /inventory/waste
 
@@ -1105,7 +1109,7 @@ Output: { transaction } with lines/context.
 
 Database impact: Replace batch balance; append WASTE ledger; refresh summaries/history; enqueue outbox. Expired batches are rejected.
 
-Evidence: `ims-backend/src/inventory/inventory.controller.ts:211` (logWaste).
+Evidence: `ims-backend/src/inventory/inventory.controller.ts:198` (logWaste).
 
 #### POST /pos/checkout
 
@@ -1122,7 +1126,7 @@ Output: { order, idempotentReplay }.
 
 Database impact: Atomic Order/Item/Modifier/Payment writes, stock consumption, COGS/ledger/read-model/history changes and outbox; prior key returns existing order.
 
-Evidence: `ims-backend/src/orders/orders.controller.ts:15` (checkout).
+Evidence: `ims-backend/src/orders/orders.controller.ts:16` (checkout).
 
 #### GET /orders
 
@@ -1139,7 +1143,7 @@ Output: { orders } including items/payments/reversal and displayOrderNumber.
 
 Database impact: Read orders and context; no enforced own-order scope and no controller pagination.
 
-Evidence: `ims-backend/src/orders/orders.controller.ts:23` (listOrders).
+Evidence: `ims-backend/src/orders/orders.controller.ts:25` (listOrders).
 
 #### GET /orders/:id
 
@@ -1156,7 +1160,7 @@ Output: { order } including items/modifiers/payments/creator/reversal.
 
 Database impact: Read order and related data; not restricted to creator.
 
-Evidence: `ims-backend/src/orders/orders.controller.ts:31` (getOrderById).
+Evidence: `ims-backend/src/orders/orders.controller.ts:33` (getOrderById).
 
 #### POST /orders/:id/void
 
@@ -1173,7 +1177,7 @@ Output: { order } after reversal.
 
 Database impact: Insert OrderReversal; restore original batch quantities; append reversal ledger; update order/summaries/history/outbox.
 
-Evidence: `ims-backend/src/orders/orders.controller.ts:39` (voidOrder).
+Evidence: `ims-backend/src/orders/orders.controller.ts:41` (voidOrder).
 
 #### POST /orders/:id/refund
 
@@ -1190,7 +1194,7 @@ Output: { order } after reversal.
 
 Database impact: Same inventory restoration and history writes as void; no external money transfer.
 
-Evidence: `ims-backend/src/orders/orders.controller.ts:51` (refundOrder).
+Evidence: `ims-backend/src/orders/orders.controller.ts:53` (refundOrder).
 
 #### GET /reports/sales-overview
 
@@ -1207,7 +1211,7 @@ Output: { report } containing sales overview aggregates and applicable rows, per
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:19` (getSalesOverview).
+Evidence: `ims-backend/src/reports/reports.controller.ts:20` (getSalesOverview).
 
 #### GET /reports/variant-margin
 
@@ -1224,7 +1228,7 @@ Output: { report } containing variant margin aggregates and applicable rows, per
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:26` (getVariantMargin).
+Evidence: `ims-backend/src/reports/reports.controller.ts:27` (getVariantMargin).
 
 #### GET /reports/waste-summary
 
@@ -1241,7 +1245,7 @@ Output: { report } containing waste summary aggregates and applicable rows, peri
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:33` (getWasteSummary).
+Evidence: `ims-backend/src/reports/reports.controller.ts:34` (getWasteSummary).
 
 #### GET /reports/stock-run-spend
 
@@ -1258,7 +1262,7 @@ Output: { report } containing stock run spend aggregates and applicable rows, pe
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:40` (getStockRunSpend).
+Evidence: `ims-backend/src/reports/reports.controller.ts:41` (getStockRunSpend).
 
 #### GET /reports/inventory-health
 
@@ -1275,7 +1279,7 @@ Output: { report } containing inventory health aggregates and applicable rows, p
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:47` (getInventoryHealth).
+Evidence: `ims-backend/src/reports/reports.controller.ts:48` (getInventoryHealth).
 
 #### GET /reports/inventory-kpi-summary
 
@@ -1292,7 +1296,7 @@ Output: { report } containing inventory kpi summary aggregates and applicable ro
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:54` (getInventoryKpiSummary).
+Evidence: `ims-backend/src/reports/reports.controller.ts:55` (getInventoryKpiSummary).
 
 #### GET /reports/inventory-availability-risk
 
@@ -1309,7 +1313,7 @@ Output: { report } containing inventory availability risk aggregates and applica
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:61` (getInventoryAvailabilityRisk).
+Evidence: `ims-backend/src/reports/reports.controller.ts:62` (getInventoryAvailabilityRisk).
 
 #### GET /reports/pos-dashboard
 
@@ -1326,7 +1330,7 @@ Output: { report } containing pos dashboard aggregates and applicable rows, peri
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:68` (getPosDashboard).
+Evidence: `ims-backend/src/reports/reports.controller.ts:69` (getPosDashboard).
 
 #### GET /reports/pos-transaction-history
 
@@ -1343,7 +1347,7 @@ Output: { report } containing pos transaction history aggregates and applicable 
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:75` (getPosTransactionHistory).
+Evidence: `ims-backend/src/reports/reports.controller.ts:76` (getPosTransactionHistory).
 
 #### GET /reports/pos-sales-analytics
 
@@ -1360,7 +1364,7 @@ Output: { report } containing pos sales analytics aggregates and applicable rows
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:82` (getPosSalesAnalytics).
+Evidence: `ims-backend/src/reports/reports.controller.ts:83` (getPosSalesAnalytics).
 
 #### GET /reports/pos-payment-reports
 
@@ -1377,7 +1381,7 @@ Output: { report } containing pos payment reports aggregates and applicable rows
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:89` (getPosPaymentReports).
+Evidence: `ims-backend/src/reports/reports.controller.ts:90` (getPosPaymentReports).
 
 #### GET /reports/pos-refunds-voids
 
@@ -1394,7 +1398,7 @@ Output: { report } containing pos refunds voids aggregates and applicable rows, 
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:96` (getPosRefundsVoids).
+Evidence: `ims-backend/src/reports/reports.controller.ts:97` (getPosRefundsVoids).
 
 #### GET /reports/pos-product-performance
 
@@ -1411,7 +1415,7 @@ Output: { report } containing pos product performance aggregates and applicable 
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:103` (getPosProductPerformance).
+Evidence: `ims-backend/src/reports/reports.controller.ts:104` (getPosProductPerformance).
 
 #### GET /reports/pos-staff-performance
 
@@ -1428,7 +1432,7 @@ Output: { report } containing pos staff performance aggregates and applicable ro
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:110` (getPosStaffPerformance).
+Evidence: `ims-backend/src/reports/reports.controller.ts:111` (getPosStaffPerformance).
 
 #### GET /reports/pos-peak-hours
 
@@ -1445,7 +1449,7 @@ Output: { report } containing pos peak hours aggregates and applicable rows, per
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:117` (getPosPeakHours).
+Evidence: `ims-backend/src/reports/reports.controller.ts:118` (getPosPeakHours).
 
 #### GET /reports/pos-inventory-linked
 
@@ -1462,7 +1466,7 @@ Output: { report } containing pos inventory linked aggregates and applicable row
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:124` (getPosInventoryLinked).
+Evidence: `ims-backend/src/reports/reports.controller.ts:125` (getPosInventoryLinked).
 
 #### GET /reports/pos-audit-exceptions
 
@@ -1479,16 +1483,16 @@ Output: { report } containing pos audit exceptions aggregates and applicable row
 
 Database impact: Read orders/payments/reversals, inventory ledger, stock runs, summaries or availability history as required by this report; no report record is persisted.
 
-Evidence: `ims-backend/src/reports/reports.controller.ts:131` (getPosAuditExceptions).
+Evidence: `ims-backend/src/reports/reports.controller.ts:132` (getPosAuditExceptions).
 
 #### GET /settings/account
 
 METHOD: GET  
 ENDPOINT: `/settings/account`
 
-Purpose: Read the administrator's own account settings.
+Purpose: Read the authenticated user's own account settings.
 
-Authentication: ADMINISTRATOR; opaque session cookie.
+Authentication: ADMINISTRATOR, STAFF or MANAGER; opaque session cookie.
 
 Input: No body/query DTO.
 
@@ -1496,7 +1500,7 @@ Output: { user } safe account projection.
 
 Database impact: Read User.
 
-Evidence: `ims-backend/src/settings/settings.controller.ts:28` (getAccount).
+Evidence: `ims-backend/src/settings/settings.controller.ts:29` (getAccount).
 
 #### PATCH /settings/account
 
@@ -1505,7 +1509,7 @@ ENDPOINT: `/settings/account`
 
 Purpose: Update own profile/email and optional image.
 
-Authentication: ADMINISTRATOR; opaque session cookie.
+Authentication: ADMINISTRATOR, STAFF or MANAGER; opaque session cookie.
 
 Input: Body: UpdateAccountSettingsDto Multipart form-data; optional profilePicture file (5 MB, one file).
 
@@ -1513,16 +1517,16 @@ Output: { message, user, requiresReauthentication }; may clear cookie.
 
 Database impact: Update User; email change revokes sessions; image processed/stored on filesystem.
 
-Evidence: `ims-backend/src/settings/settings.controller.ts:35` (updateAccount).
+Evidence: `ims-backend/src/settings/settings.controller.ts:41` (updateAccount).
 
 #### POST /settings/change-password
 
 METHOD: POST  
 ENDPOINT: `/settings/change-password`
 
-Purpose: Change administrator password using current credentials.
+Purpose: Change own password using current credentials.
 
-Authentication: ADMINISTRATOR; opaque session cookie.
+Authentication: ADMINISTRATOR, STAFF or MANAGER; opaque session cookie.
 
 Input: Body: ChangePasswordDto
 
@@ -1530,7 +1534,7 @@ Output: { message, requiresReauthentication }; clear cookie.
 
 Database impact: Update password hash/change time; revoke sessions.
 
-Evidence: `ims-backend/src/settings/settings.controller.ts:60` (changePassword).
+Evidence: `ims-backend/src/settings/settings.controller.ts:61` (changePassword).
 
 #### POST /stock-runs
 
@@ -1547,7 +1551,7 @@ Output: { stockRun }.
 
 Database impact: Insert StockRun with current creator.
 
-Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:25` (createStockRun).
+Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:27` (createStockRun).
 
 #### PATCH /stock-runs/:id
 
@@ -1564,7 +1568,7 @@ Output: { stockRun }.
 
 Database impact: Update StockRun after separate DRAFT check.
 
-Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:36` (updateStockRun).
+Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:38` (updateStockRun).
 
 #### POST /stock-runs/:id/items
 
@@ -1581,7 +1585,7 @@ Output: { stockRunItem }.
 
 Database impact: Insert StockRunItem after separate DRAFT check.
 
-Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:47` (addStockRunItem).
+Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:49` (addStockRunItem).
 
 #### DELETE /stock-runs/:id/items/:itemId
 
@@ -1598,7 +1602,7 @@ Output: { deleted: true }.
 
 Database impact: Delete StockRunItem after separate DRAFT check.
 
-Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:61` (deleteStockRunItem).
+Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:63` (deleteStockRunItem).
 
 #### POST /stock-runs/drafts/:id/delete
 
@@ -1615,7 +1619,7 @@ Output: { deleted: true }.
 
 Database impact: Delete StockRun and cascade its items after DRAFT check.
 
-Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:71` (removeStockRunDraft).
+Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:73` (removeStockRunDraft).
 
 #### DELETE /stock-runs/:id/draft
 
@@ -1632,7 +1636,7 @@ Output: { deleted: true }.
 
 Database impact: Delete StockRun and cascade its items after DRAFT check.
 
-Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:78` (deleteStockRunDraft).
+Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:80` (deleteStockRunDraft).
 
 #### DELETE /stock-runs/:id
 
@@ -1649,7 +1653,7 @@ Output: { deleted: true }.
 
 Database impact: Delete StockRun and cascade its items after DRAFT check.
 
-Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:85` (deleteStockRun).
+Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:87` (deleteStockRun).
 
 #### POST /stock-runs/:id/post
 
@@ -1666,7 +1670,7 @@ Output: { stockRun } with items.
 
 Database impact: Atomic batches, STOCK_RUN ledger, total cost/status, summaries/history and outbox.
 
-Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:92` (postStockRun).
+Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:94` (postStockRun).
 
 #### GET /stock-runs
 
@@ -1683,7 +1687,7 @@ Output: { stockRuns }.
 
 Database impact: Read StockRun and receipt context.
 
-Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:103` (listStockRuns).
+Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:105` (listStockRuns).
 
 #### GET /stock-runs/:id
 
@@ -1700,7 +1704,7 @@ Output: { stockRun }.
 
 Database impact: Read StockRun/Item and related material/supplier context.
 
-Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:111` (getStockRun).
+Evidence: `ims-backend/src/stock-runs/stock-runs.controller.ts:113` (getStockRun).
 
 #### GET /users
 
@@ -1717,7 +1721,7 @@ Output: User list and pagination payload.
 
 Database impact: Read User and session/activity aggregates; safe projections.
 
-Evidence: `ims-backend/src/users/users.controller.ts:32` (listUsers).
+Evidence: `ims-backend/src/users/users.controller.ts:33` (listUsers).
 
 #### GET /users/:id
 
@@ -1734,7 +1738,7 @@ Output: { user } safe projection.
 
 Database impact: Read User.
 
-Evidence: `ims-backend/src/users/users.controller.ts:37` (getUser).
+Evidence: `ims-backend/src/users/users.controller.ts:38` (getUser).
 
 #### POST /users
 
@@ -1751,7 +1755,7 @@ Output: { message, user }.
 
 Database impact: Create User; invalidate/create reset tokens; notifier delivery is currently absent.
 
-Evidence: `ims-backend/src/users/users.controller.ts:44` (createUser).
+Evidence: `ims-backend/src/users/users.controller.ts:45` (createUser).
 
 #### PATCH /users/:id
 
@@ -1768,7 +1772,7 @@ Output: { message, user }.
 
 Database impact: Update User; security-relevant changes revoke sessions.
 
-Evidence: `ims-backend/src/users/users.controller.ts:59` (updateUser).
+Evidence: `ims-backend/src/users/users.controller.ts:60` (updateUser).
 
 #### POST /users/:id/suspend
 
@@ -1785,7 +1789,7 @@ Output: { message, user }.
 
 Database impact: Update User status/activity; revoke sessions; last-admin/self protections apply.
 
-Evidence: `ims-backend/src/users/users.controller.ts:71` (suspendUser).
+Evidence: `ims-backend/src/users/users.controller.ts:72` (suspendUser).
 
 #### POST /users/:id/reactivate
 
@@ -1802,7 +1806,7 @@ Output: { message, user }.
 
 Database impact: Update User status/activity.
 
-Evidence: `ims-backend/src/users/users.controller.ts:82` (reactivateUser).
+Evidence: `ims-backend/src/users/users.controller.ts:83` (reactivateUser).
 
 #### POST /users/:id/password-reset
 
@@ -1819,7 +1823,7 @@ Output: { message }.
 
 Database impact: Invalidate/create PasswordResetToken; notifier is no-op in production.
 
-Evidence: `ims-backend/src/users/users.controller.ts:90` (requestUserPasswordReset).
+Evidence: `ims-backend/src/users/users.controller.ts:91` (requestUserPasswordReset).
 
 #### GET /users/:id/sessions
 
@@ -1836,7 +1840,7 @@ Output: Sessions payload.
 
 Database impact: Read AuthSession; no raw session tokens returned.
 
-Evidence: `ims-backend/src/users/users.controller.ts:106` (listUserSessions).
+Evidence: `ims-backend/src/users/users.controller.ts:107` (listUserSessions).
 
 #### DELETE /users/:id/sessions/:sessionId
 
@@ -1853,7 +1857,7 @@ Output: Session revocation result.
 
 Database impact: Update matching AuthSession.revokedAt/reason.
 
-Evidence: `ims-backend/src/users/users.controller.ts:111` (revokeUserSession).
+Evidence: `ims-backend/src/users/users.controller.ts:112` (revokeUserSession).
 
 #### POST /users/:id/sessions/revoke-all
 
@@ -1870,7 +1874,7 @@ Output: Revocation result.
 
 Database impact: Update AuthSession records for user.
 
-Evidence: `ims-backend/src/users/users.controller.ts:116` (revokeAllUserSessions).
+Evidence: `ims-backend/src/users/users.controller.ts:117` (revokeAllUserSessions).
 
 #### GET /users/:id/activity
 
@@ -1887,7 +1891,7 @@ Output: Activity rows/pagination result.
 
 Database impact: Read operational and session history.
 
-Evidence: `ims-backend/src/users/users.controller.ts:121` (listUserActivity).
+Evidence: `ims-backend/src/users/users.controller.ts:122` (listUserActivity).
 
 #### DELETE /users/:id
 
@@ -1904,7 +1908,7 @@ Output: Deletion result.
 
 Database impact: Remove eligible User and cascading auth tokens/sessions; historical references prevent deletion.
 
-Evidence: `ims-backend/src/users/users.controller.ts:129` (deleteUser).
+Evidence: `ims-backend/src/users/users.controller.ts:130` (deleteUser).
 
 ### Input DTO field index
 
@@ -2192,44 +2196,6 @@ categoryId?: string;
 @Type(() => Boolean)
 @IsBoolean()
 isEnabled?: boolean;
-```
-
-#### create-inventory-adjustment.dto.ts
-
-Evidence: [ims-backend/src/inventory/dto/create-inventory-adjustment.dto.ts](ims-backend/src/inventory/dto/create-inventory-adjustment.dto.ts).
-
-```typescript
-export class CreateInventoryAdjustmentDto {
-@IsEnum(InventoryAdjustmentDirection)
-direction!: InventoryAdjustmentDirection;
-@IsString()
-rawMaterialId!: string;
-@ValidateIf(
-@IsString()
-batchId?: string;
-@IsNumber()
-@IsPositive()
-quantity!: number;
-@IsString()
-@MaxLength(80)
-reasonCode!: string;
-@IsOptional()
-@IsString()
-@MaxLength(500)
-note?: string;
-@ValidateIf(
-@IsNumber()
-@IsPositive()
-costPerUnit?: number;
-@IsOptional()
-@IsString()
-supplierId?: string;
-@IsOptional()
-@IsDateString()
-expirationDate?: string;
-@IsOptional()
-@IsDateString()
-receivedAt?: string;
 ```
 
 #### create-inventory-waste.dto.ts
@@ -2990,7 +2956,7 @@ The 16-directory migration chain includes old forecasting tables, a later remova
 ### Integrity findings
 
 - **D-01 / High:** Unit changes are unrestricted once a material has stock/recipes/history. `InventoryService.updateRawMaterial:53` changes unitId with only an existence check. For example, 1,000 stored “g” can become 1,000 “kg” while recipe quantities and ledger costs remain numerically unchanged. Restrict used-material unit edits or introduce an explicit, atomic conversion process with historical unit snapshots.
-- **D-02 / High:** StockBatch remaining balances are mutable projections. Waste/adjustment absolute writes can lose a deduction even though both ledger rows commit. Database range checks do not guarantee balance equals ledger. See Section 8.
+- **D-02 / High:** StockBatch remaining balances are mutable projections. Waste absolute writes can lose a deduction even though both ledger rows commit. Database range checks do not guarantee balance equals ledger. See Section 8.
 - **D-03 / Medium:** Supplier deletion uses SetNull on StockRunItem, StockBatch and Alert. Quantity/cost records survive but supplier name/address are not snapshotted in these tables. Purchasing reports can lose historical supplier identity. Prefer supplier retirement or receipt-level supplier snapshots.
 - **D-04 / Medium:** Root category uniqueness is incomplete: `@@unique([parentId, name])` permits repeated root names when parentId is NULL under ordinary PostgreSQL unique semantics. Add a root-specific uniqueness policy after checking existing data.
 - **D-05 / Medium:** ForecastSeries.materialId has no foreign key to RawMaterial. Current worker output is checked against material IDs, but direct writes can produce orphans. If decoupling is intentional snapshot design, document it and validate identities consistently.
@@ -3796,7 +3762,7 @@ Indexes / table mapping:
 @@map("stock_batches")
 ```
 
-Issues: Waste/adjustment lost-update risk; unconditional reversal restock; dates use mixed timezone logic.
+Issues: Waste lost-update risk; unconditional reversal restock; dates use mixed timezone logic.
 
 Recommendations: Use row-locked or guarded atomic deltas for every stock mutation.
 
@@ -4538,7 +4504,7 @@ Recommendations: Version recommendation schema and preserve exact policy/stock i
 
 **A-02 / Medium – Reset token is not consumed atomically.** `auth.service.ts:283` checks unused/expiry before hashing and before the transaction; the transaction updates the token by ID without asserting unused/expiry. Two simultaneous uses can both proceed, with the last password winning. Claim the token conditionally inside the same transaction as the password update and test simultaneous submissions.
 
-**A-03 / Medium – Role policy is inconsistent.** MANAGER remains in the schema and session mapper, but user assignment/UI navigation disallow it. Catalog, variant availability and `POST /pos/checkout` have no @Roles restriction; an existing active manager can access them while being excluded from most other workflows. Explicitly define the supported role matrix and enforce it uniformly. Forecasting is administrator-only.
+**A-03 / Medium – Role policy is inconsistent.** MANAGER remains in the schema and session mapper, but user assignment/default login navigation still disallow it; own-account settings APIs now explicitly allow it. Catalog, variant availability and `POST /pos/checkout` have no @Roles restriction; an existing active manager can access them and own-account settings while being excluded from most administrative workflows. Explicitly define the supported role matrix and enforce it uniformly. Forecasting is administrator-only.
 
 **A-04 / Medium – Staff history boundary is UI-only.** The POS UI fetches `createdByUserId=user.id`, but `OrdersController.listOrders/getOrderById` does not constrain by the caller. Staff can request another staff member’s orders through the API. Whether this is forbidden is a business-policy decision; current behavior is broader than the default UI.
 
@@ -4567,9 +4533,9 @@ No exposed production secret or confirmed authentication bypass was established.
 ### Failure scenarios and correctness findings
 
 **P-01 / High – Lost stock updates outside checkout.**  
-Evidence: `inventory-actions.service.ts:34,180,479`.
+Evidence: `ims-backend/src/inventory/inventory-actions.service.ts:34` (logWaste and ensureUsableBatch).
 
-Waste and negative adjustments read a batch without FOR UPDATE and later assign `remainingQuantity = previous - quantity`. With a starting balance of 10, two concurrent waste requests of 2 can both read 10, each write 8, and each commit a -2 ledger line. Stock says 8 while ledger implies 6. A transaction alone does not prevent this at the default isolation level. It can also race with checkout. Use the same batch locking discipline as FEFO, or conditional atomic decrements with shortage checks; test against PostgreSQL.
+Waste operations read a batch without FOR UPDATE and later assign `remainingQuantity = previous - quantity`. With a starting balance of 10, two concurrent waste requests of 2 can both read 10, each write 8, and each commit a -2 ledger line. Stock says 8 while ledger implies 6. A transaction alone does not prevent this at the default isolation level. It can also race with checkout. Use the same batch locking discipline as FEFO, or conditional atomic decrements with shortage checks; test against PostgreSQL.
 
 **P-02 / High – Archive bypass through checkout.**  
 Evidence: `catalog/product-management.service.ts:380`, `orders.service.ts:786`, `availability/availability.service.ts`.
@@ -4582,7 +4548,7 @@ Evidence: `orders.service.ts:616`.
 The reversal loop increments original batch remaining quantities for VOID and REFUND regardless of preparation/disposition. Refunding a consumed latte can “return” milk and beans that no longer exist. Define separate financial reversal and physical restock/waste disposition; retain original COGS when goods were consumed unless the accounting policy explicitly requires another entry.
 
 **P-04 / High – Expired waste is blocked.**  
-Evidence: `inventory-actions.service.ts:180,479`.
+Evidence: `ims-backend/src/inventory/inventory-actions.service.ts` (logWaste and ensureUsableBatch).
 
 logWaste calls ensureUsableBatch, which throws “Expired batches cannot be adjusted or wasted.” Spoiled/expired stock therefore cannot be disposed through its intended audit trail. Allow expiry disposal with a waste reason, while continuing to forbid expired checkout.
 
@@ -4617,7 +4583,7 @@ Evidence: `stock-runs.service.ts:43,55,79,99,107`.
 An editor passes ensureDraftStockRun, then another request posts, then the original request changes/adds/deletes draft data after posting. This can leave posted items inconsistent with the batches/ledger. Posting twice is partly protected by unique StockBatch.stockRunItemId, but that does not serialize edits/deletion. Lock/check the parent run atomically for every mutation.
 
 **P-11 / Medium – Expiry semantics vary by host timezone.**  
-Evidence: `common/utils/date.util.ts`, `inventory-actions.service.ts:479`, `common/utils/manila-business-date.util.ts`.
+Evidence: `common/utils/date.util.ts`, `inventory-actions.service.ts` (ensureUsableBatch), `common/utils/manila-business-date.util.ts`.
 
 FEFO/general batch checks use host-local midnight, while report/snapshot/POS history paths use explicit Manila dates. A UTC deployment can classify expiry differently around Philippine midnight. Standardize the café business date across all stock checks and tests.
 
@@ -4649,7 +4615,7 @@ FEFO/general batch checks use host-local midnight, while report/snapshot/POS his
 - SourceHash hashes consumption CSV plus POS totals/dates, not every policy/config/stock dependency. Persist policy/model/runtime versions and stock snapshot provenance to reproduce recommendations.
 - No hosted model training/fine-tuning, vector database or autonomous purchasing workflow was found. The hosted LLM ranks/explains retrieved candidates; it does not prove branch stock.
 
-An independent CSV read during this audit counted 258,021 consumption rows, 55 materials, 38 product labels and 438 dates from 2025-01-01 through 2026-09-04. Units present: L, g, kg, ml and pcs. The dataset's origin/collection quality was not independently established.
+The prior audit recorded (not recounted in this pass) 258,021 consumption rows, 55 materials, 38 product labels and 438 dates from 2025-01-01 through 2026-09-04. Units present: L, g, kg, ml and pcs. The dataset's origin/collection quality was not independently established.
 
 ### AI quality and operational gaps
 
@@ -4712,23 +4678,22 @@ Stock loss/unit/refund findings are also high-impact integrity risks even when t
 
 ## 12. Testing Assessment
 
-### Checks executed for this audit
+### Checks executed for this audit (20 September 2026)
 
-| Check | Current result | Scope |
+Commands use locally installed binaries. No packages were installed, database endpoints invoked, seeds run, migrations applied, or application sources modified. Tests use mocked Prisma; image filesystem writes are mocked. No production build was run because this audit avoids generated build output. No current dependency-advisory/CVE lookup was performed.
+
+| Command / working directory | Result | Evidence and limits |
 | --- | --- | --- |
-| Backend `tsc --noEmit --incremental false -p tsconfig.build.json` | PASS | Type checking only; no generated build output |
-| Frontend `tsc --noEmit --incremental false` | PASS | Includes existing generated Next types; not a clean build |
-| Backend `jest --runInBand --no-cache` | PASS: 11 suites, 52 tests | Unit tests, mocks and image-buffer checks |
-| Backend `jest --config ./test/jest-e2e.json --runInBand --no-cache` | PASS: 1 suite, 40 tests | HTTP/auth/settings/users with Prisma mocked |
-| `python -B -m unittest discover -s python -p 'test_*.py'` | BLOCKED at imports: pandas missing | Both test modules fail to import; no forecast assertions executed |
-| `python -B -m unittest discover -s 'AI-Store Reco' -p 'test_*.py'` | BLOCKED at imports: requests missing | Both test modules fail to import under default python |
-| Same Python discovery through `py -B` | BLOCKED: pandas / dotenv missing | Separate installed interpreter also lacks complete requirements |
-| Backend ESLint, no fixes | FAIL: 272 errors, 16 warnings | Current source/test static quality |
-| Frontend ESLint, no fixes | 0 errors, 21 warnings | Current frontend static quality |
+| `tsc --noEmit --incremental false -p tsconfig.build.json` / ims-backend | PASS | Type checking only |
+| `tsc --noEmit --incremental false` / ims-frontend | FAIL: 3 TS2345 errors | ProductsWorkspace.tsx:270,271,272; baseFilters.manualAvailability inferred as string rather than ENABLED/DISABLED union |
+| `jest --runInBand --no-cache` / ims-backend | PASS: 11 suites, 52 tests | Mocks; not PostgreSQL concurrency proof |
+| `jest --config ./test/jest-e2e.json --runInBand --no-cache` / ims-backend | FAIL: 38 passed, 2 failed | app.e2e-spec.ts:556,573 expect 403 for staff/manager settings; current authorized behavior returns 200 |
+| `python -B -m unittest discover -s python -p 'test_*.py'` / root | BLOCKED: 2 import errors | pandas missing under C:/Python314; assertions did not run |
+| `python -B -m unittest discover -s 'AI-Store Reco' -p 'test_*.py'` / root | BLOCKED: 2 import errors | requests missing under default interpreter; assertions did not run |
+| `eslint src` / ims-frontend | 0 errors, 19 warnings | Hook dependencies and unused symbols; no fixes or cache requested |
+| `eslint src test` / ims-backend | FAIL: 272 errors, 16 warnings | Formatting plus unsafe typing/async issues; no fixes requested |
 
-The `python` command resolves to `C:\Python314\python.exe`; `py` selects a separate Python 3.14 under the user's AppData directory. Neither entry point supplied a complete worker environment. Dependencies were not installed during this analysis-only phase.
-
-No source files were changed by tests: image filesystem writes are mocked; API Prisma is replaced in `test/app.e2e-spec.ts:198`; background jobs are disabled by test configuration. No coverage instrumentation was run, so there is no measured coverage percentage.
+The settings HTTP failures indicate test/policy drift, not evidence that the newly authorized own-account access should be removed. Preserve role-specific settings and update those tests during a later implementation phase. Other Python environments, including the repository .venv and any configured worker interpreter, were not validated; default-interpreter failures do not establish that every deployed worker is broken. No coverage percentage was measured.
 
 ### Existing coverage
 
@@ -4736,11 +4701,11 @@ Backend unit suites cover availability, summary repair, product management, outb
 
 Python test sources cover POS/CSV history merging, unit/forecast bridge behavior, store distance/price evidence, provider fallback and constrained ranking. Current import failures prevent claiming they pass today.
 
-`docs/SYSTEM_TEST_RESULTS_2026-09-11.md` records a prior 132-test/build pass and live migration check. This audit independently reconfirmed 92 Node tests and both TS checks, but **did not reproduce the prior Python/build/live-database results**.
+Historical test/build reports are not current release evidence. The results above supersede the prior audit test table.
 
 ### Missing high-value tests
 
-1. Real PostgreSQL concurrent waste/adjustment/checkout balance-to-ledger reconciliation.
+1. Real PostgreSQL concurrent waste/checkout balance-to-ledger reconciliation.
 2. Archived/disabled products, empty effective recipe and integer/monetary boundary inputs.
 3. Duplicate concurrent checkout keys, payload mismatch and different actors.
 4. Draft edit/delete versus posting and simultaneous posting.
@@ -4751,6 +4716,8 @@ Python test sources cover POS/CSV history merging, unit/forecast bridge behavior
 9. Concurrent reset token use and last-administrator protection.
 10. Clean migration replay, SQL checks, crash recovery/outbox leases and production start smoke checks.
 11. Provider contract tests, authenticated/rate-limited geocoding and forecast accuracy against a baseline.
+12. Notification timers after parent rerender, repeated identical messages, manual/automatic exit, simultaneous messages, and supplier/report/forecast action coverage.
+13. Staff sidebar routes and manager sign-in/settings/guard journeys; account settings authorization for all three roles.
 
 Historical `scripts/validate_*`, sample seeds and phase runners are not equivalent to a maintained isolated CI suite; some write operational data and were not run.
 
@@ -4758,7 +4725,7 @@ Historical `scripts/validate_*`, sample seeds and phase runners are not equivale
 
 | Debt | Consequence | Suggested treatment |
 | --- | --- | --- |
-| Stock mutation logic differs across checkout, adjustment, waste and reversal | One safe path does not protect all balance changes | Standardize transactional mutation/locking primitives after regression tests |
+| Stock mutation logic differs across checkout, waste and reversal | One safe path does not protect all balance changes | Standardize transactional mutation/locking primitives after regression tests |
 | ReportsService exceeds 3,000 lines; product service and report export module are also large | Difficult change isolation and repeated aggregation/export logic | Split by domain report only after defining shared financial/date semantics |
 | Large data reads with JavaScript aggregation | Memory/latency scale with transaction history | Add bounded APIs, database aggregation and query-plan measurement |
 | Outbox has retry but no stale PROCESSING recovery | Crash can strand an event indefinitely | Add lease/attempt observability and recovery; periodic alert reevaluation only partially mitigates |
@@ -4784,7 +4751,7 @@ Historical `scripts/validate_*`, sample seeds and phase runners are not equivale
 - Server-controlled discount rules and tender/change accounting.
 - Correct physical stock disposition for refunds.
 - A substantive dedicated Recommendations page, despite implemented inventory modal recommendations.
-- Staff-accessible self-service account/password settings through an authenticated settings flow.
+- Complete manager route/login support and working staff Alerts/Transaction History sidebar destinations. Staff self-service account/password settings is implemented.
 - Reproducible default Python runtime and production launch/package setup.
 
 ### Target requirements only partially defined or fulfilled
@@ -4803,11 +4770,13 @@ Purchase orders/approval/partial receiving, supplier product catalogs and lead-t
 
 | Priority | Work package | Acceptance evidence |
 | --- | --- | --- |
+| P0: release verification | Fix ProductsWorkspace filter typing and reconcile settings-access HTTP tests | Frontend and backend type checks pass; role-appropriate own-account tests pass |
 | P0: before operational reliance | Fix all stock mutation concurrency, unit edits, archive checkout, expired waste and refund disposition | PostgreSQL concurrency tests; balances equal ledger; archived sale rejected; expired waste recorded; consumed refund does not manufacture stock |
 | P0 | Define server discount policy and applied-payment/tender semantics | Invalid discounts rejected; cash change/split totals reconcile to sales; integer/currency inputs produce deterministic responses |
 | P0 | Repair production onboarding/runtime packaging | New user receives setup link; reset works; clean installation starts correct entry point; Prisma Client and chosen Python requirements available |
 | P0 | Protect provider-backed geolocation and offline cashier identity | Anonymous provider lookup rejected/limited; user B cannot silently submit A's queue |
 | P1 | Harden idempotency, reset token claim, draft posting and outbox crash recovery | Concurrent repeat requests have one durable result; reset token succeeds once; posted receipt immutable; abandoned event reclaimed |
+| P1 | Finish shared action notifications and role navigation | Timers survive rerenders; alert exits/removes and repeats; no stacked overlap; staff links resolve; manager entry is guarded |
 | P1 | Make receipt/report printing work and verify browser journeys | Real supported-browser print/CSV checks and full POS journey pass |
 | P1 | Validate fresh migration chain and standardize business dates | Disposable clean database builds to current schema; Manila midnight/expiry cases pass |
 | P1 | Resolve role/ownership policy and improve validation | Explicit role matrix and 401/403/400 tests for all route families |
@@ -4819,7 +4788,7 @@ Purchase orders/approval/partial receiving, supplier product catalogs and lead-t
 
 ### Phase 1 — Establish a reproducible baseline
 
-Document supported Node/Python executables, install sources, environment keys, runtime working directory, seed inputs and migration history. Validate a clean disposable database and production startup. Add CI for current type checks, non-fixing lint, isolated tests and migration replay. Preserve existing user changes and decide which untracked AI/forecasting files enter the release.
+Document supported Node/Python executables, install sources, environment keys, runtime working directory, seed inputs and migration history. Validate a clean disposable database and production startup. Add CI for current type checks, non-fixing lint, isolated tests and migration replay. Maintain an explicit release manifest for Python workers, CSV inputs and the Node applications.
 
 **Exit:** Another developer can reproduce the system without private Downloads artifacts, and the production process starts with background jobs under controlled configuration.
 
@@ -4827,7 +4796,7 @@ Document supported Node/Python executables, install sources, environment keys, r
 
 Address P0 stock/payment/discount/offline findings with targeted tests before refactoring. Define refund stock disposition, cashier ownership, supported roles and Manila business dates. Add atomic token consumption, idempotency conflict recovery and stock-run mutation serialization.
 
-**Exit:** Checkout, waste, adjustments, receiving and reversals remain consistent under concurrent requests; financial reports reconcile; authorization is enforced by APIs.
+**Exit:** Checkout, waste, receiving and reversals remain consistent under concurrent requests; financial reports reconcile; authorization is enforced by APIs.
 
 ### Phase 3 — Complete operational workflows
 
@@ -4851,3 +4820,6 @@ Measure report queries and worker contention before adding infrastructure. Split
 
 **Audit conclusion:** Keep the current core stack. Prioritize correctness, reproducible operations and verification of the existing workflows before adding new features. This report is an analysis artifact; none of its recommended code or schema changes have been applied.
 
+
+
+**Confirmation for this audit:** No implementation changes were made. Only SYSTEM_AUDIT_REPORT.md was updated. Application, backend, Prisma, database and API files were left unchanged.
