@@ -69,7 +69,7 @@
 .empty { border: 1px dashed #c7c7c7; border-radius: 7px; padding: 24px 14px; color: #6b7280; font-size: 13px; text-align: center; }
 .status { display: inline-flex; align-items: center; gap: 6px; color: #169b2d; font-size: 12px; }
 .status::before { width: 7px; height: 7px; border-radius: 50%; background: currentColor; content: ""; }
-.overview { display: block; border-radius: 14px; padding: 20px 24px; color: #fff; background: linear-gradient(110deg,#17233f 0%,#1d4f91 58%,#1676b7 100%); box-shadow: 0 10px 24px #16233f29; margin-top: 18px; }
+.overview { display: block; border-radius: 14px; padding: 20px 24px; color: #fff; background: #232d46; box-shadow: 0 10px 24px #16233f29; margin-top: 18px; }
 .overview h2 { margin: 12px 0 8px; font-size: 1.35rem; line-height: 1.1; }
 .overviewText { margin: 0; color: #ffffffd1; font-size: .7rem; line-height: 1.35; }
 .overline { margin: 0; color: #f45a1f; font-size: .68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }

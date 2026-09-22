@@ -163,7 +163,7 @@ function getTransactionCost(transaction: InventoryTransaction) {
   return transaction.lines.reduce((sum, line) => sum + Number(line.totalCostDelta), 0);
 }
 
-export default function InventoryWorkspace({ materialsOnly = false }: { materialsOnly?: boolean }) {
+export default function InventoryWorkspace({ materialsOnly = false, stockRunsOnly = false }: { materialsOnly?: boolean; stockRunsOnly?: boolean }) {
   const router = useRouter();
   const search = useInventoryStore((state) => state.search);
   const statusFilter = useInventoryStore((state) => state.statusFilter);
@@ -308,7 +308,7 @@ export default function InventoryWorkspace({ materialsOnly = false }: { material
   }
 
   async function loadBusinessReports() {
-    if (materialsOnly) return;
+    if (materialsOnly || stockRunsOnly) return;
     setReportLoading(true);
     try {
       const [nextInventoryHealth, nextStockRunSpend, nextWasteSummary] = await Promise.all([
@@ -422,19 +422,19 @@ export default function InventoryWorkspace({ materialsOnly = false }: { material
   return (
     <AdminDashboardLayout fillContent={materialsOnly}>
       <div className={`flex min-w-0 w-full flex-col gap-5 bg-[#f5f5f5] text-[#232d46] ${materialsOnly ? styles.materialsPage : ""}`}>
-        {!materialsOnly && <section id="overview" className="overflow-hidden rounded-xl bg-[linear-gradient(115deg,#202b45_0%,#1d355a_55%,#0875a6_100%)] p-5 text-white shadow-sm md:p-6">
-          <div className="grid gap-5 2xl:grid-cols-[minmax(18rem,0.8fr)_minmax(0,2fr)] 2xl:items-center">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-200">Inventory Overview</p>
-              <h1 className="mt-4 max-w-md text-2xl font-semibold leading-tight tracking-tight md:text-3xl">Inventory Management</h1>
-            </div>
-            <div className="min-w-0">
-              <div className="flex flex-wrap gap-2">
+        {materialsOnly && <div className="shrink-0"><div className="flex flex-wrap gap-2">
                 <BannerActionButton label="Add Raw Material" icon={<Plus size={14} />} onClick={() => { setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }} />
                 <BannerActionButton label="New Stock Run" icon={<Boxes size={14} />} onClick={() => { setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }} />
                 <BannerActionButton label="Record Waste" icon={<Trash2 size={14} />} onClick={() => setActivePanel("waste")} />
-              </div>
-              <div aria-label="Inventory overview metrics" className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+              </div></div>}
+        {stockRunsOnly && <header className="flex flex-wrap items-center justify-between gap-4">
+          <div><h1 className="text-2xl font-bold">Stock Runs</h1><p className="mt-1 text-sm text-slate-500">Review stock runs and continue receiving inventory.</p></div>
+          <button type="button" className="inline-flex items-center gap-2 rounded-lg bg-[#232d46] px-4 py-2 text-sm font-semibold text-white" onClick={() => { setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }}><Plus size={16} />New Stock Run</button>
+        </header>}
+        {!materialsOnly && !stockRunsOnly && <section id="overview" className="overflow-hidden rounded-xl bg-[#232d46] p-5 text-white shadow-sm md:p-6">
+          <div className="w-full">
+            <div className="min-w-0">
+              <div aria-label="Inventory overview metrics" className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
                 <MetricCard label="Materials" value={inventoryHealth ? String(inventoryHealth.summary.totalMaterials) : "—"} />
                 <MetricCard label="In Stock" value={inventoryHealth ? String(inventoryHealth.summary.inStockCount) : "—"} />
                 <MetricCard label="Low Stock" value={inventoryHealth ? String(inventoryHealth.summary.lowStockCount) : "—"} />
@@ -448,7 +448,7 @@ export default function InventoryWorkspace({ materialsOnly = false }: { material
         {message ? <ActionAlert tone="success" title="Saved!" message={message} onDismiss={() => setMessage(null)} /> : null}
         {error ? <ActionAlert tone="error" title="Action failed" message={error} onDismiss={() => setError(null)} /> : null}
 
-        {!materialsOnly && <InventoryBusinessInsights
+        {!materialsOnly && !stockRunsOnly && <InventoryBusinessInsights
           inventoryHealth={inventoryHealth}
           stockRunSpend={stockRunSpend}
           wasteSummary={wasteSummary}
@@ -458,7 +458,7 @@ export default function InventoryWorkspace({ materialsOnly = false }: { material
           formatDate={formatDate}
         />}
 
-        <div className={`grid items-start gap-4 2xl:items-stretch 2xl:grid-cols-[minmax(19rem,0.85fr)_minmax(0,1.65fr)] ${materialsOnly ? styles.materialsGrid : ""}`}>
+        {materialsOnly && <div className={`grid items-start gap-4 2xl:items-stretch 2xl:grid-cols-[minmax(19rem,0.85fr)_minmax(0,1.65fr)] ${styles.materialsGrid}`}>
           <InventorySummaryPanel
             summarySearchInput={summarySearchInput}
             statusFilter={statusFilter}
@@ -505,9 +505,10 @@ export default function InventoryWorkspace({ materialsOnly = false }: { material
             getTransactionDelta={getTransactionDelta}
             getTransactionCost={getTransactionCost}
           />
-        </div>
+        </div>}
 
-        {!materialsOnly && <StockRunsPanel
+        {stockRunsOnly && <StockRunsPanel
+          loading={initialLoading}
           stockRuns={stockRuns}
           activeDraftCount={stockRuns.filter((run) => run.status === "DRAFT").length}
           onOpenDraft={(stockRunId) => { setActiveStockRunId(stockRunId); setActivePanel("stock-run-manage"); }}
@@ -671,7 +672,7 @@ export default function InventoryWorkspace({ materialsOnly = false }: { material
 }
 
 function BannerActionButton({ label, icon, onClick }: { label: string; icon: React.ReactNode; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/35 bg-white/5 px-3 py-2 text-xs font-medium text-white transition hover:bg-white/15">{icon}{label}</button>;
+  return <button type="button" onClick={onClick} className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#232d46] bg-[#232d46] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#1b2438]">{icon}{label}</button>;
 }
 
 function MetricCard({ label, value }: { label: string; value: string }) {

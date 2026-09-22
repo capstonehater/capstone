@@ -1,24 +1,25 @@
 import { Suspense } from "react";
-import LoginForm from "../../components/login/LoginForm";
+import { PanelsTopLeft } from "lucide-react";
+import LoginForm from "@/components/login/LoginForm";
+import styles from "@/components/login/Login.module.css";
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen bg-[#f45a1f] p-6 md:p-10">
-      <section className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl items-center justify-center rounded-[2rem] bg-[#e9e1d6] px-4 py-10 md:px-10">
-        <div className="w-full max-w-4xl">
-          <div className="mb-10 text-center">
-            <h1 className="text-3xl font-bold tracking-tight text-black md:text-5xl">
-              Inventory Management System
-            </h1>
-            <p className="mt-2 text-base text-neutral-700 md:text-lg">
-              Smart Inventory Management
-            </p>
-          </div>
-
-          <Suspense fallback={null}>
-            <LoginForm />
-          </Suspense>
+    <main className={styles.page}>
+      <section className={styles.brandPanel} aria-label="Café Salvacion IMS">
+        <div className={styles.brand}><PanelsTopLeft size={26} strokeWidth={1.5} aria-hidden="true" /><span>Café Salvacion IMS</span></div>
+        <div className={styles.introduction}>
+          <h1>Know what’s on the shelf before you run out.</h1>
+          <p>Sign in to track stock levels, log deliveries, and keep every counter running without a midnight supply run.</p>
         </div>
+        <div className={styles.highlights}>
+          <div><strong>Stock</strong><span>items tracked</span></div>
+          <div><strong>Alerts</strong><span>low-stock notices</span></div>
+          <div><strong>Sync</strong><span>inventory updates</span></div>
+        </div>
+      </section>
+      <section className={styles.signInPanel} aria-label="Sign in">
+        <Suspense fallback={<p role="status" className={styles.subtitle}>Loading sign in...</p>}><LoginForm /></Suspense>
       </section>
     </main>
   );

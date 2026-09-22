@@ -4,8 +4,8 @@ export const adminNavigation = [
   { label: "Main", items: [
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, subtitle: "Welcome back! Here's your inventory overview." },
     { label: "Inventory", href: "/admin/inventory", icon: Boxes, subtitle: "Monitor stock, receiving, and waste.", children: [
-      { label: "Overview", href: "/admin/inventory#overview" },
       { label: "Materials", href: "/admin/inventory/materials" },
+      { label: "Stock Runs", href: "/admin/inventory/stock-runs" },
       { label: "Low Stock", href: "/admin/inventory/low-stock" },
       { label: "Near Expiry", href: "/admin/inventory/near-expiry" },
       { label: "Waste Insights", href: "/admin/inventory/waste-insights" },

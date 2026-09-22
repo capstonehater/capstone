@@ -3,6 +3,7 @@
 import type { StockRun } from "@/lib/inventory";
 
 type StockRunsPanelProps = {
+  loading?: boolean;
   stockRuns: StockRun[];
   activeDraftCount: number;
   onOpenDraft: (stockRunId: string) => void;
@@ -12,6 +13,7 @@ type StockRunsPanelProps = {
 };
 
 export default function StockRunsPanel({
+  loading = false,
   stockRuns,
   activeDraftCount,
   onOpenDraft,
@@ -47,7 +49,7 @@ export default function StockRunsPanel({
               </tr>
             </thead>
             <tbody>
-              {stockRuns.length === 0 ? (
+              {loading ? <tr><td colSpan={6} className="px-4 py-6 text-slate-500">Loading stock runs...</td></tr> : stockRuns.length === 0 ? (
                 <tr>
                   <td className="px-4 py-6 text-slate-500" colSpan={6}>
                     No stock runs yet.
