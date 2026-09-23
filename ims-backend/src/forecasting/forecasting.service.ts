@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleDestroy } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { spawn, ChildProcess } from 'node:child_process';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -11,12 +11,37 @@ import { validateWorkerResult } from './forecasting.types';
 const TIMEOUT_MS = 30 * 60 * 1000;
 
 @Injectable()
-export class ForecastingService implements OnModuleDestroy {
+export class ForecastingService implements OnModuleDestroy, OnModuleInit {
   private readonly logger = new Logger(ForecastingService.name);
   private readonly children = new Set<ChildProcess>();
   constructor(private readonly prisma: PrismaService) {}
 
-  onModuleDestroy() { for (const child of this.children) child.kill(); }
+  private timer?: ReturnType<typeof setInterval>;
+  private checking = false;
+
+  onModuleInit() {
+    void this.checkSchedule();
+    this.timer = setInterval(() => { void this.checkSchedule(); }, 60000);
+    this.timer.unref();
+  }
+
+  async checkSchedule() {
+    if (this.checking) return;
+    this.checking = true;
+    try {
+      await this.expireAbandonedRuns();
+      const latest = await this.prisma.forecastRun.findFirst({ where: { status: 'COMPLETED' }, orderBy: { startDate: 'desc' } });
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+      const startDate = scheduledStart(today, latest?.startDate);
+      if (!startDate) return;
+      const failed = await this.prisma.forecastRun.findFirst({ where: { status: 'FAILED', createdAt: { gt: new Date(Date.now() - 3600000) } } });
+      if (!failed) await this.generate(startDate);
+    } catch (error) {
+      this.logger.error(error instanceof Error ? error.message : 'Automatic forecast check failed');
+    } finally { this.checking = false; }
+  }
+
+  onModuleDestroy() { if (this.timer) clearInterval(this.timer); for (const child of this.children) child.kill(); }
 
   async products() {
     return { products: await this.prisma.product.findMany({
@@ -28,11 +53,11 @@ export class ForecastingService implements OnModuleDestroy {
   private async expireAbandonedRuns() {
     await this.prisma.forecastRun.updateMany({
       where: { status: 'RUNNING', createdAt: { lt: new Date(Date.now() - TIMEOUT_MS - 60000) } },
-      data: { status: 'FAILED', activeKey: null, error: 'Forecast worker was interrupted or exceeded its time limit. Please generate again.', completedAt: new Date() },
+      data: { status: 'FAILED', activeKey: null, error: 'Forecast worker was interrupted or exceeded its time limit. An automatic retry will follow.', completedAt: new Date() },
     });
   }
 
-  async latest(productId?: string) {
+  async latest(productId?: string, runId?: string) {
     await this.expireAbandonedRuns();
     let materialIds: string[] | undefined;
     if (productId) {
@@ -50,13 +75,18 @@ export class ForecastingService implements OnModuleDestroy {
       ])];
     }
     const [run, activeRun] = await Promise.all([
-      this.prisma.forecastRun.findFirst({ where: { status: 'COMPLETED' }, orderBy: { createdAt: 'desc' },
+      this.prisma.forecastRun.findFirst({ where: { status: 'COMPLETED', ...(runId ? { id: runId } : {}) }, orderBy: { startDate: 'desc' },
         include: { series: { where: materialIds ? { materialId: { in: materialIds } } : undefined,
           orderBy: { name: 'asc' }, include: { points: { orderBy: { date: 'asc' } }, recommendation: true } } },
       }),
       this.prisma.forecastRun.findFirst({ where: { status: 'RUNNING' }, orderBy: { createdAt: 'desc' } }),
     ]);
-    return { run, activeRun, scope: productId ? 'Store-wide demand for the raw materials used by this product.' : 'Store-wide raw-material demand.' };
+    if (runId && !run) throw new NotFoundException('Saved forecast not found');
+    const periods = await this.prisma.forecastRun.findMany({ where: { status: 'COMPLETED' }, orderBy: [{ startDate: 'desc' }, { createdAt: 'desc' }], select: { id: true, startDate: true, endDate: true, createdAt: true } });
+    const lastAttempt = await this.prisma.forecastRun.findFirst({ orderBy: { createdAt: 'desc' }, select: { status: true } });
+    const next = periods[0] ? new Date(periods[0].endDate) : null;
+    if (next) next.setUTCDate(next.getUTCDate() + 1);
+    return { run, activeRun, periods, nextScheduledDate: next, automaticRetryPending: lastAttempt?.status === 'FAILED', scope: productId ? 'Store-wide demand for the raw materials used by this product.' : 'Store-wide raw-material demand.' };
   }
 
   async run(id: string) {
@@ -74,7 +104,14 @@ export class ForecastingService implements OnModuleDestroy {
     const existing = await this.prisma.forecastRun.findUnique({ where: { activeKey: 'forecast' } });
     if (existing) return { run: existing };
     try {
-      const run = await this.prisma.forecastRun.create({ data: { startDate: start, endDate: end, activeKey: 'forecast' } });
+      const { run, created } = await this.prisma.$transaction(async (tx) => {
+        // Serialize claims across server instances, including very fast completed jobs.
+        await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(728194)`;
+        const saved = await tx.forecastRun.findFirst({ where: { OR: [{ activeKey: 'forecast' }, { startDate: start, status: 'COMPLETED' }] } });
+        if (saved) return { run: saved, created: false };
+        return { run: await tx.forecastRun.create({ data: { startDate: start, endDate: end, activeKey: 'forecast' } }), created: true };
+      });
+      if (!created) return { run };
       void this.execute(run.id, startDate).catch((error: unknown) => this.logger.error(error instanceof Error ? error.message : 'Forecast persistence failed'));
       return { run };
     } catch (error) {
@@ -153,4 +190,12 @@ export class ForecastingService implements OnModuleDestroy {
       });
     });
   }
+}
+
+// Resume at the current aligned week after downtime; never fabricate past predictions.
+export function scheduledStart(today: string, previous?: Date): string | null {
+  if (!previous) return today;
+  const elapsed = Math.floor((new Date(`${today}T00:00:00Z`).getTime() - previous.getTime()) / 86400000);
+  if (elapsed < 7) return null;
+  return new Date(previous.getTime() + Math.floor(elapsed / 7) * 7 * 86400000).toISOString().slice(0, 10);
 }

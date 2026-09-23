@@ -26,7 +26,7 @@ export function validateWorkerResult(value: unknown, startDate: string): WorkerR
       const expected = new Date(`${startDate}T00:00:00Z`);
       expected.setUTCDate(expected.getUTCDate() + index);
       if (point.date !== expected.toISOString().slice(0, 10) ||
-          ![point.forecast, point.lower95, point.upper95].every((number) => typeof number === 'number' && Number.isFinite(number) && number >= 0) ||
+          ![point.forecast, point.lower95, point.upper95].every((number) => typeof number === 'number' && Number.isFinite(number) && number >= 0 && number < 1e14) ||
           point.lower95 > point.forecast || point.upper95 < point.forecast) throw new Error('Invalid daily forecast or confidence interval');
     });
   }

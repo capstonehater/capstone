@@ -18,6 +18,8 @@ describe('Python forecast boundary validation', () => {
     expect(() => validateWorkerResult(result, '2026-09-07')).toThrow();
     const bounds = valid(); bounds.series[0].points[0].lower95 = 20;
     expect(() => validateWorkerResult(bounds, '2026-09-07')).toThrow();
+    const overflow = valid(); overflow.series[0].points[0].upper95 = 1e14;
+    expect(() => validateWorkerResult(overflow, '2026-09-07')).toThrow();
     const duplicates = valid(); duplicates.series.push(duplicates.series[0]);
     expect(() => validateWorkerResult(duplicates, '2026-09-07')).toThrow();
   });

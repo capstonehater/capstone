@@ -17,8 +17,7 @@ export type ForecastRun = {
   historyEnd: string | null; createdAt: string; completedAt: string | null; warnings: string[];
   error: string | null; series?: ForecastSeries[];
 };
-export type ForecastResponse = { run: ForecastRun | null; activeRun: ForecastRun | null; scope: string };
+export type ForecastResponse = { run: ForecastRun | null; activeRun: ForecastRun | null; scope: string; periods: Pick<ForecastRun, 'id' | 'startDate' | 'endDate' | 'createdAt'>[]; nextScheduledDate: string | null; automaticRetryPending: boolean };
 export const fetchForecastProducts = () => apiJsonFetch<{ products: ForecastProduct[] }>('/forecasting/products');
-export const fetchForecast = (productId = '') => apiJsonFetch<ForecastResponse>(`/forecasting/latest${productId ? `?productId=${encodeURIComponent(productId)}` : ''}`);
-export const generateForecast = (startDate: string) => apiJsonFetch<{ run: ForecastRun }>('/forecasting/runs', { method: 'POST', body: JSON.stringify({ startDate }) });
+export const fetchForecast = (productId = '', runId = '') => apiJsonFetch<ForecastResponse>(`/forecasting/latest?${new URLSearchParams({ ...(productId ? { productId } : {}), ...(runId ? { runId } : {}) })}`);
 export const fetchForecastRun = (id: string) => apiJsonFetch<{ run: ForecastRun }>(`/forecasting/runs/${encodeURIComponent(id)}`);

@@ -26,14 +26,13 @@ FORECAST_PYTHON_DIR=C:\path\to\salvacion\python
 
 Do not put shell arguments in the executable variable. Set an executable path only. The backend uses argument arrays and never invokes a shell for Python.
 
-Restart the backend after adding the module or generating Prisma. Open `/admin/forecasting`, choose a start date after the latest training date, and click Generate Forecast. The output spans seven calendar dates; the history currently ends 2026-09-04. Dates within the next 60 days are supported. A product selection filters the ingredients displayed, while generation refreshes all supported materials.
+Restart the backend after adding the module or generating Prisma. Open `/admin/forecasting` to view the latest saved seven-day forecast. The backend checks the weekly schedule automatically while it is running. Product selection filters the ingredients displayed, and the graph can show one saved week or compare two saved weeks.
 
 ## Endpoints (administrator session required)
 
 - `GET /forecasting/products`: enabled, non-archived products.
-- `POST /forecasting/runs`: `{ "startDate": "2026-09-10" }`; returns a run ID immediately.
 - `GET /forecasting/runs/:id`: RUNNING, COMPLETED or FAILED status.
-- `GET /forecasting/latest?productId=...`: latest completed database results and any active run.
+- `GET /forecasting/latest?productId=...&runId=...`: latest or selected completed results, saved periods and any active run.
 
 Runs time out after 30 minutes. Interrupted runs are marked failed once their lease expires. Starting another run while one is active returns the existing run. Source CSVs are never overwritten by the web pipeline. Model assumptions, skipped materials and data sources appear in the page's model notes.
 
@@ -50,11 +49,11 @@ See `CSV_ANALYSIS.md` for data issues, unit assumptions, and the distinction bet
 
 ## POS training updates
 
-Each Generate Forecast reads a fresh database snapshot. Only completed sales before the forecast start date and at or before snapshot time are included. Ingredient quantities come from checkout ledger rows, including modifiers and split-batch consumption; current recipes are not used to reconstruct old sales. Voided/refunded orders contribute no demand, and their transaction dates remain covered so old CSV usage cannot reappear. Waste, stock deliveries and manual adjustments are excluded.
+Each automatic weekly forecast reads a fresh database snapshot. Only completed sales before the forecast start date and at or before snapshot time are included. Ingredient quantities come from checkout ledger rows, including modifiers and split-batch consumption; current recipes are not used to reconstruct old sales. Voided/refunded orders contribute no demand, and their transaction dates remain covered so old CSV usage cannot reappear. Waste, stock deliveries and manual adjustments are excluded.
 
-The page defaults to tomorrow, allowing today's completed sales to enter the next forecast. Today's aggregate is labeled as partial until closing. A future date never trains on sales from its own forecast period. POS and stock are read within one repeatable-read database transaction.
+The next scheduled week includes completed sales recorded before its start. A future date never trains on sales from its own forecast period. POS and stock are read within one repeatable-read database transaction.
 
-On dates with POS orders, actual POS totals replace the CSV for all materials. Other CSV dates remain historical backup. POS-only materials are supported once sufficient variable history exists. Weekend activity switches SARIMA to calendar-day observations and a seven-day seasonal cycle. Every forecast still contains exactly seven calendar dates. No model is automatically retrained on every checkout; click Generate Forecast to incorporate newly saved sales.
+On dates with POS orders, actual POS totals replace the CSV for all materials. Other CSV dates remain historical backup. POS-only materials are supported once sufficient variable history exists. Weekend activity switches SARIMA to calendar-day observations and a seven-day seasonal cycle. Every forecast still contains exactly seven calendar dates. The model is not retrained on every checkout; newly saved sales enter the next automatic weekly forecast.
 
 Run all Python tests with `python -B -m unittest discover -s ../python -p "test_*.py"`.
 

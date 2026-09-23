@@ -110,6 +110,10 @@ def generate(request):
                 raise ValueError('SARIMA returned non-finite estimates or confidence bounds')
             future['Lower95'] = np.minimum(future['Lower95'], future['Forecast'])
             future['Upper95'] = np.maximum(future['Upper95'], future['Forecast'])
+            # ForecastPoint uses NUMERIC(18, 4). An unstable SARIMA interval must
+            # not make every other material's forecast fail to save.
+            if (future[['Forecast', 'Lower95', 'Upper95']].to_numpy() >= 1e14).any():
+                raise ValueError('SARIMA estimate or possible range is unusually large; material excluded from this run')
             metrics = training['metrics']
             recommendation_input = future.reset_index(names='Date')
             recommendation_input['Product'] = material['name']
