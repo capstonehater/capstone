@@ -1,5 +1,7 @@
 "use client";
 
+import PosReportEmpty from "./PosReportEmpty";
+
 import { useEffect, useState } from "react";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
@@ -202,9 +204,7 @@ export default function PosTransactionHistorySection({
           <div>
             <h3 className="text-xl font-semibold text-neutral-900">Transaction History</h3>
             <p className="mt-2 text-sm text-neutral-600">
-              Search completed, voided, and refunded POS transactions by backend-backed order
-              reference or raw UUID. Export reflects the active transaction-history filters,
-              current date range, and current page.
+              Search transactions by order reference, payment method, status, or staff. Open an order to view its receipt and full amount breakdown.
             </p>
           </div>
 
@@ -293,15 +293,12 @@ export default function PosTransactionHistorySection({
 
       <WidgetCard title="Transactions">
         <div className="overflow-x-auto">
-          <div className="min-w-[96rem] overflow-hidden rounded-2xl border border-slate-200">
-            <div className="grid grid-cols-[1.1fr_1fr_1fr_1.6fr_0.8fr_0.8fr_0.8fr_0.8fr_0.9fr_0.8fr_90px] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <div className="min-w-[58rem] overflow-hidden rounded-2xl border border-slate-200">
+            <div className="grid grid-cols-[1.1fr_1fr_1fr_1.6fr_0.8fr_0.9fr_0.8fr_70px] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Order</span>
               <span>Date & Time</span>
               <span>Staff</span>
               <span>Items & Qty</span>
-              <span>Subtotal</span>
-              <span>Discount</span>
-              <span>Tax</span>
               <span>Total</span>
               <span>Payment</span>
               <span>Status</span>
@@ -314,14 +311,12 @@ export default function PosTransactionHistorySection({
                   Loading transaction history...
                 </div>
               ) : historyOrders.length === 0 ? (
-                <div className="px-4 py-6 text-sm text-slate-500">
-                  No transactions match the current POS history filters.
-                </div>
+                <PosReportEmpty message="No transactions match the current POS history filters." />
               ) : (
                 historyOrders.map((order) => (
                 <div
                   key={order.id}
-                  className="grid grid-cols-[1.1fr_1fr_1fr_1.6fr_0.8fr_0.8fr_0.8fr_0.8fr_0.9fr_0.8fr_90px] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
+                  className="grid grid-cols-[1.1fr_1fr_1fr_1.6fr_0.8fr_0.9fr_0.8fr_70px] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
                 >
                     <div>
                       <div className="font-semibold text-slate-900">
@@ -334,9 +329,6 @@ export default function PosTransactionHistorySection({
                       {order.createdBy.firstName} {order.createdBy.lastName}
                     </div>
                     <div className="text-xs text-slate-600">{describeOrderItems(order)}</div>
-                    <div>{formatPeso(order.subtotalAmount)}</div>
-                    <div>- {formatPeso(order.discountAmount)}</div>
-                    <div>{formatPeso(order.taxAmount)}</div>
                     <div className="font-semibold text-slate-900">
                       {formatPeso(order.totalAmount)}
                     </div>

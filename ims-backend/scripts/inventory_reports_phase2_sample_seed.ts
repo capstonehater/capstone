@@ -68,7 +68,8 @@ async function main() {
       firstName: 'Inventory',
       lastName: 'Phase2',
       role: Role.ADMINISTRATOR,
-      isActive: true,
+      isActive: false,
+      accountStatus: 'INACTIVE',
     },
     create: {
       id: SAMPLE.userId,
@@ -78,7 +79,8 @@ async function main() {
       firstName: 'Inventory',
       lastName: 'Phase2',
       role: Role.ADMINISTRATOR,
-      isActive: true,
+      isActive: false,
+      accountStatus: 'INACTIVE',
     },
   });
 

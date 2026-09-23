@@ -632,7 +632,7 @@ export default function UsersWorkspace() {
         <section className={`${selectedVisibleOnMobile ? "hidden xl:flex" : "flex"} min-h-[66vh] flex-col rounded-[28px] bg-white p-5 shadow-sm`}>
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#f45a1f]">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#232d46]">
                 Account Directory
               </p>
               <h2 className="text-lg font-semibold text-slate-950">User List</h2>

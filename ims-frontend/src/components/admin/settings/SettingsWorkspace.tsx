@@ -91,13 +91,13 @@ export default function SettingsWorkspace() {
 
   if (loading) {
     return (
-      <section className="rounded-[32px] border border-white/70 bg-white p-6 shadow-sm">
+      <section className="rounded-[32px] border border-[#232d46]/10 bg-white p-6 shadow-sm">
         <div className="h-5 w-44 animate-pulse rounded-full bg-slate-200" />
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           {Array.from({ length: 4 }).map((_, index) => (
             <div
               key={index}
-              className="h-24 animate-pulse rounded-3xl bg-slate-100"
+              className="h-24 animate-pulse rounded-3xl bg-[#f5f5f5]"
             />
           ))}
         </div>

@@ -3225,87 +3225,25 @@ export class ReportsService {
       totalAmount: Prisma.Decimal;
     }>,
   ) {
-    const fromDay = this.formatManilaDateInput(range.from);
-    const toDay = this.formatManilaDateInput(range.to);
-
-    if (fromDay === toDay) {
-      const hourlyMap = new Map<
-        number,
-        { netSales: Prisma.Decimal; transactionCount: number }
-      >();
-
-      for (let hour = 0; hour < 24; hour += 1) {
-        hourlyMap.set(hour, {
-          netSales: ZERO,
-          transactionCount: 0,
-        });
-      }
-
-      for (const order of orders) {
-        const hour = this.getManilaHour(order.completedAt);
-        const current = hourlyMap.get(hour) ?? {
-          netSales: ZERO,
-          transactionCount: 0,
-        };
-        current.netSales = current.netSales.plus(order.totalAmount);
-        current.transactionCount += 1;
-        hourlyMap.set(hour, current);
-      }
-
-      return {
-        granularity: 'hourly' as const,
-        points: [...hourlyMap.entries()].map(([hour, value]) => ({
-          bucketKey: `hour:${hour}`,
-          label: this.formatHourLabel(hour),
-          netSales: value.netSales,
-          transactionCount: value.transactionCount,
-        })),
-      };
+    const hourlyMap = new Map<number, { netSales: Prisma.Decimal; transactionCount: number }>();
+    for (let hour = 13; hour <= 22; hour += 1) {
+      hourlyMap.set(hour, { netSales: ZERO, transactionCount: 0 });
     }
-
-    const dayKeys: string[] = [];
-    let currentDay = fromDay;
-    while (currentDay <= toDay) {
-      dayKeys.push(currentDay);
-      currentDay = this.shiftManilaDateInput(currentDay, 1);
-    }
-
-    const dailyMap = new Map<
-      string,
-      { label: string; netSales: Prisma.Decimal; transactionCount: number }
-    >(
-      dayKeys.map((dayKey) => [
-        dayKey,
-        {
-          label: this.formatShortManilaDateLabel(dayKey),
-          netSales: ZERO,
-          transactionCount: 0,
-        },
-      ]),
-    );
-
     for (const order of orders) {
-      const dayKey = this.formatManilaDateInput(order.completedAt);
-      const current = dailyMap.get(dayKey);
-      if (!current) {
-        continue;
-      }
-
-      current.netSales = current.netSales.plus(order.totalAmount);
-      current.transactionCount += 1;
+      if (order.completedAt < range.from || order.completedAt > range.to) continue;
+      const bucket = hourlyMap.get(this.getManilaHour(order.completedAt));
+      if (!bucket) continue;
+      bucket.netSales = bucket.netSales.plus(order.totalAmount);
+      bucket.transactionCount += 1;
     }
-
     return {
-      granularity: 'daily' as const,
-      points: dayKeys.map((dayKey) => {
-        const point = dailyMap.get(dayKey)!;
-        return {
-          bucketKey: `day:${dayKey}`,
-          label: point.label,
-          netSales: point.netSales,
-          transactionCount: point.transactionCount,
-        };
-      }),
+      granularity: 'hourly' as const,
+      points: [...hourlyMap.entries()].map(([hour, value]) => ({
+        bucketKey: `hour:${hour}`,
+        label: this.formatHourLabel(hour),
+        netSales: value.netSales,
+        transactionCount: value.transactionCount,
+      })),
     };
   }
 

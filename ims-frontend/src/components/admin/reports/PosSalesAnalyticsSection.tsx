@@ -1,7 +1,9 @@
 "use client";
 
+import PosReportEmpty from "./PosReportEmpty";
+
 import { useEffect, useMemo, useState } from "react";
-import SummaryCard from "@/components/dashboard/SummaryCard";
+import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
   exportPosSalesAnalyticsCsv,
@@ -173,8 +175,7 @@ export default function PosSalesAnalyticsSection({
           <div>
             <h3 className="text-xl font-semibold text-neutral-900">Sales Analytics</h3>
             <p className="mt-2 text-sm text-neutral-600">
-              Backend-authoritative grouped sales analytics with its own reporting presets,
-              separate from the broader POS Reports header range.
+              Explore grouped sales, discounts, refunds, and changes from the previous period.
             </p>
           </div>
 
@@ -201,6 +202,10 @@ export default function PosSalesAnalyticsSection({
             ))}
           </div>
 
+        </div>
+      </section>
+      <section className="rounded-2xl bg-white p-6 shadow-sm">
+        <div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
             <label className="text-sm font-medium text-neutral-700">
               <span className="mb-1 block">Grouping</span>
@@ -380,9 +385,7 @@ export default function PosSalesAnalyticsSection({
                       Loading sales analytics...
                     </div>
                   ) : (report?.groups ?? []).length === 0 ? (
-                    <div className="px-4 py-6 text-sm text-slate-500">
-                      No grouped sales data matches the current filters.
-                    </div>
+                    <PosReportEmpty message="No grouped sales data matches the current filters." />
                   ) : (
                     report?.groups.map((group) => (
                       <div

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   getPresetDateRange,
   getPresetLabel,
@@ -14,6 +14,9 @@ import PosProductPerformanceSection from "./PosProductPerformanceSection";
 import PosRefundsVoidsSection from "./PosRefundsVoidsSection";
 import PosSalesAnalyticsSection from "./PosSalesAnalyticsSection";
 import PosTransactionHistorySection from "./PosTransactionHistorySection";
+
+import { ShoppingCart, RefreshCw, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import styles from "./PosReports.module.css";
 
 type SectionKey =
   | "dashboard"
@@ -51,7 +54,7 @@ const SECTION_OPTIONS: Array<{
   },
   {
     value: "refunds-voids",
-    label: "Refunds & Voids",
+    label: "Refunds",
     description: "Reversal summaries, reasons, responsible staff, and approval context.",
   },
   {
@@ -75,7 +78,7 @@ function getRefreshLabel(section: SectionKey) {
     case "payment-reports":
       return "Payments";
     case "refunds-voids":
-      return "Refunds & Voids";
+      return "Refunds";
     case "product-performance":
       return "Product Performance";
     case "peak-hours":
@@ -86,6 +89,7 @@ function getRefreshLabel(section: SectionKey) {
 }
 
 export default function PosReportsWorkspace() {
+  const navigation = useRef<HTMLDivElement>(null);
   const initialPreset = getPresetDateRange("today");
   const [activeSection, setActiveSection] = useState<SectionKey>("dashboard");
   const [preset, setPreset] = useState<QuickDatePreset>("today");
@@ -115,90 +119,36 @@ export default function PosReportsWorkspace() {
   };
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-neutral-900">POS Reports</h2>
-            <p className="mt-2 max-w-3xl text-neutral-600">
-              Backend-authoritative POS reporting over sales, payments, reversals, transaction
-              history, product mix, and peak-hour demand using Asia/Manila business-day
-              boundaries.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[repeat(4,minmax(0,1fr))]">
-            <label className="text-sm font-medium text-neutral-700">
-              <span className="mb-1 block">From</span>
-              <input
-                type="date"
-                value={from}
-                onChange={(event) => handleFromChange(event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
-              />
-            </label>
-            <label className="text-sm font-medium text-neutral-700">
-              <span className="mb-1 block">To</span>
-              <input
-                type="date"
-                value={to}
-                onChange={(event) => handleToChange(event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
-              />
-            </label>
-            <div className="flex flex-wrap items-end gap-2">
-              {(["today", "yesterday", "this-week"] as const).map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => handlePresetChange(option)}
-                  className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-                    preset === option
-                      ? "bg-[#f45a1f] text-white"
-                      : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                  }`}
-                >
-                  {getPresetLabel(option)}
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => setRefreshToken((current) => current + 1)}
-              className="rounded-2xl bg-[#f45a1f] px-4 py-3 text-sm font-semibold text-white hover:bg-[#d94f1a]"
-            >
-              Refresh {getRefreshLabel(activeSection)}
-            </button>
+    <div className={styles.workspace}>
+      <header className={styles.banner}>
+        <ShoppingCart size={44} strokeWidth={1.7} aria-hidden="true" />
+        <div><h1>POS Reports</h1><p>Daily sales, transaction history, and point-of-sale performance.</p></div>
+      </header>
+      <section className={styles.datePanel} aria-label="Report date range">
+        <div className={styles.dateControls}>
+          <strong>Date Range</strong>
+          <label>from <input type="date" aria-label="From date" value={from} max={to} onChange={(event) => handleFromChange(event.target.value)} /></label>
+          <label>to <input type="date" aria-label="To date" value={to} min={from} onChange={(event) => handleToChange(event.target.value)} /></label>
+          <div className={styles.presets}>
+            {(["today", "yesterday", "this-week"] as const).map((option) => (
+              <button key={option} type="button" aria-pressed={preset === option} onClick={() => handlePresetChange(option)}>{getPresetLabel(option)}</button>
+            ))}
           </div>
         </div>
-
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          Active range: <span className="font-semibold text-slate-900">{getPresetLabel(preset)}</span>{" "}
-          | {from} to {to} | queries sent as Asia/Manila business-day ISO boundaries.
-        </div>
+        <button type="button" className={styles.refresh} onClick={() => setRefreshToken((current) => current + 1)}><RefreshCw size={16} />Refresh {getRefreshLabel(activeSection)}</button>
+        <p className={styles.range}><Info size={14} />Active range: {getPresetLabel(preset)} <span>|</span> {from} to {to} <span>|</span> Manila time</p>
       </section>
-
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {SECTION_OPTIONS.map((option) => {
-          const active = activeSection === option.value;
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setActiveSection(option.value)}
-              className={`rounded-2xl border px-4 py-4 text-left transition ${
-                active
-                  ? "border-[#f45a1f] bg-[#fff3ed] text-[#8b2f10]"
-                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              <div className="text-sm font-semibold">{option.label}</div>
-              <p className="mt-1 text-xs leading-5 text-inherit/80">{option.description}</p>
+      <nav className={styles.navigation} aria-label="POS report sections">
+        <button type="button" className={styles.navArrow} aria-label="Previous report sections" onClick={() => navigation.current?.scrollBy({left: -navigation.current.clientWidth, behavior: "smooth"})}><ChevronLeft size={20} /></button>
+        <div ref={navigation} className={styles.navTrack}>
+          {SECTION_OPTIONS.map((option) => (
+            <button key={option.value} type="button" aria-current={activeSection === option.value ? "page" : undefined} onClick={() => setActiveSection(option.value)}>
+              <strong>{option.label}</strong><span>{option.description}</span>
             </button>
-          );
-        })}
-      </section>
-
+          ))}
+        </div>
+        <button type="button" className={styles.navArrow} aria-label="More report sections" onClick={() => navigation.current?.scrollBy({left: navigation.current.clientWidth, behavior: "smooth"})}><ChevronRight size={20} /></button>
+      </nav>
       <PosDashboardSection
         active={activeSection === "dashboard"}
         fromIso={manilaRange.from}

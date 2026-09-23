@@ -1,7 +1,9 @@
 "use client";
 
+import PosReportEmpty from "./PosReportEmpty";
+
 import { useEffect, useMemo, useState } from "react";
-import SummaryCard from "@/components/dashboard/SummaryCard";
+import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
   exportPosProductPerformanceCsv,
@@ -170,7 +172,7 @@ export default function PosProductPerformanceSection({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-pos-products>
       {error ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {error}
@@ -264,7 +266,7 @@ export default function PosProductPerformanceSection({
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <WidgetCard title="Product Comparison">
+        <WidgetCard title="Product Comparison" className="pos-comparison">
           <div className="overflow-x-auto">
             <div className="min-w-[76rem] overflow-hidden rounded-2xl border border-slate-200">
               <div className="grid grid-cols-[1.3fr_0.9fr_0.7fr_0.7fr_0.8fr_0.9fr_0.9fr_0.8fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -284,9 +286,7 @@ export default function PosProductPerformanceSection({
                     Loading product performance...
                   </div>
                 ) : (report?.products ?? []).length === 0 ? (
-                  <div className="px-4 py-6 text-sm text-slate-500">
-                    No products matched the selected range and category filter.
-                  </div>
+                  <PosReportEmpty message="No products matched the selected range and category filter." />
                 ) : (
                   report?.products.map((row) => (
                     <div
@@ -318,7 +318,7 @@ export default function PosProductPerformanceSection({
         </WidgetCard>
 
         <div className="space-y-6">
-          <WidgetCard title="Top Categories">
+          <WidgetCard title="Top Categories" className="pos-categories">
             <div className="overflow-hidden rounded-2xl border border-slate-200">
               <div className="grid grid-cols-[1.1fr_0.8fr_1fr_1fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span>Category</span>
@@ -331,9 +331,7 @@ export default function PosProductPerformanceSection({
                 {loading ? (
                   <div className="px-4 py-6 text-sm text-slate-500">Loading categories...</div>
                 ) : (report?.topCategories ?? []).length === 0 ? (
-                  <div className="px-4 py-6 text-sm text-slate-500">
-                    No category totals matched the current view.
-                  </div>
+                  <PosReportEmpty message="No category totals matched the current view." />
                 ) : (
                   report?.topCategories.map((row) => (
                     <div
@@ -352,7 +350,7 @@ export default function PosProductPerformanceSection({
             </div>
           </WidgetCard>
 
-          <WidgetCard title="Top 10 Views">
+          <WidgetCard title="Top 10 Views" className="pos-top-products">
             <div className="space-y-4">
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -400,7 +398,7 @@ export default function PosProductPerformanceSection({
         </div>
       </section>
 
-      <WidgetCard title="Slow-Moving Products">
+      <WidgetCard title="Slow-Moving Products" className="pos-slow-products">
         <div className="overflow-x-auto">
           <div className="min-w-[60rem] overflow-hidden rounded-2xl border border-slate-200">
             <div className="grid grid-cols-[1.2fr_0.9fr_0.8fr_1fr_1fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -417,9 +415,7 @@ export default function PosProductPerformanceSection({
                   Loading slow-moving products...
                 </div>
               ) : (report?.slowMovingProducts ?? []).length === 0 ? (
-                <div className="px-4 py-6 text-sm text-slate-500">
-                  No slow-moving products matched the current view.
-                </div>
+                <PosReportEmpty message="No slow-moving products matched the current view." />
               ) : (
                 report?.slowMovingProducts.map((row) => (
                   <div

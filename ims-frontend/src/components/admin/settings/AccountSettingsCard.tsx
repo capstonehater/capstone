@@ -45,14 +45,14 @@ function DetailRow({
   value: ReactNode;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white px-4 py-4">
+    <div className="rounded-3xl border border-[#232d46]/15 bg-white px-4 py-4">
       <div className="flex items-start gap-3">
-        <div className="rounded-2xl bg-orange-50 p-2 text-[#f45a1f]">{icon}</div>
+        <div className="rounded-2xl bg-[#f5f5f5] p-2 text-[#232d46]">{icon}</div>
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#232d46]/70">
             {label}
           </p>
-          <div className="mt-1 break-words text-sm font-semibold text-slate-950">
+          <div className="mt-1 break-words text-sm font-semibold text-[#232d46]">
             {value}
           </div>
         </div>
@@ -66,38 +66,38 @@ export default function AccountSettingsCard({
   onEdit,
 }: AccountSettingsCardProps) {
   return (
-    <section className="rounded-[32px] border border-white/70 bg-[#f8f3ec] p-5 shadow-sm md:p-6">
+    <section className="rounded-[32px] border border-[#232d46]/10 bg-[#f5f5f5] p-5 shadow-sm md:p-6">
       <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#f45a1f]">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#232d46]">
             Account Settings
           </p>
-          <h2 className="mt-2 text-xl font-bold text-slate-950">
+          <h2 className="mt-2 text-xl font-bold text-[#232d46]">
             Manage your account information and personal details.
           </h2>
         </div>
         <button
           type="button"
           onClick={onEdit}
-          className="rounded-full bg-[#f45a1f] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#d94d18] focus:outline-none focus:ring-2 focus:ring-[#f45a1f]/30"
+          className="rounded-full bg-[#232d46] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#232d46] focus:outline-none focus:ring-2 focus:ring-[#232d46]/30"
         >
           Edit Account
         </button>
       </div>
 
       <div className="mt-6 grid gap-5 xl:grid-cols-[18rem_1fr]">
-        <div className="rounded-[30px] border border-slate-200 bg-white p-5 text-center">
-          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-[#f45a1f] text-2xl font-black text-white shadow-sm">
+        <div className="rounded-[30px] border border-[#232d46]/15 bg-white p-5 text-center">
+          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-[#232d46] text-2xl font-black text-white shadow-sm">
             {account.profilePictureUrl ? (
               <Image src={profilePictureSrc(account.profilePictureUrl)!} alt={account.name + " profile picture"} width={96} height={96} unoptimized className="h-24 w-24 rounded-full object-cover" />
             ) : initialsFor(account)}
           </div>
-          <h3 className="mt-4 text-lg font-bold text-slate-950">
+          <h3 className="mt-4 text-lg font-bold text-[#232d46]">
             {account.name}
           </h3>
-          <p className="mt-1 text-sm text-slate-500">{account.email}</p>
+          <p className="mt-1 text-sm text-[#232d46]/70">{account.email}</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+            <span className="rounded-full border border-[#232d46]/15 bg-[#f5f5f5] px-3 py-1 text-xs font-semibold text-[#232d46]">
               {roleLabels[account.role]}
             </span>
             <span

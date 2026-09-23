@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import SummaryCard from "@/components/dashboard/SummaryCard";
+import { ChartPie, Trash2, ChartNoAxesColumnIncreasing, Layers, Tag, TriangleAlert, RefreshCw, FileDown } from "lucide-react";
+import styles from "./InventoryReports.module.css";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
   exportInventoryReportsCsv,
@@ -161,60 +162,15 @@ export default function InventoryReportsWorkspace() {
   };
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-neutral-900">Inventory Reports</h2>
-            <p className="mt-2 text-neutral-600">
-              Inventory-focused reporting for food cost, waste, event-based availability risk,
-              and sales-linked ingredient consumption using backend-authoritative data.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <label className="text-sm font-medium text-neutral-700">
-              <span className="mb-1 block">From</span>
-              <input
-                type="date"
-                value={from}
-                onChange={(event) => setFrom(event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
-              />
-            </label>
-            <label className="text-sm font-medium text-neutral-700">
-              <span className="mb-1 block">To</span>
-              <input
-                type="date"
-                value={to}
-                onChange={(event) => setTo(event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
-              />
-            </label>
-            <button
-              type="button"
-              onClick={() => setRefreshToken((current) => current + 1)}
-              className="rounded-2xl bg-[#f45a1f] px-4 py-3 text-sm font-semibold text-white hover:bg-[#d94f1a]"
-            >
-              Refresh Reports
-            </button>
-            <button
-              type="button"
-              disabled={!canExport || exportingFormat !== null}
-              onClick={() => void handleExport("csv")}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {exportingFormat === "csv" ? "Exporting..." : "Export CSV"}
-            </button>
-            <button
-              type="button"
-              disabled={!canExport || exportingFormat !== null}
-              onClick={() => void handleExport("pdf")}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}
-            </button>
-          </div>
+    <div className={styles.workspace}>
+      <section className={styles.toolbar} aria-label="Report date range and exports">
+        <strong>Date Range</strong>
+        <label>From <input aria-label="From date" type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></label>
+        <label>To <input aria-label="To date" type="date" value={to} min={from} onChange={(event) => setTo(event.target.value)} /></label>
+        <div className={styles.toolbarActions}>
+          <button type="button" className={styles.refresh} onClick={() => setRefreshToken((current) => current + 1)}><RefreshCw size={15} />Refresh</button>
+          <button type="button" disabled={!canExport || exportingFormat !== null} onClick={() => void handleExport("csv")}><FileDown size={15} />{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</button>
+          <button type="button" disabled={!canExport || exportingFormat !== null} onClick={() => void handleExport("pdf")}><FileDown size={15} />{exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}</button>
         </div>
       </section>
 
@@ -230,43 +186,17 @@ export default function InventoryReportsWorkspace() {
         </div>
       ) : null}
 
-      <WidgetCard title="KPI Summary">
-        <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            KPI calculations use Manila-bounded date ranges and are computed entirely in the
-            backend from completed orders, inventory ledger cost movements, and daily inventory
-            snapshots. Inventory Turnover Rate only appears when the selected range has complete
-            daily snapshot coverage.
-          </div>
-
-          {kpiError ? (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              {kpiError}
-            </div>
-          ) : null}
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <SummaryCard
-              title="Food Cost %"
-              value={
-                kpiLoading ? "..." : formatPercent(kpiReport?.summary.foodCostPercentage)
-              }
-            />
-            <SummaryCard
-              title="Waste %"
-              value={kpiLoading ? "..." : formatPercent(kpiReport?.summary.wastePercentage)}
-            />
-            <SummaryCard
-              title="Inventory Turnover"
-              value={
-                kpiLoading
-                  ? "..."
-                  : kpiReport?.summary.inventoryTurnoverRate
-                    ? Number(kpiReport.summary.inventoryTurnoverRate).toFixed(2)
-                    : "N/A"
-              }
-            />
-          </div>
+      <WidgetCard title="KPI Summary" className={styles.kpi}>
+        {kpiError && <p role="alert" className="text-red-700">{kpiError}</p>}
+        <div className={styles.kpiGrid}>
+          {[
+            { label: "Food Cost %", value: kpiLoading ? "..." : formatPercent(kpiReport?.summary.foodCostPercentage), Icon: ChartPie, color: "#065bff" },
+            { label: "Waste %", value: kpiLoading ? "..." : formatPercent(kpiReport?.summary.wastePercentage), Icon: Trash2, color: "#248000" },
+            { label: "Inventory Turnover", value: kpiLoading ? "..." : kpiReport?.summary.inventoryTurnoverRate ? Number(kpiReport.summary.inventoryTurnoverRate).toFixed(2) : "N/A", Icon: ChartNoAxesColumnIncreasing, color: "#791dff" },
+            { label: "Materials Consumed", value: inventoryLinkedSnapshot?.report.summary.distinctMaterialsConsumed ?? "...", Icon: Layers, color: "#065bff" },
+            { label: "Variants Sold", value: inventoryLinkedSnapshot?.report.summary.distinctVariantsSold ?? "...", Icon: Tag, color: "#248000" },
+            { label: "Low-Stock Consumed", value: inventoryLinkedSnapshot?.report.summary.lowStockConsumedMaterialCount ?? "...", Icon: TriangleAlert, color: "#f53030" },
+          ].map(({ label, value, Icon, color }) => <div key={label} className={styles.kpiItem}><Icon size={30} color={color} aria-hidden="true" /><div><span>{label}</span><strong>{value}</strong></div></div>)}
         </div>
       </WidgetCard>
 
@@ -278,6 +208,7 @@ export default function InventoryReportsWorkspace() {
 
       <PosInventoryLinkedSection
         active
+        inventoryLayout
         from={from}
         to={to}
         fromIso={inventoryLinkedRange.from}

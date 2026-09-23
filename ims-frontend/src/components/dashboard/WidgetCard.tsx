@@ -12,7 +12,7 @@ export default function WidgetCard({
   className = "",
 }: WidgetCardProps) {
   return (
-    <section className={`rounded-2xl bg-white p-4 shadow-sm ${className}`}>
+    <section className={`min-w-0 rounded-2xl bg-white p-4 shadow-sm ${className}`}>
       <h2 className="mb-4 text-lg font-semibold text-neutral-900">{title}</h2>
       {children}
     </section>

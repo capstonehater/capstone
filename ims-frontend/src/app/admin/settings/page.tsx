@@ -7,15 +7,15 @@ export default function SettingsPage() {
   return (
     <AdminDashboardLayout>
       <div className="space-y-6">
-        <section className="overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-sm">
-          <div className="bg-[radial-gradient(circle_at_top_left,rgba(244,90,31,0.18),transparent_34%),linear-gradient(135deg,#ffffff_0%,#fff7ed_54%,#f8f3ec_100%)] p-6 md:p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#f45a1f]">
+        <section className="overflow-hidden rounded-[28px] border border-[#232d46]/10 bg-white shadow-sm">
+          <div className="bg-[#f5f5f5] p-6 md:p-8">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#232d46]">
               Account
             </p>
-            <h1 className="mt-2 text-2xl font-bold text-neutral-950 md:text-3xl">
+            <h1 className="mt-2 text-2xl font-bold text-[#232d46] md:text-3xl">
               SETTINGS
             </h1>
-            <p className="mt-2 max-w-2xl text-sm text-neutral-600">
+            <p className="mt-2 max-w-2xl text-sm text-[#232d46]/75">
               Manage your account information and security.
             </p>
           </div>

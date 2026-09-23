@@ -1,5 +1,7 @@
 "use client";
 
+import { useId } from "react";
+
 type ChartPoint = {
   key: string;
   label: string;
@@ -33,6 +35,7 @@ export default function ReportLineChart({
   emptyLabel = "No chart data is available for the current filters.",
   lineColorClassName = "text-[#f45a1f]",
 }: Props) {
+  const fillId = useId();
   if (points.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-sm text-slate-500">
@@ -71,16 +74,16 @@ export default function ReportLineChart({
   const polyline = plottedPoints.map((point) => `${point.x},${point.y}`).join(" ");
 
   return (
-    <div className="space-y-4">
-      <div className="overflow-x-auto">
+    <div className="min-w-0 w-full max-w-full space-y-4">
+      <div className="min-w-0 w-full overflow-hidden">
         <svg
           viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-          className={`h-64 min-w-[640px] w-full ${lineColorClassName}`}
+          className={`block h-auto w-full max-w-full ${lineColorClassName}`}
           role="img"
           aria-label="Line chart"
         >
           <defs>
-            <linearGradient id="report-line-chart-fill" x1="0" x2="0" y1="0" y2="1">
+            <linearGradient id={fillId} x1="0" x2="0" y1="0" y2="1">
               <stop offset="0%" stopColor="currentColor" stopOpacity="0.18" />
               <stop offset="100%" stopColor="currentColor" stopOpacity="0.02" />
             </linearGradient>
@@ -106,7 +109,7 @@ export default function ReportLineChart({
           />
 
           <polygon
-            fill="url(#report-line-chart-fill)"
+            fill={`url(#${fillId})`}
             points={`${polyline} ${plottedPoints[plottedPoints.length - 1]?.x ?? 0},${CHART_HEIGHT - PADDING_Y} ${plottedPoints[0]?.x ?? 0},${CHART_HEIGHT - PADDING_Y}`}
           />
 
@@ -128,11 +131,11 @@ export default function ReportLineChart({
         </svg>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-1 text-xs text-slate-500">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(112px,100%),1fr))] gap-2 text-xs text-slate-500">
         {plottedPoints.map((point) => (
           <div
             key={point.key}
-            className="min-w-[112px] rounded-2xl border border-slate-200 bg-white px-3 py-2"
+            className="min-w-0 break-words rounded-2xl border border-slate-200 bg-white px-3 py-2"
           >
             <div className="font-semibold text-slate-700">{point.label}</div>
             <div className="mt-1 text-sm font-semibold text-slate-900">

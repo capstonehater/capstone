@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
 import ReportsScopeSwitch from "@/components/admin/reports/ReportsScopeSwitch";
 
@@ -6,10 +9,12 @@ export default function ReportsLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const dedicatedReportPage = pathname === "/admin/reports/inventory" || pathname === "/admin/reports/pos";
   return (
     <AdminDashboardLayout>
       <div className="space-y-6">
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
+        {!dedicatedReportPage && <section className="rounded-2xl bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#f45a1f]">
@@ -26,7 +31,7 @@ export default function ReportsLayout({
               <ReportsScopeSwitch />
             </div>
           </div>
-        </section>
+        </section>}
 
         {children}
       </div>

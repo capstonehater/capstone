@@ -360,6 +360,12 @@ export class UsersService {
     const pageSize = query.pageSize ?? DEFAULT_USER_PAGE_SIZE;
     const where: Prisma.UserWhereInput = {
       AND: [
+        // Retain fixture ownership of historical records without listing test accounts.
+        { id: { notIn: [
+          'inventory_reports_phase1_sample_user',
+          'inventory_reports_phase2_sample_user',
+          'inventory_reports_phase3_sample_user',
+        ] } },
         ...buildUserSearchWhere(query.search),
         ...(query.role ? [{ role: query.role }] : []),
         ...(query.status ? [{ accountStatus: query.status }] : []),

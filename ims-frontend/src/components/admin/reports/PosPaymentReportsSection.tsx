@@ -1,7 +1,9 @@
 "use client";
 
+import PosReportEmpty from "./PosReportEmpty";
+
 import { useEffect, useState } from "react";
-import SummaryCard from "@/components/dashboard/SummaryCard";
+import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
   exportPosPaymentReportsCsv,
@@ -197,9 +199,7 @@ export default function PosPaymentReportsSection({
                   Loading payment breakdown...
                 </div>
               ) : (report?.breakdown ?? []).length === 0 ? (
-                <div className="px-4 py-6 text-sm text-slate-500">
-                  No payment records matched the selected date range.
-                </div>
+                <PosReportEmpty message="No payment records matched the selected date range." />
               ) : (
                 report?.breakdown.map((row) => (
                   <div
@@ -236,9 +236,7 @@ export default function PosPaymentReportsSection({
                   Loading split payment activity...
                 </div>
               ) : (report?.splitPaymentOrders ?? []).length === 0 ? (
-                <div className="px-4 py-6 text-sm text-slate-500">
-                  No split-payment orders were found for the selected period.
-                </div>
+                <PosReportEmpty message="No split-payment orders were found for the selected period." />
               ) : (
                 report?.splitPaymentOrders.map((order) => (
                   <div

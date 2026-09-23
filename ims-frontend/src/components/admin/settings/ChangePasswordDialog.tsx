@@ -5,13 +5,14 @@ import { useState } from "react";
 import InventoryModal from "@/components/admin/inventory/InventoryModal";
 import {
   InventoryField,
-  inventoryInputClasses,
 } from "@/components/admin/inventory/InventoryField";
 import { PASSWORD_REQUIREMENTS_MESSAGE } from "@/lib/auth";
 import {
   changeSettingsPassword,
   type ChangePasswordResponse,
 } from "@/lib/settings";
+
+const inventoryInputClasses = "w-full rounded-2xl border border-[#232d46]/15 bg-white px-4 py-3 text-sm text-[#232d46] outline-none transition placeholder:text-[#232d46]/50 focus:border-[#232d46] focus:ring-2 focus:ring-[#232d46]/15";
 
 type ChangePasswordDialogProps = {
   onClose: () => void;
@@ -135,14 +136,14 @@ export default function ChangePasswordDialog({
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 disabled:opacity-50"
+            className="rounded-full border border-[#232d46]/15 bg-white px-5 py-2 text-sm font-semibold text-[#232d46] transition hover:border-slate-300 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-full bg-slate-950 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50"
+            className="rounded-full bg-[#232d46] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#232d46]/90 disabled:opacity-50"
           >
             {submitting ? "Changing..." : "Change Password"}
           </button>

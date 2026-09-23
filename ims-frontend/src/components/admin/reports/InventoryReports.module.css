@@ -1,0 +1,73 @@
+.workspace { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; color: #182238; background: #f5f5f5; min-width: 0; }
+.workspace > * { grid-column: 1 / -1; min-width: 0; }
+.workspace section { min-width: 0; border: 1px solid #d2d2d2; border-radius: 5px; box-shadow: 0 1px 2px #00000008; padding: 16px; background: #fff; }
+.workspace h2, .workspace h3 { margin: 0 0 10px; font-size: 15px; line-height: 1.3; font-weight: 700; color: #111; }
+.workspace p { margin-bottom: 0; }
+.workspace input { min-width: 0; padding: 8px 10px; border-radius: 4px; border: 1px solid #cfcfcf; font-size: 12px; background: #fff; }
+.workspace input:focus { outline: 2px solid #232d46; outline-offset: 1px; }
+.workspace label { font-size: 11px; }
+.workspace button { border-radius: 4px; font-size: 12px; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; grid-row: 1; }
+.toolbar strong { font-size: 12px; color: #111; }
+.toolbar label { display: flex; align-items: center; gap: 10px; }
+.toolbarActions { display: flex; flex-wrap: wrap; gap: 10px; margin-left: auto; }
+.toolbarActions button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #cfcfcf; background: #fff; color: #111; padding: 8px 12px; font-weight: 600; }
+.toolbarActions .refresh { background: #198000; border-color: #198000; color: #fff; }
+.toolbarActions button:disabled { opacity: .5; cursor: not-allowed; }
+.kpi { grid-row: 2; }
+.kpiGrid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.kpiItem { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 14px 12px; border: 1px solid #ccc; border-radius: 5px; }
+.kpiItem svg { flex-shrink: 0; }
+.kpiItem span { display: block; font-size: 11px; color: #222; }
+.kpiItem strong { display: block; margin-top: 3px; font-size: 15px; color: #111; }
+.workspace [data-report="availability"], .workspace [data-report="availability-tables"], .workspace [data-report="linked"], .workspace [data-report="linked-details"], .workspace [data-report="linked-support"], .workspace [data-report="variant-details"] { display: contents; }
+.workspace [data-report="linked"] > *, .workspace [data-report="linked-support"] > * { margin-top: 0; margin-bottom: 0; }
+.workspace :global(.report-risk) { grid-column: 1 / 6; grid-row: 3; }
+.workspace :global(.report-stockout) { grid-column: 6 / -1; grid-row: 3 / 5; }
+.workspace [data-report="consumption-intro"] { grid-column: 1 / 6; grid-row: 4; }
+.workspace [data-report="consumption-metrics"] { grid-column: 1 / -1; grid-row: 5; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; padding: 0; border: 0; background: transparent; box-shadow: none; }
+.workspace :global(.report-top-selling) { grid-column: 1 / -1; grid-row: 6; }
+.workspace :global(.report-low-stock) { grid-column: 1 / 5; grid-row: 7; }
+.workspace :global(.report-movements) { grid-column: 5 / 9; grid-row: 7; }
+.workspace :global(.report-drilldown) { grid-column: 9 / -1; grid-row: 7; }
+.workspace :global(.report-high-usage) { grid-column: 1 / -1; grid-row: 8; }
+.workspace :global(.report-variants) { grid-column: 1 / -1; grid-row: 9; }
+.workspace :global(.report-risk) > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.workspace :global(.report-risk) > div > p, .workspace :global(.report-risk) > div > div:not(:global(.report-risk-metrics)) { grid-column: 1 / -1; }
+.workspace :global(.report-risk-metrics) { display: contents; }
+.workspace :global(.report-risk) > div > * { margin-top: 0; margin-bottom: 0; }
+.workspace :global(.report-risk-metrics) > div > div, .workspace [data-report="consumption-metrics"] > div > div { margin-bottom: 4px; }
+.workspace :global(.report-definition) { font-size: 11px; line-height: 1.4; color: #444; }
+.workspace :global(.report-risk-metrics) > div, .workspace [data-report="consumption-metrics"] > div { padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-shadow: none; min-width: 0; }
+.workspace :global(.report-risk-metrics) p, .workspace [data-report="consumption-metrics"] p { font-size: 11px; color: #222; margin: 0; }
+.workspace :global(.report-risk-metrics) h3, .workspace [data-report="consumption-metrics"] h3 { margin: 6px 0 0; font-size: 18px; }
+.workspace [data-report="consumption-intro"] > div:first-child { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+.workspace [data-report="consumption-intro"] p { font-size: 11px; line-height: 1.4; margin-top: 3px; }
+.workspace [data-report="consumption-intro"] > div:last-child { padding: 8px; margin-top: 12px; border-radius: 4px; font-size: 10px; line-height: 1.4; }
+.workspace :global(.report-table-scroll) { max-height: 360px; overflow: auto; border: 1px solid #d2d2d2; border-radius: 4px; }
+.workspace :global(.report-table) { width: 100%; min-width: 800px; border-collapse: collapse; font-size: 12px; }
+.workspace :global(.report-table) th { position: sticky; top: 0; background: #f5f5f5; padding: 10px; font-size: 10px; text-transform: uppercase; color: #666; text-align: left; font-weight: 600; }
+.workspace :global(.report-table) td { padding: 10px; border-top: 1px solid #dedede; }
+.workspace :global(.report-table) small { display: block; color: #777; margin-top: 3px; }
+.workspace :global(.report-badge) { display: inline-block; border: 1px solid #7ad44d; border-radius: 3px; background: #e7fbdc; color: #247412; padding: 2px 8px; font-size: 10px; }
+.workspace :global(.report-empty) { text-align: center; color: #777; padding: 24px 8px; }
+.workspace :global(.report-empty) svg { display: block; margin: 0 auto 8px; padding: 6px; width: 40px; height: 40px; border-radius: 50%; color: #232d46; background: #ededed; }
+.workspace :global(.report-stockout) > div, .workspace :global(.report-high-usage) > div, .workspace :global(.report-variants) > div { max-height: 390px; overflow: auto; }
+.workspace :global(.report-stockout) :global(.grid), .workspace :global(.report-high-usage) :global(.grid), .workspace :global(.report-variants) :global(.grid) { gap: 8px; padding: 10px; font-size: 11px; }
+.workspace :global(.report-stockout) :global(.uppercase), .workspace :global(.report-high-usage) :global(.uppercase), .workspace :global(.report-variants) :global(.uppercase) { font-size: 10px; letter-spacing: 0; background: #f5f5f5; }
+.workspace :global(.report-low-stock) p, .workspace :global(.report-movements) p, .workspace :global(.report-drilldown) > div { font-size: 12px; }
+.workspace :global(.report-drilldown) > div { padding: 0; border: 0; background: white; }
+.workspace :global(.report-low-stock) > div, .workspace :global(.report-movements) > div { max-height: 300px; overflow: auto; }
+@media (max-width: 1100px) {
+  .workspace { grid-template-columns: 1fr; }
+  .workspace section { grid-column: 1 / -1 !important; grid-row: auto !important; }
+  .kpiGrid, .workspace [data-report="consumption-metrics"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .workspace { gap: 12px; }
+  .workspace section { padding: 12px; }
+  .toolbar { gap: 12px; }
+  .toolbarActions { margin-left: 0; }
+  .kpiGrid, .workspace [data-report="consumption-metrics"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpiItem { padding: 10px 8px; gap: 8px; }
+}

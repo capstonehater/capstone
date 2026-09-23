@@ -16,7 +16,10 @@ export const adminNavigation = [
     { label: "Suppliers", href: "/admin/inventory/suppliers", icon: UsersRound, subtitle: "Manage suppliers and store locations." },
   ] },
   { label: "Reports", items: [
-    { label: "Reports", href: "/admin/reports", icon: FileText, subtitle: "Review inventory and POS reports." },
+    { label: "Reports", href: "/admin/reports", icon: FileText, subtitle: "Review inventory and POS reports.", children: [
+      { label: "Inventory Reports", href: "/admin/reports/inventory" },
+      { label: "POS Reports", href: "/admin/reports/pos" },
+    ] },
     { label: "Forecasting", href: "/admin/forecasting", icon: TrendingUp, subtitle: "Review demand forecasts and inventory recommendations." },
     { label: "Alerts", href: "/admin/alerts", icon: Bell, subtitle: "Review your operational inventory alerts." },
   ] },

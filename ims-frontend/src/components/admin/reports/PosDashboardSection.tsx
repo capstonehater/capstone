@@ -1,7 +1,9 @@
 "use client";
 
+import PosReportEmpty from "./PosReportEmpty";
+
 import { useEffect, useMemo, useState } from "react";
-import SummaryCard from "@/components/dashboard/SummaryCard";
+import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
   fetchPosDashboard,
@@ -14,7 +16,8 @@ import {
 } from "@/lib/report-date-range";
 import { formatDateTime, formatPeso } from "@/lib/pos-utils";
 import { formatGrowthRate, growthTone } from "./pos-report-shared";
-import ReportLineChart from "./ReportLineChart";
+import ReportLineChart from "./PosSalesChart";
+import styles from "./PosReports.module.css";
 
 type Props = {
   active: boolean;
@@ -154,7 +157,6 @@ export default function PosDashboardSection({
         />
       </section>
 
-      <section className="grid grid-cols-1 gap-6 2xl:grid-cols-[1.1fr_0.9fr]">
         <WidgetCard title="Daily Sales Snapshot">
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -190,20 +192,9 @@ export default function PosDashboardSection({
             </div>
           </div>
 
-          <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
-            <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  {report?.trend.granularity === "hourly" ? "Hourly Net Sales" : "Daily Net Sales"}
-                </p>
-                <p className="mt-1 text-sm text-slate-500">
-                  {report?.trend.granularity === "hourly"
-                    ? "The chart follows the selected Manila business day hour by hour."
-                    : "The chart follows the selected Manila business-date range day by day."}
-                </p>
-              </div>
-            </div>
-
+        </WidgetCard>
+        <WidgetCard title="Hourly Net Sales">
+          <p className="mb-4 text-xs text-slate-500">Sales from 1 PM through 10:59 PM, Manila time.</p>
             <ReportLineChart
               points={(report?.trend.points ?? []).map((point) => ({
                 key: point.bucketKey,
@@ -214,9 +205,10 @@ export default function PosDashboardSection({
               valueFormatter={(value) => formatPeso(value.toFixed(2))}
               emptyLabel="No completed sales were recorded for the current dashboard range."
             />
-          </div>
-
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
+        </WidgetCard>
+        <div className={styles.dashboardBottom}>
+        <WidgetCard title="Sales Growth">
+          <div className={styles.growth}>
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 {getGrowthLabel(preset)}
@@ -258,7 +250,6 @@ export default function PosDashboardSection({
             </div>
           </div>
         </WidgetCard>
-      </section>
 
       <WidgetCard title="Recent Orders">
         <div className="overflow-hidden rounded-2xl border border-slate-200">
@@ -271,9 +262,7 @@ export default function PosDashboardSection({
           </div>
           <div className="max-h-[24rem] overflow-y-auto">
             {(report?.recentOrders ?? []).length === 0 ? (
-              <div className="px-4 py-5 text-sm text-slate-500">
-                No recent orders for the selected range.
-              </div>
+              <PosReportEmpty message="No recent orders for the selected range." />
             ) : (
               report?.recentOrders.map((order) => (
                 <div
@@ -304,6 +293,7 @@ export default function PosDashboardSection({
           </div>
         </div>
       </WidgetCard>
+      </div>
     </div>
   );
 }

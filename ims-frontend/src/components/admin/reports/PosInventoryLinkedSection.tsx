@@ -16,6 +16,7 @@ import { formatDateTime, formatPeso } from "@/lib/pos-utils";
 
 type Props = {
   active: boolean;
+  inventoryLayout?: boolean;
   from: string;
   to: string;
   fromIso: string;
@@ -42,6 +43,7 @@ function alertTone(severity: string | null) {
 
 export default function PosInventoryLinkedSection({
   active,
+  inventoryLayout = false,
   from,
   to,
   fromIso,
@@ -205,7 +207,7 @@ export default function PosInventoryLinkedSection({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-report={inventoryLayout ? "linked" : undefined}>
       {error ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {error}
@@ -224,7 +226,7 @@ export default function PosInventoryLinkedSection({
         </div>
       ) : null}
 
-      <section className="rounded-2xl bg-white p-6 shadow-sm">
+      <section data-report="consumption-intro" className="rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <h3 className="text-xl font-semibold text-neutral-900">
@@ -289,7 +291,7 @@ export default function PosInventoryLinkedSection({
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
+      <section data-report="consumption-metrics" className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
         <SummaryCard
           title="Sales-Linked Transactions"
           value={loading ? "..." : report?.summary.salesLinkedTransactionCount ?? 0}
@@ -318,10 +320,10 @@ export default function PosInventoryLinkedSection({
         />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <WidgetCard title="High-Usage Ingredients">
+      <section data-report="linked-details" className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <WidgetCard title="High-Usage Ingredients" className="report-high-usage">
           <div className="overflow-x-auto">
-            <div className="min-w-[78rem] overflow-hidden rounded-2xl border border-slate-200">
+            <div className="min-w-[850px] overflow-hidden rounded-2xl border border-slate-200">
               <div className="grid grid-cols-[1.15fr_0.7fr_0.9fr_0.9fr_0.7fr_0.7fr_0.9fr_0.8fr_0.7fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span>Material</span>
                 <span>SKU</span>
@@ -396,8 +398,8 @@ export default function PosInventoryLinkedSection({
           </div>
         </WidgetCard>
 
-        <div className="space-y-6">
-          <WidgetCard title="Low-Stock / Reorder Pressure">
+        <div data-report="linked-support" className="space-y-6">
+          <WidgetCard title="Low-Stock / Reorder Pressure" className="report-low-stock">
             <div className="space-y-3">
               {loading ? (
                 <p className="text-sm text-slate-500">Loading low-stock materials...</p>
@@ -440,7 +442,7 @@ export default function PosInventoryLinkedSection({
             </div>
           </WidgetCard>
 
-          <WidgetCard title="Recent Sales-Linked Stock Movements">
+          <WidgetCard title="Recent Sales-Linked Stock Movements" className="report-movements">
             <div className="space-y-3">
               {loading ? (
                 <p className="text-sm text-slate-500">Loading movements...</p>
@@ -472,10 +474,10 @@ export default function PosInventoryLinkedSection({
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <WidgetCard title="Top Variants by Sales-Linked Material Usage">
+      <section data-report="variant-details" className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+        <WidgetCard title="Top Variants by Sales-Linked Material Usage" className="report-variants">
           <div className="overflow-x-auto">
-            <div className="min-w-[74rem] overflow-hidden rounded-2xl border border-slate-200">
+            <div className="min-w-[850px] overflow-hidden rounded-2xl border border-slate-200">
               <div className="grid grid-cols-[1.15fr_0.95fr_0.8fr_0.9fr_0.9fr_0.9fr_0.8fr_92px] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span>Product / Variant</span>
                 <span>Category</span>
@@ -534,7 +536,7 @@ export default function PosInventoryLinkedSection({
           </div>
         </WidgetCard>
 
-        <WidgetCard title="Variant to Material Drill-Down">
+        <WidgetCard title="Variant to Material Drill-Down" className="report-drilldown">
           {report?.selectedVariantBreakdown ? (
             <div className="space-y-4">
               <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-start sm:justify-between">

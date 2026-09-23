@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import InventoryModal from "@/components/admin/inventory/InventoryModal";
 import {
   InventoryField,
-  inventoryInputClasses,
 } from "@/components/admin/inventory/InventoryField";
 import {
   updateSettingsAccount,
@@ -15,6 +14,8 @@ import {
   type UpdateSettingsAccountInput,
   type UpdateSettingsAccountResponse,
 } from "@/lib/settings";
+
+const inventoryInputClasses = "w-full rounded-2xl border border-[#232d46]/15 bg-white px-4 py-3 text-sm text-[#232d46] outline-none transition placeholder:text-[#232d46]/50 focus:border-[#232d46] focus:ring-2 focus:ring-[#232d46]/15";
 
 type EditAccountDialogProps = {
   account: SettingsAccount;
@@ -112,14 +113,14 @@ export default function EditAccountDialog({
           </div>
         ) : null}
 
-        <div className="flex flex-col items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center">
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-orange-100 text-2xl font-bold text-orange-700">
+        <div className="flex flex-col items-start gap-4 rounded-2xl border border-[#232d46]/15 bg-white p-4 sm:flex-row sm:items-center">
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#f5f5f5] text-2xl font-bold text-[#232d46]">
             {preview ? <Image src={preview} alt="Profile picture preview" width={96} height={96} unoptimized className="h-full w-full object-cover" /> : account.firstName.charAt(0)}
           </div>
           <div className="w-full min-w-0 flex-1">
-            <label htmlFor="settings-profile-picture" className="block text-sm font-semibold text-slate-700">Profile picture</label>
+            <label htmlFor="settings-profile-picture" className="block text-sm font-semibold text-[#232d46]">Profile picture</label>
             <input id="settings-profile-picture" type="file" accept="image/jpeg,image/png,image/webp"
-              disabled={submitting} className="mt-2 block w-full text-sm text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-orange-50 file:px-4 file:py-2 file:font-semibold file:text-orange-700"
+              disabled={submitting} className="mt-2 block w-full text-sm text-[#232d46]/80 file:mr-3 file:rounded-full file:border-0 file:bg-[#f5f5f5] file:px-4 file:py-2 file:font-semibold file:text-[#232d46]"
               onChange={(event) => {
                 const selected = event.target.files?.[0];
                 if (!selected) return;
@@ -132,7 +133,7 @@ export default function EditAccountDialog({
                 setPicture(selected);
                 setPreview(URL.createObjectURL(selected));
               }} />
-            <p className="mt-2 text-xs text-slate-500">JPG, PNG, or WebP, up to 5 MB. Your picture updates when you save changes.</p>
+            <p className="mt-2 text-xs text-[#232d46]/70">JPG, PNG, or WebP, up to 5 MB. Your picture updates when you save changes.</p>
           </div>
         </div>
 
@@ -161,7 +162,7 @@ export default function EditAccountDialog({
             aria-describedby="settings-middle-initial-hint"
             maxLength={1}
           />
-          <p id="settings-middle-initial-hint" className="text-xs text-slate-500">Optional, one character.</p>
+          <p id="settings-middle-initial-hint" className="text-xs text-[#232d46]/70">Optional, one character.</p>
         </InventoryField>
 
         <InventoryField htmlFor="settings-last-name" label="Last Name">
@@ -203,19 +204,19 @@ export default function EditAccountDialog({
         </div>
 
         </div>
-        <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+        <div className="flex justify-end gap-3 border-t border-[#232d46]/15 pt-4">
           <button
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 disabled:opacity-50"
+            className="rounded-full border border-[#232d46]/15 bg-white px-5 py-2 text-sm font-semibold text-[#232d46] transition hover:border-slate-300 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-full bg-[#f45a1f] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#d94d18] disabled:opacity-50"
+            className="rounded-full bg-[#232d46] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#232d46] disabled:opacity-50"
           >
             {submitting ? "Saving..." : "Save Changes"}
           </button>

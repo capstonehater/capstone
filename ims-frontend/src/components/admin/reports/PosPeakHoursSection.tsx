@@ -1,7 +1,9 @@
 "use client";
 
+import PosReportEmpty from "./PosReportEmpty";
+
 import { useEffect, useState } from "react";
-import SummaryCard from "@/components/dashboard/SummaryCard";
+import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
   exportPosPeakHoursCsv,
@@ -284,7 +286,7 @@ export default function PosPeakHoursSection({
         <WidgetCard title={view === "table" ? "Hourly Sales Table" : "Hourly Net Sales Line Graph"}>
           {view === "line" ? (
             <ReportLineChart
-              points={(report?.hourly ?? []).map((row) => ({
+              points={(report?.hourly ?? []).filter((row) => row.hour >= 13 && row.hour <= 22).map((row) => ({
                 key: String(row.hour),
                 label: row.label,
                 value: Number(row.netSales),
@@ -309,9 +311,7 @@ export default function PosPeakHoursSection({
                       Loading hourly aggregation...
                     </div>
                   ) : (report?.hourly ?? []).length === 0 ? (
-                    <div className="px-4 py-6 text-sm text-slate-500">
-                      No hourly data matched the selected range.
-                    </div>
+                    <PosReportEmpty message="No hourly data matched the selected range." />
                   ) : (
                     report?.hourly.map((row) => (
                       <div

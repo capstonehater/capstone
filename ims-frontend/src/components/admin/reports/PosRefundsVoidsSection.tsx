@@ -1,7 +1,9 @@
 "use client";
 
+import PosReportEmpty from "./PosReportEmpty";
+
 import { useEffect, useState } from "react";
-import SummaryCard from "@/components/dashboard/SummaryCard";
+import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
   exportPosRefundsVoidsCsv,
@@ -139,9 +141,9 @@ export default function PosRefundsVoidsSection({
       <section className="rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h3 className="text-xl font-semibold text-neutral-900">Refunds & Voids</h3>
+            <h3 className="text-xl font-semibold text-neutral-900">Refunds</h3>
             <p className="mt-2 text-sm text-neutral-600">
-              Review refund and void activity using stored reversal records. Responsible staff is
+              Review refunds and their recorded reasons. Responsible staff is
               the original order creator, while reversal actor and approval context remain visible
               separately.
             </p>
@@ -177,7 +179,7 @@ export default function PosRefundsVoidsSection({
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <SummaryCard
           title="Refund Count"
           value={loading ? "..." : report?.summary.refundCount ?? 0}
@@ -185,14 +187,6 @@ export default function PosRefundsVoidsSection({
         <SummaryCard
           title="Refunded Amount"
           value={loading ? "..." : formatPeso(report?.summary.refundedAmount ?? "0")}
-        />
-        <SummaryCard
-          title="Void Count"
-          value={loading ? "..." : report?.summary.voidCount ?? 0}
-        />
-        <SummaryCard
-          title="Voided Amount"
-          value={loading ? "..." : formatPeso(report?.summary.voidedAmount ?? "0")}
         />
         <SummaryCard
           title="Total Reversals"
@@ -215,9 +209,7 @@ export default function PosRefundsVoidsSection({
                   Loading reversal reasons...
                 </div>
               ) : (report?.byReason ?? []).length === 0 ? (
-                <div className="px-4 py-6 text-sm text-slate-500">
-                  No refund or void reasons matched the current filters.
-                </div>
+                <PosReportEmpty message="No refund or void reasons matched the current filters." />
               ) : (
                 report?.byReason.map((row) => (
                   <div
@@ -257,9 +249,7 @@ export default function PosRefundsVoidsSection({
                   Loading staff reversal activity...
                 </div>
               ) : (report?.byStaff ?? []).length === 0 ? (
-                <div className="px-4 py-6 text-sm text-slate-500">
-                  No reversal actors matched the current filters.
-                </div>
+                <PosReportEmpty message="No reversal actors matched the current filters." />
               ) : (
                 report?.byStaff.map((row) => (
                   <div
@@ -307,9 +297,7 @@ export default function PosRefundsVoidsSection({
                   Loading reversal events...
                 </div>
               ) : (report?.reversals ?? []).length === 0 ? (
-                <div className="px-4 py-6 text-sm text-slate-500">
-                  No refund or void events matched the current filters.
-                </div>
+                <PosReportEmpty message="No refund or void events matched the current filters." />
               ) : (
                 report?.reversals.map((reversal) => (
                   <div
