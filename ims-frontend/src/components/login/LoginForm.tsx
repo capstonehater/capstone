@@ -105,7 +105,8 @@ export default function LoginForm() {
 
   return (
     <div className={styles.formContent}>
-      <h2 className={styles.formTitle}>Admin sign in</h2>
+      <span className={styles.formMark} aria-hidden="true">✳</span>
+      <h2 className={styles.formTitle}>Sign in</h2>
       <p className={styles.subtitle}>Enter your credentials to open the dashboard.</p>
       <form onSubmit={handleSubmit} className={styles.form}>
         {resetSuccess && <p role="status" className={styles.success}>Password updated successfully. Sign in with your new password.</p>}

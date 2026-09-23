@@ -6,6 +6,7 @@ import styles from "@/components/login/Login.module.css";
 export default function LoginPage() {
   return (
     <main className={styles.page}>
+      <div className={styles.card}>
       <section className={styles.brandPanel} aria-label="Café Salvacion IMS">
         <div className={styles.brand}><PanelsTopLeft size={26} strokeWidth={1.5} aria-hidden="true" /><span>Café Salvacion IMS</span></div>
         <div className={styles.introduction}>
@@ -21,6 +22,7 @@ export default function LoginPage() {
       <section className={styles.signInPanel} aria-label="Sign in">
         <Suspense fallback={<p role="status" className={styles.subtitle}>Loading sign in...</p>}><LoginForm /></Suspense>
       </section>
+      </div>
     </main>
   );
 }
