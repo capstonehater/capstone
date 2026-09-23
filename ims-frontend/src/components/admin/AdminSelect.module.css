@@ -1,0 +1,14 @@
+.select { min-width: 0; }
+.label { display: block; margin-bottom: 6px; color: #475569; font-size: 11px; font-weight: 600; }
+.trigger { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 40px; padding: 9px 10px; border: 1px solid #cbd7c5; border-radius: 12px; background: #fff; color: #243320; font: inherit; font-size: 12px; font-weight: 600; text-align: left; box-shadow: 0 1px 2px #20301b0a; }
+.trigger:hover, .trigger[aria-expanded="true"] { border-color: #178400; background: #fbfef9; }
+.trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trigger svg { flex-shrink: 0; color: #4a6f42; }
+.menu { position: fixed; z-index: 1000; overflow-y: auto; overscroll-behavior: contain; padding: 5px; border: 1px solid #d5dfd0; border-radius: 12px; background: #fff; box-shadow: 0 12px 30px #20301b24; scrollbar-width: thin; }
+.option { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 40px; padding: 9px 11px; border: 0; border-radius: 8px; background: transparent; color: #263723; font: inherit; font-size: 14px; line-height: 1.4; text-align: left; }
+.option span { overflow-wrap: anywhere; }
+.option svg { flex-shrink: 0; }
+.option:hover, .option:focus-visible { background: #edf7e9; }
+.selected { background: #e8f4e3; color: #176500; font-weight: 700; }
+.trigger:focus-visible, .option:focus-visible { outline: 2px solid #178400; outline-offset: 2px; }
+.option:focus-visible { outline-offset: -2px; }

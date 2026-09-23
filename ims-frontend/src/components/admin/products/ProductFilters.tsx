@@ -1,5 +1,7 @@
 "use client";
 
+import AdminSelect from "@/components/admin/AdminSelect";
+
 import type { ProductCategory, ProductEffectiveStatus } from "@/lib/products";
 
 type Props = {
@@ -35,58 +37,17 @@ export default function ProductFilters({
   onCategoryChange,
   onManualAvailabilityChange,
   onEffectiveAvailabilityChange,
-  onClearFilters,
 }: Props) {
   return (
     <div className="grid grid-cols-3 gap-3">
-      <label className="min-w-0">
-        <select
-          value={categoryId}
-          onChange={(event) => onCategoryChange(event.target.value)}
-          className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-[11px] text-slate-600 outline-none focus:border-slate-500"
-        >
-            <option value="">All Categories</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="min-w-0">
-        <select
-          value={manualAvailability}
-          onChange={(event) =>
-            onManualAvailabilityChange(event.target.value as "" | "enabled" | "disabled")
-          }
-          className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-[11px] text-slate-600 outline-none focus:border-slate-500"
-        >
-          <option value="">All Status</option>
-          <option value="enabled">Enabled</option>
-          <option value="disabled">Disabled</option>
-        </select>
-      </label>
-
-      <label className="min-w-0">
-        <select
-          value={effectiveAvailability}
-          onChange={(event) =>
-            onEffectiveAvailabilityChange(
-              event.target.value as "" | ProductEffectiveStatus,
-            )
-          }
-          className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-[11px] text-slate-600 outline-none focus:border-slate-500"
-        >
-          <option value="">All Availability</option>
-          {effectiveAvailabilityOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
+      <AdminSelect label="Category" value={categoryId} onChange={onCategoryChange}
+        options={[{ value: "", label: "All Categories" }, ...categories.map((category) => ({ value: category.id, label: category.name }))]} />
+      <AdminSelect label="Status" value={manualAvailability}
+        onChange={(value) => onManualAvailabilityChange(value as "" | "enabled" | "disabled")}
+        options={[{ value: "", label: "All Status" }, { value: "enabled", label: "Enabled" }, { value: "disabled", label: "Disabled" }]} />
+      <AdminSelect label="Availability" value={effectiveAvailability}
+        onChange={(value) => onEffectiveAvailabilityChange(value as "" | ProductEffectiveStatus)}
+        options={[{ value: "", label: "All Availability" }, ...effectiveAvailabilityOptions]} />
     </div>
   );
 }
