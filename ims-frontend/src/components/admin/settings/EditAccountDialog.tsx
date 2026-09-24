@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import InventoryModal from "@/components/admin/inventory/InventoryModal";
+import ProfilePictureCropper from "./ProfilePictureCropper";
 import {
   InventoryField,
 } from "@/components/admin/inventory/InventoryField";
@@ -41,6 +42,7 @@ export default function EditAccountDialog({
   const [email, setEmail] = useState(account.email);
   const [phone, setPhone] = useState(account.phone ?? "");
   const [picture, setPicture] = useState<File | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | undefined>(profilePictureSrc(account.profilePictureUrl));
   useEffect(() => {
     return () => { if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview); };
@@ -100,6 +102,22 @@ export default function EditAccountDialog({
     }
   }
 
+  if (cropFile) {
+    return (
+      <InventoryModal title="Crop profile picture" description="Adjust your photo before adding it to your profile." onClose={() => setCropFile(null)}>
+        <ProfilePictureCropper
+          file={cropFile}
+          onCancel={() => setCropFile(null)}
+          onApply={(cropped) => {
+            setPicture(cropped);
+            setPreview(URL.createObjectURL(cropped));
+            setCropFile(null);
+          }}
+        />
+      </InventoryModal>
+    );
+  }
+
   return (
     <InventoryModal
       title="Edit Account"
@@ -123,6 +141,7 @@ export default function EditAccountDialog({
               disabled={submitting} className="mt-2 block w-full text-sm text-[#232d46]/80 file:mr-3 file:rounded-full file:border-0 file:bg-[#f5f5f5] file:px-4 file:py-2 file:font-semibold file:text-[#232d46]"
               onChange={(event) => {
                 const selected = event.target.files?.[0];
+                event.target.value = "";
                 if (!selected) return;
                 if (!["image/jpeg", "image/png", "image/webp"].includes(selected.type) || selected.size > 5 * 1024 * 1024 || selected.size === 0) {
                   setError("Choose a JPG, PNG, or WebP image up to 5 MB.");
@@ -130,8 +149,7 @@ export default function EditAccountDialog({
                   return;
                 }
                 setError(null);
-                setPicture(selected);
-                setPreview(URL.createObjectURL(selected));
+                setCropFile(selected);
               }} />
             <p className="mt-2 text-xs text-[#232d46]/70">JPG, PNG, or WebP, up to 5 MB. Your picture updates when you save changes.</p>
           </div>

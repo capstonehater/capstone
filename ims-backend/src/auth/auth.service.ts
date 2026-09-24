@@ -42,6 +42,7 @@ export class AuthService {
     userId: string;
     email: string;
     includeDebugDetails: boolean;
+    isSetup?: boolean;
   }): Promise<{
     message: string;
     debugResetToken?: string;
@@ -75,6 +76,7 @@ export class AuthService {
     await this.passwordResetNotifierService.sendResetLink({
       email: input.email,
       resetUrl,
+      isSetup: input.isSetup,
     });
 
     if (input.includeDebugDetails) {
@@ -113,6 +115,7 @@ export class AuthService {
       userId: user.id,
       email: user.email,
       includeDebugDetails: options.includeDebugDetails,
+      isSetup: user.accountStatus === AccountStatus.PENDING,
     });
   }
 

@@ -1,5 +1,6 @@
 import { loadEnvFile } from 'node:process';
 
+// Environment values are loaded once at startup; restart after editing .env.
 loadEnvFile();
 
 type SameSite = 'lax' | 'strict' | 'none';
@@ -81,6 +82,12 @@ const sessionTokenSecret = requireString('SESSION_TOKEN_SECRET');
 
 export const env = Object.freeze({
   NODE_ENV: nodeEnv,
+  SMTP_HOST: process.env.SMTP_HOST?.trim() || undefined,
+  SMTP_PORT: parsePositiveInt('SMTP_PORT', 587),
+  SMTP_USER: process.env.SMTP_USER?.trim() || undefined,
+  SMTP_PASSWORD: process.env.SMTP_PASSWORD?.trim() || undefined,
+  SMTP_FROM_EMAIL: process.env.SMTP_FROM_EMAIL?.trim() || undefined,
+  SMTP_FROM_NAME: requireString('SMTP_FROM_NAME', 'Cafe Salvacion'),
   PORT: parsePositiveInt('PORT', 4000),
   DATABASE_URL: requireString('DATABASE_URL'),
   ENABLE_BACKGROUND_JOBS: parseBoolean(

@@ -3,19 +3,21 @@
 import Link from "next/link";
 import { useState } from "react";
 import { requestPasswordReset } from "@/lib/auth";
-import TextInput from "@/components/ui/TextInput";
-import PrimaryButton from "@/components/ui/PrimaryButton";
+import styles from "@/components/login/Login.module.css";
+import ActionAlert from "@/components/feedback/ActionAlert";
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [noticeDismissed, setNoticeDismissed] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
     setSuccessMessage("");
+    setNoticeDismissed(false);
     setLoading(true);
 
     try {
@@ -33,48 +35,48 @@ export default function ForgotPasswordForm() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl rounded-[2rem] border border-neutral-300 bg-[#f6f6f6] px-6 py-8 shadow-sm md:px-12 md:py-12">
-      <div className="mb-8 text-center">
-        <h2 className="text-3xl font-bold text-black md:text-5xl">
-          Reset Password
+    <div className={styles.formContent}>
+      <span className={styles.formMark} aria-hidden="true">✳</span>
+        <h2 className={styles.formTitle}>
+          Reset password
         </h2>
-        <p className="mt-2 text-base text-neutral-500 md:text-lg">
+        <p className={styles.subtitle}>
           Enter your email address and we&apos;ll help you reset your password.
         </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-5">
-        <TextInput
+      <form onSubmit={handleSubmit} className={styles.form} aria-busy={loading}>
+        <label className={styles.field} htmlFor="email">
+          Email address
+        <input
           id="email"
-          label="Email Address :"
           type="email"
+          autoComplete="email"
           placeholder="name@example.com"
           value={email}
-          onChange={setEmail}
+          onChange={(event) => setEmail(event.target.value)}
+          required
         />
+        </label>
 
-        {successMessage && (
-          <p className="rounded-xl bg-emerald-100 px-4 py-3 text-sm text-emerald-700">
-            {successMessage}
-          </p>
+        {successMessage && !noticeDismissed && (
+          <ActionAlert key="reset-request-success" tone="success" title="Request received" message={successMessage} onDismiss={() => setNoticeDismissed(true)} />
         )}
 
         {error && (
-          <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
-            {error}
-          </p>
+          <ActionAlert key={error} tone="error" title="Unable to send reset link" message={error} onDismiss={() => setError("")} />
         )}
 
-        <div className="flex flex-col items-center gap-4 pt-2">
-          <PrimaryButton type="submit">
-            {loading ? "Sending..." : successMessage ? "Send Again" : "Send Reset Link"}
-          </PrimaryButton>
-
-          <Link href="/login" className="text-sm font-medium text-[#f45a1f] underline">
-            Back to Sign In
+          <button className={styles.submit} type="submit" disabled={loading}>
+            {loading ? "Sending..." : successMessage ? "Send again" : "Send reset link"}
+          </button>
+        <div className={styles.recoveryLinks}>
+          <div className={styles.formLinks}>
+          <Link href="/login">
+            Back to sign in
           </Link>
+          </div>
         </div>
       </form>
+      <p className={styles.accessNote}>Access is limited to authorized Café Salvacion staff.</p>
     </div>
   );
 }

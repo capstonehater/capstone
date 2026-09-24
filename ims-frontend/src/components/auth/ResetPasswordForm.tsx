@@ -7,8 +7,8 @@ import {
   PASSWORD_REQUIREMENTS_MESSAGE,
   resetPassword,
 } from "@/lib/auth";
-import TextInput from "@/components/ui/TextInput";
-import PrimaryButton from "@/components/ui/PrimaryButton";
+import styles from "@/components/login/Login.module.css";
+import ActionAlert from "@/components/feedback/ActionAlert";
 
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
 
@@ -26,6 +26,7 @@ export default function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [noticeDismissed, setNoticeDismissed] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -37,6 +38,7 @@ export default function ResetPasswordForm() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setNoticeDismissed(false);
 
     if (tokenMissing) {
       setError("This reset link is missing or invalid.");
@@ -84,113 +86,85 @@ export default function ResetPasswordForm() {
 
   if (tokenMissing) {
     return (
-      <div className="mx-auto max-w-3xl rounded-[2rem] border border-neutral-300 bg-[#f6f6f6] px-6 py-8 shadow-sm md:px-12 md:py-12">
-        <div className="space-y-4 text-center">
-          <h2 className="text-3xl font-bold text-black md:text-5xl">
-            Invalid Reset Link
-          </h2>
-          <p className="text-base text-neutral-500 md:text-lg">
-            This password reset link is missing information or is no longer usable.
-          </p>
-          <div className="flex flex-col items-center gap-3 pt-2">
-            <Link
-              href="/forgot-password"
-              className="text-sm font-medium text-[#f45a1f] underline"
-            >
-              Request a New Reset Link
-            </Link>
-            <Link href="/login" className="text-sm text-neutral-600 underline">
-              Back to Sign In
-            </Link>
-          </div>
+      <div className={styles.formContent}>
+        <span className={styles.formMark} aria-hidden="true">✳</span>
+        <h2 className={styles.formTitle}>Invalid reset link</h2>
+        <p className={styles.subtitle}>
+          This password link is missing information. Request a new link, or ask your administrator to resend your account setup email.
+        </p>
+        <div className={styles.recoveryLinks}>
+          <Link href="/forgot-password" className={styles.submit}>Request a new reset link</Link>
+          <div className={styles.formLinks}><Link href="/login">Back to sign in</Link></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl rounded-[2rem] border border-neutral-300 bg-[#f6f6f6] px-6 py-8 shadow-sm md:px-12 md:py-12">
-      <div className="mb-8 text-center">
-        <h2 className="text-3xl font-bold text-black md:text-5xl">
-          Create a New Password
-        </h2>
-        <p className="mt-2 text-base text-neutral-500 md:text-lg">
-          Choose a strong password for your account.
-        </p>
-      </div>
+    <div className={styles.formContent}>
+      <span className={styles.formMark} aria-hidden="true">✳</span>
+      <h2 className={styles.formTitle}>Create a new password</h2>
+      <p className={styles.subtitle}>Choose a strong password to secure your account.</p>
 
-      <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-5">
-        <TextInput
-          id="new-password"
-          label="New Password :"
-          type={showNewPassword ? "text" : "password"}
-          placeholder="Enter your new password"
-          value={newPassword}
-          onChange={setNewPassword}
-        />
-
-        <div className="-mt-2 flex justify-between">
-          <p className="text-sm text-neutral-500">
-            {PASSWORD_REQUIREMENTS_MESSAGE}
-          </p>
-          <button
-            type="button"
-            onClick={() => setShowNewPassword((prev) => !prev)}
-            className="text-sm text-neutral-600 underline"
-          >
-            {showNewPassword ? "Hide password" : "Show password"}
-          </button>
+      <form onSubmit={handleSubmit} className={styles.form} aria-busy={loading}>
+        <label className={styles.field} htmlFor="new-password">
+          New password
+          <input
+            id="new-password"
+            type={showNewPassword ? "text" : "password"}
+            autoComplete="new-password"
+            placeholder="Enter your new password"
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+            aria-describedby="password-requirements"
+            minLength={10}
+            maxLength={72}
+            required
+          />
+        </label>
+        <div className={styles.passwordHelp}>
+          <p id="password-requirements" className={styles.subtitle}>{PASSWORD_REQUIREMENTS_MESSAGE}</p>
+          <div className={styles.formLinks}>
+            <button type="button" aria-controls="new-password" aria-pressed={showNewPassword} onClick={() => setShowNewPassword((previous) => !previous)}>
+              {showNewPassword ? "Hide password" : "Show password"}
+            </button>
+          </div>
         </div>
 
-        <TextInput
-          id="confirm-password"
-          label="Confirm Password :"
-          type={showConfirmPassword ? "text" : "password"}
-          placeholder="Re-enter your new password"
-          value={confirmPassword}
-          onChange={setConfirmPassword}
-        />
-
-        <div className="-mt-2 flex justify-end">
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword((prev) => !prev)}
-            className="text-sm text-neutral-600 underline"
-          >
+        <label className={styles.field} htmlFor="confirm-password">
+          Confirm password
+          <input
+            id="confirm-password"
+            type={showConfirmPassword ? "text" : "password"}
+            autoComplete="new-password"
+            placeholder="Re-enter your new password"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            required
+          />
+        </label>
+        <div className={styles.formLinks}>
+          <button type="button" aria-controls="confirm-password" aria-pressed={showConfirmPassword} onClick={() => setShowConfirmPassword((previous) => !previous)}>
             {showConfirmPassword ? "Hide password" : "Show password"}
           </button>
         </div>
 
-        {successMessage && (
-          <p className="rounded-xl bg-emerald-100 px-4 py-3 text-sm text-emerald-700">
-            {successMessage} Redirecting you to sign in...
-          </p>
-        )}
-
+        {successMessage && !noticeDismissed && <ActionAlert key="password-updated" tone="success" title="Password updated" message={`${successMessage} Redirecting you to sign in...`} onDismiss={() => setNoticeDismissed(true)} />}
         {error && (
-          <div className="space-y-3">
-            <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
-              {error}
-            </p>
-            <Link
-              href="/forgot-password"
-              className="block text-sm font-medium text-[#f45a1f] underline"
-            >
-              Request a new reset link
-            </Link>
+          <div>
+            <ActionAlert key={error} tone="error" title="Unable to update password" message={error} onDismiss={() => setError("")} />
+            <div className={styles.formLinks}><Link href="/forgot-password">Request a new reset link</Link></div>
           </div>
         )}
 
-        <div className="flex flex-col items-center gap-4 pt-2">
-          <PrimaryButton type="submit">
-            {loading ? "Updating..." : "Update Password"}
-          </PrimaryButton>
-
-          <Link href="/login" className="text-sm font-medium text-[#f45a1f] underline">
-            Back to Sign In
-          </Link>
+        <button className={styles.submit} type="submit" disabled={loading || Boolean(successMessage)}>
+          {loading ? "Updating password..." : successMessage ? "Password updated" : "Update password"}
+        </button>
+        <div className={styles.recoveryLinks}>
+          <div className={styles.formLinks}><Link href="/login">Back to sign in</Link></div>
         </div>
       </form>
+      <p className={styles.accessNote}>Access is limited to authorized Café Salvacion staff.</p>
     </div>
   );
 }

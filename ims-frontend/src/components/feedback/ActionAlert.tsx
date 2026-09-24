@@ -14,19 +14,24 @@ export default function ActionAlert({ tone, title, message, onDismiss }: ActionA
   const success = tone === "success";
   const [closing, setClosing] = useState(false);
   const closeTimer = useRef<number | null>(null);
+  const closingRef = useRef(false);
+  const onDismissRef = useRef(onDismiss);
+  useEffect(() => { onDismissRef.current = onDismiss; }, [onDismiss]);
   const dismiss = useCallback(() => {
-    if (closing) return;
+    if (closingRef.current) return;
+    closingRef.current = true;
     setClosing(true);
-    closeTimer.current = window.setTimeout(() => onDismiss?.(), 400);
-  }, [closing, onDismiss]);
+    closeTimer.current = window.setTimeout(() => onDismissRef.current?.(), 400);
+  }, []);
+  const dismissible = Boolean(onDismiss);
   useEffect(() => {
-    if (!onDismiss) return;
+    if (!dismissible) return;
     const timer = window.setTimeout(dismiss, 5000);
     return () => {
       window.clearTimeout(timer);
       if (closeTimer.current) window.clearTimeout(closeTimer.current);
     };
-  }, [dismiss, onDismiss]);
+  }, [dismiss, dismissible]);
 
   return (
     <div role={success ? "status" : "alert"} className={`action-alert fixed left-1/2 top-6 z-[100] w-[min(760px,calc(100vw-2rem))] overflow-hidden rounded-[14px] bg-white shadow-[0_10px_30px_rgba(0,0,0,.15)] ${closing ? "action-alert-closing" : ""}`}>

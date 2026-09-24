@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth";
 import { useAuthStore } from "@/store/authStore";
 import styles from "./Login.module.css";
+import ActionAlert from "@/components/feedback/ActionAlert";
 
 
 export default function LoginForm() {
@@ -27,6 +28,7 @@ export default function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const resetSuccess = searchParams.get("reset") === "success";
+  const [resetNoticeDismissed, setResetNoticeDismissed] = useState(false);
   const unsupportedRole = searchParams.get("unsupportedRole");
 
   const redirectPath = useMemo(() => {
@@ -109,7 +111,7 @@ export default function LoginForm() {
       <h2 className={styles.formTitle}>Sign in</h2>
       <p className={styles.subtitle}>Enter your credentials to open the dashboard.</p>
       <form onSubmit={handleSubmit} className={styles.form}>
-        {resetSuccess && <p role="status" className={styles.success}>Password updated successfully. Sign in with your new password.</p>}
+        {resetSuccess && !resetNoticeDismissed && !error && <ActionAlert key="reset-success" tone="success" title="Password updated" message="Password updated successfully. Sign in with your new password." onDismiss={() => setResetNoticeDismissed(true)} />}
         <label className={styles.field} htmlFor="email">
           Email address
           <input id="email" type="email" autoComplete="username" placeholder="admin@cafesalvacion.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
@@ -122,7 +124,7 @@ export default function LoginForm() {
           <button type="button" aria-controls="password" aria-pressed={showPassword} onClick={() => setShowPassword((previous) => !previous)}>{showPassword ? "Hide password" : "Show password"}</button>
           <Link href="/forgot-password">Forgot password?</Link>
         </div>
-        {error && <p role="alert" className={styles.error}>{error}</p>}
+        {error && <ActionAlert key={error} tone="error" title="Unable to sign in" message={error} onDismiss={() => setError("")} />}
         <button className={styles.submit} type="submit" disabled={loading}>{loading ? "Signing in..." : "Sign in"}</button>
       </form>
       <p className={styles.accessNote}>Access is limited to authorized Café Salvacion staff.</p>
