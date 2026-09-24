@@ -5,6 +5,7 @@ import { Check, MapPin, Plus, Search, Trash2, X } from "lucide-react";
 import { InventoryField, inventoryInputClasses } from "@/components/admin/inventory/InventoryField";
 import SupplierLocationPicker from "@/components/admin/inventory/SupplierLocationPicker";
 import type { Supplier } from "@/lib/inventory";
+import styles from "./SupplierWorkspace.module.css";
 
 type SupplierInput = {
   name: string;
@@ -148,13 +149,13 @@ export default function SupplierWorkspace({
           </div>
           <div className="max-h-[min(65vh,42rem)] overflow-y-auto p-2">
             {filteredSuppliers.length ? (
-              <ul className="divide-y divide-slate-100">
+              <ul className={`${styles.list} divide-y divide-slate-100`}>
                 {filteredSuppliers.map((supplier) => {
                   const active = !creating && selectedId === supplier.id;
                   return <li key={supplier.id}>
                     <button type="button" onClick={() => selectSupplier(supplier)} disabled={submitting}
                       aria-current={active ? "true" : undefined}
-                      className={`w-full rounded-lg border-l-4 px-3 py-3 text-left transition ${active ? "border-l-[#7cfc24] bg-slate-50" : "border-l-transparent hover:bg-slate-50"}`}>
+                      className={`w-full rounded-lg border-l-4 px-3 py-3 text-left transition ${active ? "border-l-green-700 bg-green-50" : "border-l-transparent hover:bg-slate-50"}`}>
                       <span className="block truncate text-sm font-semibold text-slate-900">{supplier.name}</span>
                       <span className="mt-1 block truncate text-xs text-slate-600">{supplier.contactInfo || "No contact information"}</span>
                       <span className="mt-1 flex items-center gap-1 truncate text-xs text-slate-500"><MapPin size={12} />{supplier.address || (supplier.latitude && supplier.longitude ? `${supplier.latitude}, ${supplier.longitude}` : "No location saved")}</span>
@@ -194,8 +195,9 @@ export default function SupplierWorkspace({
               <input id="supplier-longitude" value={form.longitude} readOnly disabled placeholder="Select a point on the map"
                 className={`${inventoryInputClasses} cursor-not-allowed bg-slate-50 text-slate-600`} />
             </InventoryField>
-            <div className={`md:col-span-2 ${fieldsDisabled ? "pointer-events-none opacity-75" : ""}`}>
+            <div className="md:col-span-2">
               <SupplierLocationPicker key={creating ? "new" : selectedId ?? "empty"} latitude={form.latitude} longitude={form.longitude} address={form.address}
+                readOnly={fieldsDisabled}
                 onChange={(location) => setForm((current) => ({ ...current, ...location }))} />
             </div>
             <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4 md:col-span-2">

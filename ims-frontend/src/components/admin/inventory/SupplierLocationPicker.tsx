@@ -8,9 +8,9 @@ import { inventoryInputClasses } from "./InventoryField";
 
 type Location = { latitude: string; longitude: string; address: string };
 type Result = Location & { id: string };
-type Props = Location & { onChange: (location: Location) => void };
+type Props = Location & { onChange: (location: Location) => void; readOnly?: boolean };
 
-export default function SupplierLocationPicker({ latitude, longitude, address, onChange }: Props) {
+export default function SupplierLocationPicker({ latitude, longitude, address, onChange, readOnly = false }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<LeafletMap | null>(null);
   const marker = useRef<Marker | null>(null);
@@ -57,14 +57,22 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
     let observer: ResizeObserver | undefined;
     void import("leaflet").then((L) => {
       if (disposed || !container.current) return;
-      const instance = L.map(container.current).setView([14.299, 120.958], 13);
+      const instance = L.map(container.current, {
+        dragging: !readOnly,
+        touchZoom: !readOnly,
+        doubleClickZoom: !readOnly,
+        scrollWheelZoom: !readOnly,
+        boxZoom: !readOnly,
+        keyboard: !readOnly,
+        zoomControl: !readOnly,
+      }).setView([14.299, 120.958], 13);
       map.current = instance;
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
       }).addTo(instance);
       const pin = L.marker([14.299, 120.958], {
-        draggable: true,
+        draggable: !readOnly,
         icon: L.divIcon({
           className: "",
           html: '<div style="width:24px;height:24px;background:#f45a1f;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 5px #0006"></div>',
@@ -80,6 +88,7 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
         instance.setView(pin.getLatLng(), 16);
       }
       const select = async (lat: number, lon: number) => {
+        if (readOnly) return;
         request.current?.abort();
         const controller = new AbortController();
         request.current = controller;
@@ -118,12 +127,15 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
     return () => {
       disposed = true;
       request.current?.abort();
+      setBusy(false);
+      setResults([]);
+      setMessage("");
       observer?.disconnect();
       map.current?.remove();
       map.current = null;
       marker.current = null;
     };
-  }, []);
+  }, [readOnly]);
 
   useEffect(() => {
     if (!map.current || !marker.current) return;
@@ -139,7 +151,7 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
   }, [latitude, longitude]);
 
   const search = async () => {
-    if (!query.trim()) return;
+    if (readOnly || !query.trim()) return;
     request.current?.abort();
     const controller = new AbortController();
     request.current = controller;
@@ -167,14 +179,14 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
     <div className="space-y-3">
       <label htmlFor="supplier-location-search" className="text-sm font-semibold text-slate-700">Supplier location</label>
       <div className="flex gap-2">
-        <input id="supplier-location-search" className={inventoryInputClasses} value={query}
+        <input id="supplier-location-search" className={inventoryInputClasses} value={query} disabled={readOnly}
           placeholder="Search an address or place"
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void search(); } }} />
-        <button type="button" onClick={() => void search()} disabled={busy || !query.trim()}
+        <button type="button" onClick={() => void search()} disabled={readOnly || busy || !query.trim()}
           className="rounded-xl border border-slate-300 px-4 text-sm font-semibold disabled:opacity-50">Search</button>
       </div>
-      {results.length > 0 && <ul className="max-h-40 overflow-y-auto rounded-xl border border-slate-200">
+      {!readOnly && results.length > 0 && <ul className="max-h-40 overflow-y-auto rounded-xl border border-slate-200">
         {results.map((result) => <li key={result.id}>
           <button type="button" className="w-full px-3 py-2 text-left text-sm hover:bg-orange-50"
             onClick={() => {
@@ -187,9 +199,9 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
             }}>{result.address}</button>
         </li>)}
       </ul>}
-      <p className="text-xs text-slate-500">Click the map or drag the pin to fill latitude and longitude.</p>
+      <p className="text-xs text-slate-500">{readOnly ? "Click Edit to change the supplier location. You can open or copy the journey link below anytime." : "Click the map or drag the pin to fill latitude and longitude."}</p>
       <div ref={container} aria-label="Supplier location map" className="relative z-0 h-72 rounded-xl border border-slate-200" />
-      <p role="status" className="text-xs text-slate-600">{message}</p>
+      <p role="status" className="text-xs text-slate-600">{readOnly ? "" : message}</p>
       <p className="text-sm text-slate-700">{address || (latitude && longitude ? "Coordinates selected" : "No location selected")}</p>
       {journeyUrl ? (
         <section aria-labelledby="supplier-journey-title" className="min-w-0 overflow-hidden rounded-2xl border border-[#232d46]/15 bg-[#f5f5f5]">
@@ -232,7 +244,6 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
           </p>
         </section>
       ) : <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-xs leading-5 text-slate-500">Select a location to generate a Google Maps journey link.</p>}
-      <a href="https://locationiq.com" target="_blank" rel="noreferrer" className="text-xs text-slate-500 underline">Search by LocationIQ.com</a>
     </div>
   );
 }
