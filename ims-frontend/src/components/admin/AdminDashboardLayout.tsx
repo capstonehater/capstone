@@ -2,8 +2,10 @@
 
 import { useCallback, useState } from "react";
 import styles from "@/components/layout/ApplicationShell.module.css";
-import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminSidebar from "@/components/admin/AdminSidebar";
+import { Menu } from "lucide-react";
+import { useSidebarStore } from "@/store/sidebarStore";
 
 type AdminDashboardLayoutProps = {
   children: React.ReactNode;
@@ -15,7 +17,8 @@ export default function AdminDashboardLayout({
   fillContent = false,
 }: AdminDashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const sidebarCollapsed = useSidebarStore(state => state.collapsed);
+  const toggleCollapsed = useSidebarStore(state => state.toggleCollapsed);
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   return (
@@ -24,11 +27,12 @@ export default function AdminDashboardLayout({
         isOpen={sidebarOpen}
         onClose={closeSidebar}
         collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed((value) => !value)}
+        onToggleCollapse={toggleCollapsed}
       />
 
       <div className={styles.body}>
-        <AdminHeader sidebarOpen={sidebarOpen} onMenuClick={() => setSidebarOpen(true)} />
+        <button type="button" className={styles.shellMobileMenu} onClick={() => setSidebarOpen(true)} aria-expanded={sidebarOpen} aria-controls="admin-navigation" aria-label="Open navigation"><Menu size={20} /></button>
+        <AdminHeader />
         <main className={styles.content}>{children}</main>
       </div>
     </div>

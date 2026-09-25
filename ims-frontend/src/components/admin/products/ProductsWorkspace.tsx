@@ -252,7 +252,7 @@ export default function ProductsWorkspace() {
       setListError(null);
 
       try {
-        const baseFilters = {
+        const baseFilters: Parameters<typeof listProducts>[0] = {
           search: search || undefined,
           categoryId: categoryId || undefined,
           manualAvailability:

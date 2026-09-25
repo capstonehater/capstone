@@ -182,13 +182,13 @@ export default function AlertsPage() {
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-lg font-semibold text-neutral-900">{alert.title}</h2>
-                      <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-700">
+                      <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
                         {alert.type.replaceAll("_", " ")}
                       </span>
-                      <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-700">
+                      <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
                         {formatAlertState(alert.state)}
                       </span>
-                      <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-700">
+                      <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
                         {alert.severity}
                       </span>
                     </div>

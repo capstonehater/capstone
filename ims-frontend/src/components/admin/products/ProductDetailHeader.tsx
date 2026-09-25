@@ -46,7 +46,7 @@ export default function ProductDetailHeader({
               Back to products
             </button>
           ) : null}
-          <div className="flex items-center gap-3"><h2 className="text-xl font-bold text-slate-900">{product.name}</h2><span className="rounded bg-green-100 px-2 py-1 text-[10px] font-bold uppercase text-green-700">{isArchived ? "Archived" : "Enabled"}</span></div>
+          <div className="flex items-center gap-3"><h2 className="text-xl font-bold text-slate-900">{product.name}</h2><span className="rounded bg-green-100 px-2 py-1 text-[13px] font-bold uppercase text-green-700">{isArchived ? "Archived" : "Enabled"}</span></div>
           <p className="mt-1 text-xs text-slate-600">Category: <span className="text-blue-600">{product.category.name}</span></p>
           <div className="mt-2 flex flex-wrap gap-3 text-xs">
             <span

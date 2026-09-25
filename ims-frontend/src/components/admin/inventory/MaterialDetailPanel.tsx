@@ -36,7 +36,7 @@ function statusClasses(status: InventorySummaryItem["status"]) {
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+      <div className="text-[13px] font-semibold uppercase tracking-wide text-slate-500">
         {label}
       </div>
       <div className="mt-2 font-semibold text-slate-900">{value}</div>

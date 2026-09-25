@@ -88,7 +88,7 @@ export default function InventoryGrid({
 
               <div className="flex items-center gap-2">
                 <span
-                  className={`rounded-full px-3 py-1 text-[11px] font-medium ${getBadgeColor(
+                  className={`rounded-full px-3 py-1 text-[13px] font-medium ${getBadgeColor(
                     item.status
                   )}`}
                 >
@@ -175,49 +175,49 @@ export default function InventoryGrid({
           <div className="space-y-4 px-4 py-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl bg-[#efefef] p-3">
-                <p className="text-[11px] text-neutral-500">Category</p>
+                <p className="text-[13px] text-neutral-500">Category</p>
                 <p className="text-base font-semibold text-neutral-900">
                   {item.category}
                 </p>
               </div>
 
               <div className="rounded-xl bg-[#efefef] p-3">
-                <p className="text-[11px] text-neutral-500">Expiration Date</p>
+                <p className="text-[13px] text-neutral-500">Expiration Date</p>
                 <p className="text-base font-semibold text-neutral-900">
                   {item.expirationDate}
                 </p>
               </div>
 
               <div className="rounded-xl bg-[#efefef] p-3">
-                <p className="text-[11px] text-neutral-500">SKU</p>
+                <p className="text-[13px] text-neutral-500">SKU</p>
                 <p className="text-base font-semibold text-neutral-900">
                   {item.sku}
                 </p>
               </div>
 
               <div className="rounded-xl bg-[#efefef] p-3">
-                <p className="text-[11px] text-neutral-500">Current Stock</p>
+                <p className="text-[13px] text-neutral-500">Current Stock</p>
                 <p className="text-3xl font-bold leading-none text-neutral-900">
                   {item.stock}
                 </p>
-                <p className="mt-1 text-[10px] text-neutral-500">
+                <p className="mt-1 text-[13px] text-neutral-500">
                   units available
                 </p>
               </div>
 
               <div className="rounded-xl bg-[#efefef] p-3">
-                <p className="text-[11px] text-neutral-500">Supplier</p>
+                <p className="text-[13px] text-neutral-500">Supplier</p>
                 <p className="text-base font-semibold text-neutral-900">
                   {item.supplier}
                 </p>
               </div>
 
               <div className="rounded-xl bg-[#efefef] p-3">
-                <p className="text-[11px] text-neutral-500">Unit Price</p>
+                <p className="text-[13px] text-neutral-500">Unit Price</p>
                 <p className="text-3xl font-bold leading-none text-neutral-900">
                   {item.unitPrice}
                 </p>
-                <p className="mt-1 text-[10px] text-neutral-500">per unit</p>
+                <p className="mt-1 text-[13px] text-neutral-500">per unit</p>
               </div>
             </div>
           </div>

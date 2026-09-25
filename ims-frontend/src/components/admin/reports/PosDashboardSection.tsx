@@ -273,7 +273,7 @@ export default function PosDashboardSection({
                     <div className="font-semibold text-slate-900">
                       {order.displayOrderNumber}
                     </div>
-                    <div className="mt-1 text-[11px] text-slate-400">{order.id}</div>
+                    <div className="mt-1 text-[13px] text-slate-400">{order.id}</div>
                     <div className="mt-1 text-xs text-slate-500">
                       {order.itemCount} item{order.itemCount === 1 ? "" : "s"} |{" "}
                       {order.quantitySold} qty

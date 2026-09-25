@@ -3,7 +3,7 @@
 :root {
   --background: #f3ede3;
   --foreground: #1f1f1f;
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: "Segoe UI", Arial, Helvetica, sans-serif;
   --bs-font-sans-serif: var(--font-sans);
   --bs-body-font-family: var(--font-sans);
 }
@@ -14,6 +14,8 @@ body {
   color: var(--foreground);
   min-height: 100%;
   font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 button,
@@ -47,3 +49,19 @@ a:focus,
 a:active {
   text-decoration: none;
 }
+
+/* Shared reading scale for all workspaces, forms, and dialogs. */
+@theme {
+  --text-xs: 0.875rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.6;
+}
+.text-xs { font-size: 0.875rem; line-height: 1.5; }
+.text-sm { font-size: 0.9375rem; line-height: 1.6; }
+small { font-size: 0.875rem; line-height: 1.5; }
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select, textarea) { font-size: 1rem; line-height: 1.5; }
+:where(th, td) { line-height: 1.5; }
+:where(th) { font-weight: 600; }
+:where(td) { font-variant-numeric: tabular-nums; }
+:where(button, a, input, select, textarea):focus-visible { outline: 2px solid #426da6; outline-offset: 3px; }

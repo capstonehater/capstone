@@ -113,7 +113,7 @@ export default function InventoryTable({
                 </td>
 
                 <td className="py-3 pr-4 align-middle">
-                  <span className="rounded-full bg-[#e9e9e9] px-2 py-1 text-[10px] text-neutral-700">
+                  <span className="rounded-full bg-[#e9e9e9] px-2 py-1 text-[13px] text-neutral-700">
                     {item.category}
                   </span>
                 </td>
@@ -139,7 +139,7 @@ export default function InventoryTable({
 
                 <td className="py-3 pr-4 align-middle">
                   <span
-                    className={`inline-flex rounded-full px-3 py-1 text-[10px] font-medium ${getStatusClasses(
+                    className={`inline-flex rounded-full px-3 py-1 text-[13px] font-medium ${getStatusClasses(
                       item.status
                     )}`}
                   >
@@ -152,7 +152,7 @@ export default function InventoryTable({
                     <button
                       type="button"
                       onClick={() => onRestock(item)}
-                      className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-[11px] font-medium text-neutral-700 hover:bg-neutral-50"
+                      className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-[13px] font-medium text-neutral-700 hover:bg-neutral-50"
                     >
                       Restock
                     </button>
@@ -160,7 +160,7 @@ export default function InventoryTable({
                     <button
                       type="button"
                       onClick={() => onRecommend(item)}
-                      className="rounded-full border border-[#8cbde4] bg-[#d8ebf8] px-3 py-1.5 text-[11px] font-medium text-[#2a6b98] hover:bg-[#cfe4f4]"
+                      className="rounded-full border border-[#8cbde4] bg-[#d8ebf8] px-3 py-1.5 text-[13px] font-medium text-[#2a6b98] hover:bg-[#cfe4f4]"
                     >
                       Recommend
                     </button>

@@ -723,12 +723,12 @@ export default function UsersWorkspace() {
                             </p>
                             <p className="truncate text-xs text-slate-500">{user.email}</p>
                           </div>
-                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusTone(user.status)}`}>
+                          <span className={`rounded-full border px-2.5 py-1 text-[13px] font-semibold ${statusTone(user.status)}`}>
                             {statusLabels[user.status]}
                           </span>
                         </div>
                         <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${roleTone(user.role)}`}>
+                          <span className={`rounded-full border px-2.5 py-1 text-[13px] font-semibold ${roleTone(user.role)}`}>
                             {roleLabels[user.role]}
                           </span>
                           <span className="text-xs text-slate-500">

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ChevronLeft, ClipboardList, LayoutDashboard, Menu, Settings, X } from "lucide-react";
 import styles from "@/components/layout/ApplicationShell.module.css";
 import StaffHeader from "./StaffHeader";
+import SidebarAccount from "@/components/layout/SidebarAccount";
 
 type StaffDashboardLayoutProps = {
   children: React.ReactNode;
@@ -28,6 +29,7 @@ export default function StaffDashboardLayout({
       {sidebarOpen ? <button type="button" className={styles.overlay} aria-label="Close navigation" onClick={() => setSidebarOpen(false)} /> : null}
       <aside className={`${styles.staffSidebar} ${sidebarOpen ? styles.staffSidebarOpen : ""} ${collapsed ? styles.staffSidebarCollapsed : ""}`}>
         <div className={styles.staffBrand}><strong>{collapsed ? "CS" : "Cafe Salvacion"}</strong><button type="button" className={styles.mobileClose} onClick={() => setSidebarOpen(false)} aria-label="Close navigation"><X size={20} /></button></div>
+        <SidebarAccount collapsed={collapsed && !sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
         <nav className={styles.staffNavigation} aria-label="Staff navigation">
           {links.map(({ label, href, icon: Icon }) => {
             const active = pathname === href || (href === "/staff/dashboard" && pathname === "/staff/pos");
@@ -36,7 +38,7 @@ export default function StaffDashboardLayout({
         </nav>
         <button type="button" className={styles.staffCollapseButton} onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <Menu size={18} /> : <ChevronLeft size={18} />}</button>
       </aside>
-      <div className={styles.staffBody}><button type="button" className={styles.staffMobileMenu} onClick={() => setSidebarOpen(true)} aria-label="Open navigation"><Menu size={20} /></button><StaffHeader /><main className={styles.content}>{children}</main></div>
+      <div className={styles.staffBody}><button type="button" className={styles.shellMobileMenu} onClick={() => setSidebarOpen(true)} aria-label="Open navigation"><Menu size={20} /></button><StaffHeader /><main className={styles.content}>{children}</main></div>
     </div>
   );
 }

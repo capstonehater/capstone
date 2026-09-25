@@ -31,8 +31,8 @@ export default function ProductList({
   }
 
   return (
-    <div className="h-full overflow-y-auto overflow-x-hidden rounded-lg border border-slate-300">
-      <table className="w-full table-fixed border-collapse text-xs"><thead className="bg-slate-100 text-left text-[10px] font-bold uppercase tracking-wide text-slate-500"><tr><th className="w-[58%] px-3 py-2">Product</th><th className="w-[20%] px-2 py-2 text-center">Variants</th><th className="w-[22%] px-2 py-2 text-center">Ingredients</th></tr></thead><tbody className="divide-y divide-slate-200">
+    <div className="h-full overflow-auto rounded-lg border border-slate-300">
+      <table className="w-full min-w-[480px] table-fixed border-collapse text-xs"><thead className="bg-slate-100 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500"><tr><th className="w-[58%] px-3 py-2">Product</th><th className="w-[20%] px-2 py-2 text-center">Variants</th><th className="w-[22%] px-2 py-2 text-center">Ingredients</th></tr></thead><tbody className="divide-y divide-slate-200">
       {items.map((item, index) => (
         <ProductListItem
           key={item.id}
