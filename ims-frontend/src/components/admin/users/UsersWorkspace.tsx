@@ -1,5 +1,7 @@
 "use client";
 
+import styles from "./UsersWorkspace.module.css";
+
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -8,7 +10,6 @@ import {
   CheckCircle2,
   KeyRound,
   Loader2,
-  Plus,
   RefreshCw,
   Search,
   ShieldCheck,
@@ -523,18 +524,21 @@ export default function UsersWorkspace() {
     setDialogError(null);
   }
 
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createVersion, setCreateVersion] = useState(0);
+
   async function handleCreate(input: CreateUserInput) {
     setSubmitting(true);
-    resetDialogFeedback();
+    setCreateError(null);
 
     try {
-      const response = await createManagedUser(input);
+      await createManagedUser(input);
       await refreshList();
-      setDialog(null);
+      setCreateVersion((value) => value + 1);
       setNotice("User created. Account setup was initiated and the user remains Pending until completion.");
-      updateQuery({ userId: response.user.id, tab: "overview" }, "push");
+
     } catch (error) {
-      setDialogError(error instanceof Error ? error.message : "Failed to create user");
+      setCreateError(error instanceof Error ? error.message : "Failed to create user");
     } finally {
       setSubmitting(false);
     }
@@ -628,8 +632,15 @@ export default function UsersWorkspace() {
         <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} />
       ) : null}
 
-      <div>
-        <section className="flex min-w-0 flex-col rounded-[28px] bg-white p-5 shadow-sm">
+      <section className={styles.topPanel}>
+        <header><h1>USERS</h1><p>Manage staff accounts, roles, permissions, and account status.</p></header>
+        <UserFormDialog key={createVersion} mode="create" open user={null}
+          currentUserId={currentUser?.id ?? null} submitting={submitting} errorMessage={createError}
+          onClose={() => { setCreateError(null); setCreateVersion((value) => value + 1); }}
+          onSubmit={handleCreate} />
+      </section>
+      <div className={styles.layout}>
+        <section className={styles.directory}>
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#232d46]">
@@ -637,17 +648,10 @@ export default function UsersWorkspace() {
               </p>
               <h2 className="text-lg font-semibold text-slate-950">User List</h2>
             </div>
-            <button
-              type="button"
-              onClick={() => setDialog({ type: "create" })}
-              className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-            >
-              <Plus className="h-4 w-4" />
-              Add User
-            </button>
+
           </div>
 
-          <div className="mt-4 grid items-end gap-4 rounded-3xl border border-slate-200 bg-slate-50/70 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.7fr)]">
+          <div className={styles.filters}>
             <label className="relative block">
               <span className="sr-only">Search users</span>
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -746,6 +750,20 @@ export default function UsersWorkspace() {
           />
         </section>
 
+      <UserFormDialog
+        mode={dialog?.type === "edit" ? "edit" : "create"}
+        open={dialog?.type === "edit"}
+        user={dialog?.type === "edit" ? dialog.user : null}
+        currentUserId={currentUser?.id ?? null}
+        submitting={submitting}
+        errorMessage={dialogError}
+        onClose={() => {
+          resetDialogFeedback();
+          setDialog(null);
+        }}
+        onSubmit={(input) => (dialog?.type === "edit" ? handleEdit(input) : handleCreate(input))}
+      />
+
         {selectedUserId && !dialog ? (
         <UserDetailsModal onClose={() => updateQuery({ userId: null, tab: null }, "push")}>
           {detailLoading || (detail?.id !== selectedUserId && !detailError) ? (
@@ -811,19 +829,7 @@ export default function UsersWorkspace() {
         ) : null}
       </div>
 
-      <UserFormDialog
-        mode={dialog?.type === "edit" ? "edit" : "create"}
-        open={dialog?.type === "create" || dialog?.type === "edit"}
-        user={dialog?.type === "edit" ? dialog.user : null}
-        currentUserId={currentUser?.id ?? null}
-        submitting={submitting}
-        errorMessage={dialogError}
-        onClose={() => {
-          resetDialogFeedback();
-          setDialog(null);
-        }}
-        onSubmit={(input) => (dialog?.type === "edit" ? handleEdit(input) : handleCreate(input))}
-      />
+
 
       <ConfirmDialog
         dialog={dialog}
@@ -1429,17 +1435,8 @@ function UserFormDialogBody({
     });
   }
 
-  return (
-    <InventoryModal
-      title={mode === "create" ? "Add User" : `Edit ${user?.name ?? "User"}`}
-      description={
-        mode === "create"
-          ? "Create a pending account and initiate secure setup."
-          : "Update profile fields and assignable role data."
-      }
-      onClose={onClose}
-    >
-      <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
+  const formContent = (
+      <form className={mode === "create" ? styles.createForm : "grid gap-4 md:grid-cols-2"} onSubmit={handleSubmit}>
         {clientErrors.length > 0 ? (
           <div className="md:col-span-2 rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {clientErrors.map((error) => (
@@ -1453,32 +1450,32 @@ function UserFormDialogBody({
           </div>
         ) : null}
 
-        <InventoryField htmlFor="user-first-name" label="First Name">
-          <input id="user-first-name" value={firstName} onChange={(event) => setFirstName(event.target.value)} className={inventoryInputClasses} />
+        <InventoryField htmlFor={`${mode}-user-first-name`} label="First Name">
+          <input id={`${mode}-user-first-name`} value={firstName} onChange={(event) => setFirstName(event.target.value)} className={inventoryInputClasses} />
         </InventoryField>
-        <InventoryField htmlFor="user-middle-initial" label="Middle Initial">
-          <input id="user-middle-initial" value={middleInitial} maxLength={1} onChange={(event) => setMiddleInitial(event.target.value.toUpperCase())} className={inventoryInputClasses} />
+        <InventoryField htmlFor={`${mode}-user-middle-initial`} label="Middle Initial">
+          <input id={`${mode}-user-middle-initial`} value={middleInitial} maxLength={1} onChange={(event) => setMiddleInitial(event.target.value.toUpperCase())} className={inventoryInputClasses} />
         </InventoryField>
-        <InventoryField htmlFor="user-last-name" label="Last Name">
-          <input id="user-last-name" value={lastName} onChange={(event) => setLastName(event.target.value)} className={inventoryInputClasses} />
+        <InventoryField htmlFor={`${mode}-user-last-name`} label="Last Name">
+          <input id={`${mode}-user-last-name`} value={lastName} onChange={(event) => setLastName(event.target.value)} className={inventoryInputClasses} />
         </InventoryField>
-        <InventoryField htmlFor="user-email" label="Email">
-          <input id="user-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={inventoryInputClasses} />
+        <InventoryField htmlFor={`${mode}-user-email`} label="Email">
+          <input id={`${mode}-user-email`} type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={inventoryInputClasses} />
         </InventoryField>
-        <InventoryField htmlFor="user-phone" label="Phone">
-          <input id="user-phone" value={phone} onChange={(event) => setPhone(event.target.value)} className={inventoryInputClasses} placeholder="+639171234567" />
+        <InventoryField htmlFor={`${mode}-user-phone`} label="Phone">
+          <input id={`${mode}-user-phone`} value={phone} onChange={(event) => setPhone(event.target.value)} className={inventoryInputClasses} placeholder="+639171234567" />
         </InventoryField>
         <InventoryField
-          htmlFor="user-role"
+          htmlFor={`${mode}-user-role`}
           label="Role"
-          hint={editingSelf ? "Self role changes are protected." : "Manager is reserved for future implementation."}
+          hint={mode === "create" ? undefined : editingSelf ? "Self role changes are protected." : "Manager is reserved for future implementation."}
         >
           <select
-            id="user-role"
+            id={`${mode}-user-role`}
             value={(editingSelf || editingReservedManager) && user ? user.role : role}
             disabled={editingSelf || editingReservedManager}
             onChange={(event) => setRole(event.target.value as AssignableUserRole)}
-            className={inventoryInputClasses}
+            className={styles.roleSelect}
           >
             {editingReservedManager ? (
               <option value="MANAGER">Manager (reserved)</option>
@@ -1490,15 +1487,20 @@ function UserFormDialogBody({
 
         <div className="md:col-span-2 flex justify-end gap-3 pt-2">
           <button type="button" onClick={onClose} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
-            Cancel
+            {mode === "create" ? "Clear" : "Cancel"}
           </button>
           <button type="submit" disabled={submitting} className="rounded-full bg-slate-950 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">
             {submitting ? "Saving..." : mode === "create" ? "Create User" : "Save Changes"}
           </button>
         </div>
       </form>
-    </InventoryModal>
   );
+
+  if (mode === "create") return formContent;
+
+  return <InventoryModal title={`Edit ${user?.name ?? "User"}`} description="Update profile fields and assignable role data." onClose={onClose}>
+    {formContent}
+  </InventoryModal>;
 }
 
 function ConfirmDialog({

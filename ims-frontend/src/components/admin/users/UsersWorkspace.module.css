@@ -1,0 +1,40 @@
+.layout { display:grid; grid-template-columns:minmax(0,1fr); gap:24px; align-items:start; }
+.directory { min-width:0; padding:24px; border:1px solid #dce2eb; border-radius:12px; background:#fff; }
+.directory h2 { font-size:22px; color:#232d46; }
+.filters { display:grid; gap:16px; padding:16px; margin-top:20px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc; }
+.createPanel { min-width:0; overflow:hidden; border:1px solid #bccbdb; border-radius:12px; background:#edf2f8; }
+.createHeader { padding:22px; background:#34445f; color:#fff; }
+.createHeader h2 { margin:6px 0 10px; font-size:24px; font-weight:650; color:#fff; }
+.createHeader p { margin:0; color:#dde5ef; font-size:14px; line-height:1.6; }
+.createHeader p:first-child { font-size:11px; letter-spacing:.12em; font-weight:600; }
+.createForm { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 14px; padding:22px; }
+.createForm > div { min-width:0; }
+.createForm > div:last-child { grid-column:1/-1; display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px; padding-top:16px; border-top:1px solid #cbd5e1; }
+.createForm input,.createForm select { width:100%; height:44px; padding:10px 12px; border:1px solid #bdcad9; border-radius:8px; background:#fff; color:#232d46; font-size:14px; }
+.createForm select { padding:0 36px 0 12px; line-height:normal; font-family:inherit; appearance:auto; }
+.roleSelect,.createForm .roleSelect { display:block; box-sizing:border-box; width:100%; min-width:0; height:44px; min-height:44px; padding:0 12px; padding-block:0; border:1px solid #bdcad9; border-radius:8px; background-color:#fff; color:#232d46; font:400 14px/normal "Segoe UI",Arial,sans-serif; appearance:auto; }
+.roleSelect option { color:#232d46; background:#fff; }
+.roleSelect:focus-visible { outline:2px solid #64748b; outline-offset:2px; }
+.createForm input:focus,.createForm select:focus { outline:2px solid #64748b; outline-offset:2px; box-shadow:none; border-color:#64748b; }
+.createForm label { font-size:13px; color:#34445f; }
+.createForm button,.directory > div:first-child > button { padding:10px 16px; border:1px solid #232d46; border-radius:8px; background:#232d46; color:#fff; font-size:14px; font-weight:600; }
+.createForm button[type="button"] { background:#fff; border-color:#bdcad9; color:#334155; }
+.createForm button:hover:not(:disabled) { filter:brightness(.95); }
+.createForm button:disabled { opacity:.5; cursor:wait; }
+.withForm .createPanel { grid-row:1; }
+@media(min-width:1400px) {
+  .withForm { grid-template-columns:minmax(0,1fr) 400px; }
+  .withForm .createPanel { grid-column:2; grid-row:1; }
+  .withForm .directory { grid-column:1; grid-row:1; }
+}
+@media(min-width:1100px) { .layout:not(.withForm) .filters { grid-template-columns:minmax(0,1fr) minmax(320px,.7fr); align-items:end; } }
+@media(max-width:480px) { .createForm { grid-template-columns:minmax(0,1fr); } .createForm > div { grid-column:1/-1; } }
+
+.topPanel { padding:24px; border:1px solid #dce2eb; border-radius:12px; background:#fff; }
+.topPanel h1 { margin:0 0 8px; color:#232d46; font-size:30px; font-weight:700; }
+.topPanel header p { margin:0; color:#64748b; font-size:14px; }
+.topPanel .createForm { margin-top:22px; padding:20px; border:1px solid #dce2eb; border-radius:10px; background:#f1f5f9; align-items:end; }
+.topPanel .createForm > div:last-child { padding-top:12px; }
+.topPanel .createForm > div:has(> p) { grid-column:1/-1; }
+@media(min-width:1100px) { .topPanel .createForm { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(min-width:1600px) { .topPanel .createForm { grid-template-columns:1fr .6fr 1fr 1.4fr 1fr 1fr; } }
