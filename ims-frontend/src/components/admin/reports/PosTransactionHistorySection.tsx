@@ -322,7 +322,7 @@ export default function PosTransactionHistorySection({
                       <div className="font-semibold text-slate-900">
                         {order.displayOrderNumber}
                       </div>
-                      <div className="mt-1 text-[11px] text-slate-400">{order.id}</div>
+                      <div className="mt-1 text-[13px] text-slate-400">{order.id}</div>
                     </div>
                     <div>{formatDateTime(order.completedAt)}</div>
                     <div>

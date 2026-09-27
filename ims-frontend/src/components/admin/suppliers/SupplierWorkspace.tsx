@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useMemo, useState, type FormEvent } from "react";
 import { Check, Plus, Search, Trash2, X } from "lucide-react";
-import { InventoryField, inventoryInputClasses } from "@/components/admin/inventory/InventoryField";
+import { InventoryField } from "@/components/admin/inventory/InventoryField";
 import SupplierLocationPicker from "@/components/admin/inventory/SupplierLocationPicker";
+import styles from "./SupplierWorkspace.module.css";
 import type { Supplier } from "@/lib/inventory";
 
 type SupplierInput = {
@@ -120,7 +121,7 @@ export default function SupplierWorkspace({
   return (
     <>
       <div className="grid min-w-0 items-start gap-5">
-        <section aria-labelledby="supplier-list-title" className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section aria-labelledby="supplier-list-title" className={styles.listPanel}>
           <div className="border-b border-slate-200 p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -181,7 +182,7 @@ export default function SupplierWorkspace({
           </div>
         </section>
 
-        <section id="supplier-details" aria-labelledby="supplier-details-title" className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section id="supplier-details" aria-labelledby="supplier-details-title" className={styles.detailPanel}>
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
             <div>
               <h2 id="supplier-details-title" className="text-lg font-semibold text-slate-900">Supplier Details</h2>
@@ -190,24 +191,24 @@ export default function SupplierWorkspace({
             {selected ? <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800">Saved supplier</span> : null}
           </div>
           {error ? <p role="alert" className="mx-5 mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
-          {selected ? <form onSubmit={(event) => void save(event)} className="grid gap-5 p-5 md:grid-cols-2">
+          {selected ? <form onSubmit={(event) => void save(event)} className={styles.form}>
             <InventoryField htmlFor="supplier-name" label="Supplier Name">
               <input id="supplier-name" required maxLength={120} value={form.name} disabled={fieldsDisabled}
                 onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-                placeholder="Supplier name" className={`${inventoryInputClasses} disabled:bg-slate-50 disabled:text-slate-600`} />
+                placeholder="Supplier name" className={`${styles.input} disabled:bg-slate-50 disabled:text-slate-600`} />
             </InventoryField>
             <InventoryField htmlFor="supplier-contact" label="Contact Information">
               <input id="supplier-contact" value={form.contactInfo} disabled={fieldsDisabled}
                 onChange={(event) => setForm((current) => ({ ...current, contactInfo: event.target.value }))}
-                placeholder="Phone or email" className={`${inventoryInputClasses} disabled:bg-slate-50 disabled:text-slate-600`} />
+                placeholder="Phone or email" className={`${styles.input} disabled:bg-slate-50 disabled:text-slate-600`} />
             </InventoryField>
             <InventoryField htmlFor="supplier-latitude" label="Latitude">
               <input id="supplier-latitude" value={form.latitude} readOnly disabled placeholder="Select a point on the map"
-                className={`${inventoryInputClasses} cursor-not-allowed bg-slate-50 text-slate-600`} />
+                className={`${styles.input} cursor-not-allowed bg-slate-50 text-slate-600`} />
             </InventoryField>
             <InventoryField htmlFor="supplier-longitude" label="Longitude">
               <input id="supplier-longitude" value={form.longitude} readOnly disabled placeholder="Select a point on the map"
-                className={`${inventoryInputClasses} cursor-not-allowed bg-slate-50 text-slate-600`} />
+                className={`${styles.input} cursor-not-allowed bg-slate-50 text-slate-600`} />
             </InventoryField>
             <div className="md:col-span-2">
               <SupplierLocationPicker key={selectedId ?? "empty"} latitude={form.latitude} longitude={form.longitude} address={form.address}
@@ -219,9 +220,9 @@ export default function SupplierWorkspace({
                 <button type="button" onClick={() => setDeleteTarget(selected)} disabled={submitting}
                   className="mr-auto inline-flex h-10 items-center gap-2 rounded-lg border border-red-200 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"><Trash2 size={15} /> Delete</button>
                 {editing ? <button type="button" onClick={() => { setEditing(false); setForm(formFor(selected)); setError(null); }} disabled={submitting}
-                  className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                  className={styles.secondary}>Cancel</button>
                   : <button type="button" onClick={() => setEditing(true)} disabled={submitting}
-                    className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">Edit</button>}
+                    className={styles.secondary}>Edit</button>}
               </> : null}
               {editing ? <button type="submit" disabled={submitting}
                 className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#232d46] px-4 text-sm font-semibold text-white hover:bg-[#1b2438] disabled:opacity-50"><Check size={16} />{submitting ? "Saving..." : "Save Changes"}</button> : null}
@@ -238,7 +239,7 @@ export default function SupplierWorkspace({
           </header>
           <div className="p-5"><div className="rounded-lg border border-slate-200 bg-slate-50 p-4"><p className="font-semibold text-slate-900">{deleteTarget.name}</p><p className="mt-1 text-sm text-slate-600">{deleteTarget.contactInfo || "No contact information"}</p><p className="mt-1 text-xs text-slate-500">{deleteTarget.address || "No location saved"}</p></div><p className="mt-4 text-sm text-slate-600">The server will enforce existing supplier deletion rules. Deletion may be blocked when the record is in use.</p></div>
           <footer className="flex justify-end gap-2 border-t border-slate-200 p-4">
-            <button type="button" onClick={() => setDeleteTarget(null)} disabled={submitting} className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button type="button" onClick={() => setDeleteTarget(null)} disabled={submitting} className={styles.secondary}>Cancel</button>
             <button type="button" onClick={() => void confirmDelete()} disabled={submitting} className="h-10 rounded-lg bg-red-700 px-4 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50">{submitting ? "Deleting..." : "Delete Supplier"}</button>
           </footer>
         </section>

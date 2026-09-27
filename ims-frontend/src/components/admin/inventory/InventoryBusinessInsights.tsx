@@ -1,5 +1,6 @@
 "use client";
 
+import styles from "./InventoryBusinessInsights.module.css";
 import { Boxes, ChartNoAxesCombined, Clock3, PackageSearch, Truck } from "lucide-react";
 import type { InventoryHealthReport, StockRunSpendReport, WasteSummaryReport } from "@/lib/reports";
 
@@ -15,7 +16,7 @@ type InventoryBusinessInsightsProps = {
 
 function Panel({ title, icon, children, className = "", id }: { title: string; icon: React.ReactNode; children: React.ReactNode; className?: string; id?: string }) {
   return (
-    <section id={id} className={`h-full rounded-xl border border-slate-200 bg-white p-6 ${className}`}>
+    <section id={id} className={`${styles.panel} ${className}`}>
       <h3 className="mb-5 flex items-center gap-2 text-xl font-semibold text-[#232d46]">
         <span className="text-[#232d46]">{icon}</span>{title}
       </h3>
@@ -28,9 +29,9 @@ function Empty({ children }: { children: React.ReactNode }) {
   return <p className="rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500">{children}</p>;
 }
 
-const tableClass = "w-full table-fixed text-base";
-const headCellClass = "border-b border-slate-200 bg-slate-50 px-4 py-4 text-left text-sm font-semibold uppercase tracking-wide text-slate-500";
-const cellClass = "border-b border-slate-100 px-4 py-5 align-top text-slate-700 last:border-b-0";
+const tableClass = styles.table;
+const headCellClass = "";
+const cellClass = "";
 
 export default function InventoryBusinessInsights({
   inventoryHealth,
@@ -42,19 +43,19 @@ export default function InventoryBusinessInsights({
   formatDate,
 }: InventoryBusinessInsightsProps) {
   return (
-    <section className="space-y-3">
-      <div>
+    <section className={styles.overview}>
+      <div className={styles.intro}>
         <h2 className="text-lg font-bold text-[#232d46]">Inventory Overview</h2>
         <p className="text-sm text-slate-600">Stock risks, value, waste, and purchasing activity at a glance.</p>
       </div>
       {loading ? (
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-500">Loading inventory insights…</div>
       ) : (
-        <div className="grid w-full items-stretch gap-6 md:grid-cols-2 xl:grid-cols-6">
-          <Panel id="low-stock" title="Low Stock" icon={<PackageSearch size={16} />} className="xl:col-span-2">
+        <div className={styles.grid}>
+          <Panel id="low-stock" title="Low Stock" icon={<PackageSearch size={16} />}>
             {inventoryHealth?.lowStockMaterials.length ? (
-              <div className="overflow-hidden rounded-lg border border-slate-200">
-                <div className="max-h-72 overflow-auto">
+              <div>
+                <div className={styles.scroll}>
                   <table className={tableClass}>
                     <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Material</th><th className={`${headCellClass} text-right`}>Usable</th><th className={`${headCellClass} text-right`}>Reorder Point</th></tr></thead>
                     <tbody>{inventoryHealth.lowStockMaterials.map((item) => (
@@ -66,10 +67,10 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{inventoryHealth ? "No low-stock materials." : "Inventory health data unavailable."}</Empty>}
           </Panel>
 
-          <Panel id="near-expiry" title="Near Expiry" icon={<Clock3 size={16} />} className="xl:col-span-2">
+          <Panel id="near-expiry" title="Near Expiry" icon={<Clock3 size={16} />}>
             {inventoryHealth?.nearExpiryBatches.length ? (
-              <div className="overflow-hidden rounded-lg border border-slate-200">
-                <div className="max-h-72 overflow-auto">
+              <div>
+                <div className={styles.scroll}>
                   <table className={tableClass}>
                     <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Material</th><th className={`${headCellClass} text-right`}>Remaining</th><th className={`${headCellClass} text-right`}>Expiry Date</th></tr></thead>
                     <tbody>{inventoryHealth.nearExpiryBatches.map((batch) => (
@@ -81,10 +82,10 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{inventoryHealth ? "No batches nearing expiry." : "Inventory health data unavailable."}</Empty>}
           </Panel>
 
-          <Panel id="waste-insights" title="Waste Insights" icon={<ChartNoAxesCombined size={16} />} className="xl:col-span-2">
+          <Panel id="waste-insights" title="Waste Insights" icon={<ChartNoAxesCombined size={16} />}>
             {wasteSummary?.byReason.length ? (
-              <div className="overflow-hidden rounded-lg border border-slate-200">
-                <div className="max-h-72 overflow-auto">
+              <div>
+                <div className={styles.scroll}>
                   <table className={tableClass}>
                     <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Reason</th><th className={`${headCellClass} text-right`}>Events / Qty</th><th className={`${headCellClass} text-right`}>Cost</th></tr></thead>
                     <tbody>{wasteSummary.byReason.map((reason) => (
@@ -96,10 +97,10 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{wasteSummary ? "No waste recorded for this period." : "Waste report unavailable."}</Empty>}
           </Panel>
 
-          <Panel id="high-value" title="High-Value Inventory" icon={<Boxes size={16} />} className="xl:col-span-3">
+          <Panel id="high-value" title="High-Value Inventory" icon={<Boxes size={16} />}>
             {inventoryHealth?.highValueMaterials.length ? (
-              <div className="overflow-hidden rounded-lg border border-slate-200">
-                <div className="max-h-72 overflow-auto">
+              <div>
+                <div className={styles.scroll}>
                   <table className={tableClass}>
                     <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Material</th><th className={`${headCellClass} text-right`}>Usable</th><th className={`${headCellClass} text-right`}>Value</th></tr></thead>
                     <tbody>{inventoryHealth.highValueMaterials.map((item) => (
@@ -111,10 +112,10 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{inventoryHealth ? "No high-value inventory records." : "Inventory health data unavailable."}</Empty>}
           </Panel>
 
-          <Panel id="supplier-spend" title="Supplier Spend" icon={<Truck size={16} />} className="xl:col-span-3">
+          <Panel id="supplier-spend" title="Supplier Spend" icon={<Truck size={16} />}>
             {stockRunSpend?.bySupplier.length ? (
-              <div className="overflow-hidden rounded-lg border border-slate-200">
-                <div className="max-h-72 overflow-auto">
+              <div>
+                <div className={styles.scroll}>
                   <table className={tableClass}>
                     <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Supplier</th><th className={`${headCellClass} text-right`}>Lines</th><th className={`${headCellClass} text-right`}>Spend</th></tr></thead>
                     <tbody>{stockRunSpend.bySupplier.map((supplier) => (

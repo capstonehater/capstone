@@ -252,7 +252,7 @@ export default function ProductsWorkspace() {
       setListError(null);
 
       try {
-        const baseFilters = {
+        const baseFilters: Parameters<typeof listProducts>[0] = {
           search: search || undefined,
           categoryId: categoryId || undefined,
           manualAvailability:
@@ -866,7 +866,7 @@ export default function ProductsWorkspace() {
       {listError ? <ActionAlert tone="error" title="Unable to load products" message={listError} onDismiss={() => setListError(null)} /> : null}
       {notice ? <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} /> : null}
 
-      <div className="grid min-h-0 flex-1 gap-6 overflow-hidden xl:grid-cols-[420px_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 gap-5 overflow-hidden xl:grid-cols-[minmax(360px,0.85fr)_minmax(0,1.65fr)]">
         <div className={`${isMobileDetailView ? "hidden xl:block" : "block"} min-h-0`}>
           <ProductsMasterPanel
             categories={categories}
@@ -909,7 +909,7 @@ export default function ProductsWorkspace() {
               updateQuery(
                 {
                   productId,
-                  detailTab,
+                  detailTab: "overview",
                   variantId: null,
                 },
                 "push",

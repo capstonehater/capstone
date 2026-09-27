@@ -23,7 +23,7 @@ export default function ProductDetailTabs({ activeTab, onChange }: Props) {
           onClick={() => onChange(tab.value)}
           className={`border-b-2 px-4 py-2 text-xs font-semibold transition ${
             activeTab === tab.value
-              ? "border-[#1f9d32] text-[#1f7a2a]"
+              ? "border-[#232d46] text-[#232d46]"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >

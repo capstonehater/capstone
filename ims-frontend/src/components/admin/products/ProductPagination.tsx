@@ -33,8 +33,8 @@ export default function ProductPagination({
         Previous
       </button>
       <div className="text-center text-xs text-slate-500">
-        <p>{totalItems} total products</p>
-        <p>
+        <p className="mb-0!">{totalItems} total products</p>
+        <p className="mb-0!">
           Page {page} of {totalPages}
         </p>
       </div>

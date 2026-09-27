@@ -5,7 +5,7 @@ SARIMA DEMAND FORECASTING SYSTEM
 
 Author      : Robert
 Model       : SARIMA
-Forecast    : Product-Level Demand Forecasting
+Forecast    : Raw Material-Level Demand Forecasting
 Dataset     : cafe_raw_material_daily_consumption.csv
 
 Description
@@ -284,7 +284,7 @@ def build_daily_series(
 def build_holiday_lookup(raw_df):
     """
     PATCH (new function): map each historical date to whether it was a
-    holiday, straight from sales.csv's own 'holiday' column (which already
+    holiday, straight from cafe_raw_material_daily_consumption.csv's own 'holiday' column (which already
     contains real Philippine public holidays). This becomes the is_holiday
     exogenous regressor - see CONFIG["EXOG_COLS"] and CONFIG note above on
     why it's needed: holiday-day usage is roughly double a normal day for

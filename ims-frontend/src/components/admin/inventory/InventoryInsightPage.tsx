@@ -55,7 +55,7 @@ export default function InventoryInsightPage({ kind }: { kind: Kind }) {
   const heading = "sticky top-0 z-10 bg-slate-50 px-5 py-4";
 
   return (
-    <AdminDashboardLayout>
+    <AdminDashboardLayout showHeader={false}>
       <section className="space-y-5 text-[#232d46]">
         <header><h1 className="text-2xl font-bold">{config.title}</h1><p className="mt-1 text-sm text-slate-600">{config.description}</p></header>
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">

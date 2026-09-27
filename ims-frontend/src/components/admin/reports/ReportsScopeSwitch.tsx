@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import styles from "./ReportsHeader.module.css";
 import { usePathname } from "next/navigation";
 
 const SCOPES = [
@@ -31,11 +32,8 @@ export default function ReportsScopeSwitch() {
           <Link
             key={scope.href}
             href={scope.href}
-            className={`rounded-2xl border px-4 py-4 transition ${
-              active
-                ? "border-[#f45a1f] bg-[#fff3ed] text-[#8b2f10]"
-                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-            }`}
+            aria-current={active ? "page" : undefined}
+            className={styles.scope}
           >
             <div className="text-sm font-semibold">{scope.label}</div>
             <p className="mt-1 text-xs leading-5 text-inherit/80">{scope.description}</p>

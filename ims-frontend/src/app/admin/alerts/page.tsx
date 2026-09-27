@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import styles from "./alerts.module.css";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
 import { acknowledgeAlert, dismissAlert, fetchAlerts, type AlertRecord, type AlertState, type AlertType } from "@/lib/alerts";
 
@@ -16,9 +17,9 @@ function formatDateTime(value: string | null | undefined) {
 }
 
 function tone(alert: AlertRecord) {
-  if (alert.severity === "CRITICAL") return "border-rose-200 bg-rose-50";
-  if (alert.severity === "WARNING") return "border-amber-200 bg-amber-50";
-  return "border-slate-200 bg-slate-50";
+  if (alert.severity === "CRITICAL") return styles.critical;
+  if (alert.severity === "WARNING") return styles.warning;
+  return styles.info;
 }
 
 const STATE_OPTIONS: Array<{ value: AlertState | ""; label: string }> = [
@@ -99,10 +100,10 @@ export default function AlertsPage() {
   };
 
   return (
-    <AdminDashboardLayout>
-      <div className="space-y-6">
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <AdminDashboardLayout showHeader={false}>
+      <div className={styles.workspace}>
+        <section className={styles.header}>
+          <div className={styles.headerContent}>
             <div>
               <h1 className="text-2xl font-bold text-neutral-900">Operational Alerts</h1>
               <p className="mt-2 text-neutral-600">
@@ -176,19 +177,19 @@ export default function AlertsPage() {
             alerts.map((alert) => (
               <article
                 key={alert.id}
-                className={`rounded-2xl border p-5 shadow-sm ${tone(alert)}`}
+                className={`${styles.alert} ${tone(alert)}`}
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-lg font-semibold text-neutral-900">{alert.title}</h2>
-                      <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-700">
+                      <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
                         {alert.type.replaceAll("_", " ")}
                       </span>
-                      <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-700">
+                      <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
                         {formatAlertState(alert.state)}
                       </span>
-                      <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-700">
+                      <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
                         {alert.severity}
                       </span>
                     </div>
@@ -214,7 +215,7 @@ export default function AlertsPage() {
                         type="button"
                         disabled={actionId === alert.id}
                         onClick={() => void handleAction(alert.id, "acknowledge")}
-                        className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                        className={styles.primary}
                       >
                         Mark as Read
                       </button>
@@ -224,7 +225,7 @@ export default function AlertsPage() {
                         type="button"
                         disabled={actionId === alert.id}
                         onClick={() => void handleAction(alert.id, "dismiss")}
-                        className="rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-60"
+                        className={styles.secondary}
                       >
                         Dismiss
                       </button>

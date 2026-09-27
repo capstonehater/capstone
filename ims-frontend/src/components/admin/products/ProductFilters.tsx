@@ -39,7 +39,7 @@ export default function ProductFilters({
   onEffectiveAvailabilityChange,
 }: Props) {
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-2 gap-3 [&>div:first-child]:col-span-2">
       <AdminSelect label="Category" value={categoryId} onChange={onCategoryChange}
         options={[{ value: "", label: "All Categories" }, ...categories.map((category) => ({ value: category.id, label: category.name }))]} />
       <AdminSelect label="Status" value={manualAvailability}

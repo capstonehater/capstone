@@ -91,7 +91,7 @@ export default function ForecastingPage() {
   const chartPoints = selected?.points ?? [];
   const busy = Boolean(runId);
 
-  return <AdminDashboardLayout><div className={styles.workspace}>
+  return <AdminDashboardLayout showHeader={false}><div className={styles.workspace}>
     <header className={styles.intro}><h1>Weekly stock forecast</h1><p>See how much stock you may need and what to buy. Choose a week in the graph, then a product or material to explore.</p><p>New forecasts are saved automatically every 7 days (Philippine time). {data?.nextScheduledDate && <>Next scheduled week starts {dateLabel(data.nextScheduledDate)}.</>}</p></header>
     <div className={styles.stats}>
       {[

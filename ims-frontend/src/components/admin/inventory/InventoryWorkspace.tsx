@@ -3,9 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Boxes,
   Plus,
-  Trash2,
 } from "lucide-react";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
 import BatchTransactionModal from "@/components/admin/inventory/BatchTransactionModal";
@@ -163,7 +161,7 @@ function getTransactionCost(transaction: InventoryTransaction) {
   return transaction.lines.reduce((sum, line) => sum + Number(line.totalCostDelta), 0);
 }
 
-export default function InventoryWorkspace({ materialsOnly = false, stockRunsOnly = false }: { materialsOnly?: boolean; stockRunsOnly?: boolean }) {
+export default function InventoryWorkspace({ materialsOnly = false, stockRunsOnly = false, initialDraftId }: { materialsOnly?: boolean; stockRunsOnly?: boolean; initialDraftId?: string }) {
   const router = useRouter();
   const search = useInventoryStore((state) => state.search);
   const statusFilter = useInventoryStore((state) => state.statusFilter);
@@ -192,7 +190,7 @@ export default function InventoryWorkspace({ materialsOnly = false, stockRunsOnl
   const [batches, setBatches] = useState<StockBatch[]>([]);
   const [transactions, setTransactions] = useState<InventoryTransaction[]>([]);
   const [stockRuns, setStockRuns] = useState<StockRun[]>([]);
-  const [activeStockRunId, setActiveStockRunId] = useState<string | null>(null);
+  const [activeStockRunId, setActiveStockRunId] = useState<string | null>(initialDraftId ?? null);
   const [activeStockRun, setActiveStockRun] = useState<StockRun | null>(null);
   const [inventoryHealth, setInventoryHealth] = useState<InventoryHealthReport | null>(null);
   const [stockRunSpend, setStockRunSpend] = useState<StockRunSpendReport | null>(null);
@@ -225,6 +223,9 @@ export default function InventoryWorkspace({ materialsOnly = false, stockRunsOnl
   });
 
   const hydratedRef = useRef(false);
+  useEffect(() => {
+    if (initialDraftId) setActivePanel("stock-run-manage");
+  }, [initialDraftId, setActivePanel]);
 
   const selectedSummary =
     summaries.find((item) => item.rawMaterialId === selectedRawMaterialId) ?? null;
@@ -420,16 +421,11 @@ export default function InventoryWorkspace({ materialsOnly = false, stockRunsOnl
   };
 
   return (
-    <AdminDashboardLayout fillContent={materialsOnly}>
+    <AdminDashboardLayout fillContent={materialsOnly} showHeader={!stockRunsOnly}>
       <div className={`flex min-w-0 w-full flex-col gap-5 bg-[#f5f5f5] text-[#232d46] ${materialsOnly ? styles.materialsPage : ""}`}>
-        {materialsOnly && <div className="shrink-0"><div className="flex flex-wrap gap-2">
-                <BannerActionButton label="Add Raw Material" icon={<Plus size={14} />} onClick={() => { setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }} />
-                <BannerActionButton label="New Stock Run" icon={<Boxes size={14} />} onClick={() => { setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }} />
-                <BannerActionButton label="Record Waste" icon={<Trash2 size={14} />} onClick={() => setActivePanel("waste")} />
-              </div></div>}
         {stockRunsOnly && <header className="flex flex-wrap items-center justify-between gap-4">
           <div><h1 className="text-2xl font-bold">Stock Runs</h1><p className="mt-1 text-sm text-slate-500">Review stock runs and continue receiving inventory.</p></div>
-          <button type="button" className="inline-flex items-center gap-2 rounded-lg bg-[#232d46] px-4 py-2 text-sm font-semibold text-white" onClick={() => { setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }}><Plus size={16} />New Stock Run</button>
+          <button type="button" className="inline-flex items-center gap-2 rounded-lg bg-[#232d46] px-4 py-2 text-sm font-semibold text-white" onClick={() => { router.push("/admin/inventory/materials/create-stock-run"); }}><Plus size={16} />New Stock Run</button>
         </header>}
         {!materialsOnly && !stockRunsOnly && <section id="overview" className="overflow-hidden rounded-xl bg-[#232d46] p-5 text-white shadow-sm md:p-6">
           <div className="w-full">
@@ -495,7 +491,7 @@ export default function InventoryWorkspace({ materialsOnly = false, stockRunsOnl
             onHistorySearchInputChange={setHistorySearchInput}
             onSelectBatch={(batch) => void openBatchDrilldown(batch)}
             onEdit={() => { setMaterialForm(defaultMaterialForm(selectedMaterial, units[0]?.id)); setActivePanel("edit-material"); }}
-            onWaste={() => setActivePanel("waste")}
+            onWaste={() => router.push("/admin/inventory/materials/record-waste")}
             onStoreAvailability={() => { if (selectedRawMaterialId && selectedSummary) setAvailabilityMaterial({ id: selectedRawMaterialId, name: selectedSummary.name }); }}
             onArchive={() => setActivePanel("archive-material")}
             formatQuantity={formatQuantity}
@@ -671,10 +667,6 @@ export default function InventoryWorkspace({ materialsOnly = false, stockRunsOnl
   );
 }
 
-function BannerActionButton({ label, icon, onClick }: { label: string; icon: React.ReactNode; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#232d46] bg-[#232d46] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#1b2438]">{icon}{label}</button>;
-}
-
 function MetricCard({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-lg border border-white/30 bg-[#17243c]/35 px-3 py-2.5 text-white"><p className="text-[11px] font-medium text-slate-200">{label}</p><p className="mt-1 text-xl font-semibold">{value}</p></div>;
+  return <div className="rounded-lg border border-white/30 bg-[#17243c]/35 px-3 py-2.5 text-white"><p className="text-[13px] font-medium text-slate-200">{label}</p><p className="mt-1 text-xl font-semibold">{value}</p></div>;
 }
