@@ -421,7 +421,7 @@ export default function InventoryWorkspace({ materialsOnly = false, stockRunsOnl
   };
 
   return (
-    <AdminDashboardLayout fillContent={materialsOnly}>
+    <AdminDashboardLayout fillContent={materialsOnly} showHeader={!stockRunsOnly}>
       <div className={`flex min-w-0 w-full flex-col gap-5 bg-[#f5f5f5] text-[#232d46] ${materialsOnly ? styles.materialsPage : ""}`}>
         {stockRunsOnly && <header className="flex flex-wrap items-center justify-between gap-4">
           <div><h1 className="text-2xl font-bold">Stock Runs</h1><p className="mt-1 text-sm text-slate-500">Review stock runs and continue receiving inventory.</p></div>

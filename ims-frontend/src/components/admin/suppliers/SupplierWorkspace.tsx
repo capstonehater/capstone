@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import { Check, MapPin, Plus, Search, Trash2, X } from "lucide-react";
-import { InventoryField, inventoryInputClasses } from "@/components/admin/inventory/InventoryField";
+import { InventoryField } from "@/components/admin/inventory/InventoryField";
 import SupplierLocationPicker from "@/components/admin/inventory/SupplierLocationPicker";
 import type { Supplier } from "@/lib/inventory";
 import styles from "./SupplierWorkspace.module.css";
@@ -127,20 +127,20 @@ export default function SupplierWorkspace({
 
   return (
     <>
-      <div className="grid min-h-[32rem] items-start gap-5 xl:grid-cols-[minmax(19rem,0.78fr)_minmax(0,1.5fr)]">
-        <section aria-labelledby="supplier-list-title" className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 p-4">
+      <div className={styles.workspace}>
+        <section aria-labelledby="supplier-list-title" className={styles.listPanel}>
+          <div className={styles.panelHeader}>
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 id="supplier-list-title" className="text-lg font-semibold text-slate-900">Suppliers</h2>
                 <p className="mt-1 text-xs text-slate-500">{suppliers.length} supplier{suppliers.length === 1 ? "" : "s"}</p>
               </div>
               <button type="button" onClick={startCreate} disabled={submitting}
-                className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#232d46] px-3 text-sm font-semibold text-white transition hover:bg-[#1b2438] disabled:opacity-50">
+                className={styles.primary}>
                 <Plus size={16} aria-hidden="true" /> New Supplier
               </button>
             </div>
-            <label className="relative mt-4 block">
+            <label className={styles.search}>
               <span className="sr-only">Search suppliers</span>
               <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search suppliers..."
@@ -155,10 +155,10 @@ export default function SupplierWorkspace({
                   return <li key={supplier.id}>
                     <button type="button" onClick={() => selectSupplier(supplier)} disabled={submitting}
                       aria-current={active ? "true" : undefined}
-                      className={`w-full rounded-lg border-l-4 px-3 py-3 text-left transition ${active ? "border-l-green-700 bg-green-50" : "border-l-transparent hover:bg-slate-50"}`}>
+                      className={styles.supplierRow}>
                       <span className="block truncate text-sm font-semibold text-slate-900">{supplier.name}</span>
                       <span className="mt-1 block truncate text-xs text-slate-600">{supplier.contactInfo || "No contact information"}</span>
-                      <span className="mt-1 flex items-center gap-1 truncate text-xs text-slate-500"><MapPin size={12} />{supplier.address || (supplier.latitude && supplier.longitude ? `${supplier.latitude}, ${supplier.longitude}` : "No location saved")}</span>
+                      <span className="mt-1 flex items-center gap-1 truncate text-xs text-slate-500"><MapPin size={12} className="shrink-0" />{supplier.address || (supplier.latitude && supplier.longitude ? `${supplier.latitude}, ${supplier.longitude}` : "No location saved")}</span>
                     </button>
                   </li>;
                 })}
@@ -167,33 +167,33 @@ export default function SupplierWorkspace({
           </div>
         </section>
 
-        <section aria-labelledby="supplier-details-title" className="rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
+        <section aria-labelledby="supplier-details-title" className={styles.detailPanel}>
+          <div className={styles.detailHeader}>
             <div>
               <h2 id="supplier-details-title" className="text-lg font-semibold text-slate-900">{creating ? "New Supplier" : "Supplier Details"}</h2>
               <p className="mt-1 text-sm text-slate-500">Supplier records are reused across stock runs and cost monitoring.</p>
             </div>
-            {!creating && selected ? <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800">Saved supplier</span> : null}
+            {!creating && selected ? <span className={styles.badge}>Saved supplier</span> : null}
           </div>
           {error ? <p role="alert" className="mx-5 mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
-          {creating || selected ? <form onSubmit={(event) => void save(event)} className="grid gap-5 p-5 md:grid-cols-2">
+          {creating || selected ? <form onSubmit={(event) => void save(event)} className={styles.form}>
             <InventoryField htmlFor="supplier-name" label="Supplier Name">
               <input id="supplier-name" required maxLength={120} value={form.name} disabled={fieldsDisabled}
                 onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-                placeholder="Supplier name" className={`${inventoryInputClasses} disabled:bg-slate-50 disabled:text-slate-600`} />
+                placeholder="Supplier name" className={`${styles.input} disabled:bg-slate-50 disabled:text-slate-600`} />
             </InventoryField>
             <InventoryField htmlFor="supplier-contact" label="Contact Information">
               <input id="supplier-contact" value={form.contactInfo} disabled={fieldsDisabled}
                 onChange={(event) => setForm((current) => ({ ...current, contactInfo: event.target.value }))}
-                placeholder="Phone or email" className={`${inventoryInputClasses} disabled:bg-slate-50 disabled:text-slate-600`} />
+                placeholder="Phone or email" className={`${styles.input} disabled:bg-slate-50 disabled:text-slate-600`} />
             </InventoryField>
             <InventoryField htmlFor="supplier-latitude" label="Latitude">
               <input id="supplier-latitude" value={form.latitude} readOnly disabled placeholder="Select a point on the map"
-                className={`${inventoryInputClasses} cursor-not-allowed bg-slate-50 text-slate-600`} />
+                className={`${styles.input} cursor-not-allowed bg-slate-50 text-slate-600`} />
             </InventoryField>
             <InventoryField htmlFor="supplier-longitude" label="Longitude">
               <input id="supplier-longitude" value={form.longitude} readOnly disabled placeholder="Select a point on the map"
-                className={`${inventoryInputClasses} cursor-not-allowed bg-slate-50 text-slate-600`} />
+                className={`${styles.input} cursor-not-allowed bg-slate-50 text-slate-600`} />
             </InventoryField>
             <div className="md:col-span-2">
               <SupplierLocationPicker key={creating ? "new" : selectedId ?? "empty"} latitude={form.latitude} longitude={form.longitude} address={form.address}
@@ -205,12 +205,12 @@ export default function SupplierWorkspace({
                 <button type="button" onClick={() => setDeleteTarget(selected)} disabled={submitting}
                   className="mr-auto inline-flex h-10 items-center gap-2 rounded-lg border border-red-200 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"><Trash2 size={15} /> Delete</button>
                 {editing ? <button type="button" onClick={() => { setEditing(false); setForm(formFor(selected)); setError(null); }} disabled={submitting}
-                  className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                  className={styles.secondary}>Cancel</button>
                   : <button type="button" onClick={() => setEditing(true)} disabled={submitting}
-                    className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">Edit</button>}
+                    className={styles.secondary}>Edit</button>}
               </> : null}
               {(creating || editing) ? <button type="submit" disabled={submitting}
-                className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#232d46] px-4 text-sm font-semibold text-white hover:bg-[#1b2438] disabled:opacity-50"><Check size={16} />{submitting ? "Saving..." : creating ? "Create Supplier" : "Save Changes"}</button> : null}
+                className={styles.primary}><Check size={16} />{submitting ? "Saving..." : creating ? "Create Supplier" : "Save Changes"}</button> : null}
             </div>
           </form> : <div className="p-10 text-center text-sm text-slate-500">Choose a supplier or create a new supplier to view its details.</div>}
         </section>
@@ -224,7 +224,7 @@ export default function SupplierWorkspace({
           </header>
           <div className="p-5"><div className="rounded-lg border border-slate-200 bg-slate-50 p-4"><p className="font-semibold text-slate-900">{deleteTarget.name}</p><p className="mt-1 text-sm text-slate-600">{deleteTarget.contactInfo || "No contact information"}</p><p className="mt-1 text-xs text-slate-500">{deleteTarget.address || "No location saved"}</p></div><p className="mt-4 text-sm text-slate-600">The server will enforce existing supplier deletion rules. Deletion may be blocked when the record is in use.</p></div>
           <footer className="flex justify-end gap-2 border-t border-slate-200 p-4">
-            <button type="button" onClick={() => setDeleteTarget(null)} disabled={submitting} className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button type="button" onClick={() => setDeleteTarget(null)} disabled={submitting} className={styles.secondary}>Cancel</button>
             <button type="button" onClick={() => void confirmDelete()} disabled={submitting} className="h-10 rounded-lg bg-red-700 px-4 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50">{submitting ? "Deleting..." : "Delete Supplier"}</button>
           </footer>
         </section>

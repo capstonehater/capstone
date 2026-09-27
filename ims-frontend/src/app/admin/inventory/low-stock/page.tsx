@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { RefreshCcw } from "lucide-react";
+import styles from "@/components/admin/inventory/InventorySortToolbar.module.css";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
 import { fetchInventorySummary, type InventorySummaryItem } from "@/lib/inventory";
 
@@ -32,24 +33,24 @@ export default function LowStockPage() {
   });
 
   return (
-    <AdminDashboardLayout>
+    <AdminDashboardLayout showHeader={false}>
       <section className="space-y-5 text-[#232d46]">
         <header>
           <h1 className="text-2xl font-bold">Low Stock Materials</h1>
           <p className="mt-1 text-sm text-slate-600">Active materials with usable stock above zero and at or below their reorder point.</p>
         </header>
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 p-5">
+          <div className={styles.toolbar}>
             <p role="status" className="text-sm font-medium">{loading ? "Loading materials..." : error ? "Materials unavailable" : `${rows.length} low-stock material${rows.length === 1 ? "" : "s"}`}</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <label className="flex items-center gap-2 text-sm font-medium">
+            <div className={styles.controls}>
+              <label className={styles.field}>
                 Sort by usable stock
-                <select value={direction} onChange={(event) => setDirection(event.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-2 focus:outline-[#232d46]">
+                <select value={direction} onChange={(event) => setDirection(event.target.value)} className={styles.select}>
                   <option value="asc">Ascending (lowest first)</option>
                   <option value="desc">Descending (highest first)</option>
                 </select>
               </label>
-              <button type="button" disabled={loading} onClick={() => { setError(null); setLoading(true); setRevision((value) => value + 1); }} className="inline-flex items-center gap-2 rounded-lg bg-[#232d46] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+              <button type="button" disabled={loading} onClick={() => { setError(null); setLoading(true); setRevision((value) => value + 1); }} className={styles.refresh}>
                 <RefreshCcw size={16} className={loading ? "animate-spin" : ""} />Refresh
               </button>
             </div>

@@ -65,8 +65,8 @@ export default function SuppliersPage() {
     }
   }
 
-  return <AdminDashboardLayout>
-    <main className="min-h-full bg-[#f5f5f5] p-4 sm:p-6">
+  return <AdminDashboardLayout showHeader={false}>
+    <div className="min-h-full">
       <header className="mb-5 border-b border-slate-200 pb-4">
         <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Supplier Management</h1>
         <p className="mt-1 max-w-3xl text-sm text-slate-600">Create suppliers, inspect supplier details, and update purchasing references used by stock runs.</p>
@@ -74,6 +74,6 @@ export default function SuppliersPage() {
       {loadError ? <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{loadError}</p> : null}
       {loading ? <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Loading suppliers...</div>
         : <SupplierWorkspace suppliers={suppliers} submitting={submitting} onCreateSupplier={create} onUpdateSupplier={update} onDeleteSupplier={remove} />}
-    </main>
+    </div>
   </AdminDashboardLayout>;
 }

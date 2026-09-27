@@ -51,6 +51,7 @@
 .navDropdown { display: grid; gap: 2px; padding: 2px 0 6px 31px; }
 .navDropdown[hidden] { display: none; }
 .navToggle { width: 100%; border-top: 0; border-right: 0; border-bottom: 0; background: transparent; text-align: left; cursor: pointer; }
+.navToggle[data-active="true"] { border-left-color: var(--shell-accent); color: var(--shell-accent); }
 .navChevron { margin-left: auto; transition: transform .2s ease; }
 .navToggle[aria-expanded="true"] .navChevron { transform: rotate(180deg); }
 .navSplitRow { display: flex; align-items: center; }

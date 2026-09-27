@@ -1,0 +1,27 @@
+.workspace { display:grid; gap:20px; padding-top:4px; color:#334155; }
+.header { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:14px; }
+.header > div { flex:1 1 240px; min-width:0; }
+.workspace h3,.workspace h4 { margin:0; color:#232d46; font-size:18px; font-weight:650; line-height:1.4; }
+.workspace p { margin-bottom:0; }
+.card,.recipe { padding:18px; border:1px solid #dce2eb; border-radius:12px; background:#fff; }
+.card[data-selected="true"] { background:#f4f6fa; border-color:#94a3b8; box-shadow:inset 3px 0 0 #34425f; }
+.cardContent { display:flex; flex-direction:column; gap:16px; }
+.actions { display:flex; flex-wrap:wrap; gap:8px; padding-top:14px; border-top:1px solid #e2e8f0; }
+.primary,.secondary,.danger,.selection { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; min-height:38px; padding:8px 14px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; color:#334155; font-size:14px; font-weight:600; transition:background-color 150ms; }
+.primary { background:#232d46; border-color:#232d46; color:#fff; }
+.primary:hover:not(:disabled) { background:#34425f; }
+.secondary:hover:not(:disabled),.selection:hover { background:#edf1f7; }
+.danger { border-color:#e5c6cb; color:#963e4b; }
+.danger:hover:not(:disabled) { background:#fff1f2; }
+.selection { min-height:30px; padding:4px 10px; margin-bottom:12px; font-size:12px; }
+.selection[aria-pressed="true"] { background:#232d46; border-color:#232d46; color:#fff; }
+.workspace button:disabled,.editor button:disabled { opacity:.5; cursor:not-allowed; }
+.workspace button:focus-visible,.editor button:focus-visible { outline:2px solid #64748b; outline-offset:3px; }
+.tableWrap { margin-top:18px; overflow:auto; border:1px solid #dce2eb; border-radius:8px; }
+.tableWrap table { width:100%; border-collapse:collapse; }
+.tableWrap th { background:#edf1f7; color:#475569; font-size:13px; }
+.tableWrap td { border-top:1px solid #e2e8f0; font-size:14px; }
+.tableWrap tbody tr:nth-child(even) { background:#f8fafc; }
+.editor { display:grid; gap:20px; }
+.editor input,.editor select { min-height:44px; border-radius:8px; border-color:#cbd5e1; }
+.editor input:focus,.editor select:focus { border-color:#64748b; outline:2px solid #64748b; outline-offset:2px; box-shadow:none; }

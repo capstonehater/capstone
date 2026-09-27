@@ -1,0 +1,38 @@
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 150ms, border-color 150ms;
+}
+
+.primary { background: #232d46; border-color: #232d46; color: #fff; }
+.primary:hover:not(:disabled) { background: #34425f; border-color: #34425f; }
+.secondary { background: #fff; color: #334155; }
+.secondary:hover:not(:disabled) { background: #f1f5f9; border-color: #94a3b8; }
+.primary:disabled { opacity: .55; cursor: wait; }
+.addVariant { flex-shrink: 0; padding: 6px 10px; font-size: 13px; }
+.primary:focus-visible,
+.secondary:focus-visible,
+.switch:focus-visible { outline: 2px solid #64748b; outline-offset: 3px; }
+
+.switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #94a3b8;
+  transition: background-color 150ms;
+}
+.switch[aria-checked="true"] { background: #232d46; }
+.switch span { border-radius: 999px; }
+.checkbox { accent-color: #232d46; }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import styles from "./VariantsRecipe.module.css";
 import type { InventorySummaryItem } from "@/lib/inventory";
 import type { ProductDetail, ProductRecipe, ProductVariantDetail } from "@/lib/products";
 import RecipeEditor from "./RecipeEditor";
@@ -58,8 +59,8 @@ export default function ProductVariantsRecipeTab({
   }
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between gap-3">
+    <div className={styles.workspace}>
+      <div className={styles.header}>
         <div>
           <h3 className="text-lg font-semibold text-slate-900">Variants & Recipe</h3>
           <p className="mt-1 text-sm text-slate-500">
@@ -69,7 +70,7 @@ export default function ProductVariantsRecipeTab({
         <button
           type="button"
           onClick={onAddVariant}
-          className="rounded-full bg-[#f45a1f] px-4 py-2 text-sm font-semibold text-white"
+          className={styles.primary}
         >
           Add Variant
         </button>
@@ -83,18 +84,16 @@ export default function ProductVariantsRecipeTab({
           return (
             <div
               key={variant.id}
-              className={`rounded-3xl border p-4 transition ${
-                selected ? "border-[#f45a1f] bg-[#fff4ef]" : "border-slate-200 bg-white"
-              }`}
+              className={styles.card}
+              data-selected={selected}
             >
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div className={styles.cardContent}>
                 <div className="min-w-0">
                   <button
                     type="button"
                     onClick={() => onSelectVariant(variant.id)}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      selected ? "bg-[#f45a1f] text-white" : "bg-slate-100 text-slate-700"
-                    }`}
+                    className={styles.selection}
+                    aria-pressed={selected}
                   >
                     {selected ? "Selected" : "Select variant"}
                   </button>
@@ -127,12 +126,12 @@ export default function ProductVariantsRecipeTab({
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className={styles.actions}>
                   <button
                     type="button"
                     onClick={() => onEditVariant(variant)}
                     disabled={submitting}
-                    className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+                    className={styles.secondary}
                   >
                     Edit
                   </button>
@@ -140,7 +139,7 @@ export default function ProductVariantsRecipeTab({
                     type="button"
                     onClick={() => onToggleVariant(variant)}
                     disabled={submitting}
-                    className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+                    className={styles.secondary}
                   >
                     {variant.manualAvailability === "ENABLED" ? "Disable" : "Enable"}
                   </button>
@@ -148,7 +147,7 @@ export default function ProductVariantsRecipeTab({
                     type="button"
                     onClick={() => onDeleteVariant(variant)}
                     disabled={submitting}
-                    className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50"
+                    className={styles.danger}
                   >
                     Delete
                   </button>
@@ -160,8 +159,8 @@ export default function ProductVariantsRecipeTab({
       </div>
 
       {selectedVariant ? (
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className={styles.recipe}>
+          <div className={styles.header}>
             <div>
               <h4 className="text-base font-semibold text-slate-900">
                 Recipe for {selectedVariant.name}
@@ -175,7 +174,7 @@ export default function ProductVariantsRecipeTab({
               type="button"
               onClick={() => setRecipeEditorOpen(true)}
               disabled={submitting}
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              className={styles.primary}
             >
               Edit Recipe
             </button>
@@ -184,15 +183,15 @@ export default function ProductVariantsRecipeTab({
           {recipeLoading ? (
             <p className="mt-4 text-sm text-slate-500">Loading recipe...</p>
           ) : recipeError ? (
-            <div className="mt-4 rounded-3xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-700">
+            <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-700">
               {recipeError}
             </div>
           ) : !recipe || recipe.items.length === 0 ? (
-            <div className="mt-4 rounded-3xl border border-dashed border-slate-300 bg-white px-4 py-6 text-sm text-slate-500">
+            <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-sm text-slate-500">
               This variant does not have a recipe yet.
             </div>
           ) : (
-            <div className="mt-4 overflow-x-auto rounded-3xl border border-slate-200">
+            <div className={styles.tableWrap}>
               <table className="min-w-full divide-y divide-slate-200 text-sm">
                 <thead className="bg-white">
                   <tr className="text-left text-slate-500">
@@ -217,7 +216,7 @@ export default function ProductVariantsRecipeTab({
           )}
         </div>
       ) : (
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
           Select a variant to view or edit its recipe.
         </div>
       )}

@@ -1,25 +1,25 @@
 .workspace { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; color: #182238; background: #f5f5f5; min-width: 0; }
 .workspace > * { grid-column: 1 / -1; min-width: 0; }
-.workspace section { min-width: 0; border: 1px solid #d2d2d2; border-radius: 5px; box-shadow: 0 1px 2px #00000008; padding: 16px; background: #fff; }
-.workspace h2, .workspace h3 { margin: 0 0 10px; font-size: 18px; line-height: 1.4; font-weight: 700; color: #111; }
+.workspace section { min-width: 0; border: 1px solid #dce2eb; border-radius: 10px; box-shadow: 0 1px 2px #00000008; padding: 16px; background: #fff; }
+.workspace h2, .workspace h3 { margin: 0 0 10px; font-size: 18px; line-height: 1.4; font-weight: 700; color: #232d46; }
 .workspace p { margin-bottom: 0; }
-.workspace input { min-width: 0; padding: 8px 10px; border-radius: 4px; border: 1px solid #cfcfcf; font-size: 14px; background: #fff; }
+.workspace input { min-width: 0; padding: 8px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; background: #fff; }
 .workspace input:focus { outline: 2px solid #232d46; outline-offset: 1px; }
 .workspace label { font-size: 13px; }
-.workspace button { border-radius: 4px; font-size: 14px; }
+.workspace button { border-radius: 8px; font-size: 14px; }
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; grid-row: 1; }
-.toolbar strong { font-size: 14px; color: #111; }
+.toolbar strong { font-size: 14px; color: #232d46; }
 .toolbar label { display: flex; align-items: center; gap: 10px; }
 .toolbarActions { display: flex; flex-wrap: wrap; gap: 10px; margin-left: auto; }
-.toolbarActions button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #cfcfcf; background: #fff; color: #111; padding: 8px 12px; font-weight: 600; }
-.toolbarActions .refresh { background: #198000; border-color: #198000; color: #fff; }
+.toolbarActions button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #cbd5e1; background: #fff; color: #232d46; padding: 8px 12px; font-weight: 600; }
+.toolbarActions .refresh { background: #232d46; border-color: #232d46; color: #fff; }
 .toolbarActions button:disabled { opacity: .5; cursor: not-allowed; }
 .kpi { grid-row: 2; }
 .kpiGrid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
-.kpiItem { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 14px 12px; border: 1px solid #ccc; border-radius: 5px; }
-.kpiItem svg { flex-shrink: 0; }
-.kpiItem span { display: block; font-size: 13px; color: #222; }
-.kpiItem strong { display: block; margin-top: 3px; font-size: 15px; color: #111; }
+.kpiItem { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 14px 12px; border: 1px solid #e2e8f0; border-radius: 10px; }
+.kpiItem svg { flex-shrink: 0; color: #526480; width: 26px; height: 26px; }
+.kpiItem span { display: block; font-size: 13px; color: #475569; }
+.kpiItem strong { display: block; margin-top: 3px; font-size: 22px; color: #232d46; }
 .workspace [data-report="availability"], .workspace [data-report="availability-tables"], .workspace [data-report="linked"], .workspace [data-report="linked-details"], .workspace [data-report="linked-support"], .workspace [data-report="variant-details"] { display: contents; }
 .workspace [data-report="linked"] > *, .workspace [data-report="linked-support"] > * { margin-top: 0; margin-bottom: 0; }
 .workspace :global(.report-risk) { grid-column: 1 / 6; grid-row: 3; }
@@ -38,13 +38,13 @@
 .workspace :global(.report-risk) > div > * { margin-top: 0; margin-bottom: 0; }
 .workspace :global(.report-risk-metrics) > div > div, .workspace [data-report="consumption-metrics"] > div > div { margin-bottom: 4px; }
 .workspace :global(.report-definition) { font-size: 13px; line-height: 1.4; color: #444; }
-.workspace :global(.report-risk-metrics) > div, .workspace [data-report="consumption-metrics"] > div { padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-shadow: none; min-width: 0; }
-.workspace :global(.report-risk-metrics) p, .workspace [data-report="consumption-metrics"] p { font-size: 13px; color: #222; margin: 0; }
+.workspace :global(.report-risk-metrics) > div, .workspace [data-report="consumption-metrics"] > div { padding: 10px; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: none; min-width: 0; }
+.workspace :global(.report-risk-metrics) p, .workspace [data-report="consumption-metrics"] p { font-size: 13px; color: #475569; margin: 0; }
 .workspace :global(.report-risk-metrics) h3, .workspace [data-report="consumption-metrics"] h3 { margin: 6px 0 0; font-size: 18px; }
 .workspace [data-report="consumption-intro"] > div:first-child { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
 .workspace [data-report="consumption-intro"] p { font-size: 13px; line-height: 1.4; margin-top: 3px; }
-.workspace [data-report="consumption-intro"] > div:last-child { padding: 8px; margin-top: 12px; border-radius: 4px; font-size: 13px; line-height: 1.4; }
-.workspace :global(.report-table-scroll) { max-height: 360px; overflow: auto; border: 1px solid #d2d2d2; border-radius: 4px; }
+.workspace [data-report="consumption-intro"] > div:last-child { padding: 8px; margin-top: 12px; border-radius: 8px; font-size: 13px; line-height: 1.4; }
+.workspace :global(.report-table-scroll) { max-height: 360px; overflow: auto; border: 1px solid #dce2eb; border-radius: 8px; }
 .workspace :global(.report-table) { width: 100%; min-width: 800px; border-collapse: collapse; font-size: 14px; }
 .workspace :global(.report-table) th { position: sticky; top: 0; background: #f5f5f5; padding: 10px; font-size: 13px; text-transform: uppercase; color: #666; text-align: left; font-weight: 600; }
 .workspace :global(.report-table) td { padding: 10px; border-top: 1px solid #dedede; }
@@ -71,3 +71,8 @@
   .kpiGrid, .workspace [data-report="consumption-metrics"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpiItem { padding: 10px 8px; gap: 8px; }
 }
+
+.toolbarActions button:hover:not(:disabled) { background: #f1f5f9; }
+.toolbarActions .refresh:hover:not(:disabled) { background: #34425f; }
+.kpiItem { background: #f8fafc; }
+@media (min-width: 1101px) and (max-width: 1500px) { .kpiGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

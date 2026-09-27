@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import styles from "./VariantsRecipe.module.css";
 import {
   InventoryField,
   inventoryInputClasses,
@@ -111,9 +112,9 @@ export default function RecipeEditor({
       onClose={() => void handleClose()}
       wide
     >
-      <div className="space-y-5">
+      <div className={styles.editor}>
         {errors.length > 0 ? (
-          <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             <ul className="space-y-1">
               {errors.map((error) => (
                 <li key={error}>{error}</li>
@@ -122,7 +123,7 @@ export default function RecipeEditor({
           </div>
         ) : null}
 
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
           Use this editor to define the base raw-material recipe for future sales. Modifier-driven
           adjustments and historical deductions remain untouched.
         </div>
@@ -138,7 +139,7 @@ export default function RecipeEditor({
               return (
                 <div
                   key={index}
-                  className="grid gap-3 rounded-3xl border border-slate-200 bg-white p-4 md:grid-cols-[minmax(0,1fr)_200px_180px_auto]"
+                  className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-[minmax(0,1fr)_200px_180px_auto]"
                 >
                   <InventoryField htmlFor={`recipe-material-${index}`} label="Raw material">
                     <select
@@ -202,7 +203,7 @@ export default function RecipeEditor({
                             : current.filter((_, itemIndex) => itemIndex !== index),
                         )
                       }
-                      className="rounded-full border border-rose-200 px-4 py-3 text-sm font-semibold text-rose-700"
+                      className={styles.danger}
                     >
                       Remove
                     </button>
@@ -216,7 +217,7 @@ export default function RecipeEditor({
               onClick={() =>
                 setRows((current) => [...current, { rawMaterialId: "", quantity: "" }])
               }
-              className="text-sm font-semibold text-[#f45a1f]"
+              className={styles.secondary}
             >
               Add ingredient
             </button>
@@ -227,7 +228,7 @@ export default function RecipeEditor({
           <button
             type="button"
             onClick={() => void handleClose()}
-            className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700"
+            className={styles.secondary}
           >
             Cancel
           </button>
@@ -235,7 +236,7 @@ export default function RecipeEditor({
             type="button"
             disabled={submitting || loading}
             onClick={() => void handleSave()}
-            className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className={styles.primary}
           >
             {submitting ? "Saving..." : "Save Recipe"}
           </button>

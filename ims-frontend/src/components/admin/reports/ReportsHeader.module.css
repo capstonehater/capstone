@@ -1,0 +1,11 @@
+.header { padding: 24px; border: 1px solid #dce2eb; border-radius: 12px; background: #fff; }
+.headerContent { display: grid; gap: 24px; align-items: center; }
+.header h1 { margin: 6px 0 10px; color: #232d46; font-size: 30px; font-weight: 700; line-height: 1.25; }
+.header p { margin-bottom: 0; color: #64748b; }
+.header .eyebrow { color: #64748b; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+.scope { display: block; padding: 16px; border: 1px solid #dce2eb; border-radius: 10px; background: #fff; color: #334155; transition: background-color 150ms, border-color 150ms; }
+.scope:hover { background: #f8fafc; border-color: #94a3b8; color: #232d46; }
+.scope[aria-current="page"] { background: #edf1f7; border-color: #94a3b8; color: #232d46; }
+.scope p { margin: 6px 0 0; color: #64748b; font-size: 13px; line-height: 1.6; }
+.scope:focus-visible { outline: 2px solid #526480; outline-offset: 3px; }
+@media (min-width: 1280px) { .headerContent { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); } }
