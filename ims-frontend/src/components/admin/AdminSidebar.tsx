@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { ChevronLeft, Menu, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, Menu, X } from "lucide-react";
 import { adminNavigation, matchesShellRoute } from "@/components/layout/shell-navigation";
 import styles from "@/components/layout/ApplicationShell.module.css";
 
@@ -65,6 +65,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
                 <div key={item.href} className={`${styles.navItemWrap} ${item.children ? styles.navItemHasChildren : ""}`}>
                   <Link href={item.href} title={collapsed ? item.label : undefined} onClick={onClose} className={styles.navLink} aria-current={matchesShellRoute(pathname, item.href.split("#")[0]) ? "page" : undefined}>
                     <item.icon size={19} aria-hidden="true" /><span>{collapsed ? null : item.label}</span>
+                    {item.children && !collapsed ? <ChevronDown size={14} aria-hidden="true" className="ml-auto" /> : null}
                   </Link>
                   {item.children && !collapsed ? <div className={styles.navDropdown}>{item.children.map(child => <Link key={child.href} href={child.href} onClick={onClose} className={styles.navSubLink}>{child.label}</Link>)}</div> : null}
                 </div>

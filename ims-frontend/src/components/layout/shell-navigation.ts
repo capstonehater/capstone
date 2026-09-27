@@ -13,7 +13,10 @@ export const adminNavigation = [
       { label: "Supplier Spend", href: "/admin/inventory/supplier-spend" },
     ] },
     { label: "Products", href: "/admin/products", icon: Package2, subtitle: "Manage menu products, variants, and recipes." },
-    { label: "Suppliers", href: "/admin/inventory/suppliers", icon: UsersRound, subtitle: "Manage suppliers and store locations." },
+    { label: "Suppliers", href: "/admin/inventory/suppliers", icon: UsersRound, subtitle: "Manage suppliers and store locations.", children: [
+      { label: "Supplier List", href: "/admin/inventory/suppliers" },
+      { label: "New Supplier", href: "/admin/inventory/suppliers/new" },
+    ] },
   ] },
   { label: "Reports", items: [
     { label: "Reports", href: "/admin/reports", icon: FileText, subtitle: "Review inventory and POS reports.", children: [

@@ -22,6 +22,7 @@ import {
   inventoryInputClasses,
 } from "@/components/admin/inventory/InventoryField";
 import InventoryModal from "@/components/admin/inventory/InventoryModal";
+import UserDetailsModal from "./UserDetailsModal";
 import ActionAlert from "@/components/feedback/ActionAlert";
 import { useAuthStore } from "@/store/authStore";
 import {
@@ -323,7 +324,6 @@ export default function UsersWorkspace() {
 
   const users = list?.items ?? [];
   const isSelf = Boolean(currentUser?.id && detail?.id === currentUser.id);
-  const selectedVisibleOnMobile = Boolean(selectedUserId);
 
   useEffect(() => {
     setSearchInput(search);
@@ -628,8 +628,8 @@ export default function UsersWorkspace() {
         <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} />
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[430px_minmax(0,1fr)]">
-        <section className={`${selectedVisibleOnMobile ? "hidden xl:flex" : "flex"} min-h-[66vh] flex-col rounded-[28px] bg-white p-5 shadow-sm`}>
+      <div>
+        <section className="flex min-w-0 flex-col rounded-[28px] bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#232d46]">
@@ -647,7 +647,7 @@ export default function UsersWorkspace() {
             </button>
           </div>
 
-          <div className="mt-4 space-y-3 rounded-3xl border border-slate-200 bg-slate-50/70 p-4">
+          <div className="mt-4 grid items-end gap-4 rounded-3xl border border-slate-200 bg-slate-50/70 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.7fr)]">
             <label className="relative block">
               <span className="sr-only">Search users</span>
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -688,7 +688,7 @@ export default function UsersWorkspace() {
             </div>
           </div>
 
-          <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+          <div className="mt-5 min-w-0 overflow-x-auto rounded-2xl border border-slate-200">
             {listLoading ? (
               <LoadingBlock label="Loading users..." />
             ) : users.length === 0 ? (
@@ -701,45 +701,38 @@ export default function UsersWorkspace() {
                 }
               />
             ) : (
-              <div className="space-y-3">
-                {users.map((user) => (
-                  <button
-                    type="button"
-                    key={user.id}
-                    onClick={() => updateQuery({ userId: user.id, tab }, "push")}
-                    className={`w-full rounded-3xl border p-4 text-left transition ${
-                      selectedUserId === user.id
-                        ? "border-[#f45a1f] bg-orange-50/60 shadow-sm"
-                        : "border-slate-200 bg-white hover:border-orange-200 hover:bg-orange-50/30"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <Avatar name={user.name} />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-slate-950">
-                              {user.name}
-                            </p>
-                            <p className="truncate text-xs text-slate-500">{user.email}</p>
-                          </div>
-                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusTone(user.status)}`}>
-                            {statusLabels[user.status]}
-                          </span>
-                        </div>
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${roleTone(user.role)}`}>
-                            {roleLabels[user.role]}
-                          </span>
-                          <span className="text-xs text-slate-500">
-                            Last active {formatDateTime(user.lastActive)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
+              <table className="w-full min-w-[850px] border-collapse text-left text-sm">
+                <caption className="sr-only">User directory. View an account to manage its profile, permissions, activity, and sessions.</caption>
+                <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    {['User', 'Email address', 'Role', 'Status', 'Last active', 'Actions'].map((heading) => (
+                      <th key={heading} scope="col" className="px-5 py-4 font-semibold">{heading}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {users.map((user) => (
+                    <tr key={user.id} className="transition-colors hover:bg-slate-50 focus-within:bg-slate-50">
+                      <td className="px-5 py-4">
+                        <button type="button" onClick={() => updateQuery({ userId: user.id, tab: 'overview' }, "push")}
+                          aria-haspopup="dialog" className="flex items-center gap-3 rounded-lg text-left font-semibold text-slate-950 outline-offset-4 focus-visible:outline-2 focus-visible:outline-slate-600">
+                          <Avatar name={user.name} />
+                          <span>{user.name}</span>
+                        </button>
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">{user.email}</td>
+                      <td className="whitespace-nowrap px-5 py-4"><span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${roleTone(user.role)}`}>{roleLabels[user.role]}</span></td>
+                      <td className="whitespace-nowrap px-5 py-4"><span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${statusTone(user.status)}`}>{statusLabels[user.status]}</span></td>
+                      <td className="whitespace-nowrap px-5 py-4 text-slate-500">{formatDateTime(user.lastActive)}</td>
+                      <td className="px-5 py-4">
+                        <button type="button" aria-haspopup="dialog" aria-label={`View details for ${user.name}`}
+                          onClick={() => updateQuery({ userId: user.id, tab: 'overview' }, "push")}
+                          className="whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-[#232d46] transition hover:border-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600">View details</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
 
@@ -753,27 +746,14 @@ export default function UsersWorkspace() {
           />
         </section>
 
-        <section className={`${selectedVisibleOnMobile ? "block" : "hidden xl:block"} min-h-[66vh] rounded-[28px] bg-white p-5 shadow-sm`}>
-          {!selectedUserId ? (
-            <EmptyBlock
-              icon={<UsersRound className="h-7 w-7" />}
-              title="Select a user"
-              description="Choose an account from the directory to review profile, permissions, activity, and sessions."
-            />
-          ) : detailLoading && !detail ? (
+        {selectedUserId && !dialog ? (
+        <UserDetailsModal onClose={() => updateQuery({ userId: null, tab: null }, "push")}>
+          {detailLoading || (detail?.id !== selectedUserId && !detailError) ? (
             <LoadingBlock label="Loading user detail..." />
           ) : detailError ? (
             <EmptyBlock title="Unable to load user" description={detailError} />
           ) : detail ? (
             <div className="space-y-5">
-              <button
-                type="button"
-                onClick={() => updateQuery({ userId: null, tab: null }, "push")}
-                className="text-sm font-semibold text-[#f45a1f] xl:hidden"
-              >
-                Back to users
-              </button>
-
               <UserProfileHeader
                 user={detail}
                 isSelf={isSelf}
@@ -827,7 +807,8 @@ export default function UsersWorkspace() {
               ) : null}
             </div>
           ) : null}
-        </section>
+        </UserDetailsModal>
+        ) : null}
       </div>
 
       <UserFormDialog
