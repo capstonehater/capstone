@@ -30,7 +30,7 @@ async function loadRows(kind: Kind): Promise<Row[]> {
   return materials.map((row) => ({ id: row.rawMaterialId, name: row.name, detail: row.sku, unit: row.unit.code, quantity: Number(row.summary.usableQuantity), amount: Number(row.inventoryValue) }));
 }
 
-export default function InventoryInsightPage({ kind }: { kind: Kind }) {
+export default function InventoryInsightPage({ kind, embedded = false }: { kind: Kind; embedded?: boolean }) {
   const [items, setItems] = useState<Row[]>([]);
   const [sortBy, setSortBy] = useState("amount");
   const [direction, setDirection] = useState("desc");
@@ -54,8 +54,8 @@ export default function InventoryInsightPage({ kind }: { kind: Kind }) {
   });
   const heading = "sticky top-0 z-10 bg-slate-50 px-5 py-4";
 
-  return (
-    <AdminDashboardLayout showHeader={false}>
+  const panel = (
+    <>
       <section className="space-y-5 text-[#232d46]">
         <header><h1 className="text-2xl font-bold">{config.title}</h1><p className="mt-1 text-sm text-slate-600">{config.description}</p></header>
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -90,6 +90,7 @@ export default function InventoryInsightPage({ kind }: { kind: Kind }) {
           )}
         </div>
       </section>
-    </AdminDashboardLayout>
+    </>
   );
+  return embedded ? panel : <AdminDashboardLayout showHeader={false}>{panel}</AdminDashboardLayout>;
 }

@@ -1,5 +1,2 @@
-import InventoryInsightPage from "@/components/admin/inventory/InventoryInsightPage";
-
-export default function SupplierSpendPage() {
-  return <InventoryInsightPage kind="supplier" />;
-}
+import { redirect } from "next/navigation";
+export default function Page() { redirect("/admin/inventory?view=supplier"); }

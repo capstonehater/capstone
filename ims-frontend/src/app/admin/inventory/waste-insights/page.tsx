@@ -1,5 +1,2 @@
-import InventoryInsightPage from "@/components/admin/inventory/InventoryInsightPage";
-
-export default function WasteInsightsPage() {
-  return <InventoryInsightPage kind="waste" />;
-}
+import { redirect } from "next/navigation";
+export default function Page() { redirect("/admin/inventory?view=waste"); }

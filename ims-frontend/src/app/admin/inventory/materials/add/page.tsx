@@ -1,3 +1,2 @@
-import MaterialActionPage from "@/components/admin/inventory/MaterialActionPage";
-
-export default function Page() { return <MaterialActionPage action="add" />; }
+import { redirect } from "next/navigation";
+export default function Page() { redirect("/admin/inventory?view=materials&action=create-material"); }

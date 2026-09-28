@@ -9,20 +9,9 @@ export const materialActions = [
 export const adminNavigation = [
   { label: "Main", items: [
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, subtitle: "Welcome back! Here's your inventory overview." },
-    { label: "Inventory", href: "/admin/inventory", icon: Boxes, subtitle: "Monitor stock, receiving, and waste.", children: [
-      { label: "Materials", href: "/admin/inventory/materials", subtitle: "Manage raw materials, stock levels, and availability." },
-      { label: "Stock Runs", href: "/admin/inventory/stock-runs", subtitle: "Review stock runs and continue receiving inventory." },
-      { label: "Low Stock", href: "/admin/inventory/low-stock", subtitle: "Review materials that need replenishment." },
-      { label: "Near Expiry", href: "/admin/inventory/near-expiry", subtitle: "Review materials and batches approaching their expiry dates." },
-      { label: "Waste Insights", href: "/admin/inventory/waste-insights", subtitle: "Review recorded waste by reason, quantity, and cost." },
-      { label: "High-Value Inventory", href: "/admin/inventory/high-value", subtitle: "Review active materials with usable stock and inventory value." },
-      { label: "Supplier Spend", href: "/admin/inventory/supplier-spend", subtitle: "Review posted stock-run spending by supplier." },
-    ] },
+    { label: "Inventory", href: "/admin/inventory", icon: Boxes, subtitle: "Manage materials, receiving, stock risks, and purchasing in one workspace." },
     { label: "Products", href: "/admin/products", icon: Package2, subtitle: "Manage menu products, variants, and recipes." },
-    { label: "Suppliers", href: "/admin/inventory/suppliers", icon: UsersRound, subtitle: "Manage suppliers and store locations.", children: [
-      { label: "Supplier List", href: "/admin/inventory/suppliers", subtitle: "Search suppliers and manage purchasing references." },
-      { label: "New Supplier", href: "/admin/inventory/suppliers/new", subtitle: "Add a supplier and its contact details and location." },
-    ] },
+    { label: "Suppliers", href: "/admin/inventory/suppliers", icon: UsersRound, subtitle: "Manage suppliers and store locations." },
   ] },
   { label: "Reports", items: [
     { label: "Reports", href: "/admin/reports", icon: FileText, subtitle: "Review inventory and POS reports.", children: [

@@ -1,10 +1,13 @@
 "use client";
 
 import styles from "./InventoryBusinessInsights.module.css";
-import { Boxes, ChartNoAxesCombined, Clock3, PackageSearch, Truck } from "lucide-react";
+import { ArrowRight, Boxes, ChartNoAxesCombined, Clock3, PackageSearch, Truck } from "lucide-react";
 import type { InventoryHealthReport, StockRunSpendReport, WasteSummaryReport } from "@/lib/reports";
 
+type ReportView = "low-stock" | "near-expiry" | "waste" | "value" | "supplier";
+
 type InventoryBusinessInsightsProps = {
+  onOpenReport?: (view: ReportView) => void;
   inventoryHealth: InventoryHealthReport | null;
   stockRunSpend: StockRunSpendReport | null;
   wasteSummary: WasteSummaryReport | null;
@@ -14,13 +17,14 @@ type InventoryBusinessInsightsProps = {
   formatDate: (value: string | null | undefined) => string;
 };
 
-function Panel({ title, icon, children, className = "", id }: { title: string; icon: React.ReactNode; children: React.ReactNode; className?: string; id?: string }) {
+function Panel({ title, icon, children, className = "", id, onOpen, footerLabel }: { title: string; icon: React.ReactNode; children: React.ReactNode; className?: string; id?: string; onOpen?: () => void; footerLabel: string }) {
   return (
     <section id={id} className={`${styles.panel} ${className}`}>
       <h3 className="mb-5 flex items-center gap-2 text-xl font-semibold text-[#232d46]">
         <span className="text-[#232d46]">{icon}</span>{title}
       </h3>
       {children}
+      {onOpen && <button type="button" onClick={onOpen} className={styles.reportFooter}><span>{footerLabel}</span><ArrowRight size={24} aria-hidden="true" /></button>}
     </section>
   );
 }
@@ -34,6 +38,7 @@ const headCellClass = "";
 const cellClass = "";
 
 export default function InventoryBusinessInsights({
+  onOpenReport,
   inventoryHealth,
   stockRunSpend,
   wasteSummary,
@@ -52,7 +57,7 @@ export default function InventoryBusinessInsights({
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-500">Loading inventory insights…</div>
       ) : (
         <div className={styles.grid}>
-          <Panel id="low-stock" title="Low Stock" icon={<PackageSearch size={16} />}>
+          <Panel onOpen={onOpenReport ? () => onOpenReport("low-stock") : undefined} id="low-stock" footerLabel="View all low-stock materials" title="Low Stock" icon={<PackageSearch size={16} />}>
             {inventoryHealth?.lowStockMaterials.length ? (
               <div>
                 <div className={styles.scroll}>
@@ -67,7 +72,7 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{inventoryHealth ? "No low-stock materials." : "Inventory health data unavailable."}</Empty>}
           </Panel>
 
-          <Panel id="near-expiry" title="Near Expiry" icon={<Clock3 size={16} />}>
+          <Panel onOpen={onOpenReport ? () => onOpenReport("near-expiry") : undefined} id="near-expiry" footerLabel="View all near-expiry batches" title="Near Expiry" icon={<Clock3 size={16} />}>
             {inventoryHealth?.nearExpiryBatches.length ? (
               <div>
                 <div className={styles.scroll}>
@@ -82,7 +87,7 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{inventoryHealth ? "No batches nearing expiry." : "Inventory health data unavailable."}</Empty>}
           </Panel>
 
-          <Panel id="waste-insights" title="Waste Insights" icon={<ChartNoAxesCombined size={16} />}>
+          <Panel onOpen={onOpenReport ? () => onOpenReport("waste") : undefined} id="waste-insights" footerLabel="View all waste records" title="Waste Insights" icon={<ChartNoAxesCombined size={16} />}>
             {wasteSummary?.byReason.length ? (
               <div>
                 <div className={styles.scroll}>
@@ -97,7 +102,7 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{wasteSummary ? "No waste recorded for this period." : "Waste report unavailable."}</Empty>}
           </Panel>
 
-          <Panel id="high-value" title="High-Value Inventory" icon={<Boxes size={16} />}>
+          <Panel onOpen={onOpenReport ? () => onOpenReport("value") : undefined} id="high-value" footerLabel="View all inventory values" title="High-Value Inventory" icon={<Boxes size={16} />}>
             {inventoryHealth?.highValueMaterials.length ? (
               <div>
                 <div className={styles.scroll}>
@@ -112,7 +117,7 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{inventoryHealth ? "No high-value inventory records." : "Inventory health data unavailable."}</Empty>}
           </Panel>
 
-          <Panel id="supplier-spend" title="Supplier Spend" icon={<Truck size={16} />}>
+          <Panel onOpen={onOpenReport ? () => onOpenReport("supplier") : undefined} id="supplier-spend" footerLabel="View all supplier spending" title="Supplier Spend" icon={<Truck size={16} />}>
             {stockRunSpend?.bySupplier.length ? (
               <div>
                 <div className={styles.scroll}>

@@ -1,5 +1,6 @@
 "use client";
 
+import SelectableTableRow from "@/components/admin/SelectableTableRow";
 import styles from "./UsersWorkspace.module.css";
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
@@ -23,7 +24,6 @@ import {
   inventoryInputClasses,
 } from "@/components/admin/inventory/InventoryField";
 import InventoryModal from "@/components/admin/inventory/InventoryModal";
-import UserDetailsModal from "./UserDetailsModal";
 import ActionAlert from "@/components/feedback/ActionAlert";
 import { useAuthStore } from "@/store/authStore";
 import {
@@ -524,21 +524,19 @@ export default function UsersWorkspace() {
     setDialogError(null);
   }
 
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [createVersion, setCreateVersion] = useState(0);
 
   async function handleCreate(input: CreateUserInput) {
     setSubmitting(true);
-    setCreateError(null);
+    resetDialogFeedback();
 
     try {
       await createManagedUser(input);
       await refreshList();
-      setCreateVersion((value) => value + 1);
+      setDialog(null);
       setNotice("User created. Account setup was initiated and the user remains Pending until completion.");
 
     } catch (error) {
-      setCreateError(error instanceof Error ? error.message : "Failed to create user");
+      setDialogError(error instanceof Error ? error.message : "Failed to create user");
     } finally {
       setSubmitting(false);
     }
@@ -634,12 +632,9 @@ export default function UsersWorkspace() {
 
       <section className={styles.topPanel}>
         <header><h1>USERS</h1><p>Manage staff accounts, roles, permissions, and account status.</p></header>
-        <UserFormDialog key={createVersion} mode="create" open user={null}
-          currentUserId={currentUser?.id ?? null} submitting={submitting} errorMessage={createError}
-          onClose={() => { setCreateError(null); setCreateVersion((value) => value + 1); }}
-          onSubmit={handleCreate} />
+        <button type="button" onClick={() => { resetDialogFeedback(); setDialog({ type: "create" }); }} className="mt-4 rounded-lg bg-[#232d46] px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">+ Add User</button>
       </section>
-      <div className={styles.layout}>
+      <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(320px,430px)_minmax(0,1fr)]">
         <section className={styles.directory}>
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -692,7 +687,7 @@ export default function UsersWorkspace() {
             </div>
           </div>
 
-          <div className="mt-5 min-w-0 overflow-x-auto rounded-2xl border border-slate-200">
+          <div className="mt-5 max-h-[65vh] min-w-0 overflow-auto rounded-lg border border-slate-300">
             {listLoading ? (
               <LoadingBlock label="Loading users..." />
             ) : users.length === 0 ? (
@@ -705,35 +700,21 @@ export default function UsersWorkspace() {
                 }
               />
             ) : (
-              <table className="w-full min-w-[850px] border-collapse text-left text-sm">
-                <caption className="sr-only">User directory. View an account to manage its profile, permissions, activity, and sessions.</caption>
-                <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                  <tr>
-                    {['User', 'Email address', 'Role', 'Status', 'Last active', 'Actions'].map((heading) => (
-                      <th key={heading} scope="col" className="px-5 py-4 font-semibold">{heading}</th>
-                    ))}
-                  </tr>
+              <table className="w-full table-fixed border-collapse text-xs">
+                <caption className="sr-only">Select a user to view account details.</caption>
+                <thead className="sticky top-0 bg-slate-100 text-left text-[11px] font-bold text-slate-500">
+                  <tr><th scope="col" className="w-[52%] px-3 py-2">User</th><th scope="col" className="w-[26%] px-2 py-2 text-center">Role</th><th scope="col" className="w-[22%] px-2 py-2 text-center">Status</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {users.map((user) => (
-                    <tr key={user.id} className="transition-colors hover:bg-slate-50 focus-within:bg-slate-50">
-                      <td className="px-5 py-4">
-                        <button type="button" onClick={() => updateQuery({ userId: user.id, tab: 'overview' }, "push")}
-                          aria-haspopup="dialog" className="flex items-center gap-3 rounded-lg text-left font-semibold text-slate-950 outline-offset-4 focus-visible:outline-2 focus-visible:outline-slate-600">
-                          <Avatar name={user.name} />
-                          <span>{user.name}</span>
-                        </button>
+                    <SelectableTableRow key={user.id} selected={selectedUserId === user.id} onSelect={() => updateQuery({ userId: user.id, tab }, "push")}>
+                      <td className="px-3 py-2">
+                        <p title={user.name} className="mb-1! truncate text-xs font-semibold text-slate-900">{user.name}</p>
+                        <p title={user.email} className="mb-0! truncate text-[13px] text-slate-500">{user.email}</p>
                       </td>
-                      <td className="px-5 py-4 text-slate-600">{user.email}</td>
-                      <td className="whitespace-nowrap px-5 py-4"><span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${roleTone(user.role)}`}>{roleLabels[user.role]}</span></td>
-                      <td className="whitespace-nowrap px-5 py-4"><span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${statusTone(user.status)}`}>{statusLabels[user.status]}</span></td>
-                      <td className="whitespace-nowrap px-5 py-4 text-slate-500">{formatDateTime(user.lastActive)}</td>
-                      <td className="px-5 py-4">
-                        <button type="button" aria-haspopup="dialog" aria-label={`View details for ${user.name}`}
-                          onClick={() => updateQuery({ userId: user.id, tab: 'overview' }, "push")}
-                          className="whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-[#232d46] transition hover:border-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600">View details</button>
-                      </td>
-                    </tr>
+                      <td className="px-2 py-2 text-center text-xs text-slate-700">{roleLabels[user.role]}</td>
+                      <td className="px-2 py-2 text-center text-xs text-slate-700">{statusLabels[user.status]}</td>
+                    </SelectableTableRow>
                   ))}
                 </tbody>
               </table>
@@ -752,7 +733,7 @@ export default function UsersWorkspace() {
 
       <UserFormDialog
         mode={dialog?.type === "edit" ? "edit" : "create"}
-        open={dialog?.type === "edit"}
+        open={dialog?.type === "create" || dialog?.type === "edit"}
         user={dialog?.type === "edit" ? dialog.user : null}
         currentUserId={currentUser?.id ?? null}
         submitting={submitting}
@@ -764,14 +745,16 @@ export default function UsersWorkspace() {
         onSubmit={(input) => (dialog?.type === "edit" ? handleEdit(input) : handleCreate(input))}
       />
 
-        {selectedUserId && !dialog ? (
-        <UserDetailsModal onClose={() => updateQuery({ userId: null, tab: null }, "push")}>
-          {detailLoading || (detail?.id !== selectedUserId && !detailError) ? (
+        <section className={`${selectedUserId ? "block" : "hidden xl:block"} min-w-0 rounded-xl border border-slate-200 bg-white p-5`}>
+          {!selectedUserId ? (
+            <EmptyBlock icon={<UsersRound className="h-7 w-7" />} title="Select a user" description="Choose an account to review profile, permissions, activity, and sessions." />
+          ) : detailLoading || (detail?.id !== selectedUserId && !detailError) ? (
             <LoadingBlock label="Loading user detail..." />
           ) : detailError ? (
             <EmptyBlock title="Unable to load user" description={detailError} />
           ) : detail ? (
             <div className="space-y-5">
+              <button type="button" onClick={() => updateQuery({ userId: null, tab: null }, "push")} className="text-sm font-semibold text-[#232d46] xl:hidden">Back to users</button>
               <UserProfileHeader
                 user={detail}
                 isSelf={isSelf}
@@ -825,8 +808,7 @@ export default function UsersWorkspace() {
               ) : null}
             </div>
           ) : null}
-        </UserDetailsModal>
-        ) : null}
+        </section>
       </div>
 
 
@@ -1436,7 +1418,7 @@ function UserFormDialogBody({
   }
 
   const formContent = (
-      <form className={mode === "create" ? styles.createForm : "grid gap-4 md:grid-cols-2"} onSubmit={handleSubmit}>
+      <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
         {clientErrors.length > 0 ? (
           <div className="md:col-span-2 rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {clientErrors.map((error) => (
@@ -1486,8 +1468,8 @@ function UserFormDialogBody({
         </InventoryField>
 
         <div className="md:col-span-2 flex justify-end gap-3 pt-2">
-          <button type="button" onClick={onClose} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
-            {mode === "create" ? "Clear" : "Cancel"}
+          <button type="button" onClick={onClose} disabled={submitting} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">
+            Cancel
           </button>
           <button type="submit" disabled={submitting} className="rounded-full bg-slate-950 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">
             {submitting ? "Saving..." : mode === "create" ? "Create User" : "Save Changes"}
@@ -1496,9 +1478,7 @@ function UserFormDialogBody({
       </form>
   );
 
-  if (mode === "create") return formContent;
-
-  return <InventoryModal title={`Edit ${user?.name ?? "User"}`} description="Update profile fields and assignable role data." onClose={onClose}>
+  return <InventoryModal title={mode === "create" ? "Add User" : `Edit ${user?.name ?? "User"}`} description={mode === "create" ? "Create a pending account and send an account setup email." : "Update profile fields and assignable role data."} onClose={submitting ? () => undefined : onClose}>
     {formContent}
   </InventoryModal>;
 }
@@ -1535,7 +1515,7 @@ function ConfirmDialog({
           <p className="mt-1 text-sm text-slate-500">{dialog.user.email}</p>
         </div>
         <div className="flex justify-end gap-3">
-          <button type="button" onClick={onClose} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
+          <button type="button" onClick={onClose} disabled={submitting} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">
             Cancel
           </button>
           <button

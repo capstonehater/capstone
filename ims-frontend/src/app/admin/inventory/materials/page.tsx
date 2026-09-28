@@ -1,5 +1,2 @@
-import InventoryWorkspace from "@/components/admin/inventory/InventoryWorkspace";
-
-export default function MaterialsPage() {
-  return <InventoryWorkspace materialsOnly />;
-}
+import { redirect } from "next/navigation";
+export default function Page() { redirect("/admin/inventory?view=materials"); }

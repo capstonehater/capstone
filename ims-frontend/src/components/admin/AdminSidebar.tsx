@@ -107,7 +107,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
                     <item.icon size={19} aria-hidden="true" /><span>{collapsed ? null : item.label}</span>
                   </Link>}
                   {item.children ? <div id={`sidebar-${item.label.toLowerCase()}`} className={styles.navDropdown} hidden={collapsed || !openSections[item.href]}>
-                    {((item.href === "/admin/reports" || item.href === "/admin/inventory/suppliers") ? item.children : [{ label: "Overview", href: item.href }, ...item.children]).map(child => <Link key={child.href} href={child.href} onClick={navigate} className={styles.navSubLink} aria-current={!dropdownSelection && pathname === child.href ? "page" : undefined}>{child.label}</Link>)}
+                    {(item.href === "/admin/reports" ? item.children : [{ label: "Overview", href: item.href }, ...item.children]).map(child => <Link key={child.href} href={child.href} onClick={navigate} className={styles.navSubLink} aria-current={!dropdownSelection && pathname === child.href ? "page" : undefined}>{child.label}</Link>)}
                   </div> : null}
                 </div>
               ))}
