@@ -53,7 +53,12 @@
 .field input { width: 100%; min-height: 46px; padding: 12px 14px; border: 1px solid #d5ddea; border-radius: 8px; background: #fff; color: #09152d; font-size: 14px; font-weight: 400; transition: border-color .15s, box-shadow .15s; }
 .field input::placeholder { color: #7b8798; opacity: 1; }
 .field input:focus-visible { outline: 2px solid #5274a4; outline-offset: 2px; border-color: #5274a4; }
-.formLinks { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: -2px; font-size: 14px; }
+.passwordField { position: relative; }
+.passwordField input { padding-right: 52px; }
+.passwordToggle { position: absolute; top: 50%; right: 3px; transform: translateY(-50%); display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #596d8a; cursor: pointer; }
+.passwordToggle:hover { background: #f1f5fa; color: #232d46; }
+.passwordToggle:focus-visible { outline: 2px solid #5274a4; outline-offset: -2px; }
+.formLinks { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: -2px; font-size: 14px; }
 .formLinks button { padding: 0; border: 0; background: none; color: #596d8a; cursor: pointer; }
 .formLinks a { color: #365780; }
 .formLinks a:hover, .formLinks button:hover { text-decoration: underline; }

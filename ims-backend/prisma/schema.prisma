@@ -856,3 +856,11 @@ model ForecastRecommendation {
   series   ForecastSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
   @@map("forecast_recommendations")
 }
+
+model ForecastSettings {
+  id           String   @id @default("default")
+  forecastDays Int      @default(7) @map("forecast_days")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("forecast_settings")
+}

@@ -49,15 +49,15 @@ def load_inputs():
     for column in ["CurrentStock", "LeadTime", "SafetyStock"]:
         inventory[column] = pd.to_numeric(inventory[column], errors="raise")
     counts = forecast.groupby(["RawMaterial", "Unit"])["Date"].nunique()
-    if (counts != 7).any() or forecast.duplicated(["RawMaterial", "Unit", "Date"]).any():
-        raise ValueError("Each material requires exactly seven distinct forecast dates; regenerate the incomplete CSV.")
+    if (~counts.between(1, 30)).any() or counts.nunique() != 1 or forecast.duplicated(["RawMaterial", "Unit", "Date"]).any():
+        raise ValueError("Each material requires the same 1 to 30 distinct forecast dates; regenerate the incomplete CSV.")
     if inventory["Product"].duplicated().any():
         raise ValueError("Inventory contains duplicate material names")
     return forecast, inventory
 
 
 def create_forecast_summary(forecast):
-    """Aggregate the seven forecast days by raw material and unit."""
+    """Aggregate the selected forecast days by raw material and unit."""
     metric_columns = {
         "MAE": ("MAE", "first"),
         "RMSE": ("RMSE", "first"),
@@ -65,6 +65,9 @@ def create_forecast_summary(forecast):
         "SMAPE": ("SMAPE", "first"),
     }
     aggregation = {
+        "ForecastTotal": ("Forecast", "sum"),
+        "ForecastDays": ("Date", "nunique"),
+        # Legacy CSV consumers still read this field; new consumers use ForecastTotal.
         "Forecast7Days": ("Forecast", "sum"),
         "DailyDemand": ("Forecast", "mean"),
     }
@@ -95,7 +98,7 @@ def build_report(forecast, inventory):
         inventory_data[["CurrentStock", "SafetyStock", "LeadTime"]].fillna(0)
     )
 
-    inventory_data["DailyDemand"] = (inventory_data["Forecast7Days"] / 7).round(2)
+    inventory_data["DailyDemand"] = (inventory_data["ForecastTotal"] / inventory_data["ForecastDays"]).round(2)
     inventory_data["LeadTimeDemand"] = (
         inventory_data["DailyDemand"] * inventory_data["LeadTime"]
     ).round(2)
@@ -116,7 +119,7 @@ def build_report(forecast, inventory):
     inventory_data["RecommendedPurchase"] = np.ceil(
         np.maximum(
             0,
-            inventory_data["Forecast7Days"]
+            inventory_data["ForecastTotal"]
             + inventory_data["SafetyStock"]
             - inventory_data["CurrentStock"],
         )
@@ -127,7 +130,7 @@ def build_report(forecast, inventory):
     inventory_data["ProjectedRemaining"] = (
         inventory_data["CurrentStock"]
         + inventory_data["RecommendedPurchase"]
-        - inventory_data["Forecast7Days"]
+        - inventory_data["ForecastTotal"]
     ).round(2)
 
     def get_priority(row):
@@ -136,7 +139,7 @@ def build_report(forecast, inventory):
         if row["RecommendedPurchase"] == 0:
             return "Healthy"
         stockout_day = row["StockoutDay"]
-        if pd.isna(stockout_day) or stockout_day > 7:
+        if pd.isna(stockout_day) or stockout_day > row["ForecastDays"]:
             return "Low"
         if stockout_day <= 2:
             return "Critical"
@@ -206,7 +209,7 @@ def lookup_product(report):
         print("=" * 70)
         print(f"Unit                 : {product['Unit']}")
         print(f"Current stock        : {product['CurrentStock']:.2f}")
-        print(f"Seven-day forecast   : {product['Forecast7Days']:.2f}")
+        print(f"{int(product['ForecastDays'])}-day forecast   : {product['ForecastTotal']:.2f}")
         print(f"Average daily demand : {product['DailyDemand']:.2f}")
         print(f"Safety stock         : {product['SafetyStock']:.2f}")
         print(f"Days remaining       : {product['DaysRemaining']:.1f}")

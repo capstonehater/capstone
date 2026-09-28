@@ -18,10 +18,16 @@ body {
   line-height: 1.6;
 }
 
+p,
 button,
 input,
 select,
 textarea {
+  font-family: var(--font-sans);
+}
+
+input::placeholder,
+textarea::placeholder {
   font-family: inherit;
 }
 

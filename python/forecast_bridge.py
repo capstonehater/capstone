@@ -28,8 +28,12 @@ def conversion(source, target):
     return left[1] / right[1]
 
 
+def forecast_calendar_days(start, days=7):
+    return pd.date_range(pd.Timestamp(start), periods=SARIMA.validate_forecast_days(days), freq="D")
+
+
 def seven_calendar_days(start):
-    return pd.date_range(pd.Timestamp(start), periods=7, freq="D")
+    return forecast_calendar_days(start, 7)
 
 
 def match_material(rows, materials):
@@ -44,6 +48,7 @@ def match_material(rows, materials):
 
 
 def generate(request):
+    forecast_days = SARIMA.validate_forecast_days(request.get('forecastDays', 7))
     source = HERE / 'cafe_raw_material_daily_consumption.csv'
     history = pd.read_csv(source)
     required = {'date', 'product', 'raw_material', 'item_code', 'quantity_used', 'unit', 'holiday'}
@@ -62,9 +67,9 @@ def generate(request):
         raise ValueError(f'Start date must be after {last.date()} and within 60 days of the latest history.')
     business_days_only = not (history['date'].dt.dayofweek >= 5).any()
     date_range = pd.bdate_range if business_days_only else pd.date_range
-    dates = seven_calendar_days(start)
+    dates = forecast_calendar_days(start, forecast_days)
     # Four SARIMA candidates, three rolling validation folds. Full CLI grid remains available.
-    SARIMA.CONFIG.update(P=[0, 1], Q=[0, 1], SP=[1], SD=[0], SQ=[0], CV_FOLDS=3, BOXCOX_LAMBDA=0, BUSINESS_DAYS_ONLY=business_days_only, SEASON_LENGTH=5 if business_days_only else 7)
+    SARIMA.CONFIG.update(FORECAST_DAYS=forecast_days, P=[0, 1], Q=[0, 1], SP=[1], SD=[0], SQ=[0], CV_FOLDS=3, BOXCOX_LAMBDA=0, BUSINESS_DAYS_ONLY=business_days_only, SEASON_LENGTH=5 if business_days_only else 7)
     warnings = ['Training source: completed POS ingredient consumption with CSV history on uncovered dates; stock source: live inventory snapshot.',
                 'Weekday-only history: weekend forecasts are zero.' if business_days_only else 'POS includes weekend activity: SARIMA uses daily observations and seven-day seasonality.',
                 'Product filters show store-wide ingredient demand, not predicted product sales.']
@@ -100,11 +105,13 @@ def generate(request):
                 training = SARIMA.train_sarima(stationary)
                 model = SARIMA.fit_full_model(stationary, training)
                 horizon = len(date_range(series['Date'].max() + pd.Timedelta(days=1), dates[-1]))
-                future = SARIMA.forecast_future(model, stationary, horizon=horizon, exog_cols=training['exog_cols'])
+                future = (SARIMA.forecast_future(model, stationary, horizon=horizon, exog_cols=training['exog_cols'])
+                          if horizon else pd.DataFrame(columns=['Date', 'Forecast', 'Lower95', 'Upper95']))
             future = future.set_index('Date').reindex(dates)
             weekends = future.index.dayofweek >= 5
             if business_days_only:
                 future.loc[weekends, ['Forecast', 'Lower95', 'Upper95']] = 0
+            future = future.astype({'Forecast': float, 'Lower95': float, 'Upper95': float})
             numbers = future[['Forecast', 'Lower95', 'Upper95']].to_numpy()
             if not np.isfinite(numbers).all():
                 raise ValueError('SARIMA returned non-finite estimates or confidence bounds')
@@ -134,7 +141,7 @@ def generate(request):
             if material['currentStock'] is None:
                 recommendation['RecommendedPurchase'] = None
                 recommendation['BuyOnNextRun'] = 'No Data'
-            previous = float(raw.loc[(raw['transaction_date'] > last - pd.Timedelta(days=7)) & (raw['transaction_date'] <= last), 'transaction_qty'].sum())
+            previous = float(raw.loc[(raw['transaction_date'] > last - pd.Timedelta(days=forecast_days)) & (raw['transaction_date'] <= last), 'transaction_qty'].sum())
             total = float(future['Forecast'].sum())
             results.append({
                 'materialId': material['id'], 'name': material['name'], 'unit': material['unit'],
@@ -146,7 +153,8 @@ def generate(request):
                              'trainingSource': 'POS + CSV' if request.get('posDates') else 'CSV',
                              'posSnapshotAt': request.get('capturedAt'),
                              'posMaterialDays': sum(item['materialId'] == material['id'] for item in request.get('posHistory', [])),
-                             'conversionFactor': policy_info['factor'] if policy_info else 1, 'previous7Days': previous,
+                             'conversionFactor': policy_info['factor'] if policy_info else 1,
+                             'forecastDays': forecast_days, 'previousPeriodDays': forecast_days, 'previousPeriodUsage': previous,
                              'changePercent': round((total-previous)/previous*100, 2) if previous > 0 else None},
                 'recommendation': recommendation,
             })

@@ -6,8 +6,8 @@ import styles from './forecasting.module.css';
 
 type Option = { value: string; label: string };
 
-export default function GraphSelect({ label, value, options, onChange, className = '' }: {
-  label: string; value: string; options: Option[]; onChange: (value: string) => void; className?: string;
+export default function GraphSelect({ label, value, options, onChange, className = '', disabled = false, describedBy }: {
+  label: string; value: string; options: Option[]; onChange: (value: string) => void; className?: string; disabled?: boolean; describedBy?: string;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -26,6 +26,7 @@ export default function GraphSelect({ label, value, options, onChange, className
   }, [open]);
 
   const openMenu = () => {
+    if (disabled) return;
     setOpen(true);
     requestAnimationFrame(() => items.current[options.findIndex((option) => option.value === value)]?.focus());
   };
@@ -35,10 +36,10 @@ export default function GraphSelect({ label, value, options, onChange, className
     if (event.key === 'Escape' && open) { event.preventDefault(); setOpen(false); trigger.current?.focus(); }
   }}>
     <span id={`${id}-label`} className={styles.graphSelectLabel}>{label}</span>
-    <button ref={trigger} type="button" className={styles.graphSelectTrigger} aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? `${id}-options` : undefined} onClick={() => open ? setOpen(false) : openMenu()} onKeyDown={(event) => {
+    <button ref={trigger} type="button" disabled={disabled} aria-describedby={describedBy} className={styles.graphSelectTrigger} aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="listbox" aria-expanded={open && !disabled} aria-controls={open && !disabled ? `${id}-options` : undefined} onClick={() => open ? setOpen(false) : openMenu()} onKeyDown={(event) => {
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); openMenu(); }
     }}><span id={`${id}-value`}>{selected?.label ?? 'Select'}</span><ChevronDown size={17} aria-hidden="true" /></button>
-    {open && <div id={`${id}-options`} role="listbox" aria-labelledby={`${id}-label`} className={styles.graphSelectMenu}>
+    {open && !disabled && <div id={`${id}-options`} role="listbox" aria-labelledby={`${id}-label`} className={styles.graphSelectMenu}>
       {options.map((option, index) => <button key={option.value} ref={(node) => { items.current[index] = node; }} type="button" role="option" aria-selected={option.value === value} className={`${styles.graphSelectOption} ${option.value === value ? styles.graphSelectSelected : ''}`} onClick={() => { onChange(option.value); setOpen(false); trigger.current?.focus(); }} onKeyDown={(event) => {
         let next = index;
         if (event.key === 'ArrowDown') next = (index + 1) % options.length;

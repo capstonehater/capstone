@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { PanelTop, PanelsLeftRight } from 'lucide-react';
-import { fetchForecast, type ForecastResponse, type ForecastRun, type ForecastSeries } from '@/lib/forecasting';
+import { fetchForecast, forecastPeriodDays, forecastTotal, type ForecastResponse, type ForecastRun, type ForecastSeries } from '@/lib/forecasting';
 import GraphSelect from './GraphSelect';
 import styles from './forecasting.module.css';
 
@@ -10,20 +11,63 @@ const number = (value: number) => value.toLocaleString('en-PH', { maximumFractio
 const dateLabel = (value: string) => new Date(`${value.slice(0, 10)}T12:00:00Z`).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 type Period = ForecastResponse['periods'][number];
 
-function WeekChart({ run, series, scale }: { run: ForecastRun | null; series?: ForecastSeries; scale: number }) {
-  if (!run || !series) return <p className={styles.graphEmpty}>No saved forecast for this material in this week.</p>;
+function PeriodChart({ run, series, scale }: { run: ForecastRun | null; series?: ForecastSeries; scale: number }) {
+  const tooltipId = useId();
+  const [hovered, setHovered] = useState<{ key: string; date: string; left: number; top: number } | null>(null);
+  useEffect(() => {
+    if (!hovered) return;
+    const dismiss = () => setHovered(null);
+    window.addEventListener('scroll', dismiss, true);
+    window.addEventListener('resize', dismiss);
+    return () => {
+      window.removeEventListener('scroll', dismiss, true);
+      window.removeEventListener('resize', dismiss);
+    };
+  }, [hovered]);
+  if (!run || !series) return <p className={styles.graphEmpty}>No saved forecast for this material in this period.</p>;
   const points = series.points;
+  const chartKey = `${run.id}:${series.materialId}`;
+  const activePoint = hovered?.key === chartKey ? points.find((point) => point.date === hovered.date) : undefined;
+  const showPoint = (element: SVGCircleElement, date: string) => {
+    const bounds = element.getBoundingClientRect();
+    const tooltipWidth = Math.min(280, window.innerWidth - 24);
+    setHovered({ key: chartKey, date,
+      left: Math.max(12, Math.min(bounds.left + bounds.width / 2 - tooltipWidth / 2, window.innerWidth - tooltipWidth - 12)),
+      top: Math.max(12, Math.min(bounds.top >= 148 ? bounds.top - 140 : bounds.bottom + 12, window.innerHeight - 140)),
+    });
+  };
   const rangeExceedsScale = points.some((point) => Number(point.upper95) > scale);
-  const position = (value: number, index: number) => `${55 + index * 106},${170 - value / scale * 140}`;
+  const width = Math.max(750, points.length * 64 + 110);
+  const x = (index: number) => points.length === 1 ? width / 2 : 55 + index * (width - 110) / (points.length - 1);
+  const position = (value: number, index: number) => `${x(index)},${170 - value / scale * 140}`;
   return <>
-    <div className={styles.liveChart}><svg viewBox="0 0 750 215" role="img" aria-label={`Daily expected usage for ${series.name}, ${dateLabel(run.startDate)} to ${dateLabel(run.endDate)}, in ${series.unit}. Shaded area shows the possible range.`}>
-      {[0, 0.5, 1].map((fraction) => <g key={fraction}><line x1="55" x2="700" y1={170-fraction*140} y2={170-fraction*140} stroke="#ddd" /><text x="48" y={174-fraction*140} textAnchor="end" fontSize="11" fill="#666">{number(scale*fraction)}</text></g>)}
+    <div className={styles.liveChart}><svg style={{ minWidth: width, maxWidth: 'none' }} viewBox={`0 0 ${width} 215`} role="group" aria-label={`Daily expected usage for ${series.name}, ${dateLabel(run.startDate)} to ${dateLabel(run.endDate)}, in ${series.unit}. Shaded area shows the possible range.`}>
+      {[0, 0.5, 1].map((fraction) => <g key={fraction}><line x1="55" x2={width - 55} y1={170-fraction*140} y2={170-fraction*140} stroke="#ddd" /><text x="48" y={174-fraction*140} textAnchor="end" fontSize="11" fill="#666">{number(scale*fraction)}</text></g>)}
       <polygon points={[...points.map((point, index) => position(Math.min(Number(point.upper95), scale), index)), ...points.map((point, index) => position(Math.max(0, Number(point.lower95)), index)).reverse()].join(' ')} fill="#17840018" />
       <polyline points={points.map((point, index) => position(Number(point.forecast), index)).join(' ')} fill="none" stroke="#178400" strokeWidth="2" />
-      {points.map((point, index) => <g key={point.date}><circle cx={55+index*106} cy={170-Number(point.forecast)/scale*140} r="4" fill="#178400"><title>{dateLabel(point.date)}: {number(Number(point.forecast))} {series.unit}</title></circle><text x={55+index*106} y="195" textAnchor="middle" fontSize="12" fill="#666">{point.date.slice(5, 10)}</text></g>)}
+      {points.map((point, index) => <g key={point.date}>
+        <circle cx={x(index)} cy={170-Number(point.forecast)/scale*140} r={activePoint?.date === point.date ? 6 : 4} fill="#178400" stroke={activePoint?.date === point.date ? '#fff' : 'none'} strokeWidth="2" pointerEvents="none" />
+        <circle className={styles.chartPointTarget} cx={x(index)} cy={170-Number(point.forecast)/scale*140} r="13" fill="transparent" tabIndex={0} role="button"
+          aria-label={`${dateLabel(point.date)}: expected usage ${number(Number(point.forecast))} ${series.unit}; possible range ${number(Number(point.lower95))} to ${number(Number(point.upper95))} ${series.unit}`}
+          aria-describedby={activePoint?.date === point.date ? tooltipId : undefined}
+          onPointerEnter={(event) => showPoint(event.currentTarget, point.date)} onPointerLeave={() => setHovered(null)}
+          onFocus={(event) => showPoint(event.currentTarget, point.date)} onBlur={() => setHovered(null)}
+          onClick={(event) => showPoint(event.currentTarget, point.date)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') { event.preventDefault(); setHovered(null); }
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); showPoint(event.currentTarget, point.date); }
+          }} />
+        <text x={x(index)} y="195" textAnchor="middle" fontSize="12" fill="#666">{point.date.slice(5, 10)}</text>
+      </g>)}
     </svg></div>
+    {activePoint && hovered && createPortal(<div id={tooltipId} role="tooltip" className={styles.chartTooltip} style={{ left: hovered.left, top: hovered.top }}>
+      <strong>{dateLabel(activePoint.date)}</strong>
+      <span>Expected usage</span>
+      <b>{number(Number(activePoint.forecast))} {series.unit}</b>
+      <small>95% range: {number(Number(activePoint.lower95))} ? {number(Number(activePoint.upper95))} {series.unit}</small>
+    </div>, document.body)}
     {rangeExceedsScale && <p className={styles.graphRangeNote}>The possible range extends above the chart. Its full values remain in the saved forecast.</p>}
-    <p className={styles.graphTotal}>Seven-day expected usage: <strong>{number(Number(series.recommendation?.data.Forecast7Days ?? points.reduce((sum, point) => sum + Number(point.forecast), 0)))} {series.unit}</strong></p>
+    <p className={styles.graphTotal}>{forecastPeriodDays(run)}-day expected usage: <strong>{number(forecastTotal(series))} {series.unit}</strong></p>
   </>;
 }
 
@@ -45,7 +89,7 @@ export default function ForecastGraph({ periods, currentRun, productId, material
     let active = true;
     fetchForecast(productId, singleId)
       .then((result) => { if (active) { setSingleSaved(result.run); setError(''); } })
-      .catch(() => { if (active) setError('Could not load this saved week. Please choose another.'); });
+      .catch(() => { if (active) setError('Could not load this saved period. Please choose another.'); });
     return () => { active = false; };
   }, [mode, singleId, productId]);
 
@@ -55,7 +99,7 @@ export default function ForecastGraph({ periods, currentRun, productId, material
     Promise.all([leftId === currentRun.id ? Promise.resolve({ run: currentRun }) : fetchForecast(productId, leftId),
       rightId === currentRun.id ? Promise.resolve({ run: currentRun }) : fetchForecast(productId, rightId)])
       .then(([leftResult, rightResult]) => { if (active) { setLeft(leftResult.run); setRight(rightResult.run); setError(''); } })
-      .catch(() => { if (active) setError('Could not load one of the saved weeks. Please choose a week again.'); });
+      .catch(() => { if (active) setError('Could not load one of the saved periods. Please choose a period again.'); });
     return () => { active = false; };
   }, [mode, leftId, rightId, currentRun, productId]);
 
@@ -74,22 +118,22 @@ export default function ForecastGraph({ periods, currentRun, productId, material
     <div className={styles.graphHeader}>
       <div className={styles.viewControls} role="group" aria-label="Graph view">
         <button type="button" className={mode === 'single' ? styles.viewActive : ''} aria-pressed={mode === 'single'} onClick={() => setMode('single')} title="Single view"><PanelTop size={19} aria-hidden="true" /><span>Single</span></button>
-        <button type="button" className={mode === 'compare' ? styles.viewActive : ''} aria-pressed={mode === 'compare'} onClick={() => { setLeftId(currentRun.id); setRightId(periods.find((period) => period.id !== currentRun.id)?.id ?? currentRun.id); setMode('compare'); }} title="Compare two weeks"><PanelsLeftRight size={19} aria-hidden="true" /><span>Compare</span></button>
+        <button type="button" className={mode === 'compare' ? styles.viewActive : ''} aria-pressed={mode === 'compare'} onClick={() => { setLeftId(currentRun.id); setRightId(periods.find((period) => period.id !== currentRun.id)?.id ?? currentRun.id); setMode('compare'); }} title="Compare two periods"><PanelsLeftRight size={19} aria-hidden="true" /><span>Compare</span></button>
       </div>
       <h2>Expected daily usage</h2>
       <GraphSelect label="Material" value={selected.materialId} options={materialOptions} onChange={onMaterialChange} className={styles.graphMaterialSelect} />
     </div>
     {mode === 'single' ? <>
       {error && <p role="alert" className={styles.errorMessage}>{error}</p>}
-      <div className={styles.graphGrid}><div className={styles.graphWeek}><GraphSelect label="Saved week" value={singleId} onChange={setSingleId} options={[{ value: '', label: `Latest: ${dateLabel(currentRun.startDate)} – ${dateLabel(currentRun.endDate)}` }, ...weekOptions.filter((option) => option.value !== currentRun.id)]} />{singleRun ? <WeekChart run={singleRun} series={singleSeries} scale={scale} /> : <p className={styles.graphEmpty}>Loading saved forecast...</p>}</div></div>
+      <div className={styles.graphGrid}><div className={styles.graphWeek}><GraphSelect label="Saved period" value={singleId} onChange={setSingleId} options={[{ value: '', label: `Latest: ${dateLabel(currentRun.startDate)} – ${dateLabel(currentRun.endDate)}` }, ...weekOptions.filter((option) => option.value !== currentRun.id)]} />{singleRun ? <PeriodChart run={singleRun} series={singleSeries} scale={scale} /> : <p className={styles.graphEmpty}>Loading saved forecast...</p>}</div></div>
     </> : <>
-      {periods.length < 2 && <p className={styles.graphHint}>Only one saved week is available. Another week will appear automatically after the next forecast.</p>}
+      {periods.length < 2 && <p className={styles.graphHint}>Only one saved period is available. Another period will appear automatically after the next forecast.</p>}
       {error && <p role="alert" className={styles.errorMessage}>{error}</p>}
       <div className={`${styles.graphGrid} ${styles.graphCompare}`}>
-        <div className={styles.graphWeek}><GraphSelect label="First week" value={leftId} onChange={setLeftId} options={weekOptions} />{leftRun ? <WeekChart run={leftRun} series={leftSeries} scale={scale} /> : <p className={styles.graphEmpty}>Loading saved forecast...</p>}</div>
-        <div className={styles.graphWeek}><GraphSelect label="Second week" value={rightId} onChange={setRightId} options={weekOptions} />{rightRun ? <WeekChart run={rightRun} series={rightSeries} scale={scale} /> : <p className={styles.graphEmpty}>Loading saved forecast...</p>}</div>
+        <div className={styles.graphWeek}><GraphSelect label="First period" value={leftId} onChange={setLeftId} options={weekOptions} />{leftRun ? <PeriodChart run={leftRun} series={leftSeries} scale={scale} /> : <p className={styles.graphEmpty}>Loading saved forecast...</p>}</div>
+        <div className={styles.graphWeek}><GraphSelect label="Second period" value={rightId} onChange={setRightId} options={weekOptions} />{rightRun ? <PeriodChart run={rightRun} series={rightSeries} scale={scale} /> : <p className={styles.graphEmpty}>Loading saved forecast...</p>}</div>
       </div>
-      {leftId === rightId && <p className={styles.graphHint}>Choose different weeks to compare changes.</p>}
+      {leftId === rightId && <p className={styles.graphHint}>Choose different periods to compare changes.</p>}
     </>}
     <p className={styles.message}>The green line shows expected usage in {selected.unit}. The shaded area shows a possible range; wider means less certain.{mode === 'compare' ? ' Both graphs use the same scale.' : ''}</p>
     <details className={styles.dataNotes}><summary>Technical accuracy details</summary><p>Shading represents the model’s 95% forecast interval.{mode === 'single' && singleSeries ? ` Historical validation error (MAPE): ${singleSeries.metadata.metrics.mape == null ? 'N/A' : `${number(singleSeries.metadata.metrics.mape)}%`}.` : ''} This measures past prediction error, not guaranteed future accuracy.</p></details>

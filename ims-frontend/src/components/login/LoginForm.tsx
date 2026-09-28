@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   getDefaultRouteForRole,
@@ -116,12 +117,22 @@ export default function LoginForm() {
           Email address
           <input id="email" type="email" autoComplete="username" placeholder="admin@cafesalvacion.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
         </label>
-        <label className={styles.field} htmlFor="password">
-          Password
-          <input id="password" type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="Enter your password" value={password} onChange={(event) => setPassword(event.target.value)} required />
-        </label>
+        <div className={styles.field}>
+          <label htmlFor="password">Password</label>
+          <div className={styles.passwordField}>
+            <input id="password" type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="Enter your password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+            <button
+              className={styles.passwordToggle}
+              type="button"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-controls="password"
+              onClick={() => setShowPassword((previous) => !previous)}
+            >
+              {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+            </button>
+          </div>
+        </div>
         <div className={styles.formLinks}>
-          <button type="button" aria-controls="password" aria-pressed={showPassword} onClick={() => setShowPassword((previous) => !previous)}>{showPassword ? "Hide password" : "Show password"}</button>
           <Link href="/forgot-password">Forgot password?</Link>
         </div>
         {error && <ActionAlert key={error} tone="error" title="Unable to sign in" message={error} onDismiss={() => setError("")} />}
