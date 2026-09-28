@@ -457,10 +457,10 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           <button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setWasteForm(defaultWasteForm(selectedRawMaterialId)); setActivePanel("waste"); }}>Record Waste</button>
         </div>
 
-        <section id="overview" style={{ scrollMarginTop: 90 }} aria-label="Overview" className="overflow-hidden rounded-xl bg-[#232d46] p-5 text-white shadow-sm md:p-6">
+        <section id="overview" style={{ scrollMarginTop: 90 }} aria-label="Overview" className={styles.overview}>
           <div className="w-full">
             <div className="min-w-0">
-              <div aria-label="Inventory overview metrics" className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+              <div aria-label="Inventory overview metrics" className={styles.metricGrid}>
                 <MetricCard label="Materials" value={inventoryHealth ? String(inventoryHealth.summary.totalMaterials) : "—"} />
                 <MetricCard label="In Stock" value={inventoryHealth ? String(inventoryHealth.summary.inStockCount) : "—"} />
                 <MetricCard label="Low Stock" value={inventoryHealth ? String(inventoryHealth.summary.lowStockCount) : "—"} />
@@ -712,5 +712,5 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
 }
 
 function MetricCard({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-lg border border-white/30 bg-[#17243c]/35 px-3 py-2.5 text-white"><p className="text-[13px] font-medium text-slate-200">{label}</p><p className="mt-1 text-xl font-semibold">{value}</p></div>;
+  return <div className={styles.metricCard}><p className={styles.metricLabel}>{label}</p><p className={styles.metricValue}>{value}</p></div>;
 }

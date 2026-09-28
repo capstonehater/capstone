@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { PanelTop, PanelsLeftRight } from 'lucide-react';
+import { CircleHelp, PanelTop, PanelsLeftRight } from 'lucide-react';
 import { fetchForecast, forecastPeriodDays, forecastTotal, type ForecastResponse, type ForecastRun, type ForecastSeries } from '@/lib/forecasting';
 import GraphSelect from './GraphSelect';
 import styles from './forecasting.module.css';
@@ -74,6 +74,18 @@ function PeriodChart({ run, series, scale }: { run: ForecastRun | null; series?:
 export default function ForecastGraph({ periods, currentRun, productId, materialId, onMaterialChange, materials }: {
   periods: Period[]; currentRun: ForecastRun; productId: string; materialId: string; onMaterialChange: (id: string) => void; materials: ForecastSeries[];
 }) {
+  const [helpOpen, setHelpOpen] = useState(false);
+  const helpRoot = useRef<HTMLDivElement>(null);
+  const helpButton = useRef<HTMLButtonElement>(null);
+  const helpId = useId();
+  useEffect(() => {
+    if (!helpOpen) return;
+    const dismiss = (event: PointerEvent) => {
+      if (!helpRoot.current?.contains(event.target as Node)) setHelpOpen(false);
+    };
+    document.addEventListener('pointerdown', dismiss);
+    return () => document.removeEventListener('pointerdown', dismiss);
+  }, [helpOpen]);
   const [mode, setMode] = useState<'single' | 'compare'>('single');
   const [singleId, setSingleId] = useState('');
   const [singleSaved, setSingleSaved] = useState<ForecastRun | null>(null);
@@ -120,7 +132,19 @@ export default function ForecastGraph({ periods, currentRun, productId, material
         <button type="button" className={mode === 'single' ? styles.viewActive : ''} aria-pressed={mode === 'single'} onClick={() => setMode('single')} title="Single view"><PanelTop size={19} aria-hidden="true" /><span>Single</span></button>
         <button type="button" className={mode === 'compare' ? styles.viewActive : ''} aria-pressed={mode === 'compare'} onClick={() => { setLeftId(currentRun.id); setRightId(periods.find((period) => period.id !== currentRun.id)?.id ?? currentRun.id); setMode('compare'); }} title="Compare two periods"><PanelsLeftRight size={19} aria-hidden="true" /><span>Compare</span></button>
       </div>
-      <h2>Expected daily usage</h2>
+      <div ref={helpRoot} className={styles.titleRow} onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setHelpOpen(false);
+      }} onKeyDown={(event) => {
+        if (event.key === 'Escape' && helpOpen) { setHelpOpen(false); helpButton.current?.focus(); }
+      }}>
+        <h2>Expected daily usage</h2>
+        <button ref={helpButton} type="button" className={styles.forecastHelpButton} aria-label="About saved estimates" aria-expanded={helpOpen} aria-controls={helpOpen ? helpId : undefined} onClick={() => setHelpOpen((open) => !open)}>
+          <CircleHelp size={20} aria-hidden="true" />
+        </button>
+        {helpOpen && <div id={helpId} role="region" aria-label="About saved estimates" className={styles.forecastHelp}>
+          <p><strong>Saved estimate.</strong> Check live stock before ordering.</p>
+        </div>}
+      </div>
       <GraphSelect label="Material" value={selected.materialId} options={materialOptions} onChange={onMaterialChange} className={styles.graphMaterialSelect} />
     </div>
     {mode === 'single' ? <>

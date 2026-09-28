@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { CircleHelp, LoaderCircle } from 'lucide-react';
 import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
+import ActionAlert from '@/components/feedback/ActionAlert';
 import { fetchForecast, fetchForecastProducts, fetchForecastRun, saveForecastSettings, forecastPeriodDays, forecastTotal, type NextForecastPeriod, type ForecastProduct, type ForecastResponse, type Recommendation } from '@/lib/forecasting';
 import MaterialDropdown from './MaterialDropdown';
 import ForecastGraph from './ForecastGraph';
@@ -55,12 +56,14 @@ export default function ForecastingPage() {
   const [draftDays, setDraftDays] = useState<number | null>(null);
   const [savingDays, setSavingDays] = useState(false);
   const [settingsError, setSettingsError] = useState('');
+  const [settingsNotice, setSettingsNotice] = useState('');
   const settingsRevision = useRef(0);
   const selectedDays = draftDays ?? nextPeriod?.days ?? 7;
   const saveDays = async () => {
     if (savingDays || !nextPeriod || selectedDays === nextPeriod.days) return;
     setSavingDays(true);
     setSettingsError('');
+    setSettingsNotice('');
     setNotice('');
     settingsRevision.current += 1;
     try {
@@ -68,7 +71,7 @@ export default function ForecastingPage() {
       settingsRevision.current += 1;
       setNextPeriod(result.nextForecastPeriod);
       setDraftDays(null);
-      setNotice(`Next forecast period saved: ${result.nextForecastPeriod.days} ${result.nextForecastPeriod.days === 1 ? 'day' : 'days'}.`);
+      setSettingsNotice(`Next forecast period saved: ${result.nextForecastPeriod.days} ${result.nextForecastPeriod.days === 1 ? 'day' : 'days'}.`);
     } catch (reason) {
       setSettingsError(reason instanceof Error ? reason.message : 'Unable to save the forecast period. Please try again.');
     } finally { setSavingDays(false); }
@@ -162,7 +165,7 @@ export default function ForecastingPage() {
         ['Restock Needed', loading ? '...' : String(restocks.length), 'Based on stock when this was saved'],
         ['Critical Materials', loading ? '...' : String(critical.length), 'May run out in the first two days'],
         ['Latest Forecasted Period', periodDays ? `${periodDays} ${periodDays === 1 ? 'Day' : 'Days'}` : '...', run ? `${dateLabel(run.startDate)} - ${dateLabel(run.endDate)}` : 'Waiting for the first saved period'],
-        ['Next forecast period', nextPeriod ? `${nextPeriod.days} ${nextPeriod.days === 1 ? 'Day' : 'Days'}` : '...', nextPeriod ? `${dateLabel(nextPeriod.startDate)} - ${dateLabel(nextPeriod.endDate)}` : 'Loading saved setting'],
+        ['Next Forecast Period', nextPeriod ? `${nextPeriod.days} ${nextPeriod.days === 1 ? 'Day' : 'Days'}` : '...', nextPeriod ? `${dateLabel(nextPeriod.startDate)} - ${dateLabel(nextPeriod.endDate)}` : 'Loading saved setting'],
       ].map(([label, value, detail]) => <section key={label} className={styles.stat}><p>{label}</p><strong>{value}</strong><div className={styles.statDetail}>{detail}</div></section>)}
     </div>
     <div className={styles.filters}>
@@ -182,10 +185,10 @@ export default function ForecastingPage() {
       </form>
       <div className={styles.refreshActions}>
         <button type="button" className={styles.suggestionsButton} onClick={() => setRefresh((value) => value + 1)}>Refresh records</button>
-        {!loading && run && <p className={`${styles.snapshot} ${styles.noticePill}`}><strong>Saved estimate.</strong> Check live stock before ordering.</p>}
       </div>
     </div>
     {nextPeriod && selectedDays !== nextPeriod.days && <p id="forecast-days-help" className={styles.settingsHelp}>Unsaved change. Select Save to update the next forecast period.</p>}
+    {settingsNotice && <ActionAlert key={settingsNotice} tone="success" title="Forecast period saved" message={settingsNotice} onDismiss={() => setSettingsNotice('')} />}
     {settingsError && <p role="alert" className={styles.errorMessage}>{settingsError}</p>}
     {data?.automaticRetryPending && !busy && <p role="status" className={`${styles.errorMessage} ${styles.noticePill}`}>Update delayed. Retries hourly. Saved periods available.</p>}
     {error && <p role="alert" className={styles.errorMessage}>{error}</p>}
