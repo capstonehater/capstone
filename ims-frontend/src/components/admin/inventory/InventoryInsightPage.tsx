@@ -64,7 +64,7 @@ export default function InventoryInsightPage({ kind }: { kind: Kind }) {
             <div className="flex flex-wrap items-end gap-3">
               {kind === "value" ? <AdminSelect label="Sort by" value={sortBy} onChange={setSortBy} options={[{ value: "amount", label: "Inventory Value" }, { value: "quantity", label: "Usable Stock" }]} /> : null}
               <AdminSelect label={kind === "value" ? "Order" : `Sort by ${config.amount.toLowerCase()}`} value={direction} onChange={setDirection} options={[{ value: "asc", label: "Ascending (lowest first)" }, { value: "desc", label: "Descending (highest first)" }]} />
-              <button type="button" disabled={loading} onClick={() => { setError(null); setLoading(true); setRevision((value) => value + 1); }} className="inline-flex items-center gap-2 rounded-lg bg-[#232d46] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"><RefreshCcw size={16} className={loading ? "animate-spin" : ""} />Refresh</button>
+              <button type="button" disabled={loading} onClick={() => { setError(null); setLoading(true); setRevision((value) => value + 1); }} className="inline-flex items-center gap-2 rounded-lg! bg-[#232d46] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"><RefreshCcw size={16} className={loading ? "animate-spin" : ""} />Refresh</button>
             </div>
           </div>
           {error ? <p role="alert" className="p-5 text-sm text-red-700">{error} Use Refresh to try again.</p> : (
