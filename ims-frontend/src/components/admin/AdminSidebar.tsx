@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { ChevronDown, ChevronLeft, Menu, X } from "lucide-react";
-import { adminNavigation, materialActions, matchesShellRoute } from "@/components/layout/shell-navigation";
+import { adminNavigation, matchesShellRoute } from "@/components/layout/shell-navigation";
 import styles from "@/components/layout/ApplicationShell.module.css";
 
 type AdminSidebarProps = { isOpen: boolean; onClose: () => void; collapsed: boolean; onToggleCollapse: () => void };
@@ -24,8 +24,6 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
     navigate();
   }
   const sidebarRef = useRef<HTMLElement>(null);
-  const materialsOpen = useSidebarStore(state => state.materialsOpen);
-  const toggleMaterials = useSidebarStore(state => state.toggleMaterials);
   const openSections = useSidebarStore(state => state.openSections);
   const toggleSection = useSidebarStore(state => state.toggleSection);
   const expandSection = useSidebarStore(state => state.expandSection);
@@ -109,10 +107,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
                     <item.icon size={19} aria-hidden="true" /><span>{collapsed ? null : item.label}</span>
                   </Link>}
                   {item.children ? <div id={`sidebar-${item.label.toLowerCase()}`} className={styles.navDropdown} hidden={collapsed || !openSections[item.href]}>
-                    {((item.href === "/admin/reports" || item.href === "/admin/inventory/suppliers") ? item.children : [{ label: "Overview", href: item.href }, ...item.children]).map(child => child.href === "/admin/inventory/materials" ? <div key={child.href}>
-                      <div className={styles.navSplitRow}><Link href={child.href} onClick={navigate} className={styles.navSubLink} aria-current={!dropdownSelection && pathname === child.href ? "page" : undefined}>{child.label}</Link><button type="button" className={styles.navArrowToggle} aria-label={materialsOpen ? "Collapse Materials actions" : "Expand Materials actions"} aria-expanded={materialsOpen} aria-controls="materials-actions" onClick={toggleMaterials}><ChevronDown size={14} className={styles.navChevron} /></button></div>
-                      <div id="materials-actions" className={styles.materialActions} hidden={!materialsOpen}>{materialActions.map(action => <Link key={action.href} href={action.href} onClick={navigate} className={styles.navSubLink} aria-current={!dropdownSelection && pathname === action.href ? "page" : undefined}>{action.label}</Link>)}</div>
-                    </div> : <Link key={child.href} href={child.href} onClick={navigate} className={styles.navSubLink} aria-current={!dropdownSelection && pathname === child.href ? "page" : undefined}>{child.label}</Link>)}
+                    {((item.href === "/admin/reports" || item.href === "/admin/inventory/suppliers") ? item.children : [{ label: "Overview", href: item.href }, ...item.children]).map(child => <Link key={child.href} href={child.href} onClick={navigate} className={styles.navSubLink} aria-current={!dropdownSelection && pathname === child.href ? "page" : undefined}>{child.label}</Link>)}
                   </div> : null}
                 </div>
               ))}

@@ -1,4 +1,5 @@
 "use client";
+import modalStyles from "./InventoryModal.module.css";
 
 import type { FormEvent } from "react";
 import {
@@ -58,6 +59,7 @@ export default function RawMaterialModals({
     <>
       {activePanel === "create-material" ? (
         <InventoryModal
+          professional
           title="Add Raw Material"
           description="Create a new raw material record with clear labels before it enters the inventory flow."
           onClose={onClose}
@@ -92,7 +94,7 @@ export default function RawMaterialModals({
                 onChange={(event) =>
                   onMaterialFormChange((current) => ({ ...current, unitId: event.target.value }))
                 }
-                className={inventoryInputClasses}
+                className={modalStyles.unitSelect}
               >
                 <option value="">Select unit</option>
                 {units.map((unit) => (

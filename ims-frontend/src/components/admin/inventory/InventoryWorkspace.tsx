@@ -454,6 +454,11 @@ export default function InventoryWorkspace({ materialsOnly = false, stockRunsOnl
           formatDate={formatDate}
         />}
 
+        {materialsOnly && <div className={styles.materialActions} aria-label="Material actions">
+          <button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }}><Plus size={16} />Add Raw Material</button>
+          <button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }}><Plus size={16} />Create Stock-Run Draft</button>
+          <button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setWasteForm(defaultWasteForm(selectedRawMaterialId)); setActivePanel("waste"); }}>Record Waste</button>
+        </div>}
         {materialsOnly && <div className={`grid items-start gap-4 2xl:items-stretch 2xl:grid-cols-[minmax(19rem,0.85fr)_minmax(0,1.65fr)] ${styles.materialsGrid}`}>
           <InventorySummaryPanel
             summarySearchInput={summarySearchInput}
@@ -491,7 +496,7 @@ export default function InventoryWorkspace({ materialsOnly = false, stockRunsOnl
             onHistorySearchInputChange={setHistorySearchInput}
             onSelectBatch={(batch) => void openBatchDrilldown(batch)}
             onEdit={() => { setMaterialForm(defaultMaterialForm(selectedMaterial, units[0]?.id)); setActivePanel("edit-material"); }}
-            onWaste={() => router.push("/admin/inventory/materials/record-waste")}
+            onWaste={() => { setWasteForm(defaultWasteForm(selectedRawMaterialId)); setActivePanel("waste"); }}
             onStoreAvailability={() => { if (selectedRawMaterialId && selectedSummary) setAvailabilityMaterial({ id: selectedRawMaterialId, name: selectedSummary.name }); }}
             onArchive={() => setActivePanel("archive-material")}
             formatQuantity={formatQuantity}

@@ -1,4 +1,5 @@
 "use client";
+import modalStyles from "./InventoryModal.module.css";
 
 import type { FormEvent } from "react";
 import {
@@ -61,6 +62,7 @@ export default function WasteModal({
 
   return (
     <InventoryModal
+          professional
       title="Record Waste"
       description="Log waste against a specific batch so the audit trail stays clear and batch balances stay accurate."
       onClose={onClose}
@@ -79,7 +81,7 @@ export default function WasteModal({
               }));
               onSelectRawMaterial(nextId);
             }}
-            className={inventoryInputClasses}
+            className={modalStyles.unitSelect}
           >
             <option value="">Select raw material</option>
             {summaries.map((summary) => (
@@ -99,7 +101,7 @@ export default function WasteModal({
                 batchId: event.target.value,
               }))
             }
-            className={inventoryInputClasses}
+            className={modalStyles.unitSelect}
           >
             <option value="">Select batch</option>
             {batches.map((batch) => (
@@ -136,7 +138,7 @@ export default function WasteModal({
                 reasonCode: event.target.value,
               }))
             }
-            className={inventoryInputClasses}
+            className={modalStyles.unitSelect}
           >
             {INVENTORY_WASTE_REASON_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>

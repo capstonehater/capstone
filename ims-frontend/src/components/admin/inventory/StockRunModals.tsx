@@ -105,6 +105,7 @@ export default function StockRunModals({
     <>
       {activePanel === "stock-run-create" ? (
         <InventoryModal
+          professional
           title="Create Stock-Run Draft"
           description="Step 1 of 2. Create the draft first, then add incoming line items in the next modal."
           onClose={onClose}

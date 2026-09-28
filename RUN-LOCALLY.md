@@ -42,6 +42,14 @@ Pop-Location
 
 For live frontend editing, run `npm.cmd run dev` from `ims-frontend` with the same PATH, after stopping the launched frontend. The backend development command is `npm.cmd run start:dev` from `ims-backend`.
 
+If the frontend opens but sign-in reports **Failed to fetch**, start the database and backend from the project root:
+
+```powershell
+.\start-project.ps1 -BackendOnly
+```
+
+This leaves your running frontend development server in place. Run it again after restarting Windows; `npm.cmd run dev` in `ims-frontend` starts only the frontend.
+
 ## Optional integrations
 
 Store availability searches need your own `SERPER_API_KEY` and `GROQ_API_KEY` in `ims-backend/.env`; restart after adding them. Python packages are installed, but these external searches are not configured without the keys.

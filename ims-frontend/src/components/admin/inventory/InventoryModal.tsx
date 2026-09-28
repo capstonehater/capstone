@@ -1,4 +1,5 @@
 "use client";
+import styles from "./InventoryModal.module.css";
 
 type InventoryModalProps = {
   title: string;
@@ -7,6 +8,7 @@ type InventoryModalProps = {
   onClose: () => void;
   wide?: boolean;
   bodyClassName?: string;
+  professional?: boolean;
 };
 
 export default function InventoryModal({
@@ -16,9 +18,10 @@ export default function InventoryModal({
   onClose,
   wide = false,
   bodyClassName,
+  professional = false,
 }: InventoryModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4">
+    <div className={`${professional ? styles.professional : ""} fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4`}>
       <div
         className={`flex max-h-[88vh] w-full flex-col overflow-hidden rounded-[32px] border border-white/40 bg-[#f8f3ec] shadow-[0_28px_90px_rgba(15,23,42,0.28)] ${wide ? "max-w-6xl" : "max-w-3xl"}`}
       >

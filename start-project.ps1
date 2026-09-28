@@ -1,3 +1,5 @@
+param([switch]$BackendOnly)
+
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $local = Join-Path $root '.local'
@@ -7,7 +9,9 @@ $pgCtl = Join-Path $local 'pgsql/bin/pg_ctl.exe'
 $data = Join-Path $local 'pgdata'
 $env:Path = "$nodeDir;$env:Path"
 
-foreach ($required in @($node, $pgCtl, "$data/PG_VERSION", "$root/ims-backend/.env", "$root/ims-backend/dist/src/main.js", "$root/ims-frontend/.next/BUILD_ID")) {
+$requiredFiles = @($node, $pgCtl, "$data/PG_VERSION", "$root/ims-backend/.env", "$root/ims-backend/dist/src/main.js")
+if (!$BackendOnly) { $requiredFiles += "$root/ims-frontend/.next/BUILD_ID" }
+foreach ($required in $requiredFiles) {
     if (!(Test-Path -LiteralPath $required)) { throw "Setup incomplete: missing $required" }
 }
 
@@ -40,5 +44,9 @@ function Start-App($name, $directory, $arguments, $port) {
 }
 
 Start-App 'backend' "$root/ims-backend" 'dist/src/main.js' 4000
+if ($BackendOnly) {
+    Write-Host 'Database and backend started. Logs are in .local.'
+    return
+}
 Start-App 'frontend' "$root/ims-frontend" 'node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000' 3000
 Write-Host 'Open http://localhost:3000 after the frontend finishes starting. Logs are in .local.'
