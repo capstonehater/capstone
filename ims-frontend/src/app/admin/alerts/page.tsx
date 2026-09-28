@@ -194,6 +194,16 @@ export default function AlertsPage() {
                       </span>
                     </div>
                     <p className="text-sm text-neutral-700">{alert.message}</p>
+                    {alert.acknowledgedAt ? (
+                      <p className="text-xs font-medium text-neutral-600">
+                        Marked as read: <time dateTime={alert.acknowledgedAt}>{formatDateTime(alert.acknowledgedAt)}</time>
+                      </p>
+                    ) : null}
+                    {alert.dismissedAt ? (
+                      <p className="text-xs font-medium text-neutral-600">
+                        Dismissed: <time dateTime={alert.dismissedAt}>{formatDateTime(alert.dismissedAt)}</time>
+                      </p>
+                    ) : null}
                     <div className="grid gap-1 text-xs text-neutral-500">
                       <p>
                         Material: {alert.rawMaterial?.name ?? "N/A"}

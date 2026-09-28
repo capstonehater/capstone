@@ -435,14 +435,9 @@ export class AlertsService {
         : {
             OR: [
               { state: AlertState.ACTIVE },
-              {
-                state: {
-                  in: READ_ALERT_STATES,
-                },
-                lastTriggeredAt: {
-                  gte: readVisibilityCutoff,
-                },
-              },
+              ...READ_ALERT_STATES.map((state) =>
+                this.buildStateVisibilityWhere(state, readVisibilityCutoff),
+              ),
             ],
           },
     );
@@ -513,11 +508,17 @@ export class AlertsService {
       return { state };
     }
 
+    const timestampField = {
+      [AlertState.ACKNOWLEDGED]: 'acknowledgedAt',
+      [AlertState.DISMISSED]: 'dismissedAt',
+      [AlertState.RESOLVED]: 'resolvedAt',
+    }[state];
+
+    // Scheduled reevaluation updates lastTriggeredAt even after an alert is read.
+    // Retention starts at the user's action (or resolution), not reevaluation.
     return {
       state,
-      lastTriggeredAt: {
-        gte: readVisibilityCutoff,
-      },
+      [timestampField]: { gte: readVisibilityCutoff },
     };
   }
 
