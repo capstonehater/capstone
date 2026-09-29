@@ -14,7 +14,7 @@ type Props = {
 function statusTone(status: PosOrder["status"]) {
   switch (status) {
     case "REFUNDED":
-      return "bg-amber-100 text-amber-700";
+      return "bg-[#dce2eb] text-[#34445f]";
     default:
       return "bg-emerald-100 text-emerald-700";
   }
@@ -30,13 +30,13 @@ export default function TransactionHistoryPanel({
   return (
     <div>
       {queuedCheckouts.length > 0 ? (
-        <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-amber-800">Pending Sync Queue</p>
+        <div className="mb-5 rounded-2xl border border-[#cbd5e1] bg-[#edf2f8] p-4">
+          <p className="text-sm font-semibold text-[#232d46]">Pending Sync Queue</p>
           <div className="mt-3 space-y-3">
             {queuedCheckouts.map((entry) => (
               <div
                 key={entry.operationId}
-                className="rounded-2xl border border-amber-200 bg-white px-4 py-3 text-sm"
+                className="rounded-2xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -46,7 +46,7 @@ export default function TransactionHistoryPanel({
                       {entry.preview.cartCount === 1 ? "" : "s"}
                     </p>
                   </div>
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                  <span className="rounded-full bg-[#dce2eb] px-3 py-1 text-xs font-semibold text-[#34445f]">
                     {entry.status}
                   </span>
                 </div>
@@ -108,7 +108,7 @@ export default function TransactionHistoryPanel({
                     <button
                       type="button"
                       onClick={() => onReverseOrder?.(txn, "REFUND")}
-                      className="rounded-xl border border-amber-200 px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-50"
+                      className="rounded-xl border border-[#cbd5e1] px-3 py-1.5 text-xs font-semibold text-[#34445f] transition hover:bg-[#edf2f8]"
                     >
                       Refund
                     </button>

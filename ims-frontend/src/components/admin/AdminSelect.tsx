@@ -17,6 +17,7 @@ export default function AdminSelect({ label, value, options, onChange }: Props) 
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const items = useRef<(HTMLButtonElement | null)[]>([]);
   const id = useId();
   const selected = options.find((option) => option.value === value) ?? options[0];
@@ -47,6 +48,7 @@ export default function AdminSelect({ label, value, options, onChange }: Props) 
   function openMenu() {
     const rect = trigger.current?.getBoundingClientRect();
     if (!rect) return;
+    setPortalTarget(trigger.current?.closest("dialog") ?? document.body);
     const width = Math.min(Math.max(rect.width, 260), window.innerWidth - 24);
     const below = window.innerHeight - rect.bottom - 18;
     const above = rect.top - 18;
@@ -93,6 +95,6 @@ export default function AdminSelect({ label, value, options, onChange }: Props) 
         }}>
         <span>{option.label}</span>{option.value === value && <Check size={16} aria-hidden="true" />}
       </button>)}
-    </div>, document.body)}
+    </div>, portalTarget ?? document.body)}
   </div>;
 }

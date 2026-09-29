@@ -274,7 +274,7 @@ export default function ProductConfiguratorModal({
                     aria-pressed={selectedVariantId === variant.id}
                     className={`rounded-2xl border px-4 py-3 text-left transition ${
                       selectedVariantId === variant.id
-                        ? "border-[#232d46] bg-slate-100 text-slate-900"
+                        ? "border-[#232d46] bg-[#edf2f8] text-slate-900"
                         : "border-slate-200 bg-white text-slate-700"
                     } ${disabled ? "cursor-not-allowed bg-slate-50" : "hover:border-[#232d46]/60"}`}
                   >
@@ -359,7 +359,7 @@ export default function ProductConfiguratorModal({
                           key={modifier.id}
                           className={`rounded-2xl border px-4 py-3 ${
                             active
-                              ? "border-[#232d46] bg-slate-100"
+                              ? "border-[#232d46] bg-[#edf2f8]"
                               : "border-slate-200 bg-white"
                           } ${!modifier.isAvailable ? "bg-slate-50" : ""}`}
                         >

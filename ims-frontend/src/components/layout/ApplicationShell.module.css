@@ -92,7 +92,7 @@
 .adminSidebarCollapsed .navLink { justify-content: center; gap: 0; padding-inline: 0; }
 .staffSidebarCollapsed .staffBrand { padding-inline: 8px; }
 .staffSidebarCollapsed .staffNavLink { justify-content: center; gap: 0; padding-inline: 0; }
-.adminShellCollapsed .body { margin-left: 76px; }
+.adminShellCollapsed .body { margin-left: 76px; --shell-sidebar-width: 76px; }
 .adminCollapseButton { position: absolute; top: 50%; right: -18px; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; transform: translateY(-50%); border: 1px solid #ffffff40; border-radius: 50%; background: var(--shell-navy); color: white; cursor: pointer; transition: background .2s ease, transform .25s ease; }
 .adminCollapseButton svg { transition: transform .25s ease; }
 .adminSidebarCollapsed .adminCollapseButton svg { transform: rotate(180deg); }

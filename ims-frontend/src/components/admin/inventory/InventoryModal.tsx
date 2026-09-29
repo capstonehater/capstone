@@ -1,5 +1,6 @@
 "use client";
 import ModalCloseButton from "@/components/ModalCloseButton";
+import backdrop from "@/components/ModalBackdrop.module.css";
 
 import styles from "./InventoryModal.module.css";
 
@@ -23,7 +24,7 @@ export default function InventoryModal({
   professional = false,
 }: InventoryModalProps) {
   return (
-    <div className={`${professional ? styles.professional : ""} fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4`}>
+    <div className={`${backdrop.backdrop} ${professional ? styles.professional : ""} fixed inset-0 z-[90] flex items-center justify-center p-4`}>
       <div
         className={`flex max-h-[88vh] w-full flex-col overflow-hidden rounded-[32px] border border-white/40 bg-[#f8f3ec] shadow-[0_28px_90px_rgba(15,23,42,0.28)] ${wide ? "max-w-6xl" : "max-w-3xl"}`}
       >

@@ -13,7 +13,7 @@ type Props = {
 function statusTone(status: PosOrder["status"]) {
   switch (status) {
     case "REFUNDED":
-      return "bg-amber-100 text-amber-700";
+      return "bg-[#dce2eb] text-[#34445f]";
     default:
       return "bg-emerald-100 text-emerald-700";
   }
@@ -59,7 +59,7 @@ export default function ReceiptModal({
                 </div>
               ) : null}
               {item.note ? (
-                <div className="mt-1 text-xs text-amber-700">Note: {item.note}</div>
+                <div className="mt-1 text-xs text-[#34445f]">Note: {item.note}</div>
               ) : null}
             </div>
           ))}
@@ -131,7 +131,7 @@ export default function ReceiptModal({
                 type="button"
                 disabled={reversalSubmitting}
                 onClick={() => onRefund?.(receipt)}
-                className="rounded-2xl border border-amber-200 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-60"
+                className="rounded-2xl border border-[#cbd5e1] px-4 py-2 text-sm font-medium text-[#34445f] hover:bg-[#edf2f8] disabled:opacity-60"
               >
                 Refund Order
               </button>

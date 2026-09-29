@@ -19,3 +19,5 @@
 .professional form > div:last-child { padding-top:18px; border-top:1px solid #e2e8f0; }
 
 .header { background:var(--modal-header-background); }
+.professional button.archiveAction { background:#be123c; border-color:#be123c; color:#fff; }
+.professional button.archiveAction:hover:not(:disabled) { background:#9f1239; border-color:#9f1239; }

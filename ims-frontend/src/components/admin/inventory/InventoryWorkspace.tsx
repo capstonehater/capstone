@@ -66,7 +66,8 @@ const workspaceSections = [
 type SectionView = typeof workspaceSections[number][0];
 type ReportView = "low-stock" | "near-expiry" | "waste" | "value" | "supplier";
 export type InventoryView = SectionView | ReportView;
-const reportTitles: Record<ReportView, string> = { "low-stock": "Low Stock", "near-expiry": "Near Expiry", waste: "Waste Insights", value: "High-Value Inventory", supplier: "Supplier Spend" };
+const reportDescriptions: Record<ReportView, string> = {"near-expiry":"Batches with remaining stock expiring within 14 days, including expired stock. Each batch is listed separately.","waste":"All recorded waste grouped by reason, with total quantities and costs.","supplier":"All posted stock-run spending grouped by supplier.","low-stock":"Active materials with usable stock above zero and at or below their reorder point.","value":"All active materials with usable stock and inventory value."};
+const reportTitles: Record<ReportView, string> = { "low-stock": "Low Stock Materials", "near-expiry": "Near Expiry Materials", waste: "Waste Insights", value: "High-Value Inventory", supplier: "Supplier Spend" };
 
 type PanelMode =
   | null
@@ -519,7 +520,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
 
         <section id="materials" className={styles.pageSection} aria-label="Materials">
           <hr className={styles.sectionDivider} />
-          <div className={`grid items-start gap-4 xl:grid-cols-[minmax(19rem,0.85fr)_minmax(0,1.65fr)] ${styles.unifiedMaterials}`}>
+          <div className={`grid items-start gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] ${styles.unifiedMaterials}`}>
           <InventorySummaryPanel
             summarySearchInput={summarySearchInput}
             statusFilter={statusFilter}
@@ -586,9 +587,9 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
         />
         </section>
 
-        {report && <InventoryReportModal title={reportTitles[report]} onClose={() => setReport(null)}>
-        {report === "low-stock" && <LowStockPanel key={reportRevision} />}
-        {report === "near-expiry" && <NearExpiryPanel key={reportRevision} />}
+        {report && <InventoryReportModal title={reportTitles[report]} description={reportDescriptions[report]} onClose={() => setReport(null)}>
+        {report === "low-stock" && <LowStockPanel key={reportRevision} embedded />}
+        {report === "near-expiry" && <NearExpiryPanel key={reportRevision} embedded />}
         {(report === "waste" || report === "value" || report === "supplier") && <InsightPanel key={`${report}-${reportRevision}`} kind={report} embedded />}
 
         </InventoryReportModal>}

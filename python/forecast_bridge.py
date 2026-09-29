@@ -7,6 +7,7 @@ import argparse
 import contextlib
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -47,6 +48,31 @@ def match_material(rows, materials):
     return matches[0]
 
 
+def select_stable_forecast(stationary, training, horizon, dates):
+    """Try validated SARIMA candidates in error order; never clip implausible output."""
+    ceiling = min(1e14, max(1., float(stationary['series']['qty'].max())) * 100)
+    rejected = []
+    for candidate in training.get('candidates', [training]):
+        selected = {**training, **candidate}
+        try:
+            model = SARIMA.fit_full_model(stationary, selected)
+            future = SARIMA.forecast_future(model, stationary, horizon=horizon, exog_cols=selected['exog_cols'])
+            future = future.set_index('Date').reindex(dates).astype({'Forecast': float, 'Lower95': float, 'Upper95': float})
+            numbers = future[['Forecast', 'Lower95', 'Upper95']].to_numpy()
+            if not np.isfinite(numbers).all() or (numbers < 0).any():
+                raise ValueError('non-finite or negative forecast values')
+            if (numbers >= ceiling).any():
+                raise ValueError('estimate or range exceeds 100 times the largest training-day amount or database limit')
+            future['Lower95'] = np.minimum(future['Lower95'], future['Forecast'])
+            future['Upper95'] = np.maximum(future['Upper95'], future['Forecast'])
+            selected['range_rejections'] = rejected
+            selected['range_ceiling'] = ceiling
+            return selected, future
+        except Exception as exc:
+            rejected.append({'order': list(candidate['order']), 'seasonal': list(candidate['seasonal']), 'reason': str(exc)})
+    raise ValueError(f'No validated SARIMA model passed the forecast range checks ({len(rejected)} candidates); material excluded from this run')
+
+
 def generate(request):
     forecast_days = SARIMA.validate_forecast_days(request.get('forecastDays', 7))
     source = HERE / 'cafe_raw_material_daily_consumption.csv'
@@ -63,20 +89,29 @@ def generate(request):
         raise ValueError('No compatible CSV or POS history is available')
     start = pd.Timestamp(request['startDate'])
     last = history['date'].max()
-    if start <= last or start > last + pd.Timedelta(days=60):
-        raise ValueError(f'Start date must be after {last.date()} and within 60 days of the latest history.')
-    business_days_only = not (history['date'].dt.dayofweek >= 5).any()
+    if start <= last:
+        raise ValueError(f'Start date must be after {last.date()}; forecast dates cannot be used for training.')
+    max_gap = int(os.environ.get('FORECAST_MAX_HISTORY_GAP_DAYS', '365'))
+    if max_gap < 1 or (start - last).days > max_gap:
+        raise ValueError(f'Latest history is {last.date()}; add recent records or configure FORECAST_MAX_HISTORY_GAP_DAYS (currently {max_gap}).')
+    # This store operates every day. Missing weekend rows do not mean it is closed.
+    business_days_only = False
     date_range = pd.bdate_range if business_days_only else pd.date_range
     dates = forecast_calendar_days(start, forecast_days)
-    # Four SARIMA candidates, three rolling validation folds. Full CLI grid remains available.
-    SARIMA.CONFIG.update(FORECAST_DAYS=forecast_days, P=[0, 1], Q=[0, 1], SP=[1], SD=[0], SQ=[0], CV_FOLDS=3, BOXCOX_LAMBDA=0, BUSINESS_DAYS_ONLY=business_days_only, SEASON_LENGTH=5 if business_days_only else 7)
+    # Compare differenced and undifferenced models instead of forcing a random walk.
+    SARIMA.CONFIG.update(FORECAST_DAYS=forecast_days, P=[0, 1], D=[0, 1], Q=[0, 1], SP=[1], SD=[0], SQ=[0], CV_FOLDS=3, BOXCOX_LAMBDA=0, BUSINESS_DAYS_ONLY=business_days_only, SEASON_LENGTH=7)
     warnings = ['Training source: completed POS ingredient consumption with CSV history on uncovered dates; stock source: live inventory snapshot.',
-                'Weekday-only history: weekend forecasts are zero.' if business_days_only else 'POS includes weekend activity: SARIMA uses daily observations and seven-day seasonality.',
+                'Store operates daily, 1 PM–10 PM (Asia/Manila): SARIMA uses daily totals and seven-day seasonality, not hourly forecasts.',
                 'Product filters show store-wide ingredient demand, not predicted product sales.']
     warnings.append('SARIMA uses log1p (Box-Cox lambda 0) to support zero-demand days without invalid inverse-transform bounds.')
     warnings.extend(merge_notes)
     if (start - last).days > 1:
         warnings.append(f'Historical data ends {last.date()}; forecasting bridges a {(start-last).days - 1}-day gap.')
+    if (start - last).days > 30:
+        warnings.append('History is over 30 days old. The gap is estimated, not observed; recent sales may differ from these forecasts.')
+    training_limit = int(os.environ.get('FORECAST_TRAINING_DAYS', '0'))
+    if training_limit != 0 and training_limit < SARIMA.CONFIG['MIN_HISTORY']:
+        raise ValueError('FORECAST_TRAINING_DAYS must be 0 (all history) or at least 60.')
     policies = pd.read_csv(HERE / 'current_inventory.csv')
     warnings.append('Lead time and safety stock use current_inventory.csv policies in the matching historical unit. Its CurrentStock values are not used.')
     results = []
@@ -96,31 +131,19 @@ def generate(request):
             series = SARIMA.build_daily_series(daily, name, material['unit'], lookup)
             if len(series) < SARIMA.CONFIG['MIN_HISTORY']:
                 raise ValueError('At least 60 daily observations of history are required')
-            # Limit runtime without silently substituting a different forecasting model.
-            series = series.tail(260).reset_index(drop=True)
+            # Keep the complete uploaded history unless an explicit window is configured.
+            available_days = len(series)
+            if training_limit:
+                series = series.tail(training_limit).reset_index(drop=True)
             if series['qty'].nunique() < 2:
                 raise ValueError('Constant history cannot be fitted with the Box-Cox SARIMA pipeline')
             stationary = SARIMA.make_stationary(series)
+            horizon = len(date_range(series['Date'].max() + pd.Timedelta(days=1), dates[-1]))
+            # Check the actual prediction distance, including unobserved gap days.
+            SARIMA.CONFIG['CV_HORIZON'] = horizon
             with contextlib.redirect_stdout(sys.stderr):
                 training = SARIMA.train_sarima(stationary)
-                model = SARIMA.fit_full_model(stationary, training)
-                horizon = len(date_range(series['Date'].max() + pd.Timedelta(days=1), dates[-1]))
-                future = (SARIMA.forecast_future(model, stationary, horizon=horizon, exog_cols=training['exog_cols'])
-                          if horizon else pd.DataFrame(columns=['Date', 'Forecast', 'Lower95', 'Upper95']))
-            future = future.set_index('Date').reindex(dates)
-            weekends = future.index.dayofweek >= 5
-            if business_days_only:
-                future.loc[weekends, ['Forecast', 'Lower95', 'Upper95']] = 0
-            future = future.astype({'Forecast': float, 'Lower95': float, 'Upper95': float})
-            numbers = future[['Forecast', 'Lower95', 'Upper95']].to_numpy()
-            if not np.isfinite(numbers).all():
-                raise ValueError('SARIMA returned non-finite estimates or confidence bounds')
-            future['Lower95'] = np.minimum(future['Lower95'], future['Forecast'])
-            future['Upper95'] = np.maximum(future['Upper95'], future['Forecast'])
-            # ForecastPoint uses NUMERIC(18, 4). An unstable SARIMA interval must
-            # not make every other material's forecast fail to save.
-            if (future[['Forecast', 'Lower95', 'Upper95']].to_numpy() >= 1e14).any():
-                raise ValueError('SARIMA estimate or possible range is unusually large; material excluded from this run')
+                training, future = select_stable_forecast(stationary, training, horizon, dates)
             metrics = training['metrics']
             recommendation_input = future.reset_index(names='Date')
             recommendation_input['Product'] = material['name']
@@ -148,7 +171,11 @@ def generate(request):
                 'points': [{'date': day.strftime('%Y-%m-%d'), 'forecast': float(row.Forecast), 'lower95': float(row.Lower95), 'upper95': float(row.Upper95)} for day, row in future.iterrows()],
                 'metadata': {'model': 'SARIMA', 'order': list(training['order']), 'seasonalOrder': list(training['seasonal']),
                              'metrics': {k: float(v) if np.isfinite(v) else None for k, v in metrics.items()},
-                             'trainingDays': len(series), 'transformation': 'log1p (Box-Cox lambda 0)', 'candidateCount': 4, 'validationFolds': 3,
+                             'trainingDays': len(series), 'transformation': 'log1p (Box-Cox lambda 0)',
+                             'availableTrainingDays': available_days,
+                             'candidateCount': training.get('candidate_count'),
+                             'validationFolds': len(training['fold_metrics']) if 'fold_metrics' in training else None,
+                             'audit': training_audit(series, group, training, start, business_days_only),
                              'historicalProducts': sorted(group['product'].unique().tolist()), 'sourceUnit': policy_info['unit'] if policy_info else source_unit,
                              'trainingSource': 'POS + CSV' if request.get('posDates') else 'CSV',
                              'posSnapshotAt': request.get('capturedAt'),
@@ -166,6 +193,36 @@ def generate(request):
     if not results:
         raise ValueError('No forecasts could be generated. ' + ' '.join(warnings[-5:]))
     return {'historyEnd': str(last.date()), 'sourceHash': hashlib.sha256(source.read_bytes() + json.dumps({'posHistory': request.get('posHistory', []), 'posDates': request.get('posDates', [])}, sort_keys=True).encode()).hexdigest(), 'warnings': warnings, 'series': results}
+
+
+def training_audit(series, history, training, start, business_days_only):
+    """Describe the retained training window, not configured or discarded inputs."""
+    dates = pd.DatetimeIndex(series['Date'])
+    retained = history[history['date'].isin(dates)]
+    sources = retained.get('history_source')
+    return {
+        'version': 1,
+        'trainingStart': str(dates.min().date()),
+        'trainingEnd': str(dates.max().date()),
+        'csvDays': int(retained.loc[sources == 'CSV', 'date'].nunique()) if sources is not None else None,
+        'posDays': int(retained.loc[sources == 'POS', 'date'].nunique()) if sources is not None else None,
+        'zeroFilledDays': int((~dates.isin(retained['date'])).sum()),
+        'zeroDemandDays': int((series['qty'] == 0).sum()),
+        'bridgeCalendarDays': max(0, (start - dates.max()).days - 1),
+        'weekdaysOnly': bool(business_days_only),
+        'successfulCandidates': training.get('successful_candidates'),
+        'selectionMetric': training.get('selection_metric'),
+        'rangeRejections': training.get('range_rejections', []),
+        'rangeCeiling': training.get('range_ceiling'),
+        'validationMethod': ('rolling windows' if training['used_cv'] else 'single holdout') if 'used_cv' in training else None,
+        'validationWindows': [{
+            'start': str(fold['test']['Date'].min().date()),
+            'end': str(fold['test']['Date'].max().date()),
+            'days': len(fold['test']),
+            'mae': float(fold['mae']) if np.isfinite(fold['mae']) else None,
+            'mape': float(fold['mape']) if np.isfinite(fold['mape']) else None,
+        } for fold in training.get('fold_metrics', [])],
+    }
 
 
 def main():

@@ -121,6 +121,12 @@
 .notesOriginal { margin-top:18px;border-top:1px solid #e2e8f0;padding-top:14px; }
 .notesOriginal > summary { cursor:pointer;font-size:16px;font-weight:600;color:#475569;padding:4px 0; }
 .notesOriginal > .notesGroup { margin-top:16px; }
+.ingredientNotes { border:1px solid #e2e8f0;border-radius:8px;margin-top:8px;padding:12px; }
+.ingredientNotes > summary { cursor:pointer;color:#334155;font-weight:600;line-height:1.6; }
+.ingredientNotes > summary span { color:#64748b;font-size:12px;font-weight:400; }
+.auditFacts { display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0; }
+.auditFacts dt { color:#64748b;font-size:12px; }
+.auditFacts dd { margin:4px 0 0;font-size:13px;overflow-wrap:anywhere; }
 @media(max-width:540px) { .notesSummary { gap:9px;padding:14px; }.notesContent { padding:14px;max-height:300px; } }
 .chartHeader { display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap; }
 .chartMaterial { display:flex;align-items:center;gap:10px;font-size:16px;margin-bottom:12px; }
@@ -178,7 +184,7 @@
 @media(max-width:540px) { .graphHeader .graphMaterialSelect { margin-left:0;width:100%; }.graphSelect { flex-wrap:wrap; }.graphSelectTrigger,.graphSelectMenu { width:100%; }.graphMaterialSelect .graphSelectTrigger { min-width:0; }.viewControls { width:100%; }.viewControls button { flex:1;justify-content:center; } }
 
 .intro { max-width:none; padding-bottom:20px; border-bottom:1px solid #dce2eb; }
-.intro h1 { color:#232d46; font-size:30px; }
+.intro h1 { color:#232d46; font-size:30px; font-weight:700; }
 .stat,.panel { border-radius:12px; box-shadow:none; }
 .stat p { font-size:16px; color:#475569; }
 .statDetail { font-size:16px; }
@@ -244,7 +250,6 @@
 .saveDays { min-height:48px;padding:12px 20px;border:0;border-radius:8px;background:#232d46;color:#fff;font:inherit;font-size:16px;font-weight:600; }
 .saveDays:hover:not(:disabled) { background:#34425f; }
 .saveDays:disabled { opacity:.5;cursor:not-allowed; }
-.settingsHelp { margin:0 0 16px;color:#475569;font-size:16px;line-height:1.5; }
 @media(min-width:1101px) and (max-width:1400px) { .stats { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media(max-width:540px) { .stats { grid-template-columns:1fr; }.forecastSettings { width:100%; }.dayPicker { flex:1; } }
 
@@ -259,6 +264,13 @@
 .refreshActions { display:flex;align-items:center;flex-wrap:wrap;gap:14px;max-width:100%;margin-top:14px; }
 .refreshActions > .suggestionsButton { margin-top:0; }
 .refreshActions .snapshot { margin:0; }
+.refreshButton { display:inline-flex;align-items:center;justify-content:center;gap:9px;min-width:190px; }
+.refreshButton:disabled { cursor:progress;opacity:.8; }
+.refreshSpinner { animation:refreshSpin .8s linear infinite; }
+.refreshComplete { animation:refreshPop .3s ease-out; }
+@keyframes refreshSpin { to { transform:rotate(360deg); } }
+@keyframes refreshPop { from { opacity:0;transform:scale(.5); } to { opacity:1;transform:scale(1); } }
+@media(prefers-reduced-motion:reduce) { .refreshSpinner,.refreshComplete { animation:none; } }
 @media(max-width:540px) { .refreshActions { width:100%;margin-top:0; } }
 
 /* Give the forecast controls more room while keeping narrow layouts fluid. */

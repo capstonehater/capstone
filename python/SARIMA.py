@@ -82,12 +82,10 @@ CONFIG = {
     # Train/Test Split
     "TRAIN_RATIO": 0.80,
 
-    # Seasonal Period
-    # PATCH: this business only operates Mon-Fri (verified: 786 rows in
-    # sales.csv exactly match the number of weekdays between the min/max
-    # dates, zero Saturday/Sunday rows). The weekly cycle is therefore
-    # 5 business days, not 7 calendar days - see build_daily_series().
-    "SEASON_LENGTH": 5,
+    # Store operates 1 PM–10 PM every day; model daily totals, including weekends.
+    "SEASON_LENGTH": 7,
+    "BUSINESS_DAYS_ONLY": False,
+    "BOXCOX_LAMBDA": 0,
 
     # Country used to flag holidays in the forecast horizon (must match
     # how the historical 'holiday' column in sales.csv was populated -
@@ -229,16 +227,9 @@ def build_daily_series(
     holiday_lookup
 ):
     """
-    Create a continuous BUSINESS-DAY demand series.
-
-    PATCH: the original version reindexed on every calendar day
-    (freq="D"), which fabricates ~300 fake "0 units used" Saturday/Sunday
-    rows for a business that has no weekend transactions at all. Those
-    fake zeros distorted the weekly seasonal pattern (a real 5-day cycle
-    was being modelled as a 7-day cycle with 2 guaranteed zeros) and
-    contributed to the high MAPE. Using pd.bdate_range instead only fills
-    in genuinely missing business days (e.g. a data gap), not weekends
-    that were never open to begin with.
+    Create a continuous daily demand series for the configured store calendar.
+    The daily store schedule includes weekends. Missing dates are filled with
+    zero and disclosed in the web worker's audit rather than treated as observed usage.
 
     Also attaches the is_holiday exogenous flag for each date, used later
     as a SARIMAX regressor.
@@ -400,6 +391,8 @@ def calculate_mape(actual, predicted):
     actual = np.asarray(actual)
     predicted = np.asarray(predicted)
     mask = actual != 0
+    if not mask.any():
+        return np.nan  # Percentage error is undefined when every actual amount is zero.
     return (
         np.mean(
             np.abs(
@@ -426,6 +419,8 @@ def calculate_smape(actual, predicted):
     predicted = np.asarray(predicted)
     denom = np.abs(actual) + np.abs(predicted)
     mask = denom != 0
+    if not mask.any():
+        return 0.0
     return (
         np.mean(
             2 * np.abs(predicted[mask] - actual[mask]) / denom[mask]
@@ -690,7 +685,7 @@ def train_sarima(stationary_result):
     validated on a CONFIG["CV_HORIZON"]-day window (defaults to
     FORECAST_DAYS, so models are validated at the same horizon they'll
     actually be used to forecast). Every (order, seasonal) combo is
-    scored by its MAPE *averaged across all folds*, which is a much more
+    scored by its MAE *averaged across all folds*, which is a much more
     reliable signal of real generalization than a single split - at the
     cost of roughly CV_FOLDS times the fitting time.
 
@@ -698,7 +693,7 @@ def train_sarima(stationary_result):
     back to a single 80/20 split (same behaviour as before) and says so.
 
     Model selection criterion:
-        Lowest average MAPE across folds
+        Lowest average MAE across folds (also defined on zero-demand days)
 
     Returns
     -------
@@ -790,6 +785,8 @@ def train_sarima(stationary_result):
     total_models = len(pdq) * len(seasonal_pdq)
     total_fits = total_models * len(fold_specs)
     current = 0
+    successful_candidates = 0
+    candidates = []
     print(f"Searching SARIMA models ({total_fits} total fits)...\n")
 
     # ==========================================================
@@ -829,8 +826,8 @@ def train_sarima(stationary_result):
                         exog=train_exog,
                         order=order,
                         seasonal_order=seasonal,
-                        enforce_stationarity=False,
-                        enforce_invertibility=False
+                        enforce_stationarity=True,
+                        enforce_invertibility=True
                     ).fit(disp=False)
 
                     forecast_boxcox = model.forecast(
@@ -885,9 +882,10 @@ def train_sarima(stationary_result):
 
             if fold_failed or not fold_metrics:
                 continue
+            successful_candidates += 1
 
             # ----------------------------------------------
-            # Score this combo by its average MAPE across folds
+            # MAE stays defined on zero-demand validation days; MAPE does not.
             # ----------------------------------------------
 
             avg_metrics = {
@@ -895,12 +893,19 @@ def train_sarima(stationary_result):
                 for key in ["mae", "rmse", "mape", "smape", "aic", "bic"]
             }
 
-            if avg_metrics["mape"] < best["metrics"]["mape"]:
+            if np.isfinite(avg_metrics['mae']):
+                candidates.append({'order': order, 'seasonal': seasonal, 'metrics': avg_metrics,
+                    'fold_metrics': [{'test': fold['test'][['Date']].copy(), 'mae': fold['mae'], 'mape': fold['mape']}
+                                     for fold in fold_metrics]})
+
+            if np.isfinite(avg_metrics["mae"]) and avg_metrics["mae"] < best["metrics"]["mae"]:
                 best["order"] = order
                 best["seasonal"] = seasonal
                 best["metrics"] = avg_metrics
                 best["fold_metrics"] = fold_metrics
 
+    if best['fold_metrics'] is None:
+        raise ValueError('No SARIMA candidate completed validation with finite prediction errors')
     print("\n")
     print("=" * 70)
     print("BEST SARIMA MODEL" + (" (avg across folds)" if used_cv else ""))
@@ -943,6 +948,10 @@ def train_sarima(stationary_result):
         "metrics": best["metrics"],
         "fold_metrics": best["fold_metrics"],
         "used_cv": used_cv,
+        "candidate_count": current,
+        "successful_candidates": successful_candidates,
+        "selection_metric": "mae",
+        "candidates": sorted(candidates, key=lambda candidate: candidate['metrics']['mae']),
         "exog_cols": exog_cols
     }
 
@@ -1000,8 +1009,8 @@ def fit_full_model(stationary_result, training_result):
         exog=series_df[exog_cols].astype(float),
         order=training_result["order"],
         seasonal_order=training_result["seasonal"],
-        enforce_stationarity=False,
-        enforce_invertibility=False
+        enforce_stationarity=True,
+        enforce_invertibility=True
     ).fit(disp=False)
 
     return model
@@ -1020,8 +1029,7 @@ def forecast_future(
     """
     Forecast future demand with a 95% confidence interval.
 
-    PATCH: future dates are now business days (pd.bdate_range) to match
-    the business-day training series, and an is_holiday exog is built for
+    Future dates follow the same calendar as training, and an is_holiday exog is built for
     those future dates from the real PH holiday calendar (future_holiday_
     flags()) so the model can anticipate holiday spikes instead of
     assuming every forecast day is a normal day.
@@ -1040,7 +1048,7 @@ def forecast_future(
     lam = stationary_result["lambda"]
 
     # ----------------------------------------------------------
-    # Future Dates (business days only, consistent with training)
+    # Future dates use the same daily/weekday calendar as training.
     # ----------------------------------------------------------
 
     last_date = series_df["Date"].max()

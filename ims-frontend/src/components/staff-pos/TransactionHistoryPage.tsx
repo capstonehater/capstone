@@ -9,6 +9,8 @@ import ReceiptModal from "./modals/ReceiptModal";
 import OrderReversalModal from "./modals/OrderReversalModal";
 import styles from "./TransactionHistory.module.css";
 import ActionAlert from "@/components/feedback/ActionAlert";
+import AdminSelect from "@/components/admin/AdminSelect";
+import DateFilter from "./DateFilter";
 
 type ReversalState = {
   order: PosOrder | null;
@@ -78,16 +80,15 @@ export default function TransactionHistoryPage() {
     }
   };
 
-  const inputClass = "mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal";
   return <section className="space-y-5 text-[#232d46]">
     <header className={styles.pageHeader}><div><h1>TRANSACTION HISTORY</h1><p>Review your transactions and receipts.</p></div><button type="button" disabled={loading} onClick={() => void loadHistory()}>{loading ? "Refreshing..." : "Refresh"}</button></header>
-    <div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-5">
-      <label className="text-sm font-semibold">Search<input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search transactions" className={inputClass} /></label>
-      <label className="text-sm font-semibold">Status<select value={status} onChange={(e) => setStatus(e.target.value)} className={inputClass}><option value="">All statuses</option><option value="COMPLETED">Completed</option><option value="REFUNDED">Refunded</option></select></label>
-      <label className="text-sm font-semibold">Payment method<select value={payment} onChange={(e) => setPayment(e.target.value)} className={inputClass}><option value="">All methods</option>{["CASH", "GCASH", "MAYA", "CARD", "OTHER"].map((method) => <option key={method}>{method}</option>)}</select></label>
-      <label className="text-sm font-semibold">From date<input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className={inputClass} /></label>
-      <label className="text-sm font-semibold">To date<input type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} className={inputClass} /></label>
-      <button type="button" onClick={() => { setSearch(""); setStatus(""); setPayment(""); setFrom(""); setTo(""); }} className="justify-self-start text-sm font-semibold underline">Clear filters</button>
+    <div className={styles.filters}>
+      <label className={styles.searchLabel}>Search<input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search transactions" className={styles.searchInput} /></label>
+      <AdminSelect label="Status" value={status} onChange={setStatus} options={[{ value: "", label: "All statuses" }, { value: "COMPLETED", label: "Completed" }, { value: "REFUNDED", label: "Refunded" }]} />
+      <AdminSelect label="Payment method" value={payment} onChange={setPayment} options={[{ value: "", label: "All methods" }, ...["CASH", "GCASH", "MAYA", "CARD", "OTHER"].map((method) => ({ value: method, label: ({ CASH: "Cash", GCASH: "GCash", MAYA: "Maya", CARD: "Card", OTHER: "Other" } as Record<string, string>)[method] }))]} />
+      <DateFilter label="From date" value={from} max={to || undefined} onChange={setFrom} />
+      <DateFilter label="To date" value={to} min={from || undefined} onChange={setTo} />
+      <button type="button" onClick={() => { setSearch(""); setStatus(""); setPayment(""); setFrom(""); setTo(""); }} className={styles.clearFilters}>Clear filters</button>
     </div>
     {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{error}</p>}
     {notice && <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} />}

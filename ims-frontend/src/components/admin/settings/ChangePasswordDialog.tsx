@@ -2,6 +2,7 @@
 
 import type { FormEvent } from "react";
 import { useState } from "react";
+import styles from "./EditAccountDialog.module.css";
 import InventoryModal from "@/components/admin/inventory/InventoryModal";
 import {
   InventoryField,
@@ -12,7 +13,7 @@ import {
   type ChangePasswordResponse,
 } from "@/lib/settings";
 
-const inventoryInputClasses = "w-full rounded-2xl border border-[#232d46]/15 bg-white px-4 py-3 text-sm text-[#232d46] outline-none transition placeholder:text-[#232d46]/50 focus:border-[#232d46] focus:ring-2 focus:ring-[#232d46]/15";
+const inventoryInputClasses = styles.input;
 
 type ChangePasswordDialogProps = {
   onClose: () => void;
@@ -73,13 +74,15 @@ export default function ChangePasswordDialog({
 
   return (
     <InventoryModal
+      professional
+      bodyClassName={styles.body}
       title="Change Password"
       description="Enter your current password and choose a new password that meets policy."
       onClose={submitting ? () => undefined : onClose}
     >
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className={styles.form} onSubmit={handleSubmit}>
         {error ? (
-          <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <div role="alert" className={styles.error}>
             {error}
           </div>
         ) : null}
@@ -99,10 +102,10 @@ export default function ChangePasswordDialog({
         <InventoryField
           htmlFor="settings-new-password"
           label="New Password"
-          hint={PASSWORD_REQUIREMENTS_MESSAGE}
         >
           <input
             id="settings-new-password"
+            aria-describedby="settings-password-requirements"
             type="password"
             value={newPassword}
             onChange={(event) => setNewPassword(event.target.value)}
@@ -113,6 +116,8 @@ export default function ChangePasswordDialog({
             required
           />
         </InventoryField>
+
+        <p id="settings-password-requirements">{PASSWORD_REQUIREMENTS_MESSAGE}</p>
 
         <InventoryField
           htmlFor="settings-confirm-password"
@@ -131,7 +136,7 @@ export default function ChangePasswordDialog({
           />
         </InventoryField>
 
-        <div className="flex justify-end gap-3 pt-2">
+        <div className={styles.actions}>
           <button
             type="button"
             onClick={onClose}

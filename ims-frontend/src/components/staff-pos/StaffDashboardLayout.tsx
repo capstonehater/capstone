@@ -2,11 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { ChevronLeft, ClipboardList, LayoutDashboard, Menu, Settings, X } from "lucide-react";
 import styles from "@/components/layout/ApplicationShell.module.css";
 import StaffHeader from "./StaffHeader";
 import SidebarAccount from "@/components/layout/SidebarAccount";
+import focusStyles from "./FocusMode.module.css";
+
+const FocusModeContext = createContext({ focusMode: false, toggleFocusMode: () => {} });
+export const usePOSFocusMode = () => useContext(FocusModeContext);
 
 type StaffDashboardLayoutProps = {
   children: React.ReactNode;
@@ -20,6 +24,8 @@ export default function StaffDashboardLayout({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [focusEnabled, setFocusEnabled] = useState(false);
+  const focusMode = focusEnabled && (pathname === "/staff/dashboard" || pathname === "/staff/pos");
   const links = [
     { label: "POS Dashboard", href: "/staff/dashboard", icon: LayoutDashboard },
     { label: "Transaction History", href: "/staff/transactions", icon: ClipboardList },
@@ -27,9 +33,10 @@ export default function StaffDashboardLayout({
   ];
 
   return (
-    <div className={`${styles.shell} ${collapsed ? styles.staffShellCollapsed : ""}`}>
+    <FocusModeContext.Provider value={{ focusMode, toggleFocusMode: () => { setFocusEnabled((value) => !value); setSidebarOpen(false); } }}>
+    <div className={`${styles.shell} ${collapsed ? styles.staffShellCollapsed : ""} ${focusMode ? focusStyles.focusShell : ""}`}>
       {sidebarOpen ? <button type="button" className={styles.overlay} aria-label="Close navigation" onClick={() => setSidebarOpen(false)} /> : null}
-      <aside className={`${styles.staffSidebar} ${sidebarOpen ? styles.staffSidebarOpen : ""} ${collapsed ? styles.staffSidebarCollapsed : ""}`}>
+      <aside inert={focusMode} className={`${styles.staffSidebar} ${focusStyles.sidebar} ${sidebarOpen ? styles.staffSidebarOpen : ""} ${collapsed ? styles.staffSidebarCollapsed : ""}`}>
         <div className={styles.staffBrand}><div className={styles.sidebarBrandLogo}><strong>{collapsed ? "CS" : "Cafe Salvacion"}</strong>{!collapsed && <p>POS Management</p>}</div><button type="button" className={styles.mobileClose} onClick={() => setSidebarOpen(false)} aria-label="Close navigation"><X size={20} /></button></div>
         <SidebarAccount collapsed={collapsed && !sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
         <nav className={styles.staffNavigation} aria-label="Staff navigation">
@@ -40,7 +47,8 @@ export default function StaffDashboardLayout({
         </nav>
         <button type="button" className={styles.staffCollapseButton} onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <Menu size={18} /> : <ChevronLeft size={18} />}</button>
       </aside>
-      <div className={styles.staffBody}><button type="button" className={styles.shellMobileMenu} onClick={() => setSidebarOpen(true)} aria-label="Open navigation"><Menu size={20} /></button>{showHeader && pathname !== "/staff/transactions" && <StaffHeader />}<main className={styles.content}>{children}</main></div>
+      <div className={`${styles.staffBody} ${focusStyles.body}`}><button type="button" className={`${styles.shellMobileMenu} ${focusStyles.mobileMenu}`} onClick={() => setSidebarOpen(true)} aria-label="Open navigation"><Menu size={20} /></button>{showHeader && pathname !== "/staff/transactions" && <div className={focusStyles.retract}><div className={focusStyles.retractInner}><StaffHeader focusMode={focusMode} onToggleFocus={pathname === "/staff/dashboard" || pathname === "/staff/pos" ? () => { setFocusEnabled((value) => !value); setSidebarOpen(false); } : undefined} /></div></div>}<main className={styles.content}>{children}</main></div>
     </div>
+    </FocusModeContext.Provider>
   );
 }

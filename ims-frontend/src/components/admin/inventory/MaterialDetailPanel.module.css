@@ -1,0 +1,4 @@
+.historyFilters > div { min-width:0; }
+.historyFilters input, .historyFilters select { min-width:0; max-width:100%; }
+.historyFilters input:not([type="date"]), .historyFilters select { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.historyFilters select { padding-right:32px; }

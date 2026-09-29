@@ -39,6 +39,30 @@
   gap: 16px;
 }
 
+.posPage[data-pos-scroll="true"] .productGrid {
+  max-height: 60dvh;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #f1f5f9;
+  align-content: start;
+  padding: 4px;
+}
+.productGrid:focus-visible { outline: 2px solid #426da6; outline-offset: 2px; }
+
+@media (min-width: 1280px) {
+  .posPage[data-pos-scroll="true"] { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+  .posPage[data-pos-scroll="true"] .posContent { flex: 1; min-height: 0; }
+  .posPage[data-pos-scroll="true"] .posContent > :not(.orderArea) { flex-shrink: 0; }
+  .posPage[data-pos-scroll="true"] .orderArea { flex: 1; min-height: 0; }
+  .posPage[data-pos-scroll="true"] .orderWorkspace { height: 100%; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+  .posPage[data-pos-scroll="true"] .productPanel { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .posPage[data-pos-scroll="true"] .productPanel > :not(.productGrid) { flex-shrink: 0; }
+  .posPage[data-pos-scroll="true"] .productGrid { flex: 1; min-height: 0; max-height: none; }
+  .posPage[data-pos-scroll="true"] .cart { max-height: 100%; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-width: thin; }
+}
+
 .productCard {
   display: flex;
   flex-direction: column;
@@ -97,6 +121,36 @@
   overflow-wrap:anywhere;
   cursor:pointer;
   transition:background-color 150ms, border-color 150ms;
+}
+
+.posPage[data-focus-mode="true"] { display: flex; flex: 1; flex-direction: column; min-height: 0; max-width: none; }
+.posPage[data-focus-mode="true"] .posContent { flex: 1; min-height: 0; gap: 0; }
+.posPage[data-focus-mode="true"] .posContent > :not(.orderArea) { flex-shrink: 0; }
+.posPage[data-focus-mode="true"] .orderArea { flex: 1; min-height: 0; }
+.posPage[data-focus-mode="true"] .categoryPanel { display: flex; flex-direction: column; justify-content: flex-start; height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px; }
+.posPage[data-focus-mode="true"] .categoryPanel > * { flex-shrink: 0; }
+.posPage[data-focus-mode="true"] .orderWorkspace { height: 100%; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+.posPage[data-focus-mode="true"] .productPanel { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.posPage[data-focus-mode="true"] .productPanel > :not(.productGrid) { flex-shrink: 0; }
+.posPage[data-focus-mode="true"] .productGrid { flex: 1; min-height: 0; max-height: none; }
+.posPage[data-focus-mode="true"] .cart { display: flex; flex-direction: column; height: 100%; max-height: 100%; min-height: 0; padding: 16px; overflow: visible; }
+.posPage[data-focus-mode="true"] .cart > :not(.cartItems) { flex-shrink: 0; }
+.posPage[data-focus-mode="true"] .cart > div:first-child { margin-bottom: 12px; }
+.posPage[data-focus-mode="true"] .cart h2 { font-size: 22px; }
+.posPage[data-focus-mode="true"] .cartItems { flex: 1; min-height: 0; max-height: none; margin-bottom: 12px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.posPage[data-focus-mode="true"] .cartSummary { gap: 10px; padding: 12px; }
+.posPage[data-focus-mode="true"] .cartSummary label { margin-bottom: 4px; font-size: 14px; }
+.posPage[data-focus-mode="true"] .cartSummary select { min-height: 40px; padding: 8px 12px; font-size: 14px; }
+.posPage[data-focus-mode="true"] .cartSummary textarea { height: 54px; min-height: 54px; padding-top: 8px; padding-bottom: 8px; resize: none; font-size: 14px; }
+.posPage[data-focus-mode="true"] .cartTotals { gap: 6px; padding-top: 10px; font-size: 14px; }
+.posPage[data-focus-mode="true"] .cartTotals > div:last-child { margin-top: 0; padding-top: 8px; font-size: 22px; }
+.posPage[data-focus-mode="true"] .cartActions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.posPage[data-focus-mode="true"] .cartActions button { min-height: 44px; padding: 8px; font-size: 14px; }
+.posPage[data-focus-mode="true"] .cartActions button:last-child { grid-column: 2; grid-row: 1; }
+.posPage[data-focus-mode="true"] .cartActions button:first-child { grid-column: 1; grid-row: 1; }
+@media (max-width: 1279px) {
+  .posPage[data-focus-mode="true"] .orderWorkspace { grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
+  .posPage[data-focus-mode="true"] .productPanel { padding: 12px; }
 }
 .categoryCard:hover { background:#e2e8f0; border-color:#64748b; }
 .categoryCard:active { background:#cbd5e1; }

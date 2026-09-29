@@ -135,6 +135,7 @@ export default function RawMaterialModals({
 
       {activePanel === "edit-material" && selectedMaterial ? (
         <InventoryModal
+          professional
           title={`Edit ${selectedMaterial.name}`}
           description="Update metadata without changing the existing stock or ledger history."
           onClose={onClose}
@@ -169,7 +170,7 @@ export default function RawMaterialModals({
                 onChange={(event) =>
                   onMaterialFormChange((current) => ({ ...current, unitId: event.target.value }))
                 }
-                className={inventoryInputClasses}
+                className={modalStyles.unitSelect}
               >
                 <option value="">Select unit</option>
                 {units.map((unit) => (
@@ -210,6 +211,7 @@ export default function RawMaterialModals({
 
       {activePanel === "archive-material" && selectedMaterial ? (
         <InventoryModal
+          professional
           title="Archive Raw Material"
           description="This hides the material from the default summary view but keeps all batches and ledger history intact."
           onClose={onClose}
@@ -227,7 +229,7 @@ export default function RawMaterialModals({
               <button type="button" onClick={onClose} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
                 Cancel
               </button>
-              <button type="button" onClick={onArchiveMaterial} disabled={submitting} className="rounded-full bg-rose-600 px-5 py-2 text-sm font-semibold text-white">
+              <button type="button" onClick={onArchiveMaterial} disabled={submitting} className={modalStyles.archiveAction}>
                 Archive Material
               </button>
             </ModalActions>

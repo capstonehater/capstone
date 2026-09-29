@@ -1,0 +1,28 @@
+.retract { display: grid; grid-template-rows: 1fr; opacity: 1; transition: grid-template-rows 320ms ease, opacity 220ms ease, transform 320ms ease; }
+.retractInner { min-height: 0; overflow: hidden; }
+.retracted { grid-template-rows: 0fr; opacity: 0; transform: translateY(-12px); pointer-events: none; }
+.sidebar { transition: width 320ms ease, transform 320ms ease, opacity 220ms ease; }
+.focusShell .sidebar { transform: translateX(calc(-100% - 24px)); opacity: 0; pointer-events: none; }
+.body { transition: margin-left 320ms ease; }
+@media (min-width: 1280px) {
+  .body:has([data-pos-scroll="true"]) { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+  .body:has([data-pos-scroll="true"]) > .retract { flex-shrink: 0; }
+  .body:has([data-pos-scroll="true"]) > main { display: flex; flex: 1; flex-direction: column; min-height: 0; padding-bottom: 20px; }
+}
+.focusShell .body { margin-left: 0; }
+.focusShell { height: 100dvh; min-height: 0; overflow: hidden; }
+:global(html):has(.focusShell), :global(body):has(.focusShell) { overflow: hidden; overscroll-behavior: none; }
+.focusShell .body { position: fixed; inset: 0; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.focusShell .body > .retract { flex-shrink: 0; }
+.focusShell .body > main { display: flex; flex: 1; flex-direction: column; min-height: 0; padding: 20px clamp(12px, 2vw, 32px); }
+.focusShell .mobileMenu { display: none; }
+.headerRow { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.headerRow .toggle { flex-shrink: 0; }
+.toggle { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; border: 1px solid #cbd5e1; border-radius: 12px; background: #fff; color: #232d46; font-size: 14px; font-weight: 600; transition: background 180ms ease, color 180ms ease; }
+.toggle:hover { background: #edf2f8; }
+.toggle[aria-pressed="true"] { border-color: #232d46; background: #232d46; color: #fff; }
+.toggle[aria-pressed="true"]:hover { background: #34445f; }
+.toggle:focus-visible { outline: 3px solid #426da6; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .retract, .sidebar, .body, .toggle { transition: none; }
+}

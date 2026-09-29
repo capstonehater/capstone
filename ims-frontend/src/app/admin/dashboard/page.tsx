@@ -7,6 +7,8 @@ import {
   Clock3,
 } from "lucide-react";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
+import InventoryReportModal from "@/components/admin/inventory/InventoryReportModal";
+import AdminSelect from "@/components/admin/AdminSelect";
 import { acknowledgeAlert, dismissAlert, fetchAlerts, type AlertRecord } from "@/lib/alerts";
 import {
   fetchInventoryHealth,
@@ -21,6 +23,8 @@ import {
 import { formatDateTime, formatPeso } from "@/lib/pos-utils";
 import { fetchSuppliers } from "@/lib/inventory";
 import styles from "./dashboard.module.css";
+
+const WASTE_COLORS = ["#232d46", "#47749e", "#548780", "#8996aa"];
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "N/A";
@@ -100,7 +104,7 @@ export default function AdminDashboardPage() {
     const total = rows.reduce((sum, row) => sum + Number(row.cost), 0);
     if (!total) return "conic-gradient(#d1d5db 0 100%)";
     let cursor = 0;
-    const colors = ["#f45a1f", "#f6b73c", "#2774c9", "#9ca3af"];
+    const colors = WASTE_COLORS;
     return `conic-gradient(${rows.map((row, index) => { const start = cursor; cursor += (Number(row.cost) / total) * 100; return `${colors[index % colors.length]} ${start}% ${cursor}%`; }).join(",")})`;
   }, [wasteSummary]);
 
@@ -137,7 +141,7 @@ export default function AdminDashboardPage() {
 
       <section className={styles.row}>
         <div className={styles.panel}>
-          <div className={styles.panelHeader}><h2 className={styles.panelTitle}>Top-Selling Variants</h2><select className={styles.periodSelect} value={salesPeriod} onChange={(event) => setSalesPeriod(event.target.value)} aria-label="Top-selling period"><option>Last 30 Days</option><option>Last 7 Days</option><option>Last 90 Days</option></select></div>
+          <div className={styles.panelHeader}><h2 className={styles.panelTitle}>Top-Selling Variants</h2><AdminSelect label="Date range" value={salesPeriod} onChange={setSalesPeriod} options={[{ value: "Last 7 Days", label: "Last 7 Days" }, { value: "Last 30 Days", label: "Last 30 Days" }, { value: "Last 90 Days", label: "Last 90 Days" }]} /></div>
           <div className={styles.panelBody}><div className={styles.list}>
             {(salesOverview?.topVariants ?? []).map((variant) => (
               <div
@@ -201,7 +205,7 @@ export default function AdminDashboardPage() {
               >
                 <div className={styles.itemMain}>
                   <p className={styles.itemName}>{batch.rawMaterial.name}</p>
-                  <Clock3 size={18} className="text-[#f45a1f]" />
+                  <Clock3 size={18} className={styles.watchIcon} />
                 </div>
                 <p className={styles.muted}>
                   Expiry: {formatDate(batch.expirationDate)}
@@ -213,17 +217,17 @@ export default function AdminDashboardPage() {
             ))}
           </div></div></div>
 
-        <div className={styles.panel}><div className={styles.panelHeader}><h2 className={styles.panelTitle}>Waste Reason</h2><button className={styles.viewAll} type="button" onClick={() => setActiveModal("waste")}>View All</button></div><div className={styles.panelBody}><div className={styles.donutWrap}><div className={styles.donut} style={{ background: wasteGradient }} aria-label="Waste reason breakdown" /><div className={styles.legend}>
-            {(wasteSummary?.byReason ?? []).map((reason, index, rows) => { const total = rows.reduce((sum, item) => sum + Number(item.cost), 0); const percentage = total ? (Number(reason.cost) / total) * 100 : 0; return <div key={reason.reasonCode} className={styles.legendRow}><span><i className={styles.legendDot} />{reason.reasonCode}</span><strong>{percentage.toFixed(0)}% · {formatPeso(reason.cost)}</strong></div>; })}
+        <div className={styles.panel}><div className={styles.panelHeader}><h2 className={styles.panelTitle}>Waste Reason</h2><button className={styles.viewAll} type="button" onClick={() => setActiveModal("waste")}>View All</button></div><div className={styles.panelBody}><div className={styles.donutWrap}><div className={styles.donut} style={{ background: wasteGradient }} aria-label="Waste reason breakdown" /><div className={styles.legend}>{!wasteSummary?.byReason.length && <p className={styles.muted}>{loading ? "Loading waste records..." : "No waste records in this period."}</p>}
+            {(wasteSummary?.byReason ?? []).map((reason, index, rows) => { const total = rows.reduce((sum, item) => sum + Number(item.cost), 0); const percentage = total ? (Number(reason.cost) / total) * 100 : 0; return <div key={reason.reasonCode} className={styles.legendRow}><span><i className={styles.legendDot} style={{ backgroundColor: WASTE_COLORS[index % WASTE_COLORS.length] }} />{reason.reasonCode.replaceAll("_", " ")}</span><strong>{percentage.toFixed(0)}% · {formatPeso(reason.cost)}</strong></div>; })}
           </div></div><p className={styles.totalWaste}>Total Waste Cost <strong>{formatPeso(wasteSummary?.totals.cost ?? "0")}</strong></p></div></div>
 
-        <div className={styles.panel}><div className={styles.panelHeader}><h2 className={styles.panelTitle}>Recent Orders</h2><button className={styles.viewAll} type="button" onClick={() => setActiveModal("orders")}>View All</button></div><div className={styles.panelBody}><div className={styles.orderTable}><div className={styles.orderHead}><span>Order ID</span><span>Staff</span><span>Date</span><span>Status</span><span>Amount</span></div>
+        <div className={styles.panel}><div className={styles.panelHeader}><h2 className={styles.panelTitle}>Recent Orders</h2><button className={styles.viewAll} type="button" onClick={() => setActiveModal("orders")}>View All</button></div><div className={styles.panelBody}><div className={styles.orderTable}><div className={styles.orderHead}><span>Order / staff</span><span>Date / status</span><span>Amount</span></div>
             {(salesOverview?.recentOrders ?? []).slice(0, 5).map((order) => (
               <div
                 key={order.id}
                 className={styles.orderRow}
               >
-                <span title={order.id}>{order.id.slice(0, 8)}</span><span>{order.createdBy.firstName}</span><span>{formatDate(order.completedAt)}</span><span className={styles.statusBadge}>Completed</span><strong>{formatPeso(order.totalAmount)}</strong>
+                <div><span title={order.id}>{order.id.slice(0, 8)}</span><small>{order.createdBy.firstName}</small></div><div><span>{formatDate(order.completedAt)}</span><span className={styles.statusBadge}>Completed</span></div><strong>{formatPeso(order.totalAmount)}</strong>
               </div>
             ))}
           </div></div></div>
@@ -257,7 +261,23 @@ export default function AdminDashboardPage() {
         </div>
       </section>
 
-      {activeModal ? <div className={styles.modalBackdrop} role="presentation" onMouseDown={() => setActiveModal(null)}><section className={styles.modal} role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><div className={styles.modalHeader}><h2>{activeModal === "orders" ? "Recent Orders" : activeModal === "expiry" ? "Near Expiry Watchlist" : "Waste Breakdown"}</h2><button type="button" className={styles.modalClose} onClick={() => setActiveModal(null)} aria-label="Close">×</button></div><p className={styles.muted}>Live dashboard details</p>{activeModal === "orders" ? <div className={styles.modalList}>{(salesOverview?.recentOrders ?? []).map((order) => <div className={styles.modalRow} key={order.id}><strong>{order.id}</strong><span>{formatDateTime(order.completedAt)}</span><span>{formatPeso(order.totalAmount)}</span></div>)}</div> : activeModal === "expiry" ? <div className={styles.modalList}>{(inventoryHealth?.nearExpiryBatches ?? []).map((batch) => <div className={styles.modalRow} key={batch.id}><strong>{batch.rawMaterial.name}</strong><span>{formatDate(batch.expirationDate)}</span><span>{batch.remainingQuantity}</span></div>)}</div> : <div className={styles.modalList}>{(wasteSummary?.byReason ?? []).map((reason) => <div className={styles.modalRow} key={reason.reasonCode}><strong>{reason.reasonCode}</strong><span>{reason.eventCount} events</span><span>{formatPeso(reason.cost)}</span></div>)}</div>}<a className={styles.modalRoute} href={activeModal === "orders" ? "/admin/reports/pos" : activeModal === "expiry" ? "/admin/inventory" : "/admin/reports/inventory"}>Open full workspace →</a></section></div> : null}
+      {activeModal && <InventoryReportModal
+        title={activeModal === "orders" ? "Recent Orders" : activeModal === "expiry" ? "Near Expiry Watchlist" : "Waste Breakdown"}
+        description={activeModal === "orders" ? "Recent orders from the selected sales period." : activeModal === "expiry" ? "Review remaining quantities and expiry dates for the batches returned by the inventory report." : "Waste events and costs grouped by reason for the dashboard reporting period."}
+        onClose={() => setActiveModal(null)}>
+        <div className={styles.detailScroll}>
+          <table className={styles.detailTable}>
+            <thead><tr>{(activeModal === "orders" ? ["Order ID", "Staff", "Date & time", "Amount"] : activeModal === "expiry" ? ["Material", "Expiry date", "Remaining quantity"] : ["Reason", "Events", "Waste cost"]).map((label, index, labels) => <th key={label} scope="col" className={index === labels.length - 1 ? styles.numeric : undefined}>{label}</th>)}</tr></thead>
+            <tbody>
+              {activeModal === "orders" && (salesOverview?.recentOrders ?? []).map(order => <tr key={order.id}><td className={styles.identifier}>{order.id}</td><td>{order.createdBy.firstName}</td><td>{formatDateTime(order.completedAt)}</td><td className={styles.numeric}>{formatPeso(order.totalAmount)}</td></tr>)}
+              {activeModal === "expiry" && (inventoryHealth?.nearExpiryBatches ?? []).map(batch => <tr key={batch.id}><td>{batch.rawMaterial.name}</td><td>{formatDate(batch.expirationDate)}</td><td className={styles.numeric}>{Number(batch.remainingQuantity).toLocaleString("en-PH", { maximumFractionDigits: 4 })}</td></tr>)}
+              {activeModal === "waste" && (wasteSummary?.byReason ?? []).map(reason => <tr key={reason.reasonCode}><td>{reason.reasonCode.replaceAll("_", " ")}</td><td>{reason.eventCount}</td><td className={styles.numeric}>{formatPeso(reason.cost)}</td></tr>)}
+              {(activeModal === "orders" ? !salesOverview?.recentOrders.length : activeModal === "expiry" ? !inventoryHealth?.nearExpiryBatches.length : !wasteSummary?.byReason.length) && <tr><td colSpan={activeModal === "orders" ? 4 : 3}>{loading ? "Loading records..." : "No records available for this report."}</td></tr>}
+            </tbody>
+          </table>
+        </div>
+        <a className={styles.workspaceLink} href={activeModal === "orders" ? "/admin/reports/pos" : activeModal === "expiry" ? "/admin/inventory" : "/admin/reports/inventory"}>Open full workspace →</a>
+      </InventoryReportModal>}
       </div>
     </AdminDashboardLayout>
   );
