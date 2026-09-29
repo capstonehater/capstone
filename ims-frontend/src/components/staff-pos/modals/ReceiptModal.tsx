@@ -29,7 +29,7 @@ export default function ReceiptModal({
     <Modal title="Receipt" onClose={onClose}>
       <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
         <div className="mb-4 flex items-center gap-2">
-          <Receipt className="h-5 w-5 text-[#f45a1f]" />
+          <Receipt className="h-5 w-5 text-[#232d46]" />
           <div>
             <h3 className="font-semibold">Receipt #{receipt.id}</h3>
             <p className="text-sm text-slate-500">{formatDateTime(receipt.completedAt)}</p>
@@ -146,7 +146,7 @@ export default function ReceiptModal({
           <button
             onClick={onClose}
             type="button"
-            className="rounded-2xl bg-[#f45a1f] px-4 py-2 text-sm font-medium text-white hover:bg-[#d94f1a]"
+            className="rounded-2xl bg-[#232d46] px-4 py-2 text-sm font-medium text-white hover:bg-[#34445f]"
           >
             Done
           </button>

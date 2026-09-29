@@ -71,7 +71,7 @@ export default function OrderReversalModal({
               value={approverEmail}
               onChange={(event) => onApproverEmailChange(event.target.value)}
               placeholder="admin@stockscout.com"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
             />
           </label>
 
@@ -82,7 +82,7 @@ export default function OrderReversalModal({
               value={approverPassword}
               onChange={(event) => onApproverPasswordChange(event.target.value)}
               placeholder="Enter approving admin password"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
             />
           </label>
         </div>
@@ -94,7 +94,7 @@ export default function OrderReversalModal({
               value={reasonCode}
               onChange={(event) => onReasonCodeChange(event.target.value)}
               placeholder="CUSTOMER_REFUND"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
             />
           </label>
 
@@ -104,7 +104,7 @@ export default function OrderReversalModal({
               value={paymentReference}
               onChange={(event) => onPaymentReferenceChange(event.target.value)}
               placeholder="Optional reference"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
             />
           </label>
         </div>
@@ -116,7 +116,7 @@ export default function OrderReversalModal({
             onChange={(event) => onNoteChange(event.target.value)}
             rows={3}
             placeholder="Optional staff note for the audit trail"
-            className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+            className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
           />
         </label>
 

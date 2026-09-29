@@ -296,7 +296,7 @@ export default function StaffPOSPage() {
       <div className="flex w-full flex-col gap-4">
         <header className="flex flex-col justify-between gap-3 rounded-3xl bg-white p-5 shadow-sm md:flex-row md:items-center">
           <div>
-            <p className="text-sm font-medium text-[#f45a1f]">Staff Panel</p>
+            <p className="text-sm font-medium text-[#232d46]">Staff Panel</p>
             <h1 className="text-2xl font-bold">Staff POS</h1>
             <p className="text-sm text-slate-500">Real menu browsing, backend-driven variants and modifiers, and checkout synced to inventory. Signed in as <span className="font-medium text-slate-700">{staffName}</span>.</p>
           </div>
@@ -340,7 +340,7 @@ export default function StaffPOSPage() {
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="relative w-full md:max-w-xl">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by product, category, or SKU" className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none focus:border-[#f45a1f]" />
+                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by product, category, or SKU" className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none focus:border-[#232d46]" />
               </div>
               <button type="button" onClick={() => { setChoosingCategory(true); setSearch(""); }} className="order-first inline-flex shrink-0 items-center gap-2 rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-[#232d46] hover:bg-slate-50"><ArrowLeft size={18} />Back to Categories</button>
             </div>
@@ -374,7 +374,7 @@ export default function StaffPOSPage() {
           </section>
 
           <aside className={styles.cart}>
-            <div className="mb-4 flex items-center justify-between"><div className="flex items-center gap-2"><ShoppingCart className="h-5 w-5 text-[#f45a1f]" /><h2 className="text-lg font-semibold">Current Cart</h2></div><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{cart.length} item{cart.length !== 1 ? "s" : ""}</span></div>
+            <div className="mb-4 flex items-center justify-between"><div className="flex items-center gap-2"><ShoppingCart className="h-5 w-5 text-[#232d46]" /><h2 className="text-lg font-semibold">Current Cart</h2></div><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{cart.length} item{cart.length !== 1 ? "s" : ""}</span></div>
             <div className="mb-4 max-h-[340px] space-y-3 overflow-auto pr-1">
               {cart.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Your cart is empty. Choose a product to start an order.</div> : cart.map((item) => (
                 <div key={item.cartId} className={styles.cartItem}>
@@ -405,11 +405,11 @@ export default function StaffPOSPage() {
             <div className={styles.cartSummary}>
               <div>
                 <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="pos-cart-discount">Discount</label>
-                <select id="pos-cart-discount" value={discount} onChange={(e) => setDiscount(e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#f45a1f]">{DISCOUNT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+                <select id="pos-cart-discount" value={discount} onChange={(e) => setDiscount(e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#232d46]">{DISCOUNT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="pos-cart-notes">Transaction Notes</label>
-                <div className="relative"><StickyNote className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" /><textarea id="pos-cart-notes" value={transactionNote} onChange={(e) => setTransactionNote(e.target.value)} placeholder="Example: less sugar, no straw" rows={3} className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-[#f45a1f]" /></div>
+                <div className="relative"><StickyNote className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" /><textarea id="pos-cart-notes" value={transactionNote} onChange={(e) => setTransactionNote(e.target.value)} placeholder="Example: less sugar, no straw" rows={3} className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-[#232d46]" /></div>
               </div>
               <div className={styles.cartTotals}>
                 <div className="flex justify-between"><span className="text-slate-500">Subtotal (VAT Inclusive)</span><span>{formatPeso(totals.subtotal)}</span></div>
@@ -421,7 +421,7 @@ export default function StaffPOSPage() {
 
             <div className={styles.cartActions}>
               <button onClick={handleCancelTransaction} type="button" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-100">Cancel Transaction</button>
-              <button onClick={() => setShowPayment(true)} type="button" disabled={cart.length === 0} className="rounded-2xl bg-[#f45a1f] px-4 py-3 text-sm font-semibold text-white hover:bg-[#d94f1a] disabled:cursor-not-allowed disabled:bg-slate-300">{checkoutLoading ? "Processing..." : isOnline ? "Process Order" : "Queue Checkout"}</button>
+              <button onClick={() => setShowPayment(true)} type="button" disabled={cart.length === 0} className="rounded-2xl bg-[#232d46] px-4 py-3 text-sm font-semibold text-white hover:bg-[#34445f] disabled:cursor-not-allowed disabled:bg-slate-300">{checkoutLoading ? "Processing..." : isOnline ? "Process Order" : "Queue Checkout"}</button>
             </div>
           </aside>
         </div>}

@@ -228,7 +228,7 @@ export default function ProductConfiguratorModal({
         <button
           onClick={handleSubmit}
           type="button"
-          className="rounded-2xl bg-[#f45a1f] px-4 py-2 text-sm font-medium text-white hover:bg-[#d94f1a]"
+          className="rounded-2xl bg-[#232d46] px-4 py-2 text-sm font-medium text-white hover:bg-[#34445f]"
         >
           {submitLabel} • {formatPeso(liveUnitPrice)}
         </button>
@@ -274,9 +274,9 @@ export default function ProductConfiguratorModal({
                     aria-pressed={selectedVariantId === variant.id}
                     className={`rounded-2xl border px-4 py-3 text-left transition ${
                       selectedVariantId === variant.id
-                        ? "border-[#f45a1f] bg-orange-50 text-slate-900"
+                        ? "border-[#232d46] bg-slate-100 text-slate-900"
                         : "border-slate-200 bg-white text-slate-700"
-                    } ${disabled ? "cursor-not-allowed bg-slate-50" : "hover:border-[#f45a1f]/60"}`}
+                    } ${disabled ? "cursor-not-allowed bg-slate-50" : "hover:border-[#232d46]/60"}`}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div>
@@ -309,7 +309,7 @@ export default function ProductConfiguratorModal({
               onChange={(event) => setNote(event.target.value)}
               rows={2}
               placeholder="Example: less sugar, no straw"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
             />
           </div>
         </div>
@@ -359,7 +359,7 @@ export default function ProductConfiguratorModal({
                           key={modifier.id}
                           className={`rounded-2xl border px-4 py-3 ${
                             active
-                              ? "border-[#f45a1f] bg-orange-50"
+                              ? "border-[#232d46] bg-slate-100"
                               : "border-slate-200 bg-white"
                           } ${!modifier.isAvailable ? "bg-slate-50" : ""}`}
                         >
@@ -416,7 +416,7 @@ export default function ProductConfiguratorModal({
                                 onClick={() => toggleModifier(group, modifier)}
                                 className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                                   active
-                                    ? "bg-[#f45a1f] text-white"
+                                    ? "bg-[#232d46] text-white"
                                     : "border border-slate-200 text-slate-700"
                                 }`}
                               >
