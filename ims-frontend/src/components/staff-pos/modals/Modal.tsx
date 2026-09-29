@@ -4,6 +4,8 @@ type ModalProps = {
   children: React.ReactNode;
   onClose: () => void;
   wide?: boolean;
+  footer?: React.ReactNode;
+  bodyClassName?: string;
 };
 
 export default function Modal({
@@ -11,6 +13,8 @@ export default function Modal({
   children,
   onClose,
   wide = false,
+  footer,
+  bodyClassName = "",
 }: ModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -23,7 +27,8 @@ export default function Modal({
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
           <ModalCloseButton onClose={onClose} />
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-6">{children}</div>
+        <div className={`min-h-0 flex-1 overflow-y-auto p-6 ${bodyClassName}`}>{children}</div>
+        {footer}
       </div>
     </div>
   );

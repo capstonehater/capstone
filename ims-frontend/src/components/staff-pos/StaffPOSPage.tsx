@@ -328,7 +328,7 @@ export default function StaffPOSPage() {
             ) : (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 xl:gap-6">
                 {categories.map((item) => (
-                  <button key={item} type="button" onClick={() => { setCategory(item); setSearch(""); setChoosingCategory(false); }} className="flex min-h-28 items-center justify-center rounded-md border border-white/20 bg-[linear-gradient(115deg,#232d46_0%,#096b94_100%)] px-6 py-6 text-center text-lg font-bold uppercase leading-snug text-white shadow-sm transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-500 motion-reduce:transition-none">
+                  <button key={item} type="button" onClick={() => { setCategory(item); setSearch(""); setChoosingCategory(false); }} className={styles.categoryCard}>
                     {item === "All" ? "All Products" : item}
                   </button>
                 ))}
@@ -351,19 +351,19 @@ export default function StaffPOSPage() {
             {menuLoading ? (
               <div className="flex min-h-[360px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500"><span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Loading menu</span></div>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
+              <div className={styles.productGrid}>
                 {filteredProducts.length === 0 && <p className="col-span-full py-8 text-center text-slate-500">No products match your search in this category.</p>}
                 {filteredProducts.map((product) => {
                   const sellableVariants = product.variants.filter((variant) => variant.isEnabled && variant.availability?.isSellable);
                   const cheapestVariant = [...product.variants].sort((left, right) => Number(left.price) - Number(right.price))[0];
                   const isSellable = sellableVariants.length > 0;
                   return (
-                    <button key={product.id} onClick={() => { setConfiguratorProduct(product); setEditingCartItem(null); }} type="button" disabled={!product.isEnabled || !isSellable} className={`rounded-2xl border p-4 text-left transition ${!product.isEnabled || !isSellable ? "cursor-not-allowed border-slate-200 bg-slate-50 opacity-70" : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-[#f45a1f] hover:shadow-md"}`}>
-                      <div className="mb-3 flex items-center justify-between"><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{product.category.name}</span>{iconForCategory(product.category.name)}</div>
-                      <h3 className="text-base font-semibold">{product.name}</h3>
-                      <p className="mt-1 text-sm text-slate-500">{product.variants.length} variant{product.variants.length === 1 ? "" : "s"} • {product.modifierGroups.length} modifier group{product.modifierGroups.length === 1 ? "" : "s"}</p>
-                      <div className="mt-3 flex items-center justify-between">
-                        <p className="text-sm font-semibold text-[#f45a1f]">Starts at {formatPeso(cheapestVariant?.price ?? 0)}</p>
+                    <button key={product.id} onClick={() => { setConfiguratorProduct(product); setEditingCartItem(null); }} type="button" disabled={!product.isEnabled || !isSellable} className={styles.productCard}>
+                      <div className={styles.productCardHeader}><span className={styles.productCategory}>{product.category.name}</span>{iconForCategory(product.category.name)}</div>
+                      <h3 className={styles.productName}>{product.name}</h3>
+                      <p className={styles.productDescription}>{product.variants.length} variant{product.variants.length === 1 ? "" : "s"} • {product.modifierGroups.length} modifier group{product.modifierGroups.length === 1 ? "" : "s"}</p>
+                      <div className={styles.productCardFooter}>
+                        <p className={styles.productPrice}><span>Starts at</span><strong>{formatPeso(cheapestVariant?.price ?? 0)}</strong></p>
                         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isSellable ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{isSellable ? "Available" : "Unavailable"}</span>
                       </div>
                     </button>
@@ -373,12 +373,12 @@ export default function StaffPOSPage() {
             )}
           </section>
 
-          <aside className="rounded-3xl bg-white p-4 shadow-sm md:p-5">
+          <aside className={styles.cart}>
             <div className="mb-4 flex items-center justify-between"><div className="flex items-center gap-2"><ShoppingCart className="h-5 w-5 text-[#f45a1f]" /><h2 className="text-lg font-semibold">Current Cart</h2></div><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{cart.length} item{cart.length !== 1 ? "s" : ""}</span></div>
             <div className="mb-4 max-h-[340px] space-y-3 overflow-auto pr-1">
-              {cart.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">No items yet. Choose a product and configure its real variant and modifiers.</div> : cart.map((item) => (
-                <div key={item.cartId} className="rounded-2xl border border-slate-200 p-3">
-                  <div className="flex items-start justify-between gap-3">
+              {cart.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Your cart is empty. Choose a product to start an order.</div> : cart.map((item) => (
+                <div key={item.cartId} className={styles.cartItem}>
+                  <div className={styles.cartItemHeader}>
                     <div>
                       <h3 className="font-semibold">{item.productName}</h3>
                       <p className="text-xs text-slate-500">{item.variantName}{item.modifierSelections.length ? ` • ${item.modifierSelections.map((modifier) => `${modifier.name} x${modifier.quantity}`).join(", ")}` : ""}</p>
@@ -386,15 +386,15 @@ export default function StaffPOSPage() {
                       <p className="mt-2 text-sm text-slate-500">{formatPeso(item.unitPrice)} each</p>
                     </div>
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEditItem(item)} type="button" className="rounded-xl p-2 text-blue-600 hover:bg-blue-50" title="Edit item"><Pencil className="h-4 w-4" /></button>
-                      <button onClick={() => setVoidTargetItem(item)} type="button" className="rounded-xl p-2 text-rose-600 hover:bg-rose-50" title="Void item"><Trash2 className="h-4 w-4" /></button>
+                      <button onClick={() => openEditItem(item)} type="button" className="rounded-xl p-2 text-blue-600 hover:bg-blue-50" aria-label={`Edit ${item.productName}`} title="Edit item"><Pencil className="h-4 w-4" /></button>
+                      <button onClick={() => setVoidTargetItem(item)} type="button" className="rounded-xl p-2 text-rose-600 hover:bg-rose-50" aria-label={`Void ${item.productName}`} title="Void item"><Trash2 className="h-4 w-4" /></button>
                     </div>
                   </div>
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="inline-flex items-center rounded-2xl border border-slate-200">
-                      <button onClick={() => updateQty(item.cartId, item.quantity - 1)} type="button" className="px-3 py-2 text-slate-600 hover:bg-slate-50"><Minus className="h-4 w-4" /></button>
+                  <div className={styles.cartItemBottom}>
+                    <div className={styles.quantityControl}>
+                      <button onClick={() => updateQty(item.cartId, item.quantity - 1)} type="button" aria-label={`Decrease quantity of ${item.productName}`} className="px-3 py-2 text-slate-600 hover:bg-slate-50"><Minus className="h-4 w-4" /></button>
                       <span className="min-w-10 text-center text-sm font-semibold">{item.quantity}</span>
-                      <button onClick={() => updateQty(item.cartId, item.quantity + 1)} type="button" className="px-3 py-2 text-slate-600 hover:bg-slate-50"><Plus className="h-4 w-4" /></button>
+                      <button onClick={() => updateQty(item.cartId, item.quantity + 1)} type="button" aria-label={`Increase quantity of ${item.productName}`} className="px-3 py-2 text-slate-600 hover:bg-slate-50"><Plus className="h-4 w-4" /></button>
                     </div>
                     <p className="font-semibold text-slate-900">{formatPeso(item.lineSubtotal)}</p>
                   </div>
@@ -402,16 +402,16 @@ export default function StaffPOSPage() {
               ))}
             </div>
 
-            <div className="space-y-3 rounded-2xl bg-slate-50 p-4">
+            <div className={styles.cartSummary}>
               <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Discount</label>
-                <select value={discount} onChange={(e) => setDiscount(e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#f45a1f]">{DISCOUNT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="pos-cart-discount">Discount</label>
+                <select id="pos-cart-discount" value={discount} onChange={(e) => setDiscount(e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#f45a1f]">{DISCOUNT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Transaction Notes</label>
-                <div className="relative"><StickyNote className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" /><textarea value={transactionNote} onChange={(e) => setTransactionNote(e.target.value)} placeholder="Example: less sugar, no straw" rows={3} className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-[#f45a1f]" /></div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="pos-cart-notes">Transaction Notes</label>
+                <div className="relative"><StickyNote className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" /><textarea id="pos-cart-notes" value={transactionNote} onChange={(e) => setTransactionNote(e.target.value)} placeholder="Example: less sugar, no straw" rows={3} className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-[#f45a1f]" /></div>
               </div>
-              <div className="space-y-2 border-t border-dashed border-slate-200 pt-3 text-sm">
+              <div className={styles.cartTotals}>
                 <div className="flex justify-between"><span className="text-slate-500">Subtotal (VAT Inclusive)</span><span>{formatPeso(totals.subtotal)}</span></div>
                 <div className="flex justify-between"><span className="text-slate-500">Discount</span><span>- {formatPeso(totals.discountAmount)}</span></div>
                 <div className="flex justify-between"><span className="text-slate-500">VAT Included (12%)</span><span>{formatPeso(totals.tax)}</span></div>
@@ -419,7 +419,7 @@ export default function StaffPOSPage() {
               </div>
             </div>
 
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <div className={styles.cartActions}>
               <button onClick={handleCancelTransaction} type="button" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-100">Cancel Transaction</button>
               <button onClick={() => setShowPayment(true)} type="button" disabled={cart.length === 0} className="rounded-2xl bg-[#f45a1f] px-4 py-3 text-sm font-semibold text-white hover:bg-[#d94f1a] disabled:cursor-not-allowed disabled:bg-slate-300">{checkoutLoading ? "Processing..." : isOnline ? "Process Order" : "Queue Checkout"}</button>
             </div>

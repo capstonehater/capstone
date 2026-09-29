@@ -78,6 +78,7 @@
 .staffSidebarCollapsed { width: 76px; }
 .staffBrand { display: flex; align-items: center; justify-content: space-between; min-height: 86px; padding: 20px; border-bottom: 1px solid #ffffff40; font-size: 16px; }
 .staffBrand { justify-content: center; }
+.staffBrand p { margin: 0; color: #b5bac6; font-size: 14px; line-height: 1.5; }
 .staffNavigation { flex: 1; padding: 22px 12px; }
 .staffNavLink { display: flex; align-items: center; gap: 12px; min-height: 42px; margin: 6px 0; padding: 9px 12px; border-left: 2px solid transparent; color: #eef0f5; font-size: 14px; text-decoration: none; transition: background .2s ease, color .2s ease; }
 .staffNavLink:hover { background: #ffffff12; color: white; }
@@ -99,9 +100,10 @@
 .staffBody { min-width: 0; margin-left: 240px; transition: margin-left .25s ease; }
 .staffShellCollapsed .staffBody { margin-left: 76px; }
 .sidebarAccount { position: relative; flex-shrink: 0; padding: 14px 12px; border-bottom: 1px solid #ffffff30; }
-.brand.brandWithAccount { position: relative; flex-direction: column; align-items: stretch; gap: 16px; padding: 24px 12px 16px; }
+.brand.brandWithAccount { position: relative; flex-direction: column; align-items: stretch; gap: 16px; padding: 24px 0 16px; }
 .brandWithAccount > .mobileClose { position: absolute; top: 12px; right: 8px; }
-.brandWithAccount .sidebarAccount { padding: 0; border-bottom: 0; }
+.brandWithAccount .sidebarBrandLogo { padding-inline: 12px; }
+.brandWithAccount .sidebarAccount { padding: 16px 12px 0; border-top: 1px solid #ffffff40; border-bottom: 0; }
 .brandWithAccount .accountIdentity strong { font-size: 14px; line-height: 1.5; }
 .accountTrigger { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px; border: 0; border-radius: 8px; background: #ffffff08; color: #f4f5f8; text-align: left; cursor: pointer; }
 .accountTrigger:hover { background: #ffffff15; }

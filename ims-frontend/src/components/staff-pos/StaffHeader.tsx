@@ -11,6 +11,7 @@ export default function StaffHeader() {
     <header className={styles.pageIntro}>
       <h1 className={styles.title}>{page?.label.toUpperCase() ?? "STAFF"}</h1>
       <p className={styles.subtitle}>{page?.subtitle ?? "Manage your daily work."}</p>
+      <div className={styles.introDivider} />
     </header>
   );
 }

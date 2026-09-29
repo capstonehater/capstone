@@ -7,6 +7,7 @@ import { loadQueuedCheckouts, type OfflineCheckoutEntry } from "@/lib/pos-offlin
 import TransactionHistoryPanel from "./TransactionHistoryPanel";
 import ReceiptModal from "./modals/ReceiptModal";
 import OrderReversalModal from "./modals/OrderReversalModal";
+import styles from "./TransactionHistory.module.css";
 import ActionAlert from "@/components/feedback/ActionAlert";
 
 type ReversalState = {
@@ -79,7 +80,7 @@ export default function TransactionHistoryPage() {
 
   const inputClass = "mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal";
   return <section className="space-y-5 text-[#232d46]">
-    <div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-bold">Transaction History</h1><p className="mt-1 text-sm text-slate-500">Search and review your transactions and receipts.</p></div><button type="button" onClick={() => void loadHistory()} className="rounded-lg bg-[#232d46] px-4 py-2 text-sm font-semibold text-white">Refresh</button></div>
+    <header className={styles.pageHeader}><div><h1>TRANSACTION HISTORY</h1><p>Review your transactions and receipts.</p></div><button type="button" disabled={loading} onClick={() => void loadHistory()}>{loading ? "Refreshing..." : "Refresh"}</button></header>
     <div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-5">
       <label className="text-sm font-semibold">Search<input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search transactions" className={inputClass} /></label>
       <label className="text-sm font-semibold">Status<select value={status} onChange={(e) => setStatus(e.target.value)} className={inputClass}><option value="">All statuses</option><option value="COMPLETED">Completed</option><option value="REFUNDED">Refunded</option></select></label>

@@ -1,6 +1,108 @@
+.cart { min-width: 0; padding: 24px; border: 1px solid #cbd5e1; border-radius: 16px; background: #fff; color: #1e293b; font-size: 16px; line-height: 1.6; align-self: start; }
+.cart h2 { margin: 0; font-size: 26px; font-weight: 700; line-height: 1.3; }
+.cart h3 { margin: 0 0 6px; font-size: 21px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.cart p { margin-bottom: 0; }
+.cart :global(.text-xs), .cart :global(.text-sm) { font-size: 16px; line-height: 1.6; }
+.cart :global(.text-slate-500), .cart :global(.text-slate-600) { color: #475569; }
+.cart > div:first-child svg { color: #232d46; }
+.cartItem { padding: 18px; border: 1px solid #cbd5e1; border-radius: 12px; background: #fff; }
+.cartItemHeader { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.cartItemHeader > div:first-child { flex: 1 1 160px; min-width: 0; }
+.cartItemHeader button { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; }
+.cartItemHeader button svg { width: 19px; height: 19px; }
+.cartItemBottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 18px; }
+.cartItemBottom > p { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.quantityControl { display: inline-flex; align-items: center; overflow: hidden; border: 1px solid #94a3b8; border-radius: 10px; }
+.quantityControl button { display: inline-flex; justify-content: center; align-items: center; width: 44px; height: 44px; padding: 10px; background: #f1f5f9; color: #232d46; }
+.quantityControl span { min-width: 48px; font-size: 18px; font-weight: 700; }
+.cartSummary { display: grid; gap: 18px; padding: 20px; border: 1px solid #dce2eb; border-radius: 12px; background: #f8fafc; }
+.cartSummary label { margin-bottom: 8px; color: #334155; font-size: 16px; font-weight: 600; text-transform: none; letter-spacing: normal; }
+.cartSummary select, .cartSummary textarea { min-height: 48px; border-color: #94a3b8; border-radius: 10px; color: #1e293b; font-size: 16px; }
+.cartSummary textarea::placeholder { color: #526078; opacity: 1; }
+.cartTotals { display: grid; gap: 12px; padding-top: 18px; border-top: 1px solid #cbd5e1; }
+.cartTotals > div { gap: 16px; }
+.cartTotals > div > span:last-child { white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; }
+.cartTotals > div:last-child { margin-top: 4px; padding-top: 16px; border-top: 2px solid #cbd5e1; color: #232d46; font-size: 24px; line-height: 1.4; }
+.cartActions { display: grid; gap: 12px; margin-top: 20px; }
+.cartActions button { min-height: 50px; padding: 12px 16px; border-radius: 10px; font-size: 17px; font-weight: 700; }
+.cartActions button:last-child { grid-row: 1; background: #232d46; color: #fff; }
+.cartActions button:last-child:hover:not(:disabled) { background: #34445f; }
+.cartActions button:last-child:disabled { background: #e2e8f0; color: #475569; }
+.cartActions button:first-child { background: #fff; border-color: #cbd5e1; color: #9f1239; }
+.cartActions button:first-child:hover { background: #fff1f2; }
+.cart button:focus-visible, .cart select:focus-visible, .cart textarea:focus-visible { outline: 3px solid #426da6; outline-offset: 3px; }
+@media (max-width: 480px) { .cart { padding: 16px; } .cartSummary { padding: 16px; } }
+
+.productGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.productCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 250px;
+  padding: 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  background: #fff;
+  color: #1e293b;
+  text-align: left;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.productCard:hover:not(:disabled) {
+  border-color: #475569;
+  box-shadow: 0 4px 12px #0f172a12;
+}
+
+.productCard:focus-visible { outline: 3px solid #426da6; outline-offset: 3px; }
+.productCard:disabled { background: #f8fafc; opacity: 1; cursor: not-allowed; }
+.productCardHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.productCardHeader svg { flex-shrink: 0; color: #475569; }
+.productCategory { padding: 4px 10px; border-radius: 999px; background: #e2e8f0; color: #334155; font-size: 13px; font-weight: 600; line-height: 1.5; }
+.productName { margin: 0; color: #1e293b; font-size: 20px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.productDescription { margin: 10px 0 20px; color: #475569; font-size: 14px; line-height: 1.6; }
+.productCardFooter { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: auto; }
+.productPrice { display: flex; flex-direction: column; gap: 2px; margin: 0; }
+.productPrice span { color: #475569; font-size: 13px; line-height: 1.5; }
+.productPrice strong { color: #232d46; font-size: 20px; line-height: 1.4; white-space: nowrap; }
+@media (min-width: 640px) { .productGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .productGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1536px) { .productGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .productCard { transition: none; } }
+
 .openCategory {
   animation: enterProducts 260ms ease-out both;
 }
+
+.categoryCard {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:112px;
+  min-width:0;
+  padding:24px;
+  border:1px solid #cbd5e1;
+  border-top:4px solid #232d46;
+  border-radius:12px;
+  background:#fff;
+  color:#232d46;
+  font-size:18px;
+  font-weight:700;
+  line-height:1.5;
+  text-align:center;
+  overflow-wrap:anywhere;
+  cursor:pointer;
+  transition:background-color 150ms, border-color 150ms;
+}
+.categoryCard:hover { background:#e2e8f0; border-color:#64748b; }
+.categoryCard:active { background:#cbd5e1; }
+.categoryCard:focus-visible { outline:3px solid #475569; outline-offset:3px; }
+@media (max-width:480px) { .categoryCard { padding:16px; font-size:17px; } }
+@media (prefers-reduced-motion:reduce) { .categoryCard { transition:none; } }
 
 .returnToCategories {
   animation: enterCategories 260ms ease-out both;

@@ -12,6 +12,7 @@ import type {
 } from "@/lib/pos";
 import { decimalToNumber, formatPeso } from "@/lib/pos-utils";
 import Modal from "./Modal";
+import styles from "./ProductConfiguratorModal.module.css";
 
 type Props = {
   product: PosMenuProduct;
@@ -214,15 +215,33 @@ export default function ProductConfiguratorModal({
   };
 
   return (
-    <Modal title={`Configure ${product.name}`} onClose={onClose} wide>
-      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+    <Modal title={product.name} onClose={onClose} wide={product.modifierGroups.length > 0} bodyClassName={styles.body} footer={
+<div className={styles.footer}>
+        <button
+          onClick={onClose}
+          type="button"
+          className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={handleSubmit}
+          type="button"
+          className="rounded-2xl bg-[#f45a1f] px-4 py-2 text-sm font-medium text-white hover:bg-[#d94f1a]"
+        >
+          {submitLabel} • {formatPeso(liveUnitPrice)}
+        </button>
+      </div>
+}>
+      <div className={product.modifierGroups.length > 0 ? styles.layout : styles.simpleLayout}>
         <div className="space-y-4">
           <div className="rounded-2xl bg-slate-50 p-4">
             <p className="text-sm text-slate-500">Category: {product.category.name}</p>
             <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Live Unit Price
+              Price per item
             </p>
-            <p className="mt-1 text-3xl font-bold text-[#f45a1f]">
+            <p className="mt-1 text-3xl font-bold text-[#232d46]">
               {formatPeso(liveUnitPrice)}
             </p>
             <div className="mt-3 space-y-1 text-sm text-slate-600">
@@ -252,11 +271,12 @@ export default function ProductConfiguratorModal({
                       if (!disabled) setSelectedVariantId(variant.id);
                     }}
                     disabled={disabled}
+                    aria-pressed={selectedVariantId === variant.id}
                     className={`rounded-2xl border px-4 py-3 text-left transition ${
                       selectedVariantId === variant.id
                         ? "border-[#f45a1f] bg-orange-50 text-slate-900"
                         : "border-slate-200 bg-white text-slate-700"
-                    } ${disabled ? "cursor-not-allowed opacity-60" : "hover:border-[#f45a1f]/60"}`}
+                    } ${disabled ? "cursor-not-allowed bg-slate-50" : "hover:border-[#f45a1f]/60"}`}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div>
@@ -287,19 +307,19 @@ export default function ProductConfiguratorModal({
             <textarea
               value={note}
               onChange={(event) => setNote(event.target.value)}
-              rows={4}
+              rows={2}
               placeholder="Example: less sugar, no straw"
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
             />
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className={product.modifierGroups.length > 0 ? "space-y-4" : styles.noModifiers}>
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">Modifier Groups</h3>
+              <h3 className="text-lg font-semibold text-slate-900">Customize your item</h3>
               <p className="text-sm text-slate-500">
-                Required groups and availability rules follow the backend menu.
+                Customize your item. Complete any required selections.
               </p>
             </div>
             {error ? (
@@ -341,7 +361,7 @@ export default function ProductConfiguratorModal({
                             active
                               ? "border-[#f45a1f] bg-orange-50"
                               : "border-slate-200 bg-white"
-                          } ${!modifier.isAvailable ? "opacity-60" : ""}`}
+                          } ${!modifier.isAvailable ? "bg-slate-50" : ""}`}
                         >
                           <div className="flex items-start justify-between gap-3">
                             <button
@@ -421,23 +441,6 @@ export default function ProductConfiguratorModal({
         </div>
       </div>
 
-      <div className="mt-6 flex justify-end gap-2">
-        <button
-          onClick={onClose}
-          type="button"
-          className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium"
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={handleSubmit}
-          type="button"
-          className="rounded-2xl bg-[#f45a1f] px-4 py-2 text-sm font-medium text-white hover:bg-[#d94f1a]"
-        >
-          {submitLabel} • {formatPeso(liveUnitPrice)}
-        </button>
-      </div>
     </Modal>
   );
 }
