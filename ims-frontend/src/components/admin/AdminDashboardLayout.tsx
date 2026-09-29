@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useAdminPageEntrance } from "@/components/admin/useAdminPageEntrance";
 import styles from "@/components/layout/ApplicationShell.module.css";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -19,6 +20,7 @@ export default function AdminDashboardLayout({
   showHeader = true,
 }: AdminDashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const contentRef = useAdminPageEntrance();
   const sidebarCollapsed = useSidebarStore(state => state.collapsed);
   const toggleCollapsed = useSidebarStore(state => state.toggleCollapsed);
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
@@ -35,7 +37,7 @@ export default function AdminDashboardLayout({
       <div className={styles.body}>
         <button type="button" className={styles.shellMobileMenu} onClick={() => setSidebarOpen(true)} aria-expanded={sidebarOpen} aria-controls="admin-navigation" aria-label="Open navigation"><Menu size={20} /></button>
         {showHeader ? <AdminHeader /> : null}
-        <main className={styles.content}>{children}</main>
+        <main ref={contentRef} className={styles.content}>{children}</main>
       </div>
     </div>
   );

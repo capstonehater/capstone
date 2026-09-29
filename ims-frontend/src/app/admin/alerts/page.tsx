@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import styles from "./alerts.module.css";
+import { Search } from "lucide-react";
+import AdminSelect from "@/components/admin/AdminSelect";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
 import { acknowledgeAlert, dismissAlert, fetchAlerts, type AlertRecord, type AlertState, type AlertType } from "@/lib/alerts";
 
@@ -114,45 +116,31 @@ export default function AlertsPage() {
               </p>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-4">
-              <label className="text-sm font-medium text-neutral-700">
-                <span className="mb-1 block">State</span>
-                <select
-                  value={stateFilter}
-                  onChange={(event) => setStateFilter(event.target.value as AlertState | "")}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
-                >
-                  {STATE_OPTIONS.map((option) => (
-                    <option key={option.label} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="text-sm font-medium text-neutral-700">
-                <span className="mb-1 block">Type</span>
-                <select
-                  value={typeFilter}
-                  onChange={(event) => setTypeFilter(event.target.value as AlertType | "")}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
-                >
-                  {TYPE_OPTIONS.map((option) => (
-                    <option key={option.label} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="text-sm font-medium text-neutral-700 md:col-span-2">
-                <span className="mb-1 block">Search</span>
-                <input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Material, supplier, alert title..."
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
-                />
+            <div className={styles.filters}>
+              <AdminSelect
+                label="State"
+                value={stateFilter}
+                onChange={(value) => setStateFilter(value as AlertState | "")}
+                options={STATE_OPTIONS}
+              />
+              <AdminSelect
+                label="Type"
+                value={typeFilter}
+                onChange={(value) => setTypeFilter(value as AlertType | "")}
+                options={TYPE_OPTIONS}
+              />
+              <label className={styles.searchField}>
+                <span className={styles.filterLabel}>Search</span>
+                <span className={styles.searchControl}>
+                  <Search size={17} aria-hidden="true" />
+                  <input
+                    type="search"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Material, supplier, alert title..."
+                    className={styles.searchInput}
+                  />
+                </span>
               </label>
             </div>
           </div>

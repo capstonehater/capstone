@@ -2,9 +2,10 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CircleHelp, PanelTop, PanelsLeftRight } from 'lucide-react';
+import { CircleAlert, PanelTop, PanelsLeftRight } from 'lucide-react';
 import { fetchForecast, forecastPeriodDays, forecastTotal, type ForecastResponse, type ForecastRun, type ForecastSeries } from '@/lib/forecasting';
 import GraphSelect from './GraphSelect';
+import ForecastNotes from './ForecastNotes';
 import styles from './forecasting.module.css';
 
 const number = (value: number) => value.toLocaleString('en-PH', { maximumFractionDigits: 2 });
@@ -139,7 +140,7 @@ export default function ForecastGraph({ periods, currentRun, productId, material
       }}>
         <h2>Expected daily usage</h2>
         <button ref={helpButton} type="button" className={styles.forecastHelpButton} aria-label="About saved estimates" aria-expanded={helpOpen} aria-controls={helpOpen ? helpId : undefined} onClick={() => setHelpOpen((open) => !open)}>
-          <CircleHelp size={20} aria-hidden="true" />
+          <CircleAlert size={20} aria-hidden="true" />
         </button>
         {helpOpen && <div id={helpId} role="region" aria-label="About saved estimates" className={styles.forecastHelp}>
           <p><strong>Saved estimate.</strong> Check live stock before ordering.</p>
@@ -159,6 +160,9 @@ export default function ForecastGraph({ periods, currentRun, productId, material
       </div>
       {leftId === rightId && <p className={styles.graphHint}>Choose different periods to compare changes.</p>}
     </>}
+    {mode === 'single' && singleRun && singleRun.id !== currentRun.id && <ForecastNotes key={singleRun.id} run={singleRun} />}
+    {mode === 'compare' && leftRun && <ForecastNotes key={`left-${leftRun.id}`} run={leftRun} />}
+    {mode === 'compare' && rightRun && rightRun.id !== leftRun?.id && <ForecastNotes key={`right-${rightRun.id}`} run={rightRun} />}
     <p className={styles.message}>The green line shows expected usage in {selected.unit}. The shaded area shows a possible range; wider means less certain.{mode === 'compare' ? ' Both graphs use the same scale.' : ''}</p>
     <details className={styles.dataNotes}><summary>Technical accuracy details</summary><p>Shading represents the model’s 95% forecast interval.{mode === 'single' && singleSeries ? ` Historical validation error (MAPE): ${singleSeries.metadata.metrics.mape == null ? 'N/A' : `${number(singleSeries.metadata.metrics.mape)}%`}.` : ''} This measures past prediction error, not guaranteed future accuracy.</p></details>
   </section>;

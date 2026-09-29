@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
-import { CircleHelp, LoaderCircle } from 'lucide-react';
+import { CircleAlert, LoaderCircle } from 'lucide-react';
 import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
 import ActionAlert from '@/components/feedback/ActionAlert';
 import { fetchForecast, fetchForecastProducts, fetchForecastRun, saveForecastSettings, forecastPeriodDays, forecastTotal, type NextForecastPeriod, type ForecastProduct, type ForecastResponse, type Recommendation } from '@/lib/forecasting';
 import MaterialDropdown from './MaterialDropdown';
 import ForecastGraph from './ForecastGraph';
+import ForecastNotes from './ForecastNotes';
 import GraphSelect from './GraphSelect';
 import styles from './forecasting.module.css';
 
@@ -149,7 +150,7 @@ export default function ForecastingPage() {
       }}>
         <h1>Raw Material Usage Forecast</h1>
         <button ref={helpButton} type="button" className={styles.forecastHelpButton} aria-label="About stock forecasts" aria-expanded={helpOpen} aria-controls={helpOpen ? 'forecast-help' : undefined} onClick={() => setHelpOpen((open) => !open)}>
-          <CircleHelp size={20} aria-hidden="true" />
+          <CircleAlert size={20} aria-hidden="true" />
         </button>
         {helpOpen && <div id="forecast-help" role="region" aria-label="About stock forecasts" className={styles.forecastHelp}>
           <p>See how much stock you may need and what to buy. Choose a saved period in the graph, then a product or material to explore.</p>
@@ -195,7 +196,7 @@ export default function ForecastingPage() {
     {notice && <p role="status" className={styles.message}>{notice}</p>}
     {busy && <p role="status" className={styles.running}><LoaderCircle size={18} className="animate-spin" />Your next forecast is being prepared automatically. This may take several minutes. You can still browse saved periods.</p>}
     {loading ? <p role="status">Loading saved forecasts...</p> : !run ? <section className={styles.panel}><h2>No forecasts yet</h2><p>The system prepares your first forecast automatically while the server is running. The saved period will appear here when it is ready.</p></section> : <>
-      {run.warnings.length > 0 && <details className={styles.dataNotes}><summary>Data sources and model notes ({run.warnings.length})</summary><ul>{run.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details>}
+      <ForecastNotes run={run} title="Latest Forecast Notes" />
       {!rows.length ? <section className={styles.panel}><h2>No matching forecast</h2><p>This product has no recipe ingredients with saved forecasts. Check its recipe and historical raw-material data.</p></section> : <>
         <ForecastGraph periods={data?.periods ?? []} currentRun={run} productId={productId} materialId={selected.materialId} onMaterialChange={setMaterialId} materials={rows} />
         <div className={styles.columns}>

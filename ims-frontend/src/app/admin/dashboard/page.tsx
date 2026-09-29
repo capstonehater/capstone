@@ -113,14 +113,26 @@ export default function AdminDashboardPage() {
         </div>
       ) : null}
 
-      <section className={styles.overview}>
-        <div className={styles.overviewStats}>
-          <div><span>Materials</span><strong>{loading ? "..." : inventoryHealth?.summary.totalMaterials ?? 0}</strong></div>
-          <div><span>In stock</span><strong>{loading ? "..." : inventoryHealth?.summary.inStockCount ?? 0}</strong></div>
-          <div><span>Low stock</span><strong>{loading ? "..." : inventoryHealth?.summary.lowStockCount ?? 0}</strong></div>
-          <div><span>Out of stock</span><strong>{loading ? "..." : inventoryHealth?.summary.outOfStockCount ?? 0}</strong></div>
-          <div><span>Inventory value</span><strong>{loading ? "..." : formatPeso(inventoryHealth?.summary.totalInventoryValue ?? "0")}</strong></div>
-        </div>
+      <section className={styles.inventoryOverview} aria-label="Inventory overview" aria-busy={loading}>
+        <dl className={styles.inventoryCards}>
+          {[
+            { label: "Total materials", value: inventoryHealth?.summary.totalMaterials, detail: "Materials in your catalog" },
+            { label: "In stock", value: inventoryHealth?.summary.inStockCount, detail: "Stock available" },
+            { label: "Low stock", value: inventoryHealth?.summary.lowStockCount, detail: "At or below reorder level" },
+            { label: "Out of stock", value: inventoryHealth?.summary.outOfStockCount, detail: "No stock available" },
+          ].map(({ label, value, detail }) => (
+            <div key={label} className={styles.inventoryCard}>
+              <dt className={styles.cardLabel}><span>{label}</span></dt>
+              <dd className={styles.cardValue}>{loading ? <span className={styles.skeleton} aria-label="Loading" /> : value == null ? "—" : value.toLocaleString("en-PH")}</dd>
+              <dd className={styles.cardDetail}>{detail}</dd>
+            </div>
+          ))}
+          <div className={`${styles.inventoryCard} ${styles.valueCard}`}>
+            <dt className={styles.cardLabel}><span>Inventory value</span></dt>
+            <dd className={styles.cardValue}>{loading ? <span className={styles.skeleton} aria-label="Loading" /> : inventoryHealth ? formatPeso(inventoryHealth.summary.totalInventoryValue) : "—"}</dd>
+            <dd className={styles.cardDetail}>Total value of stock on hand</dd>
+          </div>
+        </dl>
       </section>
 
       <section className={styles.row}>

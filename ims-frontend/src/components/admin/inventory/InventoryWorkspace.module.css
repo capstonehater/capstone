@@ -18,13 +18,13 @@
     linear-gradient(135deg, #34415d, #232d46 75%);
   box-shadow: inset 0 1px 0 #ffffff14, 0 8px 18px -10px #17243c66;
   color: #fff;
-  animation: metricEntrance 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: metricEntrance 700ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
-.metricCard:nth-child(2) { animation-delay: 70ms; }
-.metricCard:nth-child(3) { animation-delay: 140ms; }
-.metricCard:nth-child(4) { animation-delay: 210ms; }
-.metricCard:nth-child(5) { animation-delay: 280ms; }
+.metricCard:nth-child(2) { animation-delay: 45ms; }
+.metricCard:nth-child(3) { animation-delay: 90ms; }
+.metricCard:nth-child(4) { animation-delay: 135ms; }
+.metricCard:nth-child(5) { animation-delay: 180ms; }
 
 .metricLabel {
   margin: 0;
@@ -45,8 +45,8 @@
 }
 
 @keyframes metricEntrance {
-  from { opacity: 0; transform: translateY(14px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
 }
 
 @media (max-width: 1199px) {
