@@ -1,4 +1,5 @@
 import ModalCloseButton from "@/components/ModalCloseButton";
+import backdrop from "@/components/ModalBackdrop.module.css";
 type ModalProps = {
   title: string;
   children: React.ReactNode;
@@ -17,7 +18,7 @@ export default function Modal({
   bodyClassName = "",
 }: ModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className={`${backdrop.backdrop} fixed inset-0 z-[90] flex items-center justify-center p-4`}>
       <div
         className={`w-full ${
           wide ? "max-w-5xl" : "max-w-2xl"

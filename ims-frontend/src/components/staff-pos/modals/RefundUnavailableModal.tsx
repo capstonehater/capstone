@@ -10,7 +10,7 @@ export default function RefundUnavailableModal({ onClose }: Props) {
   return (
     <Modal title="Refund Authorization Unavailable" onClose={onClose}>
       <div className="space-y-4">
-        <div className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-800">
+        <div className="rounded-2xl bg-[#edf2f8] p-4 text-sm text-[#232d46]">
           Refund authorization is temporarily unavailable because secure
           backend approval has not been connected yet.
         </div>
