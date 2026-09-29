@@ -42,7 +42,7 @@ describe('saved forecast period schedule', () => {
   it('loads the selected saved run and its material data', async () => {
     const findFirst = jest
       .fn<
-        Promise<{ id: string; endDate: Date }>,
+        Promise<{ id: string; endDate: Date; series: never[] }>,
         [
           {
             where: { status?: unknown; id?: string };
@@ -53,6 +53,7 @@ describe('saved forecast period schedule', () => {
       .mockResolvedValue({
         id: 'older',
         endDate: new Date('2026-09-07T00:00:00Z'),
+        series: [],
       });
     const prisma = {
       forecastSettings: {

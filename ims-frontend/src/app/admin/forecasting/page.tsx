@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
-import { CircleAlert, LoaderCircle } from 'lucide-react';
+import { Check, CircleAlert, LoaderCircle, RefreshCw } from 'lucide-react';
 import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
 import ActionAlert from '@/components/feedback/ActionAlert';
 import { fetchForecast, fetchForecastProducts, fetchForecastRun, saveForecastSettings, forecastPeriodDays, forecastTotal, type NextForecastPeriod, type ForecastProduct, type ForecastResponse, type Recommendation } from '@/lib/forecasting';
@@ -50,6 +50,19 @@ export default function ForecastingPage() {
   const [notice, setNotice] = useState('');
   const [runId, setRunId] = useState('');
   const [refresh, setRefresh] = useState(0);
+  const [refreshFeedback, setRefreshFeedback] = useState<'idle' | 'refreshing' | 'success' | 'error'>('idle');
+  const manualRefreshPending = useRef(false);
+  const refreshRecords = () => {
+    if (manualRefreshPending.current) return;
+    manualRefreshPending.current = true;
+    setRefreshFeedback('refreshing');
+    setRefresh((value) => value + 1);
+  };
+  useEffect(() => {
+    if (refreshFeedback !== 'success') return;
+    const timer = setTimeout(() => setRefreshFeedback('idle'), 2000);
+    return () => clearTimeout(timer);
+  }, [refreshFeedback]);
   const [materialId, setMaterialId] = useState('');
   const [suggestions, setSuggestions] = useState(false);
   const [convertSummary, setConvertSummary] = useState(false);
@@ -58,13 +71,15 @@ export default function ForecastingPage() {
   const [savingDays, setSavingDays] = useState(false);
   const [settingsError, setSettingsError] = useState('');
   const [settingsNotice, setSettingsNotice] = useState('');
+  const [unsavedNotice, setUnsavedNotice] = useState<number | null>(null);
+  const unsavedNoticeId = useRef(0);
   const settingsRevision = useRef(0);
   const selectedDays = draftDays ?? nextPeriod?.days ?? 7;
   const saveDays = async () => {
     if (savingDays || !nextPeriod || selectedDays === nextPeriod.days) return;
     setSavingDays(true);
+    setUnsavedNotice(null);
     setSettingsError('');
-    setSettingsNotice('');
     setNotice('');
     settingsRevision.current += 1;
     try {
@@ -88,6 +103,7 @@ export default function ForecastingPage() {
     const selection = productId;
     const revision = settingsRevision.current;
     const backgroundUpdate = loadedSelection.current === selection;
+    const manualRefresh = manualRefreshPending.current;
     Promise.resolve().then(() => {
       // Keep mounted charts and scroll containers intact during routine updates.
       if (active) { if (!backgroundUpdate) setLoading(true); setError(''); }
@@ -99,9 +115,17 @@ export default function ForecastingPage() {
       if (revision === settingsRevision.current) setNextPeriod(result.nextForecastPeriod);
       loadedSelection.current = selection;
       if (result.activeRun) setRunId(result.activeRun.id);
+      if (manualRefresh) {
+        manualRefreshPending.current = false;
+        setRefreshFeedback('success');
+      }
     }).catch((reason: unknown) => { if (active) {
       if (!backgroundUpdate) { setData(null); loadedSelection.current = null; }
       setError(backgroundUpdate ? 'Unable to check for updates. Showing saved records; retrying automatically.' : reason instanceof Error ? reason.message : 'Unable to load forecasts');
+      if (manualRefresh) {
+        manualRefreshPending.current = false;
+        setRefreshFeedback('error');
+      }
     } })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -177,7 +201,13 @@ export default function ForecastingPage() {
           label="Forecast days"
           value={String(selectedDays)}
           options={Array.from({ length: 30 }, (_, index) => ({ value: String(index + 1), label: `${index + 1} ${index === 0 ? 'day' : 'days'}` }))}
-          onChange={(value) => { setDraftDays(Number(value)); setSettingsError(''); }}
+          onChange={(value) => {
+            const days = Number(value);
+            setDraftDays(days);
+            setSettingsError('');
+            setSettingsNotice('');
+            setUnsavedNotice(nextPeriod && days !== nextPeriod.days ? ++unsavedNoticeId.current : null);
+          }}
           disabled={!nextPeriod || savingDays}
           describedBy={nextPeriod && selectedDays !== nextPeriod.days ? "forecast-days-help" : undefined}
           className={styles.dayPicker}
@@ -185,11 +215,17 @@ export default function ForecastingPage() {
         <button type="submit" className={styles.saveDays} disabled={!nextPeriod || savingDays || selectedDays === nextPeriod.days}>{savingDays ? 'Saving...' : 'Save'}</button>
       </form>
       <div className={styles.refreshActions}>
-        <button type="button" className={styles.suggestionsButton} onClick={() => setRefresh((value) => value + 1)}>Refresh records</button>
+        <button type="button" className={`${styles.suggestionsButton} ${styles.refreshButton}`} onClick={refreshRecords} disabled={refreshFeedback === 'refreshing'} aria-busy={refreshFeedback === 'refreshing'}>
+          {refreshFeedback === 'success' ? <Check size={18} className={styles.refreshComplete} aria-hidden="true" /> : refreshFeedback === 'error' ? <CircleAlert size={18} aria-hidden="true" /> : <RefreshCw size={18} className={refreshFeedback === 'refreshing' ? styles.refreshSpinner : undefined} aria-hidden="true" />}
+          <span aria-live="polite">{refreshFeedback === 'refreshing' ? 'Refreshing…' : refreshFeedback === 'success' ? 'Refreshed' : refreshFeedback === 'error' ? 'Retry refresh' : 'Refresh records'}</span>
+        </button>
       </div>
     </div>
-    {nextPeriod && selectedDays !== nextPeriod.days && <p id="forecast-days-help" className={styles.settingsHelp}>Unsaved change. Select Save to update the next forecast period.</p>}
-    {settingsNotice && <ActionAlert key={settingsNotice} tone="success" title="Forecast period saved" message={settingsNotice} onDismiss={() => setSettingsNotice('')} />}
+    {nextPeriod && selectedDays !== nextPeriod.days && <>
+      <span id="forecast-days-help" className="sr-only">Unsaved change. Select Save to update the next forecast period.</span>
+      {unsavedNotice !== null && <ActionAlert key={`unsaved-${unsavedNotice}`} placement="header" tone="warning" title="Unsaved change" message="Select Save to update the next forecast period." onDismiss={() => setUnsavedNotice(null)} />}
+    </>}
+    {settingsNotice && <ActionAlert key={settingsNotice} placement="header" tone="success" title="Forecast period saved" message={settingsNotice} onDismiss={() => setSettingsNotice('')} />}
     {settingsError && <p role="alert" className={styles.errorMessage}>{settingsError}</p>}
     {data?.automaticRetryPending && !busy && <p role="status" className={`${styles.errorMessage} ${styles.noticePill}`}>Update delayed. Retries hourly. Saved periods available.</p>}
     {error && <p role="alert" className={styles.errorMessage}>{error}</p>}

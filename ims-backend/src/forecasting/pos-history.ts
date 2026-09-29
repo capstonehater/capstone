@@ -2,7 +2,11 @@ import { Prisma } from '@prisma/client';
 
 export async function loadPosHistory(tx: Prisma.TransactionClient, startDate: string, capturedAt: Date) {
   // Forecast dates are Philippine calendar dates. Never train on the forecast period.
-  const cutoff = new Date(`${startDate}T00:00:00+08:00`);
+  const snapshotDay = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(capturedAt);
+  // Use complete Philippine calendar days; a partial trading day would understate demand.
+  const cutoff = new Date(`${startDate < snapshotDay ? startDate : snapshotDay}T00:00:00+08:00`);
   const rows = await tx.$queryRaw<{ materialId: string; date: string; quantity: Prisma.Decimal }[]>`
     SELECT l.raw_material_id AS "materialId",
       to_char(o.completed_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Manila', 'YYYY-MM-DD') AS date,

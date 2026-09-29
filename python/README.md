@@ -54,11 +54,11 @@ Each automatic forecast reads a fresh database snapshot. Only completed sales be
 
 The next scheduled period includes completed sales recorded before its start. A future date never trains on sales from its own forecast period. POS and stock are read within one repeatable-read database transaction.
 
-On dates with POS orders, actual POS totals replace the CSV for all materials. Other CSV dates remain historical backup. POS-only materials are supported once sufficient variable history exists. Weekend activity switches SARIMA to calendar-day observations and a seven-day seasonal cycle. Every forecast contains exactly the saved number of calendar dates (1?30). The model is not retrained on every checkout; newly saved sales enter the next automatic forecast.
+On dates with POS orders, actual POS totals replace the CSV for all materials. Other CSV dates remain historical backup. POS-only materials are supported once sufficient variable history exists. The daily store schedule uses calendar-day observations and a seven-day seasonal cycle. Every forecast contains exactly the saved number of calendar dates (1–30). The model is not retrained on every checkout; newly saved sales enter the next automatic forecast.
 
 Run all Python tests with `python -B -m unittest discover -s ../python -p "test_*.py"`.
 
-The web worker uses a log1p transformation (Box-Cox lambda 0) for SARIMA training and validation. This handles the real zero-demand days introduced by POS coverage and keeps inverse-transformed interval bounds defined. The original standalone CLI retains its automatic Box-Cox setting.
+The web worker and standalone CLI use a log1p transformation (Box-Cox lambda 0) for SARIMA training and validation. This handles zero-demand days and keeps inverse-transformed interval bounds defined.
 
 ## Saved forecast duration
 
@@ -74,4 +74,28 @@ Recommendations use `ForecastTotal` and `ForecastDays`; `Forecast7Days` remains 
 alias for the period total. Existing seven-day records remain readable. Percentage changes compare
 against the same number of historical calendar days. The CLI also accepts
 `python SARIMA.py --once --forecast-days 30` (CLI observations follow its business-day configuration).
-The web bridge always outputs calendar dates, with zero weekend demand only for weekday-only history.
+The web bridge uses daily observations and seven-day seasonality for the store's daily
+1 PM–10 PM Philippine schedule. Forecasts are daily totals, not hourly estimates.
+Only complete Philippine calendar days enter POS training (today enters after midnight).
+
+## Longer training histories
+
+The bridge uses all available history by default, including the January 2023–July 2026 CSV.
+Set `FORECAST_TRAINING_DAYS` on the backend to an integer of at least 60 to explicitly
+limit the recent training window; `0` uses the full history. Model selection uses average
+absolute validation error (MAE), which remains meaningful when validation days have zero usage.
+MAPE is still reported when defined; it is not a future-accuracy guarantee.
+The worker compares eight SARIMA choices with and without first differencing, enforces
+stationary/invertible AR/MA components, and validates across the full prediction distance
+(history gap plus requested forecast days). Actual validation windows appear in run notes.
+Candidates are tried in validation-error order after fitting to the full history. Non-finite,
+negative, or excessive outputs are rejected rather than clipped. The plausibility ceiling is
+100 times the largest training-day amount (at least 1 unit), capped by the database limit.
+If no candidate passes, that ingredient is excluded with a note. This guard is not an accuracy
+guarantee; the chosen candidate and number of rejected choices are saved in the audit.
+
+Forecast start must be after the latest history. The maximum start-date distance is now
+365 days, configurable through `FORECAST_MAX_HISTORY_GAP_DAYS`. Gaps over 30 days produce
+a stale-history note. Increasing this limit does not supply the missing observations.
+Ingredient-specific gap lengths, actual training windows, and model checks are saved in notes.
+The uploaded file is never rewritten, and incompatible units still require measured conversions.

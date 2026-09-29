@@ -23,6 +23,8 @@ class PosHistoryTests(unittest.TestCase):
         self.assertEqual(daily.loc['2026-09-03'], 2000)
         self.assertEqual(daily.loc['2026-09-04'], 350)
         self.assertEqual(policies['milk']['factor'], 1000)
+        self.assertEqual(result.loc[result['date'] == '2026-09-03', 'history_source'].tolist(), ['CSV'])
+        self.assertEqual(result.loc[result['date'] == '2026-09-04', 'history_source'].tolist(), ['POS'])
 
     def test_reversed_order_date_does_not_restore_csv_consumption(self):
         result, _, _ = self.merge([], ['2026-09-04'])

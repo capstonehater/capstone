@@ -196,9 +196,6 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
         orderBy: { startDate: 'desc' },
         include: {
           series: {
-            where: materialIds
-              ? { materialId: { in: materialIds } }
-              : undefined,
             orderBy: { name: 'asc' },
             include: {
               points: { orderBy: { date: 'asc' } },
@@ -224,7 +221,11 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
     });
     const nextForecastPeriod = await this.nextForecastPeriod();
     return {
-      run,
+      run: run ? {
+        ...run,
+        noteSeries: run.series.map(({ materialId, name, unit, metadata }) => ({ materialId, name, unit, metadata })),
+        series: materialIds ? run.series.filter((series) => materialIds.includes(series.materialId)) : run.series,
+      } : null,
       activeRun,
       periods,
       nextScheduledDate: nextForecastPeriod.startDate,
