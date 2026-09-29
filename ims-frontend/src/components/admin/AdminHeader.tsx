@@ -12,6 +12,7 @@ export default function AdminHeader() {
     <header className={styles.pageIntro}>
       <h1 className={styles.title}>{page?.label.toUpperCase() ?? "CAFE SALVACION"}</h1>
       <p className={styles.subtitle}>{page?.subtitle ?? "Inventory management"}</p>
+      {pathname === "/admin/dashboard" || pathname === "/admin/reports/inventory" ? <div className={styles.introDivider} /> : null}
     </header>
   );
 }

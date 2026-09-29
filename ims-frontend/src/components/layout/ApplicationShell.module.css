@@ -20,6 +20,7 @@
 .header { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 64px; padding: 10px 32px; border-bottom: 1px solid var(--shell-border); background: var(--shell-background); color: #111; }
 .heading { min-width: 0; }
 .pageIntro { flex-shrink: 0; padding: 20px 32px 0; color: #111; }
+.introDivider { margin-top:24px; border-bottom:1px solid #e2e8f0; }
 .title { margin: 0; font-size: 30px; letter-spacing: -.025em; line-height: 1.25; font-weight: 700; }
 .subtitle { margin: 4px 0 0; font-size: 15px; line-height: 1.6; color: #526078; }
 .actions { display: flex; align-items: center; justify-content: flex-end; gap: 24px; flex-shrink: 0; }

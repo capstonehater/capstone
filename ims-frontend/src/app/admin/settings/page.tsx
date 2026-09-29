@@ -1,12 +1,14 @@
 "use client";
 
+import readable from "@/components/admin/ReadableWorkspace.module.css";
+
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
 import SettingsWorkspace from "@/components/admin/settings/SettingsWorkspace";
 
 export default function SettingsPage() {
   return (
-    <AdminDashboardLayout>
-      <div className="space-y-6">
+    <AdminDashboardLayout showHeader={false}>
+      <div className={`${readable.readable} space-y-6`}>
         <section className="overflow-hidden rounded-[28px] border border-[#232d46]/10 bg-white shadow-sm">
           <div className="bg-[#f5f5f5] p-6 md:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#232d46]">
@@ -20,7 +22,6 @@ export default function SettingsPage() {
             </p>
           </div>
         </section>
-
         <SettingsWorkspace />
       </div>
     </AdminDashboardLayout>

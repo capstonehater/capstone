@@ -478,7 +478,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
         <nav ref={sectionNavRef} aria-label="Inventory sections" className={styles.sectionNav}>
           {workspaceSections.map(([id, label]) => <a key={id} href={`#${id}`} aria-current={activeSection === id ? "location" : undefined} onClick={(event) => { event.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); }}>{label}</a>)}
         </nav>
-        <header className="flex flex-wrap items-center justify-between gap-4">
+        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
           <div><h1 className="text-2xl font-bold">Inventory</h1><p className="mt-1 text-sm text-slate-500">Check stock, receive deliveries, and take action from one workspace.</p></div>
           <button type="button" disabled={initialLoading || submitting} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50" onClick={() => void refreshEverything(true).then(loadBusinessReports).catch(() => setError("Unable to refresh inventory. Please try again."))}>Refresh inventory</button>
         </header>

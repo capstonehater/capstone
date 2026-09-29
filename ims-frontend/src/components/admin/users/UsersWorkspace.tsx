@@ -1,5 +1,7 @@
 "use client";
 
+import readable from "@/components/admin/ReadableWorkspace.module.css";
+
 import SelectableTableRow from "@/components/admin/SelectableTableRow";
 import styles from "./UsersWorkspace.module.css";
 
@@ -621,7 +623,7 @@ export default function UsersWorkspace() {
   }
 
   return (
-    <div className={styles.workspace}>
+    <div className={`${styles.workspace} ${readable.readable}`}>
       {workspaceError ? (
         <ActionAlert tone="error" title="Action failed" message={workspaceError} onDismiss={() => setWorkspaceError(null)} />
       ) : null}
@@ -959,8 +961,8 @@ function UserProfileHeader({
         <div className="flex min-w-0 items-start gap-4">
           <Avatar name={user.name} />
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-bold text-slate-950">{user.name}</h2>
-            <p className="truncate text-sm text-slate-500">{user.email}</p>
+            <h2 className="break-words text-xl font-bold text-slate-950">{user.name}</h2>
+            <p className="break-words text-sm text-slate-500">{user.email}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${roleTone(user.role)}`}>
                 {roleLabels[user.role]}
@@ -1065,17 +1067,14 @@ function TabBar({
   ];
 
   return (
-    <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-2">
+    <div className={styles.detailTabs} aria-label="User detail sections">
       {tabs.map(([tab, label]) => (
         <button
           key={tab}
           type="button"
           onClick={() => onChange(tab)}
-          className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-            activeTab === tab
-              ? "bg-slate-950 text-white"
-              : "text-slate-600 hover:bg-slate-100"
-          }`}
+          aria-pressed={activeTab === tab}
+          className={styles.detailTab}
         >
           {label}
         </button>
@@ -1101,10 +1100,10 @@ function OverviewTab({
   const permissionCount = permissionsByRole[user.role].length;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className={styles.overviewCards}>
       <SummaryPanel
         icon={<ShieldCheck className="h-5 w-5" />}
-        label="Permission Overview"
+        label="Permissions"
         value={user.role === "MANAGER" ? "Reserved" : `${permissionCount} modules`}
         detail={user.role === "MANAGER" ? "No application permissions assigned yet" : roleLabels[user.role]}
       />
@@ -1118,7 +1117,7 @@ function OverviewTab({
         icon={<UsersRound className="h-5 w-5" />}
         label="Active Sessions"
         value={sessionsLoading ? "Loading" : String(activeSessions)}
-        detail="Derived from session metadata"
+        detail={sessionsLoading ? "Checking sessions..." : activeSessions === 0 ? "No active sign-ins" : "Currently signed-in sessions"}
       />
     </div>
   );
@@ -1136,13 +1135,13 @@ function SummaryPanel({
   detail: string;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5">
-      <div className="flex items-center gap-3 text-[#f45a1f]">
-        {icon}
-        <p className="text-xs font-semibold uppercase tracking-wide">{label}</p>
+    <div className={styles.overviewCard}>
+      <div className={styles.overviewCardHeading}>
+        <span className={styles.overviewIcon} aria-hidden="true">{icon}</span>
+        <p>{label}</p>
       </div>
-      <p className="mt-4 text-2xl font-bold text-slate-950">{value}</p>
-      <p className="mt-1 text-sm text-slate-500">{detail}</p>
+      <p className={styles.overviewValue}>{value}</p>
+      <p className={styles.overviewDetail}>{detail}</p>
     </div>
   );
 }
