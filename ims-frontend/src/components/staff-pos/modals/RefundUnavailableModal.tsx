@@ -1,4 +1,5 @@
-import { ShieldAlert } from "lucide-react";
+import ModalCloseButton from "@/components/ModalCloseButton";
+
 import Modal from "./Modal";
 
 type Props = {
@@ -21,14 +22,7 @@ export default function RefundUnavailableModal({ onClose }: Props) {
         </div>
 
         <div className="flex justify-end">
-          <button
-            onClick={onClose}
-            type="button"
-            className="inline-flex items-center gap-2 rounded-2xl bg-[#3d3434] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-          >
-            <ShieldAlert className="h-4 w-4" />
-            Close
-          </button>
+          <ModalCloseButton onClose={onClose} />
         </div>
       </div>
     </Modal>

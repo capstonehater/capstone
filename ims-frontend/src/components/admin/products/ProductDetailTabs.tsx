@@ -15,7 +15,7 @@ const tabs: Array<{ value: DetailTab; label: string }> = [
 
 export default function ProductDetailTabs({ activeTab, onChange }: Props) {
   return (
-    <div className="flex border-b border-slate-200">
+    <div className="flex flex-wrap gap-y-1 border-b border-slate-200">
       {tabs.map((tab) => (
         <button
           key={tab.value}

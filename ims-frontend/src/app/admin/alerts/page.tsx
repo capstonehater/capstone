@@ -168,7 +168,7 @@ export default function AlertsPage() {
                 className={`${styles.alert} ${tone(alert)}`}
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="space-y-2">
+                  <div className={`${styles.alertContent} space-y-3`}>
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-lg font-semibold text-neutral-900">{alert.title}</h2>
                       <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
@@ -192,7 +192,7 @@ export default function AlertsPage() {
                         Dismissed: <time dateTime={alert.dismissedAt}>{formatDateTime(alert.dismissedAt)}</time>
                       </p>
                     ) : null}
-                    <div className="grid gap-1 text-xs text-neutral-500">
+                    <div className={styles.alertDetails}>
                       <p>
                         Material: {alert.rawMaterial?.name ?? "N/A"}
                         {alert.rawMaterial?.sku ? ` • ${alert.rawMaterial.sku}` : ""}
@@ -207,7 +207,7 @@ export default function AlertsPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap justify-end gap-2">
+                  <div className={`${styles.alertActions} flex flex-wrap gap-2`}>
                     {alert.state === "ACTIVE" || alert.state === "DISMISSED" ? (
                       <button
                         type="button"

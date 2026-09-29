@@ -79,6 +79,7 @@ export default function AccountSettingsCard({
         <button
           type="button"
           onClick={onEdit}
+          style={{ borderRadius: 12 }}
           className="rounded-full bg-[#232d46] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#232d46] focus:outline-none focus:ring-2 focus:ring-[#232d46]/30"
         >
           Edit Account

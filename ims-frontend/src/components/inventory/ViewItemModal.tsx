@@ -1,4 +1,6 @@
 "use client";
+import ModalCloseButton from "@/components/ModalCloseButton";
+
 
 import type { InventoryItem } from "../../types/inventory";
 
@@ -22,12 +24,7 @@ export default function ViewItemModal({ isOpen, onClose, item }: Props) {
             </p>
           </div>
 
-          <button
-            onClick={onClose}
-            className="rounded-lg border px-3 py-2 text-sm text-neutral-700"
-          >
-            Close
-          </button>
+          <ModalCloseButton onClose={onClose} />
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

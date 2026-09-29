@@ -175,6 +175,37 @@ function getTransactionCost(transaction: InventoryTransaction) {
 }
 
 export default function InventoryWorkspace({ initialView = "overview", initialDraftId, initialAction }: { initialView?: InventoryView; initialDraftId?: string; initialAction?: "create-material" | "stock-run-create" | "waste" }) {
+  const sectionNavRef = useRef<HTMLElement>(null);
+  const [activeSection, setActiveSection] = useState<SectionView>("overview");
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const threshold = (sectionNavRef.current?.getBoundingClientRect().bottom ?? 72) + 24;
+      let current: SectionView = "overview";
+      for (const [id] of workspaceSections) {
+        const section = document.getElementById(id);
+        if (section && section.getBoundingClientRect().top <= threshold) current = id;
+      }
+      if (window.scrollY > 0 && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) current = "stock-runs";
+      setActiveSection(current);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    const observer = new ResizeObserver(schedule);
+    for (const [id] of workspaceSections) {
+      const section = document.getElementById(id);
+      if (section) observer.observe(section);
+    }
+    schedule();
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, []);
   const [reportRevision, setReportRevision] = useState(0);
   const [report, setReport] = useState<ReportView | null>(initialView in reportTitles ? initialView as ReportView : null);
   useEffect(() => {
@@ -444,13 +475,14 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   return (
     <AdminDashboardLayout showHeader={false}>
       <div className={`flex min-w-0 w-full flex-col gap-5 bg-[#f5f5f5] text-[#232d46] `}>
+        <nav ref={sectionNavRef} aria-label="Inventory sections" className={styles.sectionNav}>
+          {workspaceSections.map(([id, label]) => <a key={id} href={`#${id}`} aria-current={activeSection === id ? "location" : undefined} onClick={(event) => { event.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); }}>{label}</a>)}
+        </nav>
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div><h1 className="text-2xl font-bold">Inventory</h1><p className="mt-1 text-sm text-slate-500">Check stock, receive deliveries, and take action from one workspace.</p></div>
           <button type="button" disabled={initialLoading || submitting} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50" onClick={() => void refreshEverything(true).then(loadBusinessReports).catch(() => setError("Unable to refresh inventory. Please try again."))}>Refresh inventory</button>
         </header>
-        <nav aria-label="Inventory sections" className={styles.sectionNav}>
-          {workspaceSections.map(([id, label]) => <a key={id} href={`#${id}`} onClick={(event) => { event.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); }}>{label}</a>)}
-        </nav>
+
         <div className={styles.materialActions} aria-label="Material actions">
           <button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }}><Plus size={16} />Add Raw Material</button>
           <button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }}><Plus size={16} />Create Stock-Run Draft</button>

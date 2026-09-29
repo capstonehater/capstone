@@ -36,3 +36,10 @@
 .switch[aria-checked="true"] { background: #232d46; }
 .switch span { border-radius: 999px; }
 .checkbox { accent-color: #232d46; }
+
+.variantRow { grid-template-columns: minmax(0, 1fr); }
+.variantRow > * { min-width: 0; }
+.variantName { grid-column: 1 / -1; }
+@media (min-width: 640px) {
+  .variantRow { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto; }
+}

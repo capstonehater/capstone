@@ -38,12 +38,13 @@ function PeriodChart({ run, series, scale }: { run: ForecastRun | null; series?:
     });
   };
   const rangeExceedsScale = points.some((point) => Number(point.upper95) > scale);
-  const width = Math.max(750, points.length * 64 + 110);
-  const x = (index: number) => points.length === 1 ? width / 2 : 55 + index * (width - 110) / (points.length - 1);
+  const leftPadding = Math.max(100, number(scale).length * 9 + 20);
+  const width = Math.max(850, points.length * 80 + leftPadding + 55);
+  const x = (index: number) => points.length === 1 ? width / 2 : leftPadding + index * (width - leftPadding - 55) / (points.length - 1);
   const position = (value: number, index: number) => `${x(index)},${170 - value / scale * 140}`;
   return <>
-    <div className={styles.liveChart}><svg style={{ minWidth: width, maxWidth: 'none' }} viewBox={`0 0 ${width} 215`} role="group" aria-label={`Daily expected usage for ${series.name}, ${dateLabel(run.startDate)} to ${dateLabel(run.endDate)}, in ${series.unit}. Shaded area shows the possible range.`}>
-      {[0, 0.5, 1].map((fraction) => <g key={fraction}><line x1="55" x2={width - 55} y1={170-fraction*140} y2={170-fraction*140} stroke="#ddd" /><text x="48" y={174-fraction*140} textAnchor="end" fontSize="11" fill="#666">{number(scale*fraction)}</text></g>)}
+    <div className={styles.liveChart}><svg style={{ width, minWidth: width, maxWidth: 'none' }} viewBox={`0 0 ${width} 215`} role="group" aria-label={`Daily expected usage for ${series.name}, ${dateLabel(run.startDate)} to ${dateLabel(run.endDate)}, in ${series.unit}. Shaded area shows the possible range.`}>
+      {[0, 0.5, 1].map((fraction) => <g key={fraction}><line x1={leftPadding} x2={width - 55} y1={170-fraction*140} y2={170-fraction*140} stroke="#ddd" /><text x={leftPadding - 12} y={174-fraction*140} textAnchor="end" fontSize="15" fill="#334155">{number(scale*fraction)}</text></g>)}
       <polygon points={[...points.map((point, index) => position(Math.min(Number(point.upper95), scale), index)), ...points.map((point, index) => position(Math.max(0, Number(point.lower95)), index)).reverse()].join(' ')} fill="#17840018" />
       <polyline points={points.map((point, index) => position(Number(point.forecast), index)).join(' ')} fill="none" stroke="#178400" strokeWidth="2" />
       {points.map((point, index) => <g key={point.date}>
@@ -58,7 +59,7 @@ function PeriodChart({ run, series, scale }: { run: ForecastRun | null; series?:
             if (event.key === 'Escape') { event.preventDefault(); setHovered(null); }
             if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); showPoint(event.currentTarget, point.date); }
           }} />
-        <text x={x(index)} y="195" textAnchor="middle" fontSize="12" fill="#666">{point.date.slice(5, 10)}</text>
+        <text x={x(index)} y="195" textAnchor="middle" fontSize="15" fill="#334155">{point.date.slice(5, 10)}</text>
       </g>)}
     </svg></div>
     {activePoint && hovered && createPortal(<div id={tooltipId} role="tooltip" className={styles.chartTooltip} style={{ left: hovered.left, top: hovered.top }}>

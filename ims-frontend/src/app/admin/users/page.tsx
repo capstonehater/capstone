@@ -5,7 +5,7 @@ import UsersWorkspace from "@/components/admin/users/UsersWorkspace";
 
 export default function UsersPage() {
   return (
-    <AdminDashboardLayout showHeader={false}>
+    <AdminDashboardLayout fillContent showHeader={false}>
       <UsersWorkspace />
     </AdminDashboardLayout>
   );

@@ -1,4 +1,6 @@
 "use client";
+import ModalCloseButton from "@/components/ModalCloseButton";
+
 
 import type { InventoryItem } from "../../types/inventory";
 import { MapPinned, Sparkles, Store } from "lucide-react";
@@ -48,12 +50,7 @@ export default function RecommendModal({ isOpen, onClose, item }: Props) {
             </p>
           </div>
 
-          <button
-            onClick={onClose}
-            className="rounded-lg border px-3 py-2 text-sm text-neutral-700"
-          >
-            Close
-          </button>
+          <ModalCloseButton onClose={onClose} />
         </div>
 
         <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-4">

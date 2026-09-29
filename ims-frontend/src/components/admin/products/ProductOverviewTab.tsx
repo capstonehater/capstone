@@ -14,7 +14,7 @@ export default function ProductOverviewTab({ product }: Props) {
     <div className="space-y-5">
       <ProductAvailabilitySummary product={product} />
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))]">
         <div className="rounded-xl border border-slate-200 p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             Variants

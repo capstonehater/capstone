@@ -26,6 +26,7 @@ export default function SecuritySettingsCard({
         <button
           type="button"
           onClick={onChangePassword}
+          style={{ borderRadius: 12 }}
           className="rounded-full bg-[#232d46] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#232d46]/90 focus:outline-none focus:ring-2 focus:ring-[#232d46]/25"
         >
           Change Password

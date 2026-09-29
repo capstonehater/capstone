@@ -1,6 +1,6 @@
 .professional { z-index:80; }
 .professional > div { border:1px solid #dce2eb; border-radius:16px; background:#fff; box-shadow:0 24px 70px #0f172a33; }
-.professional > div > div:first-child { flex-shrink:0; padding:22px 24px; background:#f8fafc; }
+.professional > div > div:first-child { flex-shrink:0; padding:22px 24px; background:var(--modal-header-background); }
 .professional h2 { margin:0; font-size:24px; font-weight:650; line-height:1.35; color:#232d46; }
 .professional p { margin-bottom:0; font-size:14px; line-height:1.6; color:#64748b; }
 .professional label { color:#334155; font-size:14px; font-weight:600; }
@@ -17,3 +17,5 @@
 .professional button:disabled { opacity:.5; cursor:not-allowed; }
 .professional button:focus-visible { outline:2px solid #64748b; outline-offset:3px; }
 .professional form > div:last-child { padding-top:18px; border-top:1px solid #e2e8f0; }
+
+.header { background:var(--modal-header-background); }

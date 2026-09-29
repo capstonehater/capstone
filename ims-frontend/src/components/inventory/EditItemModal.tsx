@@ -1,4 +1,6 @@
 "use client";
+import ModalCloseButton from "@/components/ModalCloseButton";
+
 
 import { useEffect, useState } from "react";
 import type { InventoryItem } from "../../types/inventory";
@@ -63,12 +65,7 @@ export default function EditItemModal({
             </p>
           </div>
 
-          <button
-            onClick={onClose}
-            className="rounded-lg border px-3 py-2 text-sm text-neutral-700"
-          >
-            Close
-          </button>
+          <ModalCloseButton onClose={onClose} />
         </div>
 
         <form onSubmit={handleSubmit}>

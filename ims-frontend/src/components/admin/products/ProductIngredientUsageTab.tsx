@@ -33,7 +33,7 @@ export default function ProductIngredientUsageTab({
 }: Props) {
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4">
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="space-y-1 text-sm font-medium text-slate-700">
             <span>Usage window</span>
@@ -63,7 +63,7 @@ export default function ProductIngredientUsageTab({
           type="button"
           onClick={onRefresh}
           disabled={loading}
-          className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          className="self-start whitespace-nowrap rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
           {loading ? "Loading..." : "Refresh Usage"}
         </button>
@@ -83,8 +83,8 @@ export default function ProductIngredientUsageTab({
         <div className="space-y-5">
           <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
             Covered range: {formatDateTime(usage.startAt)} to {formatDateTime(usage.endAt)}.
-            Reversed values reflect deductions reversed by refund or void flows, and net values are
-            the remaining authoritative usage.
+            Reversed amounts were returned through refunds or voided orders. Net usage is the amount
+            used after those reversals.
           </div>
 
           <div className="grid gap-3 md:grid-cols-3">
