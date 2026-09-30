@@ -8,8 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user.type';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateInventoryWasteDto } from './dto/create-inventory-waste.dto';
@@ -23,8 +22,6 @@ import { InventoryActionsService } from './inventory-actions.service';
 import { InventoryService } from './inventory.service';
 import { StoreAvailabilityService } from './store-availability.service';
 
-const INVENTORY_READ_ROLES = [Role.ADMINISTRATOR, Role.STAFF] as const;
-
 @Controller()
 export class InventoryController {
   constructor(
@@ -34,19 +31,19 @@ export class InventoryController {
   ) {}
 
   @Get('raw-materials/:id/store-availability')
-  @Roles(Role.ADMINISTRATOR)
+  @RequirePermission('suppliers.searchAvailability')
   async storeAvailability(@Param('id') id: string) {
     return { search: await this.storeAvailabilityService.latest(id) };
   }
 
   @Post('raw-materials/:id/store-availability')
-  @Roles(Role.ADMINISTRATOR)
+  @RequirePermission('suppliers.searchAvailability')
   async searchStoreAvailability(@Param('id') id: string) {
     return { search: await this.storeAvailabilityService.start(id) };
   }
 
   @Get('units')
-  @Roles(...INVENTORY_READ_ROLES)
+  @RequirePermission('inventory.view')
   async listUnits() {
     return {
       units: await this.inventoryService.listUnits(),
@@ -54,7 +51,7 @@ export class InventoryController {
   }
 
   @Get('raw-materials')
-  @Roles(...INVENTORY_READ_ROLES)
+  @RequirePermission('inventory.view')
   async listRawMaterials() {
     return {
       rawMaterials: await this.inventoryService.listRawMaterials(),
@@ -62,7 +59,7 @@ export class InventoryController {
   }
 
   @Post('raw-materials')
-  @Roles(Role.ADMINISTRATOR)
+  @RequirePermission('inventory.create')
   async createRawMaterial(@Body() dto: CreateRawMaterialDto) {
     return {
       rawMaterial: await this.inventoryService.createRawMaterial(dto),
@@ -70,7 +67,7 @@ export class InventoryController {
   }
 
   @Get('raw-materials/:id')
-  @Roles(...INVENTORY_READ_ROLES)
+  @RequirePermission('inventory.view')
   async getRawMaterial(@Param('id') rawMaterialId: string) {
     return {
       rawMaterial:
@@ -79,7 +76,7 @@ export class InventoryController {
   }
 
   @Patch('raw-materials/:id')
-  @Roles(Role.ADMINISTRATOR)
+  @RequirePermission('inventory.edit')
   async updateRawMaterial(
     @Param('id') rawMaterialId: string,
     @Body() dto: UpdateRawMaterialDto,
@@ -93,7 +90,7 @@ export class InventoryController {
   }
 
   @Delete('raw-materials/:id')
-  @Roles(Role.ADMINISTRATOR)
+  @RequirePermission('inventory.archive')
   async archiveRawMaterial(@Param('id') rawMaterialId: string) {
     return {
       rawMaterial:
@@ -102,7 +99,7 @@ export class InventoryController {
   }
 
   @Get('raw-materials/:id/batches')
-  @Roles(...INVENTORY_READ_ROLES)
+  @RequirePermission('inventory.view')
   async listRawMaterialBatches(@Param('id') rawMaterialId: string) {
     return {
       batches:
@@ -111,7 +108,7 @@ export class InventoryController {
   }
 
   @Get('raw-materials/:id/transactions')
-  @Roles(...INVENTORY_READ_ROLES)
+  @RequirePermission('inventory.view')
   async listRawMaterialTransactions(
     @Param('id') rawMaterialId: string,
     @Query() filters: ListInventoryTransactionsDto,
@@ -126,7 +123,7 @@ export class InventoryController {
   }
 
   @Get('stock-batches/:id/transactions')
-  @Roles(...INVENTORY_READ_ROLES)
+  @RequirePermission('inventory.view')
   async listBatchTransactions(
     @Param('id') stockBatchId: string,
     @Query() filters: ListInventoryTransactionsDto,
@@ -140,7 +137,7 @@ export class InventoryController {
   }
 
   @Get('suppliers')
-  @Roles(...INVENTORY_READ_ROLES)
+  @RequirePermission('suppliers.view')
   async listSuppliers() {
     return {
       suppliers: await this.inventoryService.listSuppliers(),
@@ -148,7 +145,7 @@ export class InventoryController {
   }
 
   @Post('suppliers')
-  @Roles(Role.ADMINISTRATOR)
+  @RequirePermission('suppliers.create')
   async createSupplier(@Body() dto: CreateSupplierDto) {
     return {
       supplier: await this.inventoryService.createSupplier(dto),
@@ -156,7 +153,7 @@ export class InventoryController {
   }
 
   @Patch('suppliers/:id')
-  @Roles(Role.ADMINISTRATOR)
+  @RequirePermission('suppliers.edit')
   async updateSupplier(
     @Param('id') supplierId: string,
     @Body() dto: UpdateSupplierDto,
@@ -167,7 +164,7 @@ export class InventoryController {
   }
 
   @Delete('suppliers/:id')
-  @Roles(Role.ADMINISTRATOR)
+  @RequirePermission('suppliers.delete')
   async deleteSupplier(@Param('id') supplierId: string) {
     return {
       supplier: await this.inventoryService.deleteSupplier(supplierId),
@@ -175,7 +172,7 @@ export class InventoryController {
   }
 
   @Get('inventory/summary')
-  @Roles(...INVENTORY_READ_ROLES)
+  @RequirePermission('inventory.view')
   async listInventorySummary(@Query() filters: ListInventorySummaryDto) {
     return {
       summaries: await this.inventoryService.listInventorySummary(filters),
@@ -183,7 +180,7 @@ export class InventoryController {
   }
 
   @Get('inventory/transactions')
-  @Roles(...INVENTORY_READ_ROLES)
+  @RequirePermission('inventory.view')
   async listInventoryTransactions(
     @Query() filters: ListInventoryTransactionsDto,
   ) {
@@ -194,7 +191,7 @@ export class InventoryController {
   }
 
   @Post('inventory/waste')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('inventory.waste')
   async logWaste(
     @Body() dto: CreateInventoryWasteDto,
     @CurrentUser() user: AuthenticatedUser,

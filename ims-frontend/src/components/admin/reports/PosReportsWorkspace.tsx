@@ -1,5 +1,7 @@
 "use client";
 
+import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
+
 import { useMemo, useRef, useState } from "react";
 import {
   getPresetDateRange,
@@ -15,7 +17,7 @@ import PosRefundsVoidsSection from "./PosRefundsVoidsSection";
 import PosSalesAnalyticsSection from "./PosSalesAnalyticsSection";
 import PosTransactionHistorySection from "./PosTransactionHistorySection";
 
-import { ShoppingCart, RefreshCw, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import { RefreshCw, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import styles from "./PosReports.module.css";
 
 type SectionKey =
@@ -120,10 +122,7 @@ export default function PosReportsWorkspace() {
 
   return (
     <div className={styles.workspace}>
-      <header className={styles.banner}>
-        <ShoppingCart size={44} strokeWidth={1.7} aria-hidden="true" />
-        <div><h1>POS Reports</h1><p>Daily sales, transaction history, and point-of-sale performance.</p></div>
-      </header>
+      <AdminSectionHeader title="POS Reports" description="Daily sales, transaction history, and point-of-sale performance." />
       <section className={styles.datePanel} aria-label="Report date range">
         <div className={styles.dateControls}>
           <strong>Date Range</strong>

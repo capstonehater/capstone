@@ -1,4 +1,5 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
@@ -151,6 +152,7 @@ export default function StaffPOSPage() {
   }
 
   async function syncQueuedOrders() {
+    if (!useAuthStore.getState().can("pos.checkout")) return;
     if (!navigator.onLine || syncInFlightRef.current) return;
     const queue = loadQueuedCheckouts();
     if (queue.length === 0) return;
@@ -159,6 +161,7 @@ export default function StaffPOSPage() {
     let syncedCount = 0;
     try {
       for (const entry of queue) {
+        if (!useAuthStore.getState().can("pos.checkout")) break;
         updateQueuedCheckout(entry.operationId, (current) => ({ ...current, status: "SYNCING", error: null }));
         refreshQueuedCheckouts();
         try {
@@ -256,6 +259,7 @@ export default function StaffPOSPage() {
   };
 
   const handleConfirmPayment = async () => {
+    if (!useAuthStore.getState().can("pos.checkout")) return;
     if (!cart.length) return setError("No transaction to process.");
     const totalPaid = ([payments.cash, payments.gcash, payments.maya, payments.card]).reduce((sum, value) => sum + Number(value || 0), 0);
     if (totalPaid < totals.total) return setError("Incomplete payment. Please settle the full amount before checkout.");
@@ -278,6 +282,7 @@ export default function StaffPOSPage() {
     order, type, approverEmail: "", approverPassword: "", reasonCode: "CUSTOMER_REFUND", note: "", paymentReference: "",
   });
   const submitReversal = async () => {
+    if (!useAuthStore.getState().can("pos.refund")) return;
     if (!reversalState.order || !reversalState.reasonCode.trim()) return;
     setReversalSubmitting(true); setError(null);
     try {
@@ -303,7 +308,7 @@ export default function StaffPOSPage() {
           <div className="flex flex-wrap items-center gap-2">
             <span className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium ${isOnline ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{isOnline ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}{isOnline ? "Online" : "Offline"}</span>
             <span className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">Pending Sync: {pendingSyncCount}</span>
-            {pendingSyncCount > 0 ? <button onClick={() => void syncQueuedOrders()} type="button" disabled={!isOnline || syncingQueue} className="inline-flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-60"><RotateCcw className={`h-4 w-4 ${syncingQueue ? "animate-spin" : ""}`} />{syncingQueue ? "Syncing..." : "Sync Queue"}</button> : null}
+            {pendingSyncCount > 0 ? <PermissionAction permission={"pos.checkout"}><button onClick={() => void syncQueuedOrders()} type="button" disabled={!isOnline || syncingQueue} className="inline-flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-60"><RotateCcw className={`h-4 w-4 ${syncingQueue ? "animate-spin" : ""}`} />{syncingQueue ? "Syncing..." : "Sync Queue"}</button></PermissionAction> : null}
           </div>
         </header>
 
@@ -421,7 +426,7 @@ export default function StaffPOSPage() {
 
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               <button onClick={handleCancelTransaction} type="button" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-100">Cancel Transaction</button>
-              <button onClick={() => setShowPayment(true)} type="button" disabled={cart.length === 0} className="rounded-2xl bg-[#f45a1f] px-4 py-3 text-sm font-semibold text-white hover:bg-[#d94f1a] disabled:cursor-not-allowed disabled:bg-slate-300">{checkoutLoading ? "Processing..." : isOnline ? "Process Order" : "Queue Checkout"}</button>
+              <PermissionAction permission={"pos.checkout"}><button onClick={() => setShowPayment(true)} type="button" disabled={cart.length === 0} className="rounded-2xl bg-[#f45a1f] px-4 py-3 text-sm font-semibold text-white hover:bg-[#d94f1a] disabled:cursor-not-allowed disabled:bg-slate-300">{checkoutLoading ? "Processing..." : isOnline ? "Process Order" : "Queue Checkout"}</button></PermissionAction>
             </div>
           </aside>
         </div>}
@@ -430,9 +435,9 @@ export default function StaffPOSPage() {
 
       {configuratorProduct ? <ProductConfiguratorModal product={configuratorProduct} initialItem={editingCartItem} onClose={closeConfigurator} onSubmit={editingCartItem ? updateConfiguredItem : addConfiguredItem} submitLabel={editingCartItem ? "Save Changes" : "Add to Cart"} /> : null}
       {voidTargetItem ? <VoidConfirmationModal item={voidTargetItem} onClose={() => setVoidTargetItem(null)} onConfirm={() => { if (!voidTargetItem) return; setCart((current) => current.filter((item) => item.cartId !== voidTargetItem.cartId)); if (editingCartItem?.cartId === voidTargetItem.cartId) closeConfigurator(); setVoidTargetItem(null); }} /> : null}
-      {showPayment ? <PaymentModal total={totals.total} cartCount={cart.length} payments={payments} setPayments={setPayments} onClose={() => setShowPayment(false)} onConfirm={() => void handleConfirmPayment()} /> : null}
+      {showPayment ? <PermissionAction permission={"pos.checkout"}><PaymentModal total={totals.total} cartCount={cart.length} payments={payments} setPayments={setPayments} onClose={() => setShowPayment(false)} onConfirm={() => void handleConfirmPayment()} /></PermissionAction> : null}
       {showReceipt && latestReceipt ? <ReceiptModal receipt={latestReceipt} reversalSubmitting={reversalSubmitting} onRefund={(order) => openReversalModal(order, "REFUND")} onClose={() => setShowReceipt(false)} /> : null}
-      {reversalState.order ? <OrderReversalModal order={reversalState.order} type={reversalState.type} approverEmail={reversalState.approverEmail} approverPassword={reversalState.approverPassword} reasonCode={reversalState.reasonCode} note={reversalState.note} paymentReference={reversalState.paymentReference} submitting={reversalSubmitting} onApproverEmailChange={(value) => setReversalState((current) => ({ ...current, approverEmail: value }))} onApproverPasswordChange={(value) => setReversalState((current) => ({ ...current, approverPassword: value }))} onReasonCodeChange={(value) => setReversalState((current) => ({ ...current, reasonCode: value }))} onNoteChange={(value) => setReversalState((current) => ({ ...current, note: value }))} onPaymentReferenceChange={(value) => setReversalState((current) => ({ ...current, paymentReference: value }))} onClose={() => setReversalState(defaultReversalState())} onConfirm={() => void submitReversal()} /> : null}
+      {reversalState.order ? <PermissionAction permission={"pos.refund"}><OrderReversalModal order={reversalState.order} type={reversalState.type} approverEmail={reversalState.approverEmail} approverPassword={reversalState.approverPassword} reasonCode={reversalState.reasonCode} note={reversalState.note} paymentReference={reversalState.paymentReference} submitting={reversalSubmitting} onApproverEmailChange={(value) => setReversalState((current) => ({ ...current, approverEmail: value }))} onApproverPasswordChange={(value) => setReversalState((current) => ({ ...current, approverPassword: value }))} onReasonCodeChange={(value) => setReversalState((current) => ({ ...current, reasonCode: value }))} onNoteChange={(value) => setReversalState((current) => ({ ...current, note: value }))} onPaymentReferenceChange={(value) => setReversalState((current) => ({ ...current, paymentReference: value }))} onClose={() => setReversalState(defaultReversalState())} onConfirm={() => void submitReversal()} /></PermissionAction> : null}
     </div>
   );
 }

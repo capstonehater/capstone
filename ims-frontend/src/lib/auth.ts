@@ -2,7 +2,12 @@ import { apiFetch, apiJsonFetch } from "./api";
 
 export type Role = "ADMINISTRATOR" | "MANAGER" | "STAFF";
 
+export type AssignedAuthRole = { id: string; key: string; name: string; description: string };
+
 export type AuthUser = {
+  roles?: AssignedAuthRole[];
+  effectivePermissions?: string[];
+  authorizationRevision?: string | null;
   id: string;
   email: string;
   name: string;
@@ -30,18 +35,6 @@ type ResetPasswordResponse = {
 export const PASSWORD_REQUIREMENTS_MESSAGE =
   "Use at least 10 characters with uppercase, lowercase, and a number.";
 
-export function getDefaultRouteForRole(role: Role): string {
-  switch (role) {
-    case "ADMINISTRATOR":
-      return "/admin/dashboard";
-    case "MANAGER":
-      return "/login?unsupportedRole=MANAGER";
-    case "STAFF":
-      return "/staff/dashboard";
-    default:
-      return "/login";
-  }
-}
 
 export async function loginWithPassword(credentials: {
   email: string;
@@ -55,13 +48,15 @@ export async function loginWithPassword(credentials: {
   return response.user;
 }
 
-export async function fetchCurrentUser(): Promise<AuthUser> {
-  const response = await apiJsonFetch<CurrentUserResponse>("/auth/me", {
-    method: "GET",
-    cache: "no-store",
-  });
+export class AuthSessionError extends Error {
+  constructor(public readonly status: number) { super("Unable to refresh session"); }
+}
 
-  return response.user;
+export async function fetchCurrentUser(): Promise<AuthUser> {
+  const response = await apiFetch("/auth/me", { method: "GET", cache: "no-store" });
+  if (!response.ok) throw new AuthSessionError(response.status);
+  const data = await response.json() as CurrentUserResponse;
+  return data.user;
 }
 
 export async function logoutSession(): Promise<void> {

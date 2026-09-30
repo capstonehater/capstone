@@ -8,9 +8,8 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user.type';
 import { CreateStockRunDto } from './dto/create-stock-run.dto';
 import { CreateStockRunItemDto } from './dto/create-stock-run-item.dto';
@@ -23,7 +22,7 @@ export class StockRunsController {
   constructor(private readonly stockRunsService: StockRunsService) {}
 
   @Post()
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('stockRuns.create')
   async createStockRun(
     @Body() dto: CreateStockRunDto,
     @CurrentUser() user: AuthenticatedUser,
@@ -34,7 +33,7 @@ export class StockRunsController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('stockRuns.edit')
   async updateStockRun(
     @Param('id') stockRunId: string,
     @Body() dto: UpdateStockRunDto,
@@ -45,7 +44,7 @@ export class StockRunsController {
   }
 
   @Post(':id/items')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('stockRuns.edit')
   async addStockRunItem(
     @Param('id') stockRunId: string,
     @Body() dto: CreateStockRunItemDto,
@@ -59,7 +58,7 @@ export class StockRunsController {
   }
 
   @Delete(':id/items/:itemId')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('stockRuns.edit')
   async deleteStockRunItem(
     @Param('id') stockRunId: string,
     @Param('itemId') stockRunItemId: string,
@@ -69,28 +68,28 @@ export class StockRunsController {
   }
 
   @Post('drafts/:id/delete')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('stockRuns.delete')
   async removeStockRunDraft(@Param('id') stockRunId: string) {
     await this.stockRunsService.deleteDraftStockRun(stockRunId);
     return { deleted: true };
   }
 
   @Delete(':id/draft')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('stockRuns.delete')
   async deleteStockRunDraft(@Param('id') stockRunId: string) {
     await this.stockRunsService.deleteDraftStockRun(stockRunId);
     return { deleted: true };
   }
 
   @Delete(':id')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('stockRuns.delete')
   async deleteStockRun(@Param('id') stockRunId: string) {
     await this.stockRunsService.deleteDraftStockRun(stockRunId);
     return { deleted: true };
   }
 
   @Post(':id/post')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('stockRuns.post')
   async postStockRun(
     @Param('id') stockRunId: string,
     @CurrentUser() user: AuthenticatedUser,
@@ -101,7 +100,7 @@ export class StockRunsController {
   }
 
   @Get()
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('stockRuns.view')
   async listStockRuns(@Query() filters: ListStockRunsDto) {
     return {
       stockRuns: await this.stockRunsService.listStockRuns(filters),
@@ -109,7 +108,7 @@ export class StockRunsController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('stockRuns.view')
   async getStockRun(@Param('id') stockRunId: string) {
     return {
       stockRun: await this.stockRunsService.getStockRunById(stockRunId),

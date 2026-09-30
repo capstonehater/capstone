@@ -1,4 +1,9 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
+
+import UserEffectivePermissions from "./UserEffectivePermissions";
+import UserRolesSection from "./UserRolesSection";
+import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
 
 import SelectableTableRow from "@/components/admin/SelectableTableRow";
 import styles from "./UsersWorkspace.module.css";
@@ -73,26 +78,6 @@ const statusLabels: Record<AccountStatus, string> = {
   PENDING: "Pending",
   ACTIVE: "Active",
   INACTIVE: "Inactive",
-};
-
-const permissionsByRole: Record<
-  UserManagementRole,
-  { title: string; description: string }[]
-> = {
-  ADMINISTRATOR: [
-    { title: "Dashboard", description: "View administrator dashboard metrics" },
-    { title: "Inventory", description: "Manage inventory records and stock runs" },
-    { title: "Products", description: "Manage products, variants, and recipes" },
-    { title: "Reports", description: "Review sales and inventory reporting" },
-    { title: "Recommendations", description: "Review administrator forecasting recommendations" },
-    { title: "Alerts", description: "Review and resolve operational alerts" },
-    { title: "Users", description: "Manage user accounts and sessions" },
-  ],
-  STAFF: [
-    { title: "Staff Dashboard", description: "View staff dashboard tasks" },
-    { title: "POS", description: "Use staff point-of-sale workflows" },
-  ],
-  MANAGER: [],
 };
 
 function parsePage(value: string | null) {
@@ -319,6 +304,7 @@ export default function UsersWorkspace() {
   const [activityError, setActivityError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
+  const [userAccessRevision, setUserAccessRevision] = useState(0);
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [dialogError, setDialogError] = useState<string | null>(null);
@@ -630,10 +616,9 @@ export default function UsersWorkspace() {
         <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} />
       ) : null}
 
-      <section className={styles.topPanel}>
-        <header><h1>USERS</h1><p>Manage staff accounts, roles, permissions, and account status.</p></header>
-        <button type="button" onClick={() => { resetDialogFeedback(); setDialog({ type: "create" }); }} className="mt-4 rounded-lg bg-[#232d46] px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">+ Add User</button>
-      </section>
+      <AdminSectionHeader title="Users" description="Manage staff accounts, roles, permissions, and account status.">
+        <PermissionAction permission={"users.manage"}><button type="button" onClick={() => { resetDialogFeedback(); setDialog({ type: "create" }); }} className="mt-4 rounded-lg bg-[#232d46] px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">+ Add User</button></PermissionAction>
+      </AdminSectionHeader>
       <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(320px,430px)_minmax(0,1fr)]">
         <section className={styles.directory}>
           <div className="flex items-center justify-between gap-3">
@@ -731,7 +716,7 @@ export default function UsersWorkspace() {
           />
         </section>
 
-      <UserFormDialog
+      <PermissionAction permission={"users.manage"}><UserFormDialog
         mode={dialog?.type === "edit" ? "edit" : "create"}
         open={dialog?.type === "create" || dialog?.type === "edit"}
         user={dialog?.type === "edit" ? dialog.user : null}
@@ -743,7 +728,7 @@ export default function UsersWorkspace() {
           setDialog(null);
         }}
         onSubmit={(input) => (dialog?.type === "edit" ? handleEdit(input) : handleCreate(input))}
-      />
+      /></PermissionAction>
 
         <section className={`${selectedUserId ? "block" : "hidden xl:block"} min-w-0 rounded-xl border border-slate-200 bg-white p-5`}>
           {!selectedUserId ? (
@@ -765,6 +750,8 @@ export default function UsersWorkspace() {
                 onDelete={() => setDialog({ type: "delete", user: detail })}
               />
 
+              {currentUser?.role === "ADMINISTRATOR" && <PermissionAction permission={"users.manage"}><UserRolesSection key={`${detail.id}:${detail.role}`} userId={detail.id} userName={detail.name} isSelf={isSelf} onChanged={() => { setUserAccessRevision(value => value + 1); void loadSessions(detail.id); }} /></PermissionAction>}
+
               <TabBar
                 activeTab={tab}
                 onChange={(nextTab) => updateQuery({ tab: nextTab }, "push")}
@@ -780,7 +767,7 @@ export default function UsersWorkspace() {
                 />
               ) : null}
 
-              {tab === "permissions" ? <PermissionsTab role={detail.role} /> : null}
+              {tab === "permissions" ? <UserEffectivePermissions key={`${detail.id}:${userAccessRevision}`} userId={detail.id} /> : null}
 
               {tab === "activity" ? (
                 <ActivityTab
@@ -813,7 +800,7 @@ export default function UsersWorkspace() {
 
 
 
-      <ConfirmDialog
+      <PermissionAction permission={dialog?.type === "revoke-session" || dialog?.type === "revoke-all-sessions" ? "users.sessions.revoke" : "users.manage"}><ConfirmDialog
         dialog={dialog}
         submitting={submitting}
         errorMessage={dialogError}
@@ -822,7 +809,7 @@ export default function UsersWorkspace() {
           setDialog(null);
         }}
         onConfirm={handleAction}
-      />
+      /></PermissionAction>
     </div>
   );
 }
@@ -978,26 +965,26 @@ function UserProfileHeader({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <ActionButton icon={<UserCog className="h-4 w-4" />} onClick={onEdit}>
+          <PermissionAction permission={"users.manage"}><ActionButton icon={<UserCog className="h-4 w-4" />} onClick={onEdit}>
             Edit
-          </ActionButton>
-          <ActionButton icon={<KeyRound className="h-4 w-4" />} onClick={onPasswordReset}>
+          </ActionButton></PermissionAction>
+          <PermissionAction permission={"users.manage"}><ActionButton icon={<KeyRound className="h-4 w-4" />} onClick={onPasswordReset}>
             {user.status === "PENDING" ? "Send Setup" : "Reset Password"}
-          </ActionButton>
+          </ActionButton></PermissionAction>
           {canSuspend ? (
-            <ActionButton icon={<Ban className="h-4 w-4" />} tone="danger" onClick={onSuspend}>
+            <PermissionAction permission={"users.manage"}><ActionButton icon={<Ban className="h-4 w-4" />} tone="danger" onClick={onSuspend}>
               Suspend
-            </ActionButton>
+            </ActionButton></PermissionAction>
           ) : null}
           {canReactivate ? (
-            <ActionButton icon={<CheckCircle2 className="h-4 w-4" />} onClick={onReactivate}>
+            <PermissionAction permission={"users.manage"}><ActionButton icon={<CheckCircle2 className="h-4 w-4" />} onClick={onReactivate}>
               Reactivate
-            </ActionButton>
+            </ActionButton></PermissionAction>
           ) : null}
           {canDelete ? (
-            <ActionButton icon={<Trash2 className="h-4 w-4" />} tone="danger" onClick={onDelete}>
+            <PermissionAction permission={"users.manage"}><ActionButton icon={<Trash2 className="h-4 w-4" />} tone="danger" onClick={onDelete}>
               Delete
-            </ActionButton>
+            </ActionButton></PermissionAction>
           ) : null}
         </div>
       </div>
@@ -1098,15 +1085,15 @@ function OverviewTab({
   activityLoading: boolean;
 }) {
   const activeSessions = sessions.filter((session) => sessionStatus(session) === "Active").length;
-  const permissionCount = permissionsByRole[user.role].length;
+
 
   return (
     <div className="grid gap-4 lg:grid-cols-3">
       <SummaryPanel
         icon={<ShieldCheck className="h-5 w-5" />}
         label="Permission Overview"
-        value={user.role === "MANAGER" ? "Reserved" : `${permissionCount} modules`}
-        detail={user.role === "MANAGER" ? "No application permissions assigned yet" : roleLabels[user.role]}
+        value={roleLabels[user.role]}
+        detail="View the Permissions tab for effective grants from all assigned roles"
       />
       <SummaryPanel
         icon={<Activity className="h-5 w-5" />}
@@ -1143,31 +1130,6 @@ function SummaryPanel({
       </div>
       <p className="mt-4 text-2xl font-bold text-slate-950">{value}</p>
       <p className="mt-1 text-sm text-slate-500">{detail}</p>
-    </div>
-  );
-}
-
-function PermissionsTab({ role }: { role: UserManagementRole }) {
-  const permissions = permissionsByRole[role];
-
-  if (role === "MANAGER") {
-    return (
-      <EmptyBlock
-        icon={<ShieldCheck className="h-7 w-7" />}
-        title="Manager is reserved"
-        description="Manager accounts can be displayed and filtered, but no Manager application permissions are defined yet."
-      />
-    );
-  }
-
-  return (
-    <div className="grid gap-3 md:grid-cols-2">
-      {permissions.map((permission) => (
-        <div key={permission.title} className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-sm font-semibold text-slate-950">{permission.title}</p>
-          <p className="mt-1 text-sm text-slate-500">{permission.description}</p>
-        </div>
-      ))}
     </div>
   );
 }
@@ -1268,9 +1230,9 @@ function SessionsTab({
         <ActionButton icon={<RefreshCw className="h-4 w-4" />} onClick={onRefresh}>
           Refresh
         </ActionButton>
-        <ActionButton icon={<XCircle className="h-4 w-4" />} tone="danger" onClick={onRevokeAll}>
+        <PermissionAction permission={"users.sessions.revoke"}><ActionButton icon={<XCircle className="h-4 w-4" />} tone="danger" onClick={onRevokeAll}>
           Revoke All
-        </ActionButton>
+        </ActionButton></PermissionAction>
       </div>
       {sessions.length === 0 ? (
         <EmptyBlock title="No sessions" description="This user has no session records to display." />
@@ -1304,9 +1266,9 @@ function SessionsTab({
                       {state}
                     </span>
                     {state === "Active" ? (
-                      <ActionButton icon={<XCircle className="h-4 w-4" />} tone="danger" onClick={() => onRevoke(session)}>
+                      <PermissionAction permission={"users.sessions.revoke"}><ActionButton icon={<XCircle className="h-4 w-4" />} tone="danger" onClick={() => onRevoke(session)}>
                         Revoke
-                      </ActionButton>
+                      </ActionButton></PermissionAction>
                     ) : null}
                   </div>
                 </div>

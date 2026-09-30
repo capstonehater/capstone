@@ -1,3 +1,5 @@
+"use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 import type { PosOrder } from "@/lib/pos";
 import type { OfflineCheckoutEntry } from "@/lib/pos-offline";
 import { formatDateTime, formatName, formatPeso } from "@/lib/pos-utils";
@@ -107,13 +109,13 @@ export default function TransactionHistoryPanel({
                 {txn.status === "COMPLETED" ? (
                   <>
 
-                    <button
+                    <PermissionAction permission="pos.refund"><button
                       type="button"
                       onClick={() => onReverseOrder?.(txn, "REFUND")}
                       className="rounded-xl border border-amber-200 px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-50"
                     >
                       Refund
-                    </button>
+                    </button></PermissionAction>
                   </>
                 ) : null}
               </div>

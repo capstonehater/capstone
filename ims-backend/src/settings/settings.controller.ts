@@ -10,18 +10,15 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
 import type { Response } from 'express';
 import { clearAuthCookie } from '../auth/auth.cookies';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { Roles } from '../auth/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user.type';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateAccountSettingsDto } from './dto/update-account-settings.dto';
 import { SettingsService } from './settings.service';
 
 @Controller('settings')
-@Roles(Role.ADMINISTRATOR, Role.STAFF, Role.MANAGER)
 export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
 

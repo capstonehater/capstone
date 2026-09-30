@@ -1,5 +1,7 @@
 "use client";
+import { useAuthStore } from "@/store/authStore";
 
+import headerStyles from "@/components/admin/AdminSectionHeader.module.css";
 import { useEffect, useRef, useState } from 'react';
 import { CircleHelp, LoaderCircle } from 'lucide-react';
 import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
@@ -29,6 +31,8 @@ const materialStatus = (recommendation: Recommendation | undefined) => {
 };
 const dateLabel = (value: string) => new Date(`${value.slice(0, 10)}T12:00:00Z`).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 export default function ForecastingPage() {
+  // TODO: move forecast configuration to a catalog permission when one exists.
+  const canConfigure = useAuthStore(state => state.user?.role === "ADMINISTRATOR");
   const [helpOpen, setHelpOpen] = useState(false);
   const helpRoot = useRef<HTMLDivElement>(null);
   const helpButton = useRef<HTMLButtonElement>(null);
@@ -141,7 +145,7 @@ export default function ForecastingPage() {
   const busy = Boolean(runId);
 
   return <AdminDashboardLayout showHeader={false}><div className={styles.workspace}>
-    <header className={styles.intro}>
+    <header className={headerStyles.panel}>
       <div ref={helpRoot} className={styles.titleRow} onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setHelpOpen(false);
       }} onKeyDown={(event) => {
@@ -158,6 +162,7 @@ export default function ForecastingPage() {
           {!loading && run && <p>{data?.scope} Displaying {dateLabel(run.startDate)} - {dateLabel(run.endDate)}. History through {run.historyEnd ? dateLabel(run.historyEnd) : 'N/A'}. Stock snapshot saved {new Date(run.createdAt).toLocaleString('en-PH')}.</p>}
         </div>}
       </div>
+      <p>Review material usage forecasts and plan upcoming stock purchases.</p>
     </header>
     <div className={styles.stats}>
       {[
@@ -171,7 +176,7 @@ export default function ForecastingPage() {
     <div className={styles.filters}>
       <div className={styles.periodPicker}><span className={styles.filterLabel}>Latest saved forecast</span><strong>{data?.periods[0] ? `${dateLabel(data.periods[0].startDate)} – ${dateLabel(data.periods[0].endDate)}` : 'None yet'}</strong></div>
       <MaterialDropdown products={products} value={productId} onChange={setProductId} />
-      <form className={styles.forecastSettings} onSubmit={(event) => { event.preventDefault(); void saveDays(); }}>
+      {canConfigure && <form className={styles.forecastSettings} onSubmit={(event) => { event.preventDefault(); void saveDays(); }}>
         <GraphSelect
           label="Forecast days"
           value={String(selectedDays)}
@@ -182,7 +187,7 @@ export default function ForecastingPage() {
           className={styles.dayPicker}
         />
         <button type="submit" className={styles.saveDays} disabled={!nextPeriod || savingDays || selectedDays === nextPeriod.days}>{savingDays ? 'Saving...' : 'Save'}</button>
-      </form>
+      </form>}
       <div className={styles.refreshActions}>
         <button type="button" className={styles.suggestionsButton} onClick={() => setRefresh((value) => value + 1)}>Refresh records</button>
       </div>

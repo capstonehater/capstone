@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-import { Role } from '@prisma/client';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user.type';
 import { CheckoutDto } from './dto/checkout.dto';
@@ -13,6 +12,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post('pos/checkout')
+  @RequirePermission('pos.checkout')
   async checkout(
     @Body() dto: CheckoutDto,
     @CurrentUser() user: AuthenticatedUser,
@@ -21,7 +21,7 @@ export class OrdersController {
   }
 
   @Get('orders')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('pos.orders.view')
   async listOrders(@Query() filters: ListOrdersDto) {
     return {
       orders: await this.ordersService.listOrders(filters),
@@ -29,7 +29,7 @@ export class OrdersController {
   }
 
   @Get('orders/:id')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('pos.orders.view')
   async getOrderById(@Param('id') orderId: string) {
     return {
       order: await this.ordersService.getOrderById(orderId),
@@ -37,7 +37,7 @@ export class OrdersController {
   }
 
   @Post('orders/:id/refund')
-  @Roles(Role.ADMINISTRATOR, Role.STAFF)
+  @RequirePermission('pos.refund')
   async refundOrder(
     @Param('id') orderId: string,
     @Body() dto: ReverseOrderDto,

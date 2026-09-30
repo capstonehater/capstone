@@ -361,11 +361,15 @@ export class UsersService {
     const where: Prisma.UserWhereInput = {
       AND: [
         // Retain fixture ownership of historical records without listing test accounts.
-        { id: { notIn: [
-          'inventory_reports_phase1_sample_user',
-          'inventory_reports_phase2_sample_user',
-          'inventory_reports_phase3_sample_user',
-        ] } },
+        {
+          id: {
+            notIn: [
+              'inventory_reports_phase1_sample_user',
+              'inventory_reports_phase2_sample_user',
+              'inventory_reports_phase3_sample_user',
+            ],
+          },
+        },
         ...buildUserSearchWhere(query.search),
         ...(query.role ? [{ role: query.role }] : []),
         ...(query.status ? [{ accountStatus: query.status }] : []),
@@ -579,9 +583,7 @@ export class UsersService {
           throw new BadRequestException('User is already inactive');
         }
 
-        if (existing.role === Role.ADMINISTRATOR) {
-          await this.assertNotLastActiveAdministrator(tx, existing.id);
-        }
+        await this.assertNotLastActiveAdministrator(tx, existing.id);
 
         await tx.authSession.updateMany({
           where: {
@@ -1005,10 +1007,7 @@ export class UsersService {
           throw new NotFoundException('User not found');
         }
 
-        if (
-          user.role === Role.ADMINISTRATOR &&
-          user.accountStatus === AccountStatus.ACTIVE
-        ) {
+        if (user.accountStatus === AccountStatus.ACTIVE) {
           await this.assertNotLastActiveAdministrator(tx, user.id);
         }
 
@@ -1099,11 +1098,37 @@ export class UsersService {
         id: true,
         role: true,
         accountStatus: true,
+        isActive: true,
+        accessRoles: {
+          where: { role: { key: 'ADMINISTRATOR', isProtected: true } },
+          select: { roleId: true },
+        },
       },
     });
 
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+
+    if (
+      user.accountStatus === AccountStatus.ACTIVE &&
+      user.isActive &&
+      user.accessRoles?.length
+    ) {
+      const remaining = await tx.user.count({
+        where: {
+          id: { not: userId },
+          accountStatus: AccountStatus.ACTIVE,
+          isActive: true,
+          accessRoles: {
+            some: { role: { key: 'ADMINISTRATOR', isProtected: true } },
+          },
+        },
+      });
+      if (!remaining)
+        throw new ConflictException(
+          'At least one active Administrator membership must remain.',
+        );
     }
 
     if (

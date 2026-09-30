@@ -1,5 +1,7 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 
+import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
 import { useEffect, useState } from "react";
 import styles from "./alerts.module.css";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
@@ -102,18 +104,9 @@ export default function AlertsPage() {
   return (
     <AdminDashboardLayout showHeader={false}>
       <div className={styles.workspace}>
-        <section className={styles.header}>
-          <div className={styles.headerContent}>
-            <div>
-              <h1 className="text-2xl font-bold text-neutral-900">Operational Alerts</h1>
-              <p className="mt-2 text-neutral-600">
-                Review low-stock and expiry events generated from stock activity and scheduled reevaluation.
-              </p>
-              <p className="mt-1 text-sm text-neutral-500">
-                Unread alerts stay visible until addressed. Read or dismissed alerts remain visible for 30 days and sort below unread items.
-              </p>
-            </div>
-
+        <AdminSectionHeader title="Operational Alerts" description="Review low-stock and expiry events generated from stock activity and scheduled reevaluation.">
+          <div className="w-full space-y-4">
+            <p className="text-sm text-neutral-500">Unread alerts stay visible until addressed. Read or dismissed alerts remain visible for 30 days after that action and sort below unread items.</p>
             <div className="grid gap-3 md:grid-cols-4">
               <label className="text-sm font-medium text-neutral-700">
                 <span className="mb-1 block">State</span>
@@ -156,7 +149,7 @@ export default function AlertsPage() {
               </label>
             </div>
           </div>
-        </section>
+        </AdminSectionHeader>
 
         {error ? (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -221,24 +214,24 @@ export default function AlertsPage() {
 
                   <div className="flex flex-wrap justify-end gap-2">
                     {alert.state === "ACTIVE" || alert.state === "DISMISSED" ? (
-                      <button
+                      <PermissionAction permission={"alerts.acknowledge"}><button
                         type="button"
                         disabled={actionId === alert.id}
                         onClick={() => void handleAction(alert.id, "acknowledge")}
                         className={styles.primary}
                       >
                         Mark as Read
-                      </button>
+                      </button></PermissionAction>
                     ) : null}
                     {alert.state === "ACTIVE" ? (
-                      <button
+                      <PermissionAction permission={"alerts.dismiss"}><button
                         type="button"
                         disabled={actionId === alert.id}
                         onClick={() => void handleAction(alert.id, "dismiss")}
                         className={styles.secondary}
                       >
                         Dismiss
-                      </button>
+                      </button></PermissionAction>
                     ) : null}
                   </div>
                 </div>

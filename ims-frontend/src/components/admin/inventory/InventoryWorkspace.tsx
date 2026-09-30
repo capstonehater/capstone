@@ -1,4 +1,9 @@
 "use client";
+import { loadIfAllowed } from "@/lib/permission-loading";
+import { useAuthStore } from "@/store/authStore";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
+
+import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
@@ -175,6 +180,8 @@ function getTransactionCost(transaction: InventoryTransaction) {
 }
 
 export default function InventoryWorkspace({ initialView = "overview", initialDraftId, initialAction }: { initialView?: InventoryView; initialDraftId?: string; initialAction?: "create-material" | "stock-run-create" | "waste" }) {
+  const canViewReports = useAuthStore(state => state.can("reports.view"));
+  const canViewStockRuns = useAuthStore(state => state.can("stockRuns.view"));
   const [reportRevision, setReportRevision] = useState(0);
   const [report, setReport] = useState<ReportView | null>(initialView in reportTitles ? initialView as ReportView : null);
   useEffect(() => {
@@ -267,8 +274,8 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   async function loadSupportData() {
     const [nextUnits, nextSuppliers, nextStockRuns] = await Promise.all([
       fetchUnits(),
-      fetchSuppliers(),
-      fetchStockRuns({}),
+      loadIfAllowed("suppliers.view", () => fetchSuppliers(), []),
+      loadIfAllowed("stockRuns.view", () => fetchStockRuns({}), []),
     ]);
     setUnits(nextUnits);
     setSuppliers(nextSuppliers);
@@ -309,6 +316,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   }
 
   async function loadActiveStockRun(stockRunId: string) {
+    if (!useAuthStore.getState().can("stockRuns.view")) return;
     setStockRunLoading(true);
     try {
       setActiveStockRun(await fetchStockRun(stockRunId));
@@ -331,6 +339,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   }
 
   async function loadBusinessReports() {
+    if (!useAuthStore.getState().can("reports.view")) { setReportLoading(false); return; }
     setReportLoading(true);
     try {
       const [nextInventoryHealth, nextStockRunSpend, nextWasteSummary] = await Promise.all([
@@ -444,29 +453,29 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   return (
     <AdminDashboardLayout showHeader={false}>
       <div className={`flex min-w-0 w-full flex-col gap-5 bg-[#f5f5f5] text-[#232d46] `}>
-        <header className="flex flex-wrap items-center justify-between gap-4">
-          <div><h1 className="text-2xl font-bold">Inventory</h1><p className="mt-1 text-sm text-slate-500">Check stock, receive deliveries, and take action from one workspace.</p></div>
+        <AdminSectionHeader title="Inventory" description="Check stock, receive deliveries, and take action from one workspace.">
           <button type="button" disabled={initialLoading || submitting} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50" onClick={() => void refreshEverything(true).then(loadBusinessReports).catch(() => setError("Unable to refresh inventory. Please try again."))}>Refresh inventory</button>
-        </header>
+        </AdminSectionHeader>
         <nav aria-label="Inventory sections" className={styles.sectionNav}>
-          {workspaceSections.map(([id, label]) => <a key={id} href={`#${id}`} onClick={(event) => { event.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); }}>{label}</a>)}
+          {workspaceSections.filter(([id]) => id !== "stock-runs" || canViewStockRuns).map(([id, label]) => <a key={id} href={`#${id}`} onClick={(event) => { event.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); }}>{label}</a>)}
         </nav>
         <div className={styles.materialActions} aria-label="Material actions">
-          <button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }}><Plus size={16} />Add Raw Material</button>
-          <button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }}><Plus size={16} />Create Stock-Run Draft</button>
-          <button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setWasteForm(defaultWasteForm(selectedRawMaterialId)); setActivePanel("waste"); }}>Record Waste</button>
+          <PermissionAction permission={"inventory.create"}><button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }}><Plus size={16} />Add Raw Material</button></PermissionAction>
+          <PermissionAction permission={"stockRuns.create"}><button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }}><Plus size={16} />Create Stock-Run Draft</button></PermissionAction>
+          <PermissionAction permission={"inventory.waste"}><button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setWasteForm(defaultWasteForm(selectedRawMaterialId)); setActivePanel("waste"); }}>Record Waste</button></PermissionAction>
         </div>
 
         <section id="overview" style={{ scrollMarginTop: 90 }} aria-label="Overview" className={styles.overview}>
+          {!canViewReports && <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm">Your available materials and stock actions are below. Report summaries require reporting access.</p>}
           <div className="w-full">
             <div className="min-w-0">
-              <div aria-label="Inventory overview metrics" className={styles.metricGrid}>
+              <PermissionAction permission="reports.view"><div aria-label="Inventory overview metrics" className={styles.metricGrid}>
                 <MetricCard label="Materials" value={inventoryHealth ? String(inventoryHealth.summary.totalMaterials) : "—"} />
                 <MetricCard label="In Stock" value={inventoryHealth ? String(inventoryHealth.summary.inStockCount) : "—"} />
                 <MetricCard label="Low Stock" value={inventoryHealth ? String(inventoryHealth.summary.lowStockCount) : "—"} />
                 <MetricCard label="Out of Stock" value={inventoryHealth ? String(inventoryHealth.summary.outOfStockCount) : "—"} />
                 <MetricCard label="Inventory Value" value={inventoryHealth ? formatMoney(inventoryHealth.summary.totalInventoryValue) : "—"} />
-              </div>
+              </div></PermissionAction>
             </div>
           </div>
         </section>
@@ -474,7 +483,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
         {message ? <ActionAlert tone="success" title="Saved!" message={message} onDismiss={() => setMessage(null)} /> : null}
         {error ? <ActionAlert tone="error" title="Action failed" message={error} onDismiss={() => setError(null)} /> : null}
 
-        <InventoryBusinessInsights
+        <PermissionAction permission={"reports.view"}><InventoryBusinessInsights
           onOpenReport={setReport}
           inventoryHealth={inventoryHealth}
           stockRunSpend={stockRunSpend}
@@ -483,7 +492,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           formatMoney={formatMoney}
           formatQuantity={formatQuantity}
           formatDate={formatDate}
-        />
+        /></PermissionAction>
 
         <section id="materials" className={styles.pageSection} aria-label="Materials">
           <hr className={styles.sectionDivider} />
@@ -537,7 +546,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
         </div>
         </section>
 
-        <section id="stock-runs" className={styles.pageSection} aria-label="Stock Runs">
+        <PermissionAction permission={"stockRuns.view"}><section id="stock-runs" className={styles.pageSection} aria-label="Stock Runs">
         <hr className={styles.sectionDivider} />
         <StockRunsPanel
           loading={initialLoading}
@@ -552,16 +561,16 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           formatMoney={formatMoney}
           formatDateTime={formatDateTime}
         />
-        </section>
+        </section></PermissionAction>
 
-        {report && <InventoryReportModal title={reportTitles[report]} onClose={() => setReport(null)}>
+        {report && <PermissionAction permission={"reports.view"}><InventoryReportModal title={reportTitles[report]} onClose={() => setReport(null)}>
         {report === "low-stock" && <LowStockPanel key={reportRevision} />}
         {report === "near-expiry" && <NearExpiryPanel key={reportRevision} />}
         {(report === "waste" || report === "value" || report === "supplier") && <InsightPanel key={`${report}-${reportRevision}`} kind={report} embedded />}
 
-        </InventoryReportModal>}
+        </InventoryReportModal></PermissionAction>}
 
-        <RawMaterialModals
+        <PermissionAction permission={activePanel === "create-material" ? "inventory.create" : activePanel === "edit-material" ? "inventory.edit" : "inventory.archive"}><RawMaterialModals
           activePanel={activePanel}
           submitting={submitting}
           units={units}
@@ -599,9 +608,9 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
             await refreshEverything();
             await loadBusinessReports();
           }, "Failed to archive material")}
-        />
+        /></PermissionAction>
 
-        <StockRunModals
+        <PermissionAction permission={activePanel === "stock-run-create" ? "stockRuns.create" : activePanel === "delete-draft" ? "stockRuns.delete" : "stockRuns.view"}><StockRunModals
           activePanel={activePanel}
           submitting={submitting}
           summaries={summaries}
@@ -669,9 +678,9 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           formatQuantity={formatQuantity}
           formatMoney={formatMoney}
           formatDate={formatDate}
-        />
+        /></PermissionAction>
 
-        <WasteModal
+        <PermissionAction permission={"inventory.waste"}><WasteModal
           activePanel={activePanel}
           submitting={submitting}
           summaries={summaries}
@@ -692,9 +701,9 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           }}
           onSelectRawMaterial={setSelectedRawMaterialId}
           formatQuantity={formatQuantity}
-        />
+        /></PermissionAction>
 
-        {availabilityMaterial && <StoreAvailabilityModal key={availabilityMaterial.id} materialId={availabilityMaterial.id} materialName={availabilityMaterial.name} onClose={() => setAvailabilityMaterial(null)} onJourney={() => { setAvailabilityMaterial(null); router.push("/admin/inventory/suppliers"); }} />}
+        {availabilityMaterial && <PermissionAction permission={"suppliers.searchAvailability"}><StoreAvailabilityModal key={availabilityMaterial.id} materialId={availabilityMaterial.id} materialName={availabilityMaterial.name} onClose={() => setAvailabilityMaterial(null)} onJourney={() => { setAvailabilityMaterial(null); router.push("/admin/inventory/suppliers"); }} /></PermissionAction>}
 
         <BatchTransactionModal
           batch={selectedBatch}

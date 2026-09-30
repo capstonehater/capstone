@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, LogOut, Settings } from "lucide-react";
 import ProfileAvatar from "@/components/auth/ProfileAvatar";
@@ -14,7 +15,8 @@ export default function SidebarAccount({ collapsed = false, onNavigate }: { coll
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
-  const settingsHref = user?.role === "STAFF" ? "/staff/settings" : user?.role === "MANAGER" ? "/manager/settings" : "/admin/settings";
+  const pathname = usePathname();
+  const settingsHref = pathname.startsWith("/staff") ? "/staff/settings" : "/admin/settings";
 
   useEffect(() => {
     if (!open) return;

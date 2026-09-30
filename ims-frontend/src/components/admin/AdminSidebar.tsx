@@ -6,13 +6,15 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { ChevronDown, ChevronLeft, Menu, X } from "lucide-react";
-import { adminNavigation, matchesShellRoute } from "@/components/layout/shell-navigation";
+import { getVisibleNavigation, matchesShellRoute } from "@/components/layout/shell-navigation";
+import { useAuthStore } from "@/store/authStore";
 import styles from "@/components/layout/ApplicationShell.module.css";
 
 type AdminSidebarProps = { isOpen: boolean; onClose: () => void; collapsed: boolean; onToggleCollapse: () => void };
 
 export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleCollapse }: AdminSidebarProps) {
   const pathname = usePathname();
+  const navigation = getVisibleNavigation(useAuthStore());
   const [selectedDropdown, setSelectedDropdown] = useState<{ href: string; path: string } | null>(null);
   const dropdownSelection = selectedDropdown?.path === pathname ? selectedDropdown.href : null;
   function navigate() {
@@ -78,7 +80,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
           <SidebarAccount collapsed={collapsed && !isOpen} onNavigate={navigateMain} />
         </div>
         <nav ref={restoreScroll} onScroll={event => setScrollTop(event.currentTarget.scrollTop)} className={styles.navigation}>
-          {adminNavigation.map(group => (
+          {navigation.map(group => (
             <div key={group.label} className={styles.group}>
               {collapsed ? null : <h2 className={styles.groupTitle}>{group.label}</h2>}
               {group.items.map(item => (

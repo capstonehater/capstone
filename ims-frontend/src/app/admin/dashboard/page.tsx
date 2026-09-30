@@ -1,4 +1,7 @@
 "use client";
+import { useAuthStore } from "@/store/authStore";
+import { loadIfAllowed } from "@/lib/permission-loading";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -42,6 +45,7 @@ function defaultReportRange(days = 30) {
 }
 
 export default function AdminDashboardPage() {
+  const canViewReports = useAuthStore(state => state.can("reports.view"));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [salesOverview, setSalesOverview] = useState<SalesOverviewReport | null>(null);
@@ -72,13 +76,13 @@ export default function AdminDashboardPage() {
       try {
         const [nextSalesOverview, nextInventoryHealth, nextStockRunSpend, nextWasteSummary, suppliers] =
           await Promise.all([
-            fetchSalesOverview({ ...range, limit: 5 }),
-            fetchInventoryHealth({ limit: 5 }),
-            fetchStockRunSpend({ ...range, limit: 5 }),
-            fetchWasteSummary({ ...range, limit: 5 }),
-            fetchSuppliers(),
+            loadIfAllowed("reports.view", () => fetchSalesOverview({ ...range, limit: 5 }), null),
+            loadIfAllowed("reports.view", () => fetchInventoryHealth({ limit: 5 }), null),
+            loadIfAllowed("reports.view", () => fetchStockRunSpend({ ...range, limit: 5 }), null),
+            loadIfAllowed("reports.view", () => fetchWasteSummary({ ...range, limit: 5 }), null),
+            loadIfAllowed("suppliers.view", () => fetchSuppliers(), []),
           ]);
-        const nextAlerts = await fetchAlerts({ state: "ACTIVE", limit: 5 });
+        const nextAlerts = await loadIfAllowed("alerts.view", () => fetchAlerts({ state: "ACTIVE", limit: 5 }), []);
 
         setSalesOverview(nextSalesOverview);
         setInventoryHealth(nextInventoryHealth);
@@ -107,13 +111,14 @@ export default function AdminDashboardPage() {
   return (
     <AdminDashboardLayout>
       <div className={styles.dashboard}>
+      {!canViewReports && <p className="rounded-xl border border-slate-200 bg-white p-5">Report summaries are unavailable with your current permissions. Use the navigation to open your available features.</p>}
       {error ? (
         <div className={styles.error}>
           {error}
         </div>
       ) : null}
 
-      <section className={styles.overview}>
+      <PermissionAction permission="reports.view"><section className={styles.overview}>
         <div className={styles.overviewStats}>
           <div><span>Materials</span><strong>{loading ? "..." : inventoryHealth?.summary.totalMaterials ?? 0}</strong></div>
           <div><span>In stock</span><strong>{loading ? "..." : inventoryHealth?.summary.inStockCount ?? 0}</strong></div>
@@ -121,9 +126,9 @@ export default function AdminDashboardPage() {
           <div><span>Out of stock</span><strong>{loading ? "..." : inventoryHealth?.summary.outOfStockCount ?? 0}</strong></div>
           <div><span>Inventory value</span><strong>{loading ? "..." : formatPeso(inventoryHealth?.summary.totalInventoryValue ?? "0")}</strong></div>
         </div>
-      </section>
+      </section></PermissionAction>
 
-      <section className={styles.row}>
+      <PermissionAction permission="reports.view"><section className={styles.row}>
         <div className={styles.panel}>
           <div className={styles.panelHeader}><h2 className={styles.panelTitle}>Top-Selling Variants</h2><select className={styles.periodSelect} value={salesPeriod} onChange={(event) => setSalesPeriod(event.target.value)} aria-label="Top-selling period"><option>Last 30 Days</option><option>Last 7 Days</option><option>Last 90 Days</option></select></div>
           <div className={styles.panelBody}><div className={styles.list}>
@@ -178,8 +183,8 @@ export default function AdminDashboardPage() {
             </div>
             <div className={styles.metric}><p className={styles.metricLabel}>Total Suppliers</p><p className={styles.metricValue}>{loading ? "..." : supplierCount}</p></div>
           </div></div></div>
-      </section>
-      <section className={styles.rowThree}>
+      </section></PermissionAction>
+      <PermissionAction permission="reports.view"><section className={styles.rowThree}>
 
         <div className={styles.panel}><div className={styles.panelHeader}><h2 className={styles.panelTitle}>Near Expiry Watchlist</h2><button className={styles.viewAll} type="button" onClick={() => setActiveModal("expiry")}>View All</button></div><div className={styles.panelBody}><div className={styles.list}>
             {(inventoryHealth?.nearExpiryBatches ?? []).slice(0, 3).map((batch) => (
@@ -215,8 +220,8 @@ export default function AdminDashboardPage() {
               </div>
             ))}
           </div></div></div>
-      </section>
-      <section className={styles.alertPanel}>
+      </section></PermissionAction>
+      <PermissionAction permission="alerts.view"><section className={styles.alertPanel}>
         <div className={styles.alertHeader}>
           <h2><Bell size={15} /> Alerts</h2>
           <a className={styles.viewAll} href="/admin/alerts">View All</a>
@@ -236,16 +241,16 @@ export default function AdminDashboardPage() {
                 <span className={styles.alertTagSeverity}>{alert.severity}</span>
               </div>
               <div className={styles.alertActions}>
-                <button type="button" onClick={() => void updateAlert(alert.id, "acknowledge")}>Mark as Read</button>
-                <button type="button" onClick={() => void updateAlert(alert.id, "dismiss")}>Dismiss</button>
+                <PermissionAction permission={"alerts.acknowledge"}><button type="button" onClick={() => void updateAlert(alert.id, "acknowledge")}>Mark as Read</button></PermissionAction>
+                <PermissionAction permission={"alerts.dismiss"}><button type="button" onClick={() => void updateAlert(alert.id, "dismiss")}>Dismiss</button></PermissionAction>
               </div>
               <time>{formatDateTime(alert.lastTriggeredAt)}</time>
             </article>
           ))}
         </div>
-      </section>
+      </section></PermissionAction>
 
-      {activeModal ? <div className={styles.modalBackdrop} role="presentation" onMouseDown={() => setActiveModal(null)}><section className={styles.modal} role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><div className={styles.modalHeader}><h2>{activeModal === "orders" ? "Recent Orders" : activeModal === "expiry" ? "Near Expiry Watchlist" : "Waste Breakdown"}</h2><button type="button" className={styles.modalClose} onClick={() => setActiveModal(null)} aria-label="Close">×</button></div><p className={styles.muted}>Live dashboard details</p>{activeModal === "orders" ? <div className={styles.modalList}>{(salesOverview?.recentOrders ?? []).map((order) => <div className={styles.modalRow} key={order.id}><strong>{order.id}</strong><span>{formatDateTime(order.completedAt)}</span><span>{formatPeso(order.totalAmount)}</span></div>)}</div> : activeModal === "expiry" ? <div className={styles.modalList}>{(inventoryHealth?.nearExpiryBatches ?? []).map((batch) => <div className={styles.modalRow} key={batch.id}><strong>{batch.rawMaterial.name}</strong><span>{formatDate(batch.expirationDate)}</span><span>{batch.remainingQuantity}</span></div>)}</div> : <div className={styles.modalList}>{(wasteSummary?.byReason ?? []).map((reason) => <div className={styles.modalRow} key={reason.reasonCode}><strong>{reason.reasonCode}</strong><span>{reason.eventCount} events</span><span>{formatPeso(reason.cost)}</span></div>)}</div>}<a className={styles.modalRoute} href={activeModal === "orders" ? "/admin/reports/pos" : activeModal === "expiry" ? "/admin/inventory" : "/admin/reports/inventory"}>Open full workspace →</a></section></div> : null}
+      {activeModal ? <PermissionAction permission="reports.view"><div className={styles.modalBackdrop} role="presentation" onMouseDown={() => setActiveModal(null)}><section className={styles.modal} role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><div className={styles.modalHeader}><h2>{activeModal === "orders" ? "Recent Orders" : activeModal === "expiry" ? "Near Expiry Watchlist" : "Waste Breakdown"}</h2><button type="button" className={styles.modalClose} onClick={() => setActiveModal(null)} aria-label="Close">×</button></div><p className={styles.muted}>Live dashboard details</p>{activeModal === "orders" ? <div className={styles.modalList}>{(salesOverview?.recentOrders ?? []).map((order) => <div className={styles.modalRow} key={order.id}><strong>{order.id}</strong><span>{formatDateTime(order.completedAt)}</span><span>{formatPeso(order.totalAmount)}</span></div>)}</div> : activeModal === "expiry" ? <div className={styles.modalList}>{(inventoryHealth?.nearExpiryBatches ?? []).map((batch) => <div className={styles.modalRow} key={batch.id}><strong>{batch.rawMaterial.name}</strong><span>{formatDate(batch.expirationDate)}</span><span>{batch.remainingQuantity}</span></div>)}</div> : <div className={styles.modalList}>{(wasteSummary?.byReason ?? []).map((reason) => <div className={styles.modalRow} key={reason.reasonCode}><strong>{reason.reasonCode}</strong><span>{reason.eventCount} events</span><span>{formatPeso(reason.cost)}</span></div>)}</div>}<a className={styles.modalRoute} href={activeModal === "orders" ? "/admin/reports/pos" : activeModal === "expiry" ? "/admin/inventory" : "/admin/reports/inventory"}>Open full workspace →</a></section></div></PermissionAction> : null}
       </div>
     </AdminDashboardLayout>
   );

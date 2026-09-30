@@ -1,3 +1,4 @@
+import PermissionRoute from "@/components/auth/PermissionRoute";
 import AuthGuard from "@/components/auth/AuthGuard";
 
 export default function AdminLayout({
@@ -6,8 +7,8 @@ export default function AdminLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <AuthGuard allowedRoles={["ADMINISTRATOR"]}>
-      {children}
+    <AuthGuard>
+      <PermissionRoute>{children}</PermissionRoute>
     </AuthGuard>
   );
 }

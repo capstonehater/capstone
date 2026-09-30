@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getDefaultRouteForRole, type Role } from "@/lib/auth";
+import type { Role } from "@/lib/auth";
+import NoAccess from "./NoAccess";
 import { useAuthStore } from "@/store/authStore";
 
 type AuthGuardProps = {
@@ -25,14 +26,12 @@ export default function AuthGuard({
       return;
     }
 
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
-      router.replace(getDefaultRouteForRole(user.role));
-    }
+
   }, [status, isAuthenticated, user, allowedRoles, router]);
 
   if (status === "loading") return null;
   if (!isAuthenticated || !user) return null;
-  if (allowedRoles && !allowedRoles.includes(user.role)) return null;
+  if (allowedRoles && !allowedRoles.includes(user.role)) return <NoAccess />;
 
   return <>{children}</>;
 }

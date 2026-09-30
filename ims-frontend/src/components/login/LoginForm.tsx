@@ -5,12 +5,11 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  getDefaultRouteForRole,
   loginWithPassword,
-  logoutSession,
   type AuthUser,
 } from "@/lib/auth";
 import { useAuthStore } from "@/store/authStore";
+import { getDefaultLandingRoute } from "@/components/layout/shell-navigation";
 import styles from "./Login.module.css";
 import ActionAlert from "@/components/feedback/ActionAlert";
 
@@ -19,7 +18,6 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setAuthenticated = useAuthStore((state) => state.setAuthenticated);
-  const setUnauthenticated = useAuthStore((state) => state.setUnauthenticated);
   const status = useAuthStore((state) => state.status);
   const user = useAuthStore((state) => state.user);
 
@@ -30,14 +28,13 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const resetSuccess = searchParams.get("reset") === "success";
   const [resetNoticeDismissed, setResetNoticeDismissed] = useState(false);
-  const unsupportedRole = searchParams.get("unsupportedRole");
 
   const redirectPath = useMemo(() => {
     if (!user) {
       return null;
     }
 
-    return getDefaultRouteForRole(user.role);
+    return getDefaultLandingRoute(useAuthStore.getState());
   }, [user]);
 
   useEffect(() => {
@@ -48,16 +45,7 @@ export default function LoginForm() {
 
   const handleLoginSuccess = (authenticatedUser: AuthUser) => {
     setAuthenticated(authenticatedUser);
-    router.push(getDefaultRouteForRole(authenticatedUser.role));
-  };
-
-  const handleUnsupportedRoleSignOut = async () => {
-    try {
-      await logoutSession();
-    } finally {
-      setUnauthenticated();
-      router.replace("/login");
-    }
+    router.push(getDefaultLandingRoute(useAuthStore.getState()));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,31 +68,6 @@ export default function LoginForm() {
   };
 
   if (status === "loading") return <p role="status" className={styles.subtitle}>Loading sign in...</p>;
-
-  if (user?.role === "MANAGER" || unsupportedRole === "MANAGER") {
-    return (
-      <div className={styles.formContent}>
-        <div className="space-y-4 text-center">
-          <h2 className="text-3xl font-bold text-black md:text-5xl">
-            Account Authenticated
-          </h2>
-          <p className="text-base text-neutral-700 md:text-lg">
-            Your account was recognized, but no application workspace is available for the MANAGER role yet.
-          </p>
-          <p className="text-sm text-neutral-500">
-            Administrator and Staff routes remain blocked until the Manager experience is implemented.
-          </p>
-          {user?.role === "MANAGER" && (
-            <div className="pt-2">
-              <button className={styles.submit} type="button" onClick={handleUnsupportedRoleSignOut}>
-                Sign Out
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className={styles.formContent}>

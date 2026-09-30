@@ -1,3 +1,5 @@
+"use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 import { Receipt } from "lucide-react";
 import type { PosOrder } from "@/lib/pos";
 import { formatDateTime, formatName, formatPeso } from "@/lib/pos-utils";
@@ -127,14 +129,14 @@ export default function ReceiptModal({
           {receipt.status === "COMPLETED" ? (
             <>
 
-              <button
+              <PermissionAction permission={"pos.refund"}><button
                 type="button"
                 disabled={reversalSubmitting}
                 onClick={() => onRefund?.(receipt)}
                 className="rounded-2xl border border-amber-200 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-60"
               >
                 Refund Order
-              </button>
+              </button></PermissionAction>
             </>
           ) : null}
           <button

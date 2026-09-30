@@ -3,7 +3,7 @@ import StaffPOSPage from "../../../components/staff-pos/StaffPOSPage";
 import AuthGuard from "@/components/auth/AuthGuard";
 export default function StaffDashboardPage() {
   return (
-    <AuthGuard allowedRoles={["STAFF"]}>
+    <AuthGuard>
       <StaffDashboardLayout>
       <StaffPOSPage />
     </StaffDashboardLayout>
