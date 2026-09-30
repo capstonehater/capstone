@@ -6,6 +6,13 @@ import AuthBootstrap from "@/components/auth/AuthBootstrap";
 export const metadata: Metadata = {
   title: "Inventory Management System",
   description: "Smart Inventory Management",
+  icons: {
+    icon: {
+      url: "/assets/slvcn-icon.svg",
+      type: "image/svg+xml",
+      sizes: "any",
+    },
+  },
 };
 
 export default function RootLayout({

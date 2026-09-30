@@ -74,7 +74,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
         <div className={`${styles.brand} ${styles.brandWithAccount}`}>
           <div className={styles.sidebarBrandLogo}>
             <strong>{collapsed ? "CS" : "Cafe Salvacion"}</strong>
-            {collapsed ? null : <p>POS Management</p>}
+            {collapsed ? null : <p>Inventory Management</p>}
           </div>
           <button type="button" onClick={onClose} className={styles.mobileClose} aria-label="Close navigation"><X size={20} /></button>
           <SidebarAccount collapsed={collapsed && !isOpen} onNavigate={navigateMain} />

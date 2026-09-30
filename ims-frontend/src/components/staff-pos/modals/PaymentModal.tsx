@@ -61,7 +61,7 @@ export default function PaymentModal({
               onChange={(e) =>
                 setPayments((prev) => ({ ...prev, cash: e.target.value }))
               }
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
               placeholder="0.00"
             />
           </label>
@@ -78,7 +78,7 @@ export default function PaymentModal({
               onChange={(e) =>
                 setPayments((prev) => ({ ...prev, gcash: e.target.value }))
               }
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
               placeholder="0.00"
             />
           </label>
@@ -95,7 +95,7 @@ export default function PaymentModal({
               onChange={(e) =>
                 setPayments((prev) => ({ ...prev, maya: e.target.value }))
               }
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
               placeholder="0.00"
             />
           </label>
@@ -112,7 +112,7 @@ export default function PaymentModal({
               onChange={(e) =>
                 setPayments((prev) => ({ ...prev, card: e.target.value }))
               }
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
               placeholder="0.00"
             />
           </label>
@@ -132,7 +132,7 @@ export default function PaymentModal({
               <span className="text-slate-500">Remaining</span>
               <span
                 className={
-                  remaining > 0 ? "font-semibold text-rose-600" : "text-[#f45a1f]"
+                  remaining > 0 ? "font-semibold text-rose-600" : "text-[#232d46]"
                 }
               >
                 {formatPeso(remaining)}
@@ -152,7 +152,7 @@ export default function PaymentModal({
             onClick={onConfirm}
             type="button"
             disabled={cartCount === 0 || totalPaid < total}
-            className="mt-4 w-full rounded-2xl bg-[#f45a1f] px-4 py-3 text-sm font-semibold text-white hover:bg-[#d94f1a] disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="mt-4 w-full rounded-2xl bg-[#232d46] px-4 py-3 text-sm font-semibold text-white hover:bg-[#34445f] disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             Confirm Payment
           </button>

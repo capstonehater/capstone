@@ -2,6 +2,8 @@
 import { loadIfAllowed } from "@/lib/permission-loading";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
+import styles from "./ProductsWorkspace.module.css";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { fetchInventorySummary, type InventorySummaryItem } from "@/lib/inventory";
@@ -868,7 +870,7 @@ export default function ProductsWorkspace() {
       {listError ? <ActionAlert tone="error" title="Unable to load products" message={listError} onDismiss={() => setListError(null)} /> : null}
       {notice ? <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} /> : null}
 
-      <div className="grid min-h-0 flex-1 gap-5 overflow-hidden xl:grid-cols-[minmax(360px,0.85fr)_minmax(0,1.65fr)]">
+      <div className={`${styles.panels} grid min-h-0 flex-1 gap-[24px] overflow-hidden`}>
         <div className={`${isMobileDetailView ? "hidden xl:block" : "block"} min-h-0`}>
           <ProductsMasterPanel
             categories={categories}

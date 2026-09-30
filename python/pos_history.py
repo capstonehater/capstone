@@ -17,6 +17,7 @@ def merge_pos_history(history, request, match_material, conversion):
             frame['raw_material'] = material['name']
             frame['item_code'] = material['sku']
             frame['material_id'] = material['id']
+            frame['history_source'] = 'CSV'
             frames.append(frame)
             policies[material['id']] = {'name': name, 'unit': unit, 'factor': factor}
         except ValueError as exc:
@@ -53,7 +54,7 @@ def merge_pos_history(history, request, match_material, conversion):
                 continue
             records.append({'date': day, 'product': 'POS sales', 'raw_material': material['name'],
                 'item_code': material['sku'], 'unit': material['unit'], 'material_id': material_id,
-                'quantity_used': actual.get((material_id, day), 0),
+                'quantity_used': actual.get((material_id, day), 0), 'history_source': 'POS',
                 'holiday': 'YES' if day.date() in calendar else 'NO'})
     combined = pd.concat([combined, pd.DataFrame(records)], ignore_index=True)
     notes.append(f'Included {len(pos)} POS material/day totals across {len(pos_dates)} transaction dates through {pos_dates[-1].date()}. POS replaces CSV history on those dates; voided/refunded sales are excluded.')

@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { RefreshCcw } from "lucide-react";
-import styles from "@/components/admin/inventory/InventorySortToolbar.module.css";
+import AdminSelect from "@/components/admin/AdminSelect";
+import styles from "@/components/admin/inventory/InventoryReportModal.module.css";
 import { fetchInventorySummary, type InventorySummaryItem } from "@/lib/inventory";
 
 const quantity = new Intl.NumberFormat("en-PH", { maximumFractionDigits: 4 });
 const currency = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" });
 
-export default function LowStockPanel() {
+export default function LowStockPanel({ embedded = false }: { embedded?: boolean }) {
   const [materials, setMaterials] = useState<InventorySummaryItem[]>([]);
   const [direction, setDirection] = useState("asc");
   const [loading, setLoading] = useState(true);
@@ -34,21 +35,15 @@ export default function LowStockPanel() {
   return (
     <>
       <section className="space-y-5 text-[#232d46]">
-        <header>
-          <h1 className="text-2xl font-bold">Low Stock Materials</h1>
+        {!embedded && <header>
+          {!embedded && <h1 className="text-2xl font-bold">Low Stock Materials</h1>}
           <p className="mt-1 text-sm text-slate-600">Active materials with usable stock above zero and at or below their reorder point.</p>
-        </header>
+        </header>}
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           <div className={styles.toolbar}>
             <p role="status" className="text-sm font-medium">{loading ? "Loading materials..." : error ? "Materials unavailable" : `${rows.length} low-stock material${rows.length === 1 ? "" : "s"}`}</p>
             <div className={styles.controls}>
-              <label className={styles.field}>
-                Sort by usable stock
-                <select value={direction} onChange={(event) => setDirection(event.target.value)} className={styles.select}>
-                  <option value="asc">Ascending (lowest first)</option>
-                  <option value="desc">Descending (highest first)</option>
-                </select>
-              </label>
+              <AdminSelect label="Sort by usable stock" value={direction} onChange={setDirection} options={[{ value: "asc", label: "Ascending (lowest first)" }, { value: "desc", label: "Descending (highest first)" }]} />
               <button type="button" disabled={loading} onClick={() => { setError(null); setLoading(true); setRevision((value) => value + 1); }} className={styles.refresh}>
                 <RefreshCcw size={16} className={loading ? "animate-spin" : ""} />Refresh
               </button>

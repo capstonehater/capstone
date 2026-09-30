@@ -42,7 +42,7 @@ export default function OrderReversalModal({
   return (
     <Modal title={title} onClose={onClose}>
       <div className="space-y-4">
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+        <div className="rounded-2xl border border-[#cbd5e1] bg-[#edf2f8] p-4 text-sm text-[#232d46]">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-4 w-4" />
             <div>
@@ -71,7 +71,7 @@ export default function OrderReversalModal({
               value={approverEmail}
               onChange={(event) => onApproverEmailChange(event.target.value)}
               placeholder="admin@stockscout.com"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
             />
           </label>
 
@@ -82,7 +82,7 @@ export default function OrderReversalModal({
               value={approverPassword}
               onChange={(event) => onApproverPasswordChange(event.target.value)}
               placeholder="Enter approving admin password"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
             />
           </label>
         </div>
@@ -94,7 +94,7 @@ export default function OrderReversalModal({
               value={reasonCode}
               onChange={(event) => onReasonCodeChange(event.target.value)}
               placeholder="CUSTOMER_REFUND"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
             />
           </label>
 
@@ -104,7 +104,7 @@ export default function OrderReversalModal({
               value={paymentReference}
               onChange={(event) => onPaymentReferenceChange(event.target.value)}
               placeholder="Optional reference"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
             />
           </label>
         </div>
@@ -116,7 +116,7 @@ export default function OrderReversalModal({
             onChange={(event) => onNoteChange(event.target.value)}
             rows={3}
             placeholder="Optional staff note for the audit trail"
-            className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+            className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
           />
         </label>
 
@@ -137,7 +137,7 @@ export default function OrderReversalModal({
               !reasonCode.trim()
             }
             onClick={onConfirm}
-            className="rounded-2xl bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-300"
+            className="rounded-2xl bg-[#232d46] px-4 py-2 text-sm font-medium text-white hover:bg-[#34445f] disabled:cursor-not-allowed disabled:bg-[#232d46]/60"
           >
             {submitting ? "Submitting..." : "Refund Order"}
           </button>

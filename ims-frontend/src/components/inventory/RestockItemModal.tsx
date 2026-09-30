@@ -1,4 +1,6 @@
 "use client";
+import ModalCloseButton from "@/components/ModalCloseButton";
+
 
 import { useState } from "react";
 import type { InventoryItem } from "../../types/inventory";
@@ -69,13 +71,7 @@ export default function RestockItemModal({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border px-3 py-2 text-sm text-neutral-700"
-          >
-            Close
-          </button>
+          <ModalCloseButton onClose={onClose} />
         </div>
 
         <div className="mb-5 rounded-xl bg-[#f9f7f2] p-4">

@@ -1,10 +1,13 @@
 "use client";
+import ModalCloseButton from "@/components/ModalCloseButton";
+
 
 import { useEffect, useRef } from "react";
 import styles from "./InventoryReportModal.module.css";
 
-export default function InventoryReportModal({ title, onClose, children }: {
+export default function InventoryReportModal({ title, description, onClose, children }: {
   title: string;
+  description?: string;
   onClose: () => void;
   children: React.ReactNode;
 }) {
@@ -28,9 +31,9 @@ export default function InventoryReportModal({ title, onClose, children }: {
       <header className={styles.header}>
         <div>
           <h2 id="inventory-report-title">{title}</h2>
-          <p>Full report</p>
+          {description && <p>{description}</p>}
         </div>
-        <button type="button" autoFocus onClick={onClose}>Close</button>
+        <ModalCloseButton onClose={onClose} autoFocus />
       </header>
       <div className={styles.body}>{children}</div>
     </dialog>

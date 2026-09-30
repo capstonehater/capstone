@@ -1,5 +1,6 @@
 "use client";
 
+import styles from "./ProductAvailabilitySummary.module.css";
 import type { ProductDetail } from "@/lib/products";
 import {
   effectiveStatusBadgeClasses,
@@ -13,47 +14,52 @@ type Props = {
 };
 
 export default function ProductAvailabilitySummary({ product }: Props) {
+  const readableStatus = (value: string) => {
+    const text = value.toLowerCase().replaceAll("_", " ");
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
+
   return (
-    <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4">
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Effective POS
+    <div className={styles.summary}><div className={styles.grid}>
+      <div className={styles.card}>
+        <p className={styles.label}>
+          POS availability
         </p>
         <span
-          className={`mt-3 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${effectiveStatusBadgeClasses(product.effectiveStatus)}`}
+          className={`${styles.badge} inline-flex rounded-full px-3 py-1 text-sm font-semibold ${effectiveStatusBadgeClasses(product.effectiveStatus)}`}
         >
           {product.effectiveStatusLabel}
         </span>
       </div>
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <div className={styles.card}>
+        <p className={styles.label}>
           Manual availability
         </p>
         <span
-          className={`mt-3 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${manualAvailabilityBadgeClasses(product.manualAvailability)}`}
+          className={`${styles.badge} inline-flex rounded-full px-3 py-1 text-sm font-semibold ${manualAvailabilityBadgeClasses(product.manualAvailability)}`}
         >
           {summarizeAvailabilityLabel(product.manualAvailability)}
         </span>
       </div>
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <div className={styles.card}>
+        <p className={styles.label}>
           Stock availability
         </p>
         <span
-          className={`mt-3 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${stockAvailabilityBadgeClasses(product.stockAvailability.status)}`}
+          className={`${styles.badge} inline-flex rounded-full px-3 py-1 text-sm font-semibold ${stockAvailabilityBadgeClasses(product.stockAvailability.status)}`}
         >
-          {product.stockAvailability.status}
+          {readableStatus(product.stockAvailability.status)}
         </span>
       </div>
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Top blocker
+      <div className={styles.card}>
+        <p className={styles.label}>
+          Main issue
         </p>
-        <p className="mt-3 break-words text-sm font-semibold text-slate-900">
-          {product.topBlockingReason ?? "None"}
+        <p className={styles.value}>
+          {product.topBlockingReason ? readableStatus(product.topBlockingReason) : "None"}
         </p>
       </div>
-    </div>
+    </div></div>
   );
 }
 

@@ -1,4 +1,5 @@
-import { ShieldAlert } from "lucide-react";
+import ModalCloseButton from "@/components/ModalCloseButton";
+
 import Modal from "./Modal";
 
 type Props = {
@@ -9,7 +10,7 @@ export default function RefundUnavailableModal({ onClose }: Props) {
   return (
     <Modal title="Refund Authorization Unavailable" onClose={onClose}>
       <div className="space-y-4">
-        <div className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-800">
+        <div className="rounded-2xl bg-[#edf2f8] p-4 text-sm text-[#232d46]">
           Refund authorization is temporarily unavailable because secure
           backend approval has not been connected yet.
         </div>
@@ -21,14 +22,7 @@ export default function RefundUnavailableModal({ onClose }: Props) {
         </div>
 
         <div className="flex justify-end">
-          <button
-            onClick={onClose}
-            type="button"
-            className="inline-flex items-center gap-2 rounded-2xl bg-[#3d3434] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-          >
-            <ShieldAlert className="h-4 w-4" />
-            Close
-          </button>
+          <ModalCloseButton onClose={onClose} />
         </div>
       </div>
     </Modal>

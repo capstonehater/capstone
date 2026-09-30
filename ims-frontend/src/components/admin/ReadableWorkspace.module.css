@@ -1,0 +1,13 @@
+.readable { font-size:16px; line-height:1.65; color:#334155; }
+.readable :global(.text-xs), .readable :global(.text-sm),
+.readable :global(.text-\[11px\]), .readable :global(.text-\[13px\]) { font-size:16px; line-height:1.6; }
+.readable :global(.text-slate-400), .readable :global(.text-slate-500),
+.readable :global(.text-neutral-500),
+.readable [class~="text-[#232d46]/70"], .readable [class~="text-[#232d46]/75"],
+.readable [class~="text-[#232d46]/80"] { color:#475569; }
+.readable input::placeholder { color:#526078; opacity:1; }
+.readable input:not([type="checkbox"]):not([type="range"]), .readable select { min-height:44px; font-size:16px; }
+.readable button { min-height:44px; }
+.readable h2, .readable h3 { line-height:1.4; }
+.readable p { overflow-wrap:anywhere; }
+.readable th, .readable td { line-height:1.6; }

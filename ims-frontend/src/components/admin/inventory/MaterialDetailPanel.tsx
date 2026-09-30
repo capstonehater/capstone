@@ -2,6 +2,7 @@
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useState } from "react";
+import styles from "./MaterialDetailPanel.module.css";
 import {
   AlertTriangle,
   Archive,
@@ -324,10 +325,11 @@ export default function MaterialDetailPanel({
                 ) : null}
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <div className={`${styles.historyFilters} grid gap-3 md:grid-cols-2 xl:grid-cols-4`}>
                 <InventoryField htmlFor="history-type" label="Transaction type">
                   <select
                     id="history-type"
+                    title={historyType ? historyType.replaceAll("_", " ") : "All transaction types"}
                     value={historyType}
                     onChange={(event) => onHistoryTypeChange(event.target.value)}
                     className={inventoryInputClasses}
@@ -361,6 +363,7 @@ export default function MaterialDetailPanel({
                 <InventoryField htmlFor="history-search" label="Search">
                   <input
                     id="history-search"
+                    title={historySearchInput || "Type, reason code, note, or actor"}
                     value={historySearchInput}
                     onChange={(event) => onHistorySearchInputChange(event.target.value)}
                     placeholder="Type, reason code, note, or actor"

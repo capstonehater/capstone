@@ -3,7 +3,8 @@ import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import UserEffectivePermissions from "./UserEffectivePermissions";
 import UserRolesSection from "./UserRolesSection";
-import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
+
+import readable from "@/components/admin/ReadableWorkspace.module.css";
 
 import SelectableTableRow from "@/components/admin/SelectableTableRow";
 import styles from "./UsersWorkspace.module.css";
@@ -267,11 +268,11 @@ function useUserQueryState() {
 
     const target = next.toString() ? `${pathname}?${next.toString()}` : pathname;
     if (mode === "replace") {
-      router.replace(target);
+      router.replace(target, { scroll: false });
       return;
     }
 
-    router.push(target);
+    router.push(target, { scroll: false });
   }
 
   return { searchParams, updateQuery };
@@ -607,7 +608,7 @@ export default function UsersWorkspace() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className={`${styles.workspace} ${readable.readable}`}>
       {workspaceError ? (
         <ActionAlert tone="error" title="Action failed" message={workspaceError} onDismiss={() => setWorkspaceError(null)} />
       ) : null}
@@ -616,11 +617,12 @@ export default function UsersWorkspace() {
         <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} />
       ) : null}
 
-      <AdminSectionHeader title="Users" description="Manage staff accounts, roles, permissions, and account status.">
-        <PermissionAction permission={"users.manage"}><button type="button" onClick={() => { resetDialogFeedback(); setDialog({ type: "create" }); }} className="mt-4 rounded-lg bg-[#232d46] px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">+ Add User</button></PermissionAction>
-      </AdminSectionHeader>
-      <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(320px,430px)_minmax(0,1fr)]">
-        <section className={styles.directory}>
+      <section className={styles.topPanel}>
+        <header><h1>USERS</h1><p>Manage staff accounts, roles, permissions, and account status.</p></header>
+        <PermissionAction permission="users.manage"><button type="button" onClick={() => { resetDialogFeedback(); setDialog({ type: "create" }); }} style={{ borderRadius: 12 }} className="mt-4 rounded-lg bg-[#232d46] px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">+ Add User</button></PermissionAction>
+      </section>
+      <div className={styles.panels}>
+        <section className={`${styles.directory} ${selectedUserId ? styles.hideListOnMobile : ""}`}>
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#232d46]">
@@ -672,7 +674,7 @@ export default function UsersWorkspace() {
             </div>
           </div>
 
-          <div className="mt-5 max-h-[65vh] min-w-0 overflow-auto rounded-lg border border-slate-300">
+          <div className={styles.userListScroll}>
             {listLoading ? (
               <LoadingBlock label="Loading users..." />
             ) : users.length === 0 ? (
@@ -692,7 +694,7 @@ export default function UsersWorkspace() {
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {users.map((user) => (
-                    <SelectableTableRow key={user.id} selected={selectedUserId === user.id} onSelect={() => updateQuery({ userId: user.id, tab }, "push")}>
+                    <SelectableTableRow key={user.id} selected={selectedUserId === user.id} onSelect={() => updateQuery({ userId: user.id, tab: selectedUserId === user.id ? tab : "overview" }, "push")}>
                       <td className="px-3 py-2">
                         <p title={user.name} className="mb-1! truncate text-xs font-semibold text-slate-900">{user.name}</p>
                         <p title={user.email} className="mb-0! truncate text-[13px] text-slate-500">{user.email}</p>
@@ -730,7 +732,7 @@ export default function UsersWorkspace() {
         onSubmit={(input) => (dialog?.type === "edit" ? handleEdit(input) : handleCreate(input))}
       /></PermissionAction>
 
-        <section className={`${selectedUserId ? "block" : "hidden xl:block"} min-w-0 rounded-xl border border-slate-200 bg-white p-5`}>
+        <section className={`${styles.detailPanel} ${selectedUserId ? "block" : "hidden xl:block"}`}>
           {!selectedUserId ? (
             <EmptyBlock icon={<UsersRound className="h-7 w-7" />} title="Select a user" description="Choose an account to review profile, permissions, activity, and sessions." />
           ) : detailLoading || (detail?.id !== selectedUserId && !detailError) ? (
@@ -946,8 +948,8 @@ function UserProfileHeader({
         <div className="flex min-w-0 items-start gap-4">
           <Avatar name={user.name} />
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-bold text-slate-950">{user.name}</h2>
-            <p className="truncate text-sm text-slate-500">{user.email}</p>
+            <h2 className="break-words text-xl font-bold text-slate-950">{user.name}</h2>
+            <p className="break-words text-sm text-slate-500">{user.email}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${roleTone(user.role)}`}>
                 {roleLabels[user.role]}
@@ -989,7 +991,7 @@ function UserProfileHeader({
         </div>
       </div>
 
-      <dl className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <dl className="mt-5 grid gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))]">
         <ProfileItem label="Employee ID" value={user.id} />
         <ProfileItem label="Phone" value={user.phone ?? "Not provided"} />
         <ProfileItem label="Last Login" value={formatDateTime(user.lastLoginAt)} />
@@ -1052,17 +1054,14 @@ function TabBar({
   ];
 
   return (
-    <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-2">
+    <div className={styles.detailTabs} aria-label="User detail sections">
       {tabs.map(([tab, label]) => (
         <button
           key={tab}
           type="button"
           onClick={() => onChange(tab)}
-          className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-            activeTab === tab
-              ? "bg-slate-950 text-white"
-              : "text-slate-600 hover:bg-slate-100"
-          }`}
+          aria-pressed={activeTab === tab}
+          className={styles.detailTab}
         >
           {label}
         </button>
@@ -1088,7 +1087,7 @@ function OverviewTab({
 
 
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className={styles.overviewCards}>
       <SummaryPanel
         icon={<ShieldCheck className="h-5 w-5" />}
         label="Permission Overview"
@@ -1105,7 +1104,7 @@ function OverviewTab({
         icon={<UsersRound className="h-5 w-5" />}
         label="Active Sessions"
         value={sessionsLoading ? "Loading" : String(activeSessions)}
-        detail="Derived from session metadata"
+        detail={sessionsLoading ? "Checking sessions..." : activeSessions === 0 ? "No active sign-ins" : "Currently signed-in sessions"}
       />
     </div>
   );
@@ -1123,13 +1122,13 @@ function SummaryPanel({
   detail: string;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5">
-      <div className="flex items-center gap-3 text-[#f45a1f]">
-        {icon}
-        <p className="text-xs font-semibold uppercase tracking-wide">{label}</p>
+    <div className={styles.overviewCard}>
+      <div className={styles.overviewCardHeading}>
+        <span className={styles.overviewIcon} aria-hidden="true">{icon}</span>
+        <p>{label}</p>
       </div>
-      <p className="mt-4 text-2xl font-bold text-slate-950">{value}</p>
-      <p className="mt-1 text-sm text-slate-500">{detail}</p>
+      <p className={styles.overviewValue}>{value}</p>
+      <p className={styles.overviewDetail}>{detail}</p>
     </div>
   );
 }
@@ -1272,7 +1271,7 @@ function SessionsTab({
                     ) : null}
                   </div>
                 </div>
-                <dl className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <dl className="mt-4 grid gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))]">
                   <ProfileItem label="Created" value={formatDateTime(session.createdAt)} />
                   <ProfileItem label="Last Seen" value={formatDateTime(session.lastSeenAt)} />
                   <ProfileItem label="Expires" value={formatDateTime(session.expiresAt)} />
@@ -1380,7 +1379,7 @@ function UserFormDialogBody({
   }
 
   const formContent = (
-      <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
+      <form className={styles.userDialogForm} onSubmit={handleSubmit}>
         {clientErrors.length > 0 ? (
           <div className="md:col-span-2 rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {clientErrors.map((error) => (
@@ -1394,20 +1393,22 @@ function UserFormDialogBody({
           </div>
         ) : null}
 
+        <div className={styles.nameFields}>
         <InventoryField htmlFor={`${mode}-user-first-name`} label="First Name">
-          <input id={`${mode}-user-first-name`} value={firstName} onChange={(event) => setFirstName(event.target.value)} className={inventoryInputClasses} />
-        </InventoryField>
-        <InventoryField htmlFor={`${mode}-user-middle-initial`} label="Middle Initial">
-          <input id={`${mode}-user-middle-initial`} value={middleInitial} maxLength={1} onChange={(event) => setMiddleInitial(event.target.value.toUpperCase())} className={inventoryInputClasses} />
+          <input id={`${mode}-user-first-name`} autoComplete="given-name" required value={firstName} onChange={(event) => setFirstName(event.target.value)} className={inventoryInputClasses} />
         </InventoryField>
         <InventoryField htmlFor={`${mode}-user-last-name`} label="Last Name">
-          <input id={`${mode}-user-last-name`} value={lastName} onChange={(event) => setLastName(event.target.value)} className={inventoryInputClasses} />
+          <input id={`${mode}-user-last-name`} autoComplete="family-name" required value={lastName} onChange={(event) => setLastName(event.target.value)} className={inventoryInputClasses} />
         </InventoryField>
+        <InventoryField htmlFor={`${mode}-user-middle-initial`} label="Middle Initial">
+          <input id={`${mode}-user-middle-initial`} aria-label="Middle initial (optional)" placeholder="Optional" value={middleInitial} maxLength={1} onChange={(event) => setMiddleInitial(event.target.value.toUpperCase())} className={inventoryInputClasses} />
+        </InventoryField>
+        </div>
         <InventoryField htmlFor={`${mode}-user-email`} label="Email">
-          <input id={`${mode}-user-email`} type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={inventoryInputClasses} />
+          <input id={`${mode}-user-email`} type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} className={inventoryInputClasses} placeholder="name@example.com" />
         </InventoryField>
         <InventoryField htmlFor={`${mode}-user-phone`} label="Phone">
-          <input id={`${mode}-user-phone`} value={phone} onChange={(event) => setPhone(event.target.value)} className={inventoryInputClasses} placeholder="+639171234567" />
+          <input id={`${mode}-user-phone`} type="tel" autoComplete="tel" required value={phone} onChange={(event) => setPhone(event.target.value)} className={inventoryInputClasses} placeholder="+639171234567" />
         </InventoryField>
         <InventoryField
           htmlFor={`${mode}-user-role`}
@@ -1429,7 +1430,7 @@ function UserFormDialogBody({
           </select>
         </InventoryField>
 
-        <div className="md:col-span-2 flex justify-end gap-3 pt-2">
+        <div className={styles.userDialogActions}>
           <button type="button" onClick={onClose} disabled={submitting} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">
             Cancel
           </button>
@@ -1440,7 +1441,7 @@ function UserFormDialogBody({
       </form>
   );
 
-  return <InventoryModal title={mode === "create" ? "Add User" : `Edit ${user?.name ?? "User"}`} description={mode === "create" ? "Create a pending account and send an account setup email." : "Update profile fields and assignable role data."} onClose={submitting ? () => undefined : onClose}>
+  return <InventoryModal professional bodyClassName={styles.userDialogBody} title={mode === "create" ? "Add User" : `Edit ${user?.name ?? "User"}`} description={mode === "create" ? "Create a pending account and send an account setup email." : "Update profile fields and assignable role data."} onClose={submitting ? () => undefined : onClose}>
     {formContent}
   </InventoryModal>;
 }

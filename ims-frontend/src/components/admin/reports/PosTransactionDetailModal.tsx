@@ -1,4 +1,6 @@
 "use client";
+import ModalCloseButton from "@/components/ModalCloseButton";
+
 
 import type { PosOrder } from "@/lib/pos";
 import { formatDateTime, formatPeso } from "@/lib/pos-utils";
@@ -30,20 +32,14 @@ export default function PosTransactionDetailModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 py-8">
       <div className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
-        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+        <div className="bg-[var(--modal-header-background)] flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Transaction Detail</h2>
             <p className="mt-1 text-sm text-slate-500">
               Review the full receipt-level data returned by the existing order detail endpoint.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Close
-          </button>
+          <ModalCloseButton onClose={onClose} />
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-6">

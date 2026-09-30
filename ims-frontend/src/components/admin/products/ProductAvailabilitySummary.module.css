@@ -1,0 +1,8 @@
+.summary { container-type: inline-size; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.card { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; min-width: 0; padding: 20px; border: 1px solid #dce2eb; border-radius: 12px; background: #f8fafc; }
+.label { margin: 0; color: #475569; font-size: 15px; font-weight: 600; line-height: 1.5; }
+.badge { margin-top: auto; max-width: 100%; line-height: 1.5; }
+.value { margin: auto 0 0; color: #232d46; font-size: 16px; font-weight: 600; line-height: 1.5; overflow-wrap: break-word; }
+@container (max-width: 440px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+@container (min-width: 1040px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

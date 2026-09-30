@@ -1,6 +1,5 @@
 "use client";
 
-import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
 
 import { usePathname } from "next/navigation";
 import { getAdminPageInfo } from "@/components/layout/shell-navigation";
@@ -11,6 +10,10 @@ export default function AdminHeader() {
   const page = getAdminPageInfo(pathname);
 
   return (
-    <div className={styles.pageIntro}><AdminSectionHeader title={page?.label ?? "Cafe Salvacion"} description={page?.subtitle ?? "Inventory management"} /></div>
+    <header className={styles.pageIntro}>
+      <h1 className={styles.title}>{page?.label.toUpperCase() ?? "CAFE SALVACION"}</h1>
+      <p className={styles.subtitle}>{page?.subtitle ?? "Inventory management"}</p>
+      {pathname === "/admin/dashboard" || pathname === "/admin/reports/inventory" ? <div className={styles.introDivider} /> : null}
+    </header>
   );
 }

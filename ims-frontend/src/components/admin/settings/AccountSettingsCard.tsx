@@ -29,8 +29,9 @@ function initialsFor(account: SettingsAccount) {
   return `${first}${last}`.toUpperCase() || "CS";
 }
 
-function statusTone(status: SettingsAccount["status"]) {
+function statusTone(status: SettingsAccount["status"], role: SettingsAccount["role"]) {
   if (status === "ACTIVE") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (status === "PENDING" && role === "STAFF") return "border-[#cbd5e1] bg-[#edf2f8] text-[#34445f]";
   if (status === "PENDING") return "border-amber-200 bg-amber-50 text-amber-700";
   return "border-rose-200 bg-rose-50 text-rose-700";
 }
@@ -79,6 +80,7 @@ export default function AccountSettingsCard({
         <button
           type="button"
           onClick={onEdit}
+          style={{ borderRadius: 12 }}
           className="rounded-full bg-[#232d46] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#232d46] focus:outline-none focus:ring-2 focus:ring-[#232d46]/30"
         >
           Edit Account
@@ -101,7 +103,7 @@ export default function AccountSettingsCard({
               {roleLabels[account.role]}
             </span>
             <span
-              className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusTone(account.status)}`}
+              className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusTone(account.status, account.role)}`}
             >
               {statusLabels[account.status]}
             </span>

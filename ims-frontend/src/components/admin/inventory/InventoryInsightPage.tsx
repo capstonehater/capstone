@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { RefreshCcw } from "lucide-react";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
+import styles from "./InventoryReportModal.module.css";
 import AdminSelect from "@/components/admin/AdminSelect";
 import { fetchInventorySummary } from "@/lib/inventory";
 import { fetchStockRunSpend, fetchWasteSummary } from "@/lib/reports";
@@ -57,14 +58,14 @@ export default function InventoryInsightPage({ kind, embedded = false }: { kind:
   const panel = (
     <>
       <section className="space-y-5 text-[#232d46]">
-        <header><h1 className="text-2xl font-bold">{config.title}</h1><p className="mt-1 text-sm text-slate-600">{config.description}</p></header>
+        {!embedded && <header>{!embedded && <h1 className="text-2xl font-bold">{config.title}</h1>}<p className="mt-1 text-sm text-slate-600">{config.description}</p></header>}
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 p-5">
+          <div className={styles.toolbar}>
             <p role="status" className="text-sm font-medium">{loading ? "Loading records..." : error ? "Records unavailable" : `${rows.length} record${rows.length === 1 ? "" : "s"}`}</p>
-            <div className="flex flex-wrap items-end gap-3">
+            <div className={styles.controls}>
               {kind === "value" ? <AdminSelect label="Sort by" value={sortBy} onChange={setSortBy} options={[{ value: "amount", label: "Inventory Value" }, { value: "quantity", label: "Usable Stock" }]} /> : null}
               <AdminSelect label={kind === "value" ? "Order" : `Sort by ${config.amount.toLowerCase()}`} value={direction} onChange={setDirection} options={[{ value: "asc", label: "Ascending (lowest first)" }, { value: "desc", label: "Descending (highest first)" }]} />
-              <button type="button" disabled={loading} onClick={() => { setError(null); setLoading(true); setRevision((value) => value + 1); }} className="inline-flex items-center gap-2 rounded-lg! bg-[#232d46] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"><RefreshCcw size={16} className={loading ? "animate-spin" : ""} />Refresh</button>
+              <button type="button" disabled={loading} onClick={() => { setError(null); setLoading(true); setRevision((value) => value + 1); }} className={styles.refresh}><RefreshCcw size={16} className={loading ? "animate-spin" : ""} />Refresh</button>
             </div>
           </div>
           {error ? <p role="alert" className="p-5 text-sm text-red-700">{error} Use Refresh to try again.</p> : (

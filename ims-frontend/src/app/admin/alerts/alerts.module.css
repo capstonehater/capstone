@@ -1,22 +1,43 @@
-.workspace { display:grid; gap:24px; color:#334155; }
+.workspace { display:grid; gap:24px; color:#334155; font-size:16px; line-height:1.65; }
 .header { padding:24px; background:#fff; border:1px solid #dce2eb; border-radius:12px; }
 .headerContent { display:grid; gap:24px; }
 .header h1 { margin:0 0 10px; font-size:30px; font-weight:700; color:#232d46; }
-.header p { margin-bottom:0; color:#64748b; font-size:14px; line-height:1.6; }
-.header input,.header select { display:block; width:100%; min-height:44px; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; color:#334155; font-size:14px; }
-.header input:focus,.header select:focus { outline:2px solid #64748b; outline-offset:2px; border-color:#64748b; }
-.alert { padding:22px; background:#fff; border:1px solid #dce2eb; border-left:4px solid #94a3b8; border-radius:12px; }
+.header p { margin-bottom:0; color:#475569; font-size:16px; line-height:1.6; }
+.filters { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr); align-items:end; gap:16px; }
+.searchField { display:block; min-width:0; }
+.filterLabel { display:block; margin-bottom:6px; color:#475569; font-size:15px; font-weight:600; }
+.searchControl { position:relative; display:block; }
+.searchControl > svg { position:absolute; top:50%; left:12px; transform:translateY(-50%); color:#64748b; pointer-events:none; }
+.header .searchInput { display:block; width:100%; min-height:44px; padding:9px 12px 9px 38px; border:1px solid #cbd5e1; border-radius:12px; background:#fff; color:#232d46; font:inherit; font-size:16px; line-height:normal; box-shadow:0 1px 2px #0f172a0a; }
+.searchInput::placeholder { color:#526078; }
+.header .searchInput:hover { border-color:#475569; }
+.header .searchInput:focus-visible { outline:2px solid #475569; outline-offset:2px; border-color:#475569; }
+@media (max-width:767px) {
+  .filters { grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; }
+  .searchField { grid-column:1 / -1; }
+}
+@media (max-width:420px) {
+  .filters { grid-template-columns:minmax(0, 1fr); }
+}
+.alert { padding:24px; background:#fff; border:1px solid #dce2eb; border-left:4px solid #94a3b8; border-radius:12px; }
 .critical { background:#fff1f2; border-color:#efc5ca; border-left-color:#a34c54; }
 .warning { background:#fff8df; border-color:#ead393; border-left-color:#b08b45; }
-.info { border-left-color:#64748b; }
-.alert h2 { margin:0; color:#232d46; font-size:18px; font-weight:650; }
+.info { border-left-color:#475569; }
+.alert h2 { margin:0; color:#232d46; font-size:20px; font-weight:650; }
 .alert p { margin:0; }
-.alert h2 ~ span { padding:4px 9px; border:1px solid #e2e8f0; border-radius:999px; background:#f8fafc; color:#475569; font-size:11px; letter-spacing:.025em; }
+.alert h2 ~ span { padding:4px 9px; border:1px solid #e2e8f0; border-radius:999px; background:#f8fafc; color:#475569; font-size:14px; letter-spacing:.025em; }
 .critical h2 ~ span:last-child { background:#faf0f1; border-color:#ead1d4; color:#8e3f48; }
 .warning h2 ~ span:last-child { background:#ffedb5; border-color:#dfbd70; color:#785517; }
-.primary,.secondary { min-height:40px; padding:9px 15px; border:1px solid #232d46; border-radius:8px; background:#232d46; color:white; font-size:14px; font-weight:600; transition:background-color 150ms; }
+.primary,.secondary { min-height:44px; padding:9px 15px; border:1px solid #232d46; border-radius:8px; background:#232d46; color:white; font-size:16px; font-weight:600; transition:background-color 150ms; }
 .primary:hover:not(:disabled) { background:#34425f; }
 .secondary { background:white; border-color:#cbd5e1; color:#475569; }
 .secondary:hover:not(:disabled) { background:#f1f5f9; }
 .workspace button:disabled { opacity:.5; cursor:not-allowed; }
 .workspace button:focus-visible { outline:2px solid #64748b; outline-offset:3px; }
+
+.alert p { font-size:16px; line-height:1.65; color:#334155; overflow-wrap:anywhere; }
+.alert h2 { line-height:1.4; overflow-wrap:anywhere; }
+.alert h2 ~ span { font-weight:600; line-height:1.5; }
+.alertContent { min-width:0; flex:1; }
+.alertActions { flex-shrink:0; align-items:flex-start; }
+.alertDetails { display:grid; gap:6px; margin-top:12px; }

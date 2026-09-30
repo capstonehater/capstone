@@ -1,0 +1,14 @@
+.panels { grid-template-columns: minmax(0, 1fr); font-size: 16px; line-height: 1.6; }
+.panels > div { min-width: 0; }
+@media (min-width: 1280px) {
+  .panels { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); }
+}
+.panels :global(.text-xs) { font-size: 15px; line-height: 1.5; }
+.panels :global(.text-sm) { font-size: 16px; line-height: 1.6; }
+.panels :global(.text-slate-400),
+.panels :global(.text-slate-500) { color: #475569; }
+.panels input::placeholder { color: #526078; opacity: 1; }
+.panels input:not([type="checkbox"]), .panels select { min-height: 44px; }
+.panels button { min-height: 40px; }
+.panels th { font-size: 15px; font-weight: 600; }
+.panels td { line-height: 1.6; }

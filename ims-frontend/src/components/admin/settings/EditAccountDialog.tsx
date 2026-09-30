@@ -2,6 +2,7 @@
 
 import type { FormEvent } from "react";
 import Image from "next/image";
+import styles from "./EditAccountDialog.module.css";
 import { useEffect, useState } from "react";
 import InventoryModal from "@/components/admin/inventory/InventoryModal";
 import ProfilePictureCropper from "./ProfilePictureCropper";
@@ -16,7 +17,7 @@ import {
   type UpdateSettingsAccountResponse,
 } from "@/lib/settings";
 
-const inventoryInputClasses = "w-full rounded-2xl border border-[#232d46]/15 bg-white px-4 py-3 text-sm text-[#232d46] outline-none transition placeholder:text-[#232d46]/50 focus:border-[#232d46] focus:ring-2 focus:ring-[#232d46]/15";
+const inventoryInputClasses = styles.input;
 
 type EditAccountDialogProps = {
   account: SettingsAccount;
@@ -120,20 +121,22 @@ export default function EditAccountDialog({
 
   return (
     <InventoryModal
+      professional
+      bodyClassName={styles.body}
       title="Edit Account"
       description="Update your profile details. Role, status, and Employee ID are read-only."
       onClose={submitting ? () => undefined : onClose}
     >
-      <form className="grid gap-6" onSubmit={handleSubmit}>
+      <form className={styles.form} onSubmit={handleSubmit}>
         {error ? (
-          <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <div role="alert" className={styles.error}>
             {error}
           </div>
         ) : null}
 
-        <div className="flex flex-col items-start gap-4 rounded-2xl border border-[#232d46]/15 bg-white p-4 sm:flex-row sm:items-center">
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#f5f5f5] text-2xl font-bold text-[#232d46]">
-            {preview ? <Image src={preview} alt="Profile picture preview" width={96} height={96} unoptimized className="h-full w-full object-cover" /> : account.firstName.charAt(0)}
+        <div className={styles.pictureSection}>
+          <div className={styles.avatar}>
+            {preview ? <Image src={preview} alt="Profile picture preview" width={96} height={96} unoptimized onError={() => setPreview(undefined)} className="h-full w-full object-cover" /> : `${account.firstName.charAt(0)}${account.lastName.charAt(0)}`}
           </div>
           <div className="w-full min-w-0 flex-1">
             <label htmlFor="settings-profile-picture" className="block text-sm font-semibold text-[#232d46]">Profile picture</label>
@@ -155,7 +158,7 @@ export default function EditAccountDialog({
           </div>
         </div>
 
-        <div className="grid items-start gap-4 md:grid-cols-3">
+        <div className={styles.nameFields}>
         <InventoryField htmlFor="settings-first-name" label="First Name">
           <input
             id="settings-first-name"
@@ -195,7 +198,7 @@ export default function EditAccountDialog({
         </InventoryField>
 
         </div>
-        <div className="grid items-start gap-4 md:grid-cols-2">
+        <div className={styles.contactFields}>
         <InventoryField htmlFor="settings-email" label="Email">
           <input
             id="settings-email"
@@ -212,6 +215,7 @@ export default function EditAccountDialog({
           <InventoryField htmlFor="settings-phone" label="Phone">
             <input
               id="settings-phone"
+              type="tel"
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
               className={inventoryInputClasses}
@@ -222,7 +226,7 @@ export default function EditAccountDialog({
         </div>
 
         </div>
-        <div className="flex justify-end gap-3 border-t border-[#232d46]/15 pt-4">
+        <div className={styles.actions}>
           <button
             type="button"
             onClick={onClose}

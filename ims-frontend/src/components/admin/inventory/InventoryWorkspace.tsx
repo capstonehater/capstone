@@ -71,7 +71,8 @@ const workspaceSections = [
 type SectionView = typeof workspaceSections[number][0];
 type ReportView = "low-stock" | "near-expiry" | "waste" | "value" | "supplier";
 export type InventoryView = SectionView | ReportView;
-const reportTitles: Record<ReportView, string> = { "low-stock": "Low Stock", "near-expiry": "Near Expiry", waste: "Waste Insights", value: "High-Value Inventory", supplier: "Supplier Spend" };
+const reportDescriptions: Record<ReportView, string> = {"near-expiry":"Batches with remaining stock expiring within 14 days, including expired stock. Each batch is listed separately.","waste":"All recorded waste grouped by reason, with total quantities and costs.","supplier":"All posted stock-run spending grouped by supplier.","low-stock":"Active materials with usable stock above zero and at or below their reorder point.","value":"All active materials with usable stock and inventory value."};
+const reportTitles: Record<ReportView, string> = { "low-stock": "Low Stock Materials", "near-expiry": "Near Expiry Materials", waste: "Waste Insights", value: "High-Value Inventory", supplier: "Supplier Spend" };
 
 type PanelMode =
   | null
@@ -182,6 +183,37 @@ function getTransactionCost(transaction: InventoryTransaction) {
 export default function InventoryWorkspace({ initialView = "overview", initialDraftId, initialAction }: { initialView?: InventoryView; initialDraftId?: string; initialAction?: "create-material" | "stock-run-create" | "waste" }) {
   const canViewReports = useAuthStore(state => state.can("reports.view"));
   const canViewStockRuns = useAuthStore(state => state.can("stockRuns.view"));
+  const sectionNavRef = useRef<HTMLElement>(null);
+  const [activeSection, setActiveSection] = useState<SectionView>("overview");
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const threshold = (sectionNavRef.current?.getBoundingClientRect().bottom ?? 72) + 24;
+      let current: SectionView = "overview";
+      for (const [id] of workspaceSections) {
+        const section = document.getElementById(id);
+        if (section && section.getBoundingClientRect().top <= threshold) current = id;
+      }
+      if (document.getElementById("stock-runs") && window.scrollY > 0 && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) current = "stock-runs";
+      setActiveSection(current);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    const observer = new ResizeObserver(schedule);
+    for (const [id] of workspaceSections) {
+      const section = document.getElementById(id);
+      if (section) observer.observe(section);
+    }
+    schedule();
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, []);
   const [reportRevision, setReportRevision] = useState(0);
   const [report, setReport] = useState<ReportView | null>(initialView in reportTitles ? initialView as ReportView : null);
   useEffect(() => {
@@ -456,8 +488,8 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
         <AdminSectionHeader title="Inventory" description="Check stock, receive deliveries, and take action from one workspace.">
           <button type="button" disabled={initialLoading || submitting} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50" onClick={() => void refreshEverything(true).then(loadBusinessReports).catch(() => setError("Unable to refresh inventory. Please try again."))}>Refresh inventory</button>
         </AdminSectionHeader>
-        <nav aria-label="Inventory sections" className={styles.sectionNav}>
-          {workspaceSections.filter(([id]) => id !== "stock-runs" || canViewStockRuns).map(([id, label]) => <a key={id} href={`#${id}`} onClick={(event) => { event.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); }}>{label}</a>)}
+        <nav ref={sectionNavRef} aria-label="Inventory sections" className={styles.sectionNav}>
+          {workspaceSections.filter(([id]) => id !== "stock-runs" || canViewStockRuns).map(([id, label]) => <a key={id} href={`#${id}`} aria-current={activeSection === id ? "location" : undefined} onClick={(event) => { event.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); }}>{label}</a>)}
         </nav>
         <div className={styles.materialActions} aria-label="Material actions">
           <PermissionAction permission={"inventory.create"}><button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }}><Plus size={16} />Add Raw Material</button></PermissionAction>
@@ -496,7 +528,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
 
         <section id="materials" className={styles.pageSection} aria-label="Materials">
           <hr className={styles.sectionDivider} />
-          <div className={`grid items-start gap-4 xl:grid-cols-[minmax(19rem,0.85fr)_minmax(0,1.65fr)] ${styles.unifiedMaterials}`}>
+          <div className={`grid items-start gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] ${styles.unifiedMaterials}`}>
           <InventorySummaryPanel
             summarySearchInput={summarySearchInput}
             statusFilter={statusFilter}
@@ -563,9 +595,9 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
         />
         </section></PermissionAction>
 
-        {report && <PermissionAction permission={"reports.view"}><InventoryReportModal title={reportTitles[report]} onClose={() => setReport(null)}>
-        {report === "low-stock" && <LowStockPanel key={reportRevision} />}
-        {report === "near-expiry" && <NearExpiryPanel key={reportRevision} />}
+        {report && <PermissionAction permission={"reports.view"}><InventoryReportModal title={reportTitles[report]} description={reportDescriptions[report]} onClose={() => setReport(null)}>
+        {report === "low-stock" && <LowStockPanel key={reportRevision} embedded />}
+        {report === "near-expiry" && <NearExpiryPanel key={reportRevision} embedded />}
         {(report === "waste" || report === "value" || report === "supplier") && <InsightPanel key={`${report}-${reportRevision}`} kind={report} embedded />}
 
         </InventoryReportModal></PermissionAction>}

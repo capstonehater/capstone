@@ -107,7 +107,7 @@ export default function ProductDetailPanel({
   }
 
   return (
-    <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-300 bg-white p-5 shadow-none">
+    <section className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-slate-300 bg-white p-[24px] shadow-none">
       <ProductDetailHeader
         product={product}
         mobileBackVisible={mobileBackVisible}

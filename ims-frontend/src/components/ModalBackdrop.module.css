@@ -1,0 +1,17 @@
+.backdrop {
+  background: rgb(35 45 70 / 35%);
+  -webkit-backdrop-filter: blur(1.55px);
+  backdrop-filter: blur(1.55px);
+  overscroll-behavior: contain;
+}
+
+/* Keep the page locked until the last modal is removed, including stacked dialogs. */
+:global(html):has(.backdrop),
+:global(body):has(.backdrop) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.backdrop * {
+  overscroll-behavior: contain;
+}

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { RefreshCcw } from "lucide-react";
-import styles from "@/components/admin/inventory/InventorySortToolbar.module.css";
+import AdminSelect from "@/components/admin/AdminSelect";
+import styles from "@/components/admin/inventory/InventoryReportModal.module.css";
 import { fetchInventorySummary, fetchRawMaterialBatches, type StockBatch } from "@/lib/inventory";
 
 type ExpiryRow = StockBatch & { materialName: string; sku: string; unit: string };
@@ -15,7 +16,7 @@ function businessDate() {
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
-export default function NearExpiryPanel() {
+export default function NearExpiryPanel({ embedded = false }: { embedded?: boolean }) {
   const [batches, setBatches] = useState<ExpiryRow[]>([]);
   const [direction, setDirection] = useState("asc");
   const [loading, setLoading] = useState(true);
@@ -61,21 +62,15 @@ export default function NearExpiryPanel() {
   return (
     <>
       <section className="space-y-5 text-[#232d46]">
-        <header>
-          <h1 className="text-2xl font-bold">Near Expiry Materials</h1>
+        {!embedded && <header>
+          {!embedded && <h1 className="text-2xl font-bold">Near Expiry Materials</h1>}
           <p className="mt-1 text-sm text-slate-600">Batches with remaining stock expiring within 14 days, including expired stock. Each batch is listed separately.</p>
-        </header>
+        </header>}
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           <div className={styles.toolbar}>
             <p role="status" className="text-sm font-medium">{loading ? "Loading batches..." : error ? "Batches unavailable" : `${rows.length} matching batch${rows.length === 1 ? "" : "es"}`}</p>
             <div className={styles.controls}>
-              <label className={styles.field}>
-                Sort by expiry date
-                <select value={direction} onChange={(event) => setDirection(event.target.value)} className={styles.select}>
-                  <option value="asc">Ascending (earliest first)</option>
-                  <option value="desc">Descending (latest first)</option>
-                </select>
-              </label>
+              <AdminSelect label="Sort by expiry date" value={direction} onChange={setDirection} options={[{ value: "asc", label: "Ascending (earliest first)" }, { value: "desc", label: "Descending (latest first)" }]} />
               <button type="button" disabled={loading} onClick={() => { setError(null); setLoading(true); setRevision((value) => value + 1); }} className={styles.refresh}>
                 <RefreshCcw size={16} className={loading ? "animate-spin" : ""} />Refresh
               </button>

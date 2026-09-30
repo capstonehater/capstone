@@ -2,6 +2,7 @@
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import type { StockRun } from "@/lib/inventory";
+import styles from "./StockRunsPanel.module.css";
 
 type StockRunsPanelProps = {
   loading?: boolean;
@@ -38,7 +39,7 @@ export default function StockRunsPanel({
 
       <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
         <div className="max-h-[26rem] overflow-auto">
-          <table className="min-w-full text-sm">
+          <table className={styles.table}>
             <thead className="sticky top-0 z-10 bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-600">
               <tr>
                 <th className="px-4 py-3">Run</th>

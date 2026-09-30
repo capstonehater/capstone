@@ -1,4 +1,6 @@
 "use client";
+import ModalCloseButton from "@/components/ModalCloseButton";
+
 
 import { useEffect, useRef, useState } from "react";
 import { X, Loader2, ChevronDown, ExternalLink, Store, Package, MapPin } from "lucide-react";
@@ -210,7 +212,7 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
       <footer className={styles.footer}>
         <button type="button" onClick={onJourney} className={styles.journey}><MapPin size={16} aria-hidden="true" /><span>Journey? Manage Suppliers → Google Maps</span></button>
         <div className={styles.actions}>
-          <button type="button" onClick={onClose} className={styles.cancel}>Close</button>
+          <ModalCloseButton onClose={onClose} />
           <button type="button" disabled={loading || pending} onClick={() => void start()} className={styles.search}>{pending && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}{pending ? "Searching…" : search ? "Search again" : "Search"}</button>
         </div>
       </footer>

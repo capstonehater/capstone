@@ -1,9 +1,9 @@
 "use client";
 
 import { RefreshCcw } from "lucide-react";
+import styles from "./InventorySummaryPanel.module.css";
 import {
   InventoryField,
-  inventoryInputClasses,
 } from "@/components/admin/inventory/InventoryField";
 import type { InventorySummaryItem, Supplier } from "@/lib/inventory";
 
@@ -72,22 +72,24 @@ export default function InventorySummaryPanel({
         </button>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+      <div className={styles.filters}>
+        <div className="min-w-0 sm:col-span-2">
         <InventoryField htmlFor="summary-search" label="Search">
           <input
             id="summary-search"
             value={summarySearchInput}
             onChange={(event) => onSearchInputChange(event.target.value)}
             placeholder="Search by material or SKU"
-            className={inventoryInputClasses}
+            className={styles.control}
           />
         </InventoryField>
+        </div>
         <InventoryField htmlFor="summary-status" label="Status">
           <select
             id="summary-status"
             value={statusFilter}
             onChange={(event) => onStatusFilterChange(event.target.value)}
-            className={inventoryInputClasses}
+            className={styles.control}
           >
             <option value="">All statuses</option>
             <option value="IN_STOCK">In stock</option>
@@ -101,7 +103,7 @@ export default function InventorySummaryPanel({
             id="summary-supplier"
             value={supplierId}
             onChange={(event) => onSupplierChange(event.target.value)}
-            className={inventoryInputClasses}
+            className={styles.control}
           >
             <option value="">All suppliers</option>
             {suppliers.map((supplier) => (
@@ -114,8 +116,14 @@ export default function InventorySummaryPanel({
       </div>
 
       <div className="mt-4 flex min-h-0 flex-1 overflow-hidden rounded-lg border border-slate-200">
-        <div className="max-h-[34rem] min-h-0 flex-1 overflow-auto 2xl:max-h-none">
-          <table className="w-full text-sm">
+        <div className="max-h-[34rem] min-h-0 min-w-0 flex-1 overflow-auto 2xl:max-h-none">
+          <table className={`${styles.materialTable} w-full table-fixed text-sm [&_td]:[overflow-wrap:anywhere]`}>
+            <colgroup>
+              <col className="w-[32%]" />
+              <col className="w-[24%]" />
+              <col className="w-[16%]" />
+              <col className="w-[28%]" />
+            </colgroup>
             <thead className="sticky top-0 z-10 bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-600">
               <tr>
                 <th className="px-4 py-3">Material</th>
@@ -154,7 +162,7 @@ export default function InventorySummaryPanel({
                     </td>
                     <td className="px-3 py-2.5">
                       <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClasses(item.status)}`}
+                        className={`inline-flex max-w-full rounded-xl px-2 py-1 text-xs font-semibold ${statusClasses(item.status)}`}
                       >
                         {item.status.replaceAll("_", " ")}
                       </span>

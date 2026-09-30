@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --modal-header-background: #e2e8f0;
   --background: #f3ede3;
   --foreground: #1f1f1f;
   --font-sans: "Segoe UI", Arial, Helvetica, sans-serif;
@@ -29,6 +30,24 @@ textarea {
 input::placeholder,
 textarea::placeholder {
   font-family: inherit;
+}
+
+/* Bootstrap's unlayered button reset overrides Tailwind radius utilities.
+   Give actions a shared radius here and retain pill/circular controls. */
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+a.btn,
+a[role="button"] {
+  border-radius: 10px;
+}
+
+button.rounded-full,
+input.rounded-full,
+a.rounded-full[role="button"],
+a.btn.rounded-full {
+  border-radius: 9999px;
 }
 
 * {

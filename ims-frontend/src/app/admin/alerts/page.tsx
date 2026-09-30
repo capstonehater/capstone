@@ -1,9 +1,10 @@
 "use client";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
-import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
 import { useEffect, useState } from "react";
 import styles from "./alerts.module.css";
+import { Search } from "lucide-react";
+import AdminSelect from "@/components/admin/AdminSelect";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
 import { acknowledgeAlert, dismissAlert, fetchAlerts, type AlertRecord, type AlertState, type AlertType } from "@/lib/alerts";
 
@@ -104,52 +105,47 @@ export default function AlertsPage() {
   return (
     <AdminDashboardLayout showHeader={false}>
       <div className={styles.workspace}>
-        <AdminSectionHeader title="Operational Alerts" description="Review low-stock and expiry events generated from stock activity and scheduled reevaluation.">
-          <div className="w-full space-y-4">
-            <p className="text-sm text-neutral-500">Unread alerts stay visible until addressed. Read or dismissed alerts remain visible for 30 days after that action and sort below unread items.</p>
-            <div className="grid gap-3 md:grid-cols-4">
-              <label className="text-sm font-medium text-neutral-700">
-                <span className="mb-1 block">State</span>
-                <select
-                  value={stateFilter}
-                  onChange={(event) => setStateFilter(event.target.value as AlertState | "")}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
-                >
-                  {STATE_OPTIONS.map((option) => (
-                    <option key={option.label} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+        <section className={styles.header}>
+          <div className={styles.headerContent}>
+            <div>
+              <h1 className="text-2xl font-bold text-neutral-900">Operational Alerts</h1>
+              <p className="mt-2 text-neutral-600">
+                Review low-stock and expiry events generated from stock activity and scheduled reevaluation.
+              </p>
+              <p className="mt-1 text-sm text-neutral-500">
+                Unread alerts stay visible until addressed. Read or dismissed alerts remain visible for 30 days after that action and sort below unread items.
+              </p>
+            </div>
 
-              <label className="text-sm font-medium text-neutral-700">
-                <span className="mb-1 block">Type</span>
-                <select
-                  value={typeFilter}
-                  onChange={(event) => setTypeFilter(event.target.value as AlertType | "")}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
-                >
-                  {TYPE_OPTIONS.map((option) => (
-                    <option key={option.label} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="text-sm font-medium text-neutral-700 md:col-span-2">
-                <span className="mb-1 block">Search</span>
-                <input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Material, supplier, alert title..."
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
-                />
+            <div className={styles.filters}>
+              <AdminSelect
+                label="State"
+                value={stateFilter}
+                onChange={(value) => setStateFilter(value as AlertState | "")}
+                options={STATE_OPTIONS}
+              />
+              <AdminSelect
+                label="Type"
+                value={typeFilter}
+                onChange={(value) => setTypeFilter(value as AlertType | "")}
+                options={TYPE_OPTIONS}
+              />
+              <label className={styles.searchField}>
+                <span className={styles.filterLabel}>Search</span>
+                <span className={styles.searchControl}>
+                  <Search size={17} aria-hidden="true" />
+                  <input
+                    type="search"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Material, supplier, alert title..."
+                    className={styles.searchInput}
+                  />
+                </span>
               </label>
             </div>
           </div>
-        </AdminSectionHeader>
+        </section>
 
         {error ? (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -173,7 +169,7 @@ export default function AlertsPage() {
                 className={`${styles.alert} ${tone(alert)}`}
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="space-y-2">
+                  <div className={`${styles.alertContent} space-y-3`}>
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-lg font-semibold text-neutral-900">{alert.title}</h2>
                       <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
@@ -197,7 +193,7 @@ export default function AlertsPage() {
                         Dismissed: <time dateTime={alert.dismissedAt}>{formatDateTime(alert.dismissedAt)}</time>
                       </p>
                     ) : null}
-                    <div className="grid gap-1 text-xs text-neutral-500">
+                    <div className={styles.alertDetails}>
                       <p>
                         Material: {alert.rawMaterial?.name ?? "N/A"}
                         {alert.rawMaterial?.sku ? ` • ${alert.rawMaterial.sku}` : ""}
@@ -212,7 +208,7 @@ export default function AlertsPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap justify-end gap-2">
+                  <div className={`${styles.alertActions} flex flex-wrap gap-2`}>
                     {alert.state === "ACTIVE" || alert.state === "DISMISSED" ? (
                       <PermissionAction permission={"alerts.acknowledge"}><button
                         type="button"
