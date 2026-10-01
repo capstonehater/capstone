@@ -1,4 +1,5 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useState } from "react";
 import styles from "./VariantsRecipe.module.css";
@@ -67,13 +68,13 @@ export default function ProductVariantsRecipeTab({
             Select a variant to view recipe coverage, stock state, and sellability separately.
           </p>
         </div>
-        <button
+        <PermissionAction permission={"products.edit"}><button
           type="button"
           onClick={onAddVariant}
           className={styles.primary}
         >
           Add Variant
-        </button>
+        </button></PermissionAction>
       </div>
 
       <div className="space-y-3">
@@ -127,30 +128,30 @@ export default function ProductVariantsRecipeTab({
                 </div>
 
                 <div className={styles.actions}>
-                  <button
+                  <PermissionAction permission={"products.edit"}><button
                     type="button"
                     onClick={() => onEditVariant(variant)}
                     disabled={submitting}
                     className={styles.secondary}
                   >
                     Edit
-                  </button>
-                  <button
+                  </button></PermissionAction>
+                  <PermissionAction permission={"products.edit"}><button
                     type="button"
                     onClick={() => onToggleVariant(variant)}
                     disabled={submitting}
                     className={styles.secondary}
                   >
                     {variant.manualAvailability === "ENABLED" ? "Disable" : "Enable"}
-                  </button>
-                  <button
+                  </button></PermissionAction>
+                  <PermissionAction permission={"products.edit"}><button
                     type="button"
                     onClick={() => onDeleteVariant(variant)}
                     disabled={submitting}
                     className={styles.danger}
                   >
                     Delete
-                  </button>
+                  </button></PermissionAction>
                 </div>
               </div>
             </div>
@@ -170,14 +171,14 @@ export default function ProductVariantsRecipeTab({
                 needed.
               </p>
             </div>
-            <button
+            <PermissionAction permissions={["products.edit", "inventory.view"]}><button
               type="button"
               onClick={() => setRecipeEditorOpen(true)}
               disabled={submitting}
               className={styles.primary}
             >
               Edit Recipe
-            </button>
+            </button></PermissionAction>
           </div>
 
           {recipeLoading ? (
@@ -221,7 +222,7 @@ export default function ProductVariantsRecipeTab({
         </div>
       )}
 
-      <RecipeEditor
+      <PermissionAction permissions={["products.edit", "inventory.view"]}><RecipeEditor
         key={`${selectedVariant?.id ?? "none"}:${recipeEditorOpen ? "open" : "closed"}`}
         open={recipeEditorOpen}
         recipe={recipe}
@@ -233,7 +234,7 @@ export default function ProductVariantsRecipeTab({
           await onSaveRecipe(items);
           setRecipeEditorOpen(false);
         }}
-      />
+      /></PermissionAction>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import type { FormEvent } from "react";
 import { Loader2, Trash2 } from "lucide-react";
@@ -110,7 +111,7 @@ export default function StockRunModals({
           description="Step 1 of 2. Create the draft first, then add incoming line items in the next modal."
           onClose={onClose}
         >
-          <form className="space-y-4" onSubmit={onCreateStockRun}>
+          <PermissionAction permission={"stockRuns.create"}><form className="space-y-4" onSubmit={onCreateStockRun}>
             <InventoryField htmlFor="stock-run-name" label="Draft name">
               <input
                 id="stock-run-name"
@@ -141,7 +142,7 @@ export default function StockRunModals({
                 Create Draft
               </button>
             </div>
-          </form>
+          </form></PermissionAction>
         </InventoryModal>
       ) : null}
 
@@ -174,18 +175,18 @@ export default function StockRunModals({
                         {activeStockRun.notes || "No notes yet."}
                       </p>
                     </div>
-                    <button
+                    <PermissionAction permission={"stockRuns.delete"}><button
                       type="button"
                       onClick={onOpenDeleteDraft}
                       className="inline-flex items-center gap-2 rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-50"
                     >
                       <Trash2 size={15} />
                       Delete Draft
-                    </button>
+                    </button></PermissionAction>
                   </div>
                 </div>
 
-                <form className="grid gap-4 rounded-[26px] border border-slate-200 bg-white p-5" onSubmit={onAddStockRunItem}>
+                <PermissionAction permission={"stockRuns.edit"}><form className="grid gap-4 rounded-[26px] border border-slate-200 bg-white p-5" onSubmit={onAddStockRunItem}>
                   <InventoryField htmlFor="stock-run-item-material" label="Raw material">
                     <select
                       id="stock-run-item-material"
@@ -316,7 +317,7 @@ export default function StockRunModals({
                       Add Item
                     </button>
                   </ModalActions>
-                </form>
+                </form></PermissionAction>
               </div>
 
               <div className="flex min-h-[480px] min-w-0 flex-col overflow-hidden rounded-[26px] border border-slate-200 bg-white xl:min-h-0">
@@ -327,14 +328,14 @@ export default function StockRunModals({
                       Remove lines here or post the run when everything is ready.
                     </p>
                   </div>
-                  <button
+                  <PermissionAction permission={"stockRuns.post"}><button
                     type="button"
                     onClick={onPostStockRun}
                     disabled={submitting || activeStockRun.items.length === 0}
                     className="rounded-full bg-[#f45a1f] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
                   >
                     Post Run
-                  </button>
+                  </button></PermissionAction>
                 </div>
                 <div className="min-h-0 flex-1 overflow-auto">
                   <table className="min-w-full text-sm">
@@ -376,13 +377,13 @@ export default function StockRunModals({
                             <td className="px-4 py-3">{formatMoney(item.costPerUnit)}</td>
                             <td className="px-4 py-3">{formatDate(item.expirationDate)}</td>
                             <td className="px-4 py-3 text-right">
-                              <button
+                              <PermissionAction permission={"stockRuns.edit"}><button
                                 type="button"
                                 onClick={() => onDeleteStockRunItem(item.id)}
                                 className="text-xs font-semibold text-rose-600"
                               >
                                 Remove
-                              </button>
+                              </button></PermissionAction>
                             </td>
                           </tr>
                         ))
@@ -422,9 +423,9 @@ export default function StockRunModals({
               <button type="button" onClick={onBackToManage} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
                 Keep Draft
               </button>
-              <button type="button" onClick={onDeleteStockRunDraft} disabled={submitting} className="rounded-full bg-rose-600 px-5 py-2 text-sm font-semibold text-white">
+              <PermissionAction permission={"stockRuns.delete"}><button type="button" onClick={onDeleteStockRunDraft} disabled={submitting} className="rounded-full bg-rose-600 px-5 py-2 text-sm font-semibold text-white">
                 Delete Draft
-              </button>
+              </button></PermissionAction>
             </div>
           </div>
         </InventoryModal>

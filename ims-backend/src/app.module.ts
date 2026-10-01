@@ -1,3 +1,4 @@
+import { RolesModule } from './roles/roles.module';
 import { ForecastingModule } from './forecasting/forecasting.module';
 import { Module } from '@nestjs/common';
 import { PrismaModule } from './prisma/prisma.module';
@@ -17,6 +18,7 @@ import { SettingsModule } from './settings/settings.module';
 @Module({
   imports: [
     PrismaModule,
+    RolesModule,
     UsersModule,
     AuthModule,
     CatalogModule,

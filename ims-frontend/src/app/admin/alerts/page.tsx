@@ -1,4 +1,5 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useEffect, useState } from "react";
 import styles from "./alerts.module.css";
@@ -112,7 +113,7 @@ export default function AlertsPage() {
                 Review low-stock and expiry events generated from stock activity and scheduled reevaluation.
               </p>
               <p className="mt-1 text-sm text-neutral-500">
-                Unread alerts stay visible until addressed. Read or dismissed alerts remain visible for 30 days and sort below unread items.
+                Unread alerts stay visible until addressed. Read or dismissed alerts remain visible for 30 days after that action and sort below unread items.
               </p>
             </div>
 
@@ -209,24 +210,24 @@ export default function AlertsPage() {
 
                   <div className={`${styles.alertActions} flex flex-wrap gap-2`}>
                     {alert.state === "ACTIVE" || alert.state === "DISMISSED" ? (
-                      <button
+                      <PermissionAction permission={"alerts.acknowledge"}><button
                         type="button"
                         disabled={actionId === alert.id}
                         onClick={() => void handleAction(alert.id, "acknowledge")}
                         className={styles.primary}
                       >
                         Mark as Read
-                      </button>
+                      </button></PermissionAction>
                     ) : null}
                     {alert.state === "ACTIVE" ? (
-                      <button
+                      <PermissionAction permission={"alerts.dismiss"}><button
                         type="button"
                         disabled={actionId === alert.id}
                         onClick={() => void handleAction(alert.id, "dismiss")}
                         className={styles.secondary}
                       >
                         Dismiss
-                      </button>
+                      </button></PermissionAction>
                     ) : null}
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 "use client";
 
+
 import { usePathname } from "next/navigation";
 import { getAdminPageInfo } from "@/components/layout/shell-navigation";
 import styles from "@/components/layout/ApplicationShell.module.css";

@@ -1,4 +1,5 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useState } from "react";
 import styles from "./MaterialDetailPanel.module.css";
@@ -180,15 +181,15 @@ export default function MaterialDetailPanel({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <InlineActionButton label="Store Availability" icon={<Store size={15} />} onClick={onStoreAvailability} />
-          <InlineActionButton label="Edit" icon={<ClipboardList size={15} />} onClick={onEdit} />
-          <InlineActionButton label="Record Waste" icon={<FlaskConical size={15} />} onClick={onWaste} />
-          <InlineActionButton
+          <PermissionAction permission={"suppliers.searchAvailability"}><InlineActionButton label="Store Availability" icon={<Store size={15} />} onClick={onStoreAvailability} /></PermissionAction>
+          <PermissionAction permission={"inventory.edit"}><InlineActionButton label="Edit" icon={<ClipboardList size={15} />} onClick={onEdit} /></PermissionAction>
+          <PermissionAction permission={"inventory.waste"}><InlineActionButton label="Record Waste" icon={<FlaskConical size={15} />} onClick={onWaste} /></PermissionAction>
+          <PermissionAction permission={"inventory.archive"}><InlineActionButton
             label="Archive"
             icon={<Archive size={15} />}
             onClick={onArchive}
             destructive
-          />
+          /></PermissionAction>
         </div>
       </div>
 

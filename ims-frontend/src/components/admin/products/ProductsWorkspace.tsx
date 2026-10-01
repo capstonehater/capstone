@@ -1,4 +1,6 @@
 "use client";
+import { loadIfAllowed } from "@/lib/permission-loading";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import styles from "./ProductsWorkspace.module.css";
 
@@ -201,7 +203,7 @@ export default function ProductsWorkspace() {
       try {
         const [categoryResponse, materialResponse] = await Promise.all([
           fetchProductCategories(),
-          fetchInventorySummary({ includeArchived: true }),
+          loadIfAllowed("inventory.view", () => fetchInventorySummary({ includeArchived: true }), []),
         ]);
 
         if (cancelled) {
@@ -987,7 +989,7 @@ export default function ProductsWorkspace() {
         </div>
       </div>
 
-      <ProductFormDialog
+      <PermissionAction permission={productDialog?.mode === "edit" ? "products.edit" : "products.create"}><ProductFormDialog
         mode={productDialog?.mode ?? "create"}
         open={Boolean(productDialog)}
         categories={categories}
@@ -1008,9 +1010,9 @@ export default function ProductsWorkspace() {
             ? handleUpdateProduct(input)
             : handleCreateProduct(input)
         }
-      />
+      /></PermissionAction>
 
-      <VariantFormDialog
+      <PermissionAction permission={"products.edit"}><VariantFormDialog
         mode={variantDialog?.mode ?? "create"}
         open={Boolean(variantDialog)}
         variant={variantDialog?.mode === "edit" ? variantDialog.variant : null}
@@ -1026,17 +1028,17 @@ export default function ProductsWorkspace() {
             ? handleUpdateVariant(input)
             : handleCreateVariant(input)
         }
-      />
+      /></PermissionAction>
 
-      <ArchiveProductDialog
+      <PermissionAction permission={"products.archive"}><ArchiveProductDialog
         open={archiveDialogOpen}
         product={selectedProduct}
         submitting={submittingAction === "archive-product"}
         onClose={() => setArchiveDialogOpen(false)}
         onConfirm={handleArchiveProduct}
-      />
+      /></PermissionAction>
 
-      <DisableProductDialog
+      <PermissionAction permission={"products.edit"}><DisableProductDialog
         open={disableDialogOpen}
         product={selectedProduct}
         submitting={submittingAction === "toggle-product"}
@@ -1045,17 +1047,17 @@ export default function ProductsWorkspace() {
           await handleToggleProductManualAvailability();
           setDisableDialogOpen(false);
         }}
-      />
+      /></PermissionAction>
 
-      <RestoreProductDialog
+      <PermissionAction permission={"products.restore"}><RestoreProductDialog
         open={restoreDialogOpen}
         product={selectedProduct}
         submitting={submittingAction === "restore-product"}
         onClose={() => setRestoreDialogOpen(false)}
         onConfirm={handleRestoreProduct}
-      />
+      /></PermissionAction>
 
-      <DeleteProductDialog
+      <PermissionAction permission={"products.delete"}><DeleteProductDialog
         open={deleteDialogOpen}
         product={selectedProduct}
         submitting={submittingAction === "delete-product"}
@@ -1067,7 +1069,7 @@ export default function ProductsWorkspace() {
           setDeleteDialogOpen(false);
         }}
         onConfirm={handleDeleteProduct}
-      />
+      /></PermissionAction>
     </div>
   );
 }

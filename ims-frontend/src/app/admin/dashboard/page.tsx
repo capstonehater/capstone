@@ -1,4 +1,7 @@
 "use client";
+import { useAuthStore } from "@/store/authStore";
+import { loadIfAllowed } from "@/lib/permission-loading";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -46,6 +49,7 @@ function defaultReportRange(days = 30) {
 }
 
 export default function AdminDashboardPage() {
+  const canViewReports = useAuthStore(state => state.can("reports.view"));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [salesOverview, setSalesOverview] = useState<SalesOverviewReport | null>(null);
@@ -76,13 +80,13 @@ export default function AdminDashboardPage() {
       try {
         const [nextSalesOverview, nextInventoryHealth, nextStockRunSpend, nextWasteSummary, suppliers] =
           await Promise.all([
-            fetchSalesOverview({ ...range, limit: 5 }),
-            fetchInventoryHealth({ limit: 5 }),
-            fetchStockRunSpend({ ...range, limit: 5 }),
-            fetchWasteSummary({ ...range, limit: 5 }),
-            fetchSuppliers(),
+            loadIfAllowed("reports.view", () => fetchSalesOverview({ ...range, limit: 5 }), null),
+            loadIfAllowed("reports.view", () => fetchInventoryHealth({ limit: 5 }), null),
+            loadIfAllowed("reports.view", () => fetchStockRunSpend({ ...range, limit: 5 }), null),
+            loadIfAllowed("reports.view", () => fetchWasteSummary({ ...range, limit: 5 }), null),
+            loadIfAllowed("suppliers.view", () => fetchSuppliers(), []),
           ]);
-        const nextAlerts = await fetchAlerts({ state: "ACTIVE", limit: 5 });
+        const nextAlerts = await loadIfAllowed("alerts.view", () => fetchAlerts({ state: "ACTIVE", limit: 5 }), []);
 
         setSalesOverview(nextSalesOverview);
         setInventoryHealth(nextInventoryHealth);
@@ -111,13 +115,14 @@ export default function AdminDashboardPage() {
   return (
     <AdminDashboardLayout>
       <div className={styles.dashboard}>
+      {!canViewReports && <p className="rounded-xl border border-slate-200 bg-white p-5">Report summaries are unavailable with your current permissions. Use the navigation to open your available features.</p>}
       {error ? (
         <div className={styles.error}>
           {error}
         </div>
       ) : null}
 
-      <section className={styles.inventoryOverview} aria-label="Inventory overview" aria-busy={loading}>
+<PermissionAction permission="reports.view"><section className={styles.inventoryOverview} aria-label="Inventory overview" aria-busy={loading}>
         <dl className={styles.inventoryCards}>
           {[
             { label: "Total materials", value: inventoryHealth?.summary.totalMaterials, detail: "Materials in your catalog" },
@@ -137,9 +142,9 @@ export default function AdminDashboardPage() {
             <dd className={styles.cardDetail}>Total value of stock on hand</dd>
           </div>
         </dl>
-      </section>
+      </section></PermissionAction>
 
-      <section className={styles.row}>
+      <PermissionAction permission="reports.view"><section className={styles.row}>
         <div className={styles.panel}>
           <div className={styles.panelHeader}><h2 className={styles.panelTitle}>Top-Selling Variants</h2><AdminSelect label="Date range" value={salesPeriod} onChange={setSalesPeriod} options={[{ value: "Last 7 Days", label: "Last 7 Days" }, { value: "Last 30 Days", label: "Last 30 Days" }, { value: "Last 90 Days", label: "Last 90 Days" }]} /></div>
           <div className={styles.panelBody}><div className={styles.list}>
@@ -194,8 +199,8 @@ export default function AdminDashboardPage() {
             </div>
             <div className={styles.metric}><p className={styles.metricLabel}>Total Suppliers</p><p className={styles.metricValue}>{loading ? "..." : supplierCount}</p></div>
           </div></div></div>
-      </section>
-      <section className={styles.rowThree}>
+      </section></PermissionAction>
+      <PermissionAction permission="reports.view"><section className={styles.rowThree}>
 
         <div className={styles.panel}><div className={styles.panelHeader}><h2 className={styles.panelTitle}>Near Expiry Watchlist</h2><button className={styles.viewAll} type="button" onClick={() => setActiveModal("expiry")}>View All</button></div><div className={styles.panelBody}><div className={styles.list}>
             {(inventoryHealth?.nearExpiryBatches ?? []).slice(0, 3).map((batch) => (
@@ -231,8 +236,8 @@ export default function AdminDashboardPage() {
               </div>
             ))}
           </div></div></div>
-      </section>
-      <section className={styles.alertPanel}>
+      </section></PermissionAction>
+      <PermissionAction permission="alerts.view"><section className={styles.alertPanel}>
         <div className={styles.alertHeader}>
           <h2><Bell size={15} /> Alerts</h2>
           <a className={styles.viewAll} href="/admin/alerts">View All</a>
@@ -252,16 +257,16 @@ export default function AdminDashboardPage() {
                 <span className={styles.alertTagSeverity}>{alert.severity}</span>
               </div>
               <div className={styles.alertActions}>
-                <button type="button" onClick={() => void updateAlert(alert.id, "acknowledge")}>Mark as Read</button>
-                <button type="button" onClick={() => void updateAlert(alert.id, "dismiss")}>Dismiss</button>
+                <PermissionAction permission={"alerts.acknowledge"}><button type="button" onClick={() => void updateAlert(alert.id, "acknowledge")}>Mark as Read</button></PermissionAction>
+                <PermissionAction permission={"alerts.dismiss"}><button type="button" onClick={() => void updateAlert(alert.id, "dismiss")}>Dismiss</button></PermissionAction>
               </div>
               <time>{formatDateTime(alert.lastTriggeredAt)}</time>
             </article>
           ))}
         </div>
-      </section>
+      </section></PermissionAction>
 
-      {activeModal && <InventoryReportModal
+      {activeModal && <PermissionAction permission="reports.view"><InventoryReportModal
         title={activeModal === "orders" ? "Recent Orders" : activeModal === "expiry" ? "Near Expiry Watchlist" : "Waste Breakdown"}
         description={activeModal === "orders" ? "Recent orders from the selected sales period." : activeModal === "expiry" ? "Review remaining quantities and expiry dates for the batches returned by the inventory report." : "Waste events and costs grouped by reason for the dashboard reporting period."}
         onClose={() => setActiveModal(null)}>
@@ -277,7 +282,7 @@ export default function AdminDashboardPage() {
           </table>
         </div>
         <a className={styles.workspaceLink} href={activeModal === "orders" ? "/admin/reports/pos" : activeModal === "expiry" ? "/admin/inventory" : "/admin/reports/inventory"}>Open full workspace →</a>
-      </InventoryReportModal>}
+      </InventoryReportModal></PermissionAction>}
       </div>
     </AdminDashboardLayout>
   );

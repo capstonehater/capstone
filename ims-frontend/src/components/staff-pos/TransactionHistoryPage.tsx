@@ -1,4 +1,5 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useCallback, useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
@@ -67,6 +68,7 @@ export default function TransactionHistoryPage() {
     order, type, approverEmail: "", approverPassword: "", reasonCode: "CUSTOMER_REFUND", note: "", paymentReference: "",
   });
   const submitReversal = async () => {
+    if (!useAuthStore.getState().can("pos.refund")) return;
     if (!reversalState.order || !reversalState.reasonCode.trim()) return;
     setReversalSubmitting(true); setError(null);
     try {
@@ -94,6 +96,6 @@ export default function TransactionHistoryPage() {
     {notice && <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} />}
     <TransactionHistoryPanel history={error ? [] : history} queuedCheckouts={queuedCheckouts} loading={loading} onSelectOrder={(order) => void viewOrder(order)} onReverseOrder={openReversalModal} />
     {showReceipt && latestReceipt && <ReceiptModal receipt={latestReceipt} reversalSubmitting={reversalSubmitting} onRefund={(order) => openReversalModal(order, "REFUND")} onClose={() => setShowReceipt(false)} />}
-      {reversalState.order ? <OrderReversalModal order={reversalState.order} type={reversalState.type} approverEmail={reversalState.approverEmail} approverPassword={reversalState.approverPassword} reasonCode={reversalState.reasonCode} note={reversalState.note} paymentReference={reversalState.paymentReference} submitting={reversalSubmitting} onApproverEmailChange={(value) => setReversalState((current) => ({ ...current, approverEmail: value }))} onApproverPasswordChange={(value) => setReversalState((current) => ({ ...current, approverPassword: value }))} onReasonCodeChange={(value) => setReversalState((current) => ({ ...current, reasonCode: value }))} onNoteChange={(value) => setReversalState((current) => ({ ...current, note: value }))} onPaymentReferenceChange={(value) => setReversalState((current) => ({ ...current, paymentReference: value }))} onClose={() => setReversalState(defaultReversalState())} onConfirm={() => void submitReversal()} /> : null}
+      {reversalState.order ? <PermissionAction permission="pos.refund"><OrderReversalModal order={reversalState.order} type={reversalState.type} approverEmail={reversalState.approverEmail} approverPassword={reversalState.approverPassword} reasonCode={reversalState.reasonCode} note={reversalState.note} paymentReference={reversalState.paymentReference} submitting={reversalSubmitting} onApproverEmailChange={(value) => setReversalState((current) => ({ ...current, approverEmail: value }))} onApproverPasswordChange={(value) => setReversalState((current) => ({ ...current, approverPassword: value }))} onReasonCodeChange={(value) => setReversalState((current) => ({ ...current, reasonCode: value }))} onNoteChange={(value) => setReversalState((current) => ({ ...current, note: value }))} onPaymentReferenceChange={(value) => setReversalState((current) => ({ ...current, paymentReference: value }))} onClose={() => setReversalState(defaultReversalState())} onConfirm={() => void submitReversal()} /></PermissionAction> : null}
   </section>;
 }

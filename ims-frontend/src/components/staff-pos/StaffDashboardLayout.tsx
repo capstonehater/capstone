@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useState } from "react";
-import { ChevronLeft, ClipboardList, LayoutDashboard, Menu, Settings, X } from "lucide-react";
+import { ChevronLeft, Menu, X } from "lucide-react";
+import { getVisibleNavigation } from "@/components/layout/shell-navigation";
+import { useAuthStore } from "@/store/authStore";
 import styles from "@/components/layout/ApplicationShell.module.css";
 import StaffHeader from "./StaffHeader";
 import SidebarAccount from "@/components/layout/SidebarAccount";
@@ -26,11 +28,9 @@ export default function StaffDashboardLayout({
   const [collapsed, setCollapsed] = useState(false);
   const [focusEnabled, setFocusEnabled] = useState(false);
   const focusMode = focusEnabled && (pathname === "/staff/dashboard" || pathname === "/staff/pos");
-  const links = [
-    { label: "POS Dashboard", href: "/staff/dashboard", icon: LayoutDashboard },
-    { label: "Transaction History", href: "/staff/transactions", icon: ClipboardList },
-    { label: "Account Settings", href: "/staff/settings", icon: Settings },
-  ];
+  const links = getVisibleNavigation(useAuthStore()).flatMap(group => group.items).map(item =>
+    item.authenticatedOnly ? {...item, href: "/staff/settings"} : item
+  );
 
   return (
     <FocusModeContext.Provider value={{ focusMode, toggleFocusMode: () => { setFocusEnabled((value) => !value); setSidebarOpen(false); } }}>
@@ -41,7 +41,7 @@ export default function StaffDashboardLayout({
         <SidebarAccount collapsed={collapsed && !sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
         <nav className={styles.staffNavigation} aria-label="Staff navigation">
           {links.map(({ label, href, icon: Icon }) => {
-            const active = pathname === href || (href === "/staff/dashboard" && pathname === "/staff/pos");
+            const active = pathname === href || (href === "/staff/pos" && pathname === "/staff/dashboard");
             return <Link key={href} href={href} aria-current={active ? "page" : undefined} title={collapsed ? label : undefined} className={styles.staffNavLink} onClick={() => setSidebarOpen(false)}><Icon size={18} /><span>{collapsed ? null : label}</span></Link>;
           })}
         </nav>

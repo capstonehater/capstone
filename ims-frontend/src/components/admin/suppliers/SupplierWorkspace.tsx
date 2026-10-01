@@ -1,4 +1,6 @@
 "use client";
+import { useAuthStore } from "@/store/authStore";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useMemo, useState, type FormEvent } from "react";
 import { Check, Plus, Search, Trash2, X } from "lucide-react";
@@ -86,7 +88,7 @@ export default function SupplierWorkspace({
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting) return;
+    if (submitting || !useAuthStore.getState().can(creating ? "suppliers.create" : "suppliers.edit")) return;
     setError(null);
     const input: SupplierInput = {
       name: form.name.trim(),
@@ -109,7 +111,7 @@ export default function SupplierWorkspace({
   }
 
   async function confirmDelete() {
-    if (!deleteTarget || submitting) return;
+    if (!deleteTarget || submitting || !useAuthStore.getState().can("suppliers.delete")) return;
     setError(null);
     try {
       await onDeleteSupplier(deleteTarget.id);
@@ -136,10 +138,10 @@ export default function SupplierWorkspace({
                 <h2 id="supplier-list-title" className="text-lg font-semibold text-slate-900">Suppliers</h2>
                 <p className="mt-1 text-xs text-slate-500">{suppliers.length} supplier{suppliers.length === 1 ? "" : "s"}</p>
               </div>
-              <button type="button" onClick={startCreate} disabled={submitting}
+              <PermissionAction permission={"suppliers.create"}><button type="button" onClick={startCreate} disabled={submitting}
                 className={styles.primary}>
                 <Plus size={16} aria-hidden="true" /> New Supplier
-              </button>
+              </button></PermissionAction>
             </div>
             <label className={styles.search}>
               <span className="sr-only">Search suppliers</span>
@@ -205,15 +207,15 @@ export default function SupplierWorkspace({
             </div>
             <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4 md:col-span-2">
               {!creating && selected ? <>
-                <button type="button" onClick={() => setDeleteTarget(selected)} disabled={submitting}
-                  className="mr-auto inline-flex h-10 items-center gap-2 rounded-lg border border-red-200 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"><Trash2 size={15} /> Delete</button>
+                <PermissionAction permission={"suppliers.delete"}><button type="button" onClick={() => setDeleteTarget(selected)} disabled={submitting}
+                  className="mr-auto inline-flex h-10 items-center gap-2 rounded-lg border border-red-200 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"><Trash2 size={15} /> Delete</button></PermissionAction>
                 {editing ? <button type="button" onClick={() => { setEditing(false); setForm(formFor(selected)); setError(null); }} disabled={submitting}
                   className={styles.secondary}>Cancel</button>
-                  : <button type="button" onClick={() => setEditing(true)} disabled={submitting}
-                    className={styles.secondary}>Edit</button>}
+                  : <PermissionAction permission={"suppliers.edit"}><button type="button" onClick={() => setEditing(true)} disabled={submitting}
+                    className={styles.secondary}>Edit</button></PermissionAction>}
               </> : null}
-              {(creating || editing) ? <button type="submit" disabled={submitting}
-                className={styles.primary}><Check size={16} />{submitting ? "Saving..." : creating ? "Create Supplier" : "Save Changes"}</button> : null}
+              {(creating || editing) ? <PermissionAction permission={creating ? "suppliers.create" : "suppliers.edit"}><button type="submit" disabled={submitting}
+                className={styles.primary}><Check size={16} />{submitting ? "Saving..." : creating ? "Create Supplier" : "Save Changes"}</button></PermissionAction> : null}
             </div>
           </form> : <div className="p-10 text-center text-sm text-slate-500">Choose a supplier or create a new supplier to view its details.</div>}
         </section>
@@ -228,7 +230,7 @@ export default function SupplierWorkspace({
           <div className="p-5"><div className="rounded-lg border border-slate-200 bg-slate-50 p-4"><p className="font-semibold text-slate-900">{deleteTarget.name}</p><p className="mt-1 text-sm text-slate-600">{deleteTarget.contactInfo || "No contact information"}</p><p className="mt-1 text-xs text-slate-500">{deleteTarget.address || "No location saved"}</p></div><p className="mt-4 text-sm text-slate-600">The server will enforce existing supplier deletion rules. Deletion may be blocked when the record is in use.</p></div>
           <footer className="flex justify-end gap-2 border-t border-slate-200 p-4">
             <button type="button" onClick={() => setDeleteTarget(null)} disabled={submitting} className={styles.secondary}>Cancel</button>
-            <button type="button" onClick={() => void confirmDelete()} disabled={submitting} className="h-10 rounded-lg bg-red-700 px-4 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50">{submitting ? "Deleting..." : "Delete Supplier"}</button>
+            <PermissionAction permission={"suppliers.delete"}><button type="button" onClick={() => void confirmDelete()} disabled={submitting} className="h-10 rounded-lg bg-red-700 px-4 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50">{submitting ? "Deleting..." : "Delete Supplier"}</button></PermissionAction>
           </footer>
         </section>
       </div> : null}

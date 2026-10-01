@@ -1,4 +1,5 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { Plus, Search } from "lucide-react";
 
@@ -32,14 +33,14 @@ export default function ProductListToolbar({
         />
         <Search className="pointer-events-none absolute right-2.5 top-2 h-4 w-4 text-slate-600" />
         </div>
-        <button
+        <PermissionAction permission={"products.create"}><button
           type="button"
           onClick={onAddProduct}
           className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg! bg-[#232d46] px-4 text-xs font-semibold text-white transition hover:bg-[#34425f]"
         >
           <Plus className="h-4 w-4" />
           Add Product
-        </button>
+        </button></PermissionAction>
       </div>
 
       <div className="flex gap-2">

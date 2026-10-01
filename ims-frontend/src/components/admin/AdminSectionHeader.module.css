@@ -1,0 +1,9 @@
+.panel { flex-shrink:0; min-width:0; padding:24px 20px; border:1px solid #dce2eb; border-radius:12px; background:#fff; color:#232d46; }
+.panel h1 { margin:0; color:#232d46; font-size:30px; font-weight:700; line-height:1.25; letter-spacing:-.025em; text-transform:uppercase; }
+.panel > p { margin:10px 0 0; color:#64748b; font-size:14px; line-height:1.6; }
+.actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:24px; }
+.actions > button { margin-top:0; min-height:44px; padding:10px 24px; border:1px solid #232d46; border-radius:0; background:#232d46; color:#fff; font-size:14px; font-weight:600; cursor:pointer; }
+.actions > button:hover:not(:disabled) { background:#34425f; }
+.actions > button:disabled { opacity:.5; cursor:not-allowed; }
+.actions > button:focus-visible { outline:2px solid #64748b; outline-offset:3px; }
+@media(max-width:640px) { .panel { padding:20px 16px; } .panel h1 { font-size:26px; } }

@@ -4,7 +4,7 @@ import TransactionHistoryPage from "@/components/staff-pos/TransactionHistoryPag
 
 export default function StaffTransactionsPage() {
   return (
-    <AuthGuard allowedRoles={["STAFF"]}>
+    <AuthGuard>
       <StaffDashboardLayout>
         <TransactionHistoryPage />
       </StaffDashboardLayout>

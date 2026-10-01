@@ -1,6 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { Role } from '@prisma/client';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import { PosAuditExceptionsDto } from './dto/pos-audit-exceptions.dto';
 import { PosInventoryLinkedDto } from './dto/pos-inventory-linked.dto';
 import { PosPeakHoursDto } from './dto/pos-peak-hours.dto';
@@ -12,7 +11,7 @@ import { ReportFiltersDto } from './dto/report-filters.dto';
 import { ReportsService } from './reports.service';
 
 @Controller('reports')
-@Roles(Role.ADMINISTRATOR)
+@RequirePermission('reports.view')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 

@@ -9,9 +9,8 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user.type';
 import { ArchiveProductDto } from './dto/archive-product.dto';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -25,23 +24,25 @@ import { UpdateProductVariantDto } from './dto/update-product-variant.dto';
 import { ProductManagementService } from './product-management.service';
 
 @Controller('admin')
-@Roles(Role.ADMINISTRATOR)
 export class AdminProductsController {
   constructor(
     private readonly productManagementService: ProductManagementService,
   ) {}
 
   @Get('products')
+  @RequirePermission('products.view')
   async listProducts(@Query() query: ListAdminProductsDto) {
     return this.productManagementService.listAdminProducts(query);
   }
 
   @Get('products/:id')
+  @RequirePermission('products.view')
   async getProduct(@Param('id') productId: string) {
     return this.productManagementService.getAdminProductDetail(productId);
   }
 
   @Post('products')
+  @RequirePermission('products.create')
   async createProduct(
     @Body() dto: CreateProductDto,
     @CurrentUser() user: AuthenticatedUser,
@@ -50,6 +51,7 @@ export class AdminProductsController {
   }
 
   @Patch('products/:id')
+  @RequirePermission('products.edit')
   async updateProduct(
     @Param('id') productId: string,
     @Body() dto: UpdateProductDto,
@@ -58,6 +60,7 @@ export class AdminProductsController {
   }
 
   @Patch('products/:id/manual-availability')
+  @RequirePermission('products.edit')
   async setProductManualAvailability(
     @Param('id') productId: string,
     @Body() dto: SetManualAvailabilityDto,
@@ -69,6 +72,7 @@ export class AdminProductsController {
   }
 
   @Post('products/:id/archive')
+  @RequirePermission('products.archive')
   async archiveProduct(
     @Param('id') productId: string,
     @Body() dto: ArchiveProductDto,
@@ -82,21 +86,25 @@ export class AdminProductsController {
   }
 
   @Post('products/:id/restore')
+  @RequirePermission('products.restore')
   async restoreProduct(@Param('id') productId: string) {
     return this.productManagementService.restoreProduct(productId);
   }
 
   @Get('products/:id/delete-eligibility')
+  @RequirePermission('products.view')
   async getDeleteEligibility(@Param('id') productId: string) {
     return this.productManagementService.getProductDeleteEligibility(productId);
   }
 
   @Delete('products/:id')
+  @RequirePermission('products.delete')
   async deleteProduct(@Param('id') productId: string) {
     return this.productManagementService.deleteProduct(productId);
   }
 
   @Post('products/:id/variants')
+  @RequirePermission('products.create')
   async createVariant(
     @Param('id') productId: string,
     @Body() dto: CreateProductVariantDto,
@@ -105,6 +113,7 @@ export class AdminProductsController {
   }
 
   @Patch('variants/:id')
+  @RequirePermission('products.edit')
   async updateVariant(
     @Param('id') variantId: string,
     @Body() dto: UpdateProductVariantDto,
@@ -113,6 +122,7 @@ export class AdminProductsController {
   }
 
   @Patch('variants/:id/manual-availability')
+  @RequirePermission('products.edit')
   async setVariantManualAvailability(
     @Param('id') variantId: string,
     @Body() dto: SetManualAvailabilityDto,
@@ -124,16 +134,19 @@ export class AdminProductsController {
   }
 
   @Delete('variants/:id')
+  @RequirePermission('products.delete')
   async deleteVariant(@Param('id') variantId: string) {
     return this.productManagementService.deleteVariant(variantId);
   }
 
   @Get('variants/:id/recipe')
+  @RequirePermission('products.view')
   async getVariantRecipe(@Param('id') variantId: string) {
     return this.productManagementService.getVariantRecipe(variantId);
   }
 
   @Put('variants/:id/recipe')
+  @RequirePermission('products.edit')
   async replaceVariantRecipe(
     @Param('id') variantId: string,
     @Body() dto: ReplaceVariantRecipeDto,
@@ -142,6 +155,7 @@ export class AdminProductsController {
   }
 
   @Get('products/:id/ingredient-usage')
+  @RequirePermission('products.view')
   async getProductIngredientUsage(
     @Param('id') productId: string,
     @Query() query: GetProductIngredientUsageDto,
@@ -153,6 +167,7 @@ export class AdminProductsController {
   }
 
   @Get('products/:id/orders/:orderId/ingredient-usage')
+  @RequirePermission('products.view')
   async getOrderIngredientUsage(
     @Param('id') productId: string,
     @Param('orderId') orderId: string,

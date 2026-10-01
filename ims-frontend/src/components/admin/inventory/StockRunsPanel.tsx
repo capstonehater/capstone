@@ -1,4 +1,5 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import type { StockRun } from "@/lib/inventory";
 import styles from "./StockRunsPanel.module.css";
@@ -92,13 +93,13 @@ export default function StockRunsPanel({
                             >
                               Open
                             </button>
-                            <button
+                            <PermissionAction permission={"stockRuns.delete"}><button
                               type="button"
                               onClick={() => onDeleteDraft(stockRun)}
                               className="rounded-full border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-50"
                             >
                               Delete
-                            </button>
+                            </button></PermissionAction>
                           </>
                         ) : (
                           <span className="text-xs font-semibold text-slate-400">Posted</span>

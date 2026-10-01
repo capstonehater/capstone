@@ -1,3 +1,4 @@
+import PermissionRoute from "@/components/auth/PermissionRoute";
 import AuthGuard from "@/components/auth/AuthGuard";
 
 export default function StaffLayout({
@@ -5,5 +6,5 @@ export default function StaffLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <AuthGuard allowedRoles={["STAFF"]}>{children}</AuthGuard>;
+  return <AuthGuard><PermissionRoute>{children}</PermissionRoute></AuthGuard>;
 }
