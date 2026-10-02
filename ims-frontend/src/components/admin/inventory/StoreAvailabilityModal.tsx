@@ -3,7 +3,7 @@ import ModalCloseButton from "@/components/ModalCloseButton";
 
 
 import { useEffect, useRef, useState } from "react";
-import { X, Loader2, ChevronDown, ExternalLink, Store, Package, MapPin } from "lucide-react";
+import { Loader2, ChevronDown, ExternalLink, Store, Package, MapPin } from "lucide-react";
 import { apiJsonFetch } from "@/lib/api";
 import styles from "./StoreAvailabilityModal.module.css";
 
@@ -146,12 +146,14 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
   return (
     <dialog ref={dialog} onCancel={onClose} aria-labelledby="store-availability-title"
       className={styles.dialog}>
-      <button type="button" onClick={onClose} aria-label="Close store availability" className={styles.close}><X size={20} /></button>
       <div className={styles.surface}>
       <header className={styles.header}>
+        <div className={styles.headerRow}>
         <div className={styles.heading}>
           <span className={styles.icon}><Store size={23} aria-hidden="true" /></span>
           <h2 id="store-availability-title">Store Availability</h2>
+        </div>
+        <ModalCloseButton onClose={onClose} />
         </div>
         <div className={styles.product}><Package size={15} aria-hidden="true" /><span>{search?.productName ?? materialName}</span></div>
       </header>
@@ -212,7 +214,6 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
       <footer className={styles.footer}>
         <button type="button" onClick={onJourney} className={styles.journey}><MapPin size={16} aria-hidden="true" /><span>Journey? Manage Suppliers → Google Maps</span></button>
         <div className={styles.actions}>
-          <ModalCloseButton onClose={onClose} />
           <button type="button" disabled={loading || pending} onClick={() => void start()} className={styles.search}>{pending && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}{pending ? "Searching…" : search ? "Search again" : "Search"}</button>
         </div>
       </footer>

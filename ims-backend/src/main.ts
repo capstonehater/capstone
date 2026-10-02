@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { static as serveStatic, type Express } from 'express';
 import { PROFILE_PICTURE_DIRECTORY } from './settings/profile-picture';
+import { PRODUCT_IMAGE_DIRECTORY } from './catalog/product-image';
 import { env } from './config/env.validation';
 import { AppModule } from './app.module';
 import { csrfOriginMiddleware } from './auth/csrf-origin.middleware';
@@ -18,6 +19,17 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
   app.use(csrfOriginMiddleware);
+  app.use(
+    '/product-images',
+    serveStatic(PRODUCT_IMAGE_DIRECTORY, {
+      index: false,
+      dotfiles: 'deny',
+      maxAge: '1y',
+      immutable: true,
+      setHeaders: (response) =>
+        response.setHeader('X-Content-Type-Options', 'nosniff'),
+    }),
+  );
   app.use(
     '/profile-picture',
     serveStatic(PROFILE_PICTURE_DIRECTORY, {

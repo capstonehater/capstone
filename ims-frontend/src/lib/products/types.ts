@@ -125,6 +125,7 @@ export type ProductVariantDetail = {
 };
 
 export type ProductDetail = {
+  imageUrl?: string | null;
   id: string;
   name: string;
   category: ProductCategorySummary;
@@ -205,6 +206,7 @@ export type ProductIngredientUsage = {
 };
 
 export type ProductFormInput = {
+  imageUrl?: string | null;
   name: string;
   categoryId: string;
   isEnabled: boolean;

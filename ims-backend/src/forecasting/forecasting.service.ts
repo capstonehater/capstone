@@ -12,6 +12,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import { PrismaService } from '../prisma/prisma.service';
+import { isBackgroundJobsEnabled } from '../config/env.validation';
 import { loadPosHistory } from './pos-history';
 import { validateWorkerResult } from './forecasting.types';
 
@@ -25,8 +26,10 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
 
   private timer?: ReturnType<typeof setInterval>;
   private checking = false;
+  private scheduleError: string | null = null;
 
   onModuleInit() {
+    if (!isBackgroundJobsEnabled() || this.timer) return;
     void this.checkSchedule();
     this.timer = setInterval(() => {
       void this.checkSchedule();
@@ -50,6 +53,7 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
         day: '2-digit',
       }).format(new Date());
       const startDate = scheduledStart(today, latest?.endDate);
+      this.scheduleError = null;
       if (!startDate) return;
       const failed = await this.prisma.forecastRun.findFirst({
         where: {
@@ -59,6 +63,10 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
       });
       if (!failed) await this.generate(startDate);
     } catch (error) {
+      this.scheduleError = error instanceof Error &&
+        error.message.includes('forecast_runs_seven_days')
+        ? 'The database still requires seven-day forecasts. Apply the forecast duration migration to enable the saved 1–30 day setting.'
+        : 'The forecast could not be scheduled. Check the backend logs for the database or scheduler error.';
       this.logger.error(
         error instanceof Error
           ? error.message
@@ -71,6 +79,7 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
 
   onModuleDestroy() {
     if (this.timer) clearInterval(this.timer);
+    this.timer = undefined;
     for (const child of this.children) child.kill();
   }
 
@@ -217,20 +226,35 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
     });
     const lastAttempt = await this.prisma.forecastRun.findFirst({
       orderBy: { createdAt: 'desc' },
-      select: { status: true },
+      select: { id: true, status: true, startDate: true, endDate: true, error: true },
     });
     const nextForecastPeriod = await this.nextForecastPeriod();
     return {
-      run: run ? {
-        ...run,
-        noteSeries: run.series.map(({ materialId, name, unit, metadata }) => ({ materialId, name, unit, metadata })),
-        series: materialIds ? run.series.filter((series) => materialIds.includes(series.materialId)) : run.series,
-      } : null,
+      run: run
+        ? {
+            ...run,
+            noteSeries: run.series.map(
+              ({ materialId, name, unit, metadata }) => ({
+                materialId,
+                name,
+                unit,
+                metadata,
+              }),
+            ),
+            series: materialIds
+              ? run.series.filter((series) =>
+                  materialIds.includes(series.materialId),
+                )
+              : run.series,
+          }
+        : null,
       activeRun,
       periods,
       nextScheduledDate: nextForecastPeriod.startDate,
       nextForecastPeriod,
       automaticRetryPending: lastAttempt?.status === 'FAILED',
+      scheduleError: this.scheduleError,
+      lastFailedRun: lastAttempt?.status === 'FAILED' ? lastAttempt : null,
       scope: productId
         ? 'Store-wide demand for the raw materials used by this product.'
         : 'Store-wide raw-material demand.',

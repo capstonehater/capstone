@@ -485,9 +485,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   return (
     <AdminDashboardLayout showHeader={false}>
       <div className={`flex min-w-0 w-full flex-col gap-5 bg-[#f5f5f5] text-[#232d46] `}>
-        <AdminSectionHeader title="Inventory" description="Check stock, receive deliveries, and take action from one workspace.">
-          <button type="button" disabled={initialLoading || submitting} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50" onClick={() => void refreshEverything(true).then(loadBusinessReports).catch(() => setError("Unable to refresh inventory. Please try again."))}>Refresh inventory</button>
-        </AdminSectionHeader>
+        <AdminSectionHeader title="Inventory" description="Check stock, receive deliveries, and take action from one workspace." />
         <nav ref={sectionNavRef} aria-label="Inventory sections" className={styles.sectionNav}>
           {workspaceSections.filter(([id]) => id !== "stock-runs" || canViewStockRuns).map(([id, label]) => <a key={id} href={`#${id}`} aria-current={activeSection === id ? "location" : undefined} onClick={(event) => { event.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); }}>{label}</a>)}
         </nav>

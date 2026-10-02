@@ -4,7 +4,80 @@ import { PrismaService } from '../prisma/prisma.service';
 const transactionMock = <T>(tx: T) =>
   jest.fn((callback: (transaction: T) => Promise<unknown>) => callback(tx));
 
+describe('forecast scheduler lifecycle', () => {
+  const original = process.env.ENABLE_BACKGROUND_JOBS;
+  afterEach(() => {
+    if (original === undefined) delete process.env.ENABLE_BACKGROUND_JOBS;
+    else process.env.ENABLE_BACKGROUND_JOBS = original;
+    jest.useRealTimers();
+  });
+
+  it('does not query or schedule work when background jobs are disabled', () => {
+    jest.useFakeTimers();
+    process.env.ENABLE_BACKGROUND_JOBS = 'false';
+    const service = new ForecastingService({} as PrismaService);
+    const check = jest.spyOn(service, 'checkSchedule').mockResolvedValue();
+    service.onModuleInit();
+    jest.advanceTimersByTime(120000);
+    expect(check).not.toHaveBeenCalled();
+    expect(jest.getTimerCount()).toBe(0);
+    service.onModuleDestroy();
+  });
+
+  it('starts once and stops polling on shutdown', () => {
+    jest.useFakeTimers();
+    process.env.ENABLE_BACKGROUND_JOBS = 'true';
+    const service = new ForecastingService({} as PrismaService);
+    const check = jest.spyOn(service, 'checkSchedule').mockResolvedValue();
+    service.onModuleInit();
+    service.onModuleInit();
+    expect(check).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(60000);
+    expect(check).toHaveBeenCalledTimes(2);
+    service.onModuleDestroy();
+    jest.advanceTimersByTime(60000);
+    expect(check).toHaveBeenCalledTimes(2);
+    expect(jest.getTimerCount()).toBe(0);
+  });
+});
+
 describe('saved forecast period schedule', () => {
+  it('exposes run-creation errors and clears them after scheduler recovery', async () => {
+    const prisma = {
+      forecastSettings: { findUnique: jest.fn().mockResolvedValue({ forecastDays: 2 }) },
+      forecastRun: {
+        updateMany: jest.fn(),
+        findFirst: jest.fn().mockResolvedValue(null),
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+    };
+    const service = new ForecastingService(prisma as unknown as PrismaService);
+    const generate = jest.spyOn(service, 'generate').mockRejectedValueOnce(
+      new Error('violates check constraint "forecast_runs_seven_days"'),
+    ).mockResolvedValue({ run: {} } as Awaited<ReturnType<ForecastingService['generate']>>);
+    await service.checkSchedule();
+    expect((await service.latest()).scheduleError).toContain('duration migration');
+    await service.checkSchedule();
+    expect(generate).toHaveBeenCalledTimes(2);
+    expect((await service.latest()).scheduleError).toBeNull();
+  });
+
+  it('returns the latest worker failure even when no run is active', async () => {
+    const failure = { id: 'failed', status: 'FAILED', error: 'Forecast timed out after 30 minutes.' };
+    const prisma = {
+      forecastSettings: { findUnique: jest.fn().mockResolvedValue(null) },
+      forecastRun: {
+        updateMany: jest.fn(),
+        findFirst: jest.fn().mockResolvedValueOnce(null).mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(failure).mockResolvedValueOnce(null),
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+    };
+    const result = await new ForecastingService(prisma as unknown as PrismaService).latest();
+    expect(result.lastFailedRun).toEqual(failure);
+    expect(result.automaticRetryPending).toBe(true);
+  });
+
   it('starts the first period today', () => {
     expect(scheduledStart('2026-09-01')).toBe('2026-09-01');
   });

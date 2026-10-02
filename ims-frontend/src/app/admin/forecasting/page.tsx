@@ -145,7 +145,7 @@ export default function ForecastingPage() {
         if (!active) return;
         if (result.run.status !== 'RUNNING') {
           setRunId('');
-          if (result.run.status === 'FAILED') setError('The forecast could not be updated. An automatic retry will follow; saved periods remain available.');
+          if (result.run.status === 'FAILED') { setError(result.run.error || 'The forecast could not be updated.'); setRefresh((value) => value + 1); }
           else { setNotice('Forecast and inventory recommendations saved.'); setRefresh((value) => value + 1); }
           return;
         }
@@ -232,7 +232,8 @@ export default function ForecastingPage() {
     </>}
     {settingsNotice && <ActionAlert key={settingsNotice} placement="header" tone="success" title="Forecast period saved" message={settingsNotice} onDismiss={() => setSettingsNotice('')} />}
     {settingsError && <p role="alert" className={styles.errorMessage}>{settingsError}</p>}
-    {data?.automaticRetryPending && !busy && <p role="status" className={`${styles.errorMessage} ${styles.noticePill}`}>Update delayed. Retries hourly. Saved periods available.</p>}
+    {data?.scheduleError && <p role="alert" className={styles.errorMessage}>{data.scheduleError}</p>}
+    {data?.automaticRetryPending && !busy && <p role="status" className={`${styles.errorMessage} ${styles.noticePill}`}>Forecast failed: {data.lastFailedRun?.error || 'No failure details were recorded.'} Retries hourly while the backend is running. Saved periods remain available.</p>}
     {error && <p role="alert" className={styles.errorMessage}>{error}</p>}
     {notice && <p role="status" className={styles.message}>{notice}</p>}
     {busy && <p role="status" className={styles.running}><LoaderCircle size={18} className="animate-spin" />Your next forecast is being prepared automatically. This may take several minutes. You can still browse saved periods.</p>}

@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import AdminSelect from "@/components/admin/AdminSelect";
+import ProductImagePicker from "./ProductImagePicker";
+import { apiJsonFetch } from "@/lib/api";
 import { Plus, X } from "lucide-react";
 import styles from "./ProductFormDialog.module.css";
 import type { ProductCategory, ProductDetail, VariantFormInput } from "@/lib/products";
 
-type Props = { mode: "create" | "edit"; open: boolean; categories: ProductCategory[]; product: ProductDetail | null; submitting: boolean; errorMessage?: string | null; fieldErrors?: Record<string, string[]>; onClose: () => void; onSubmit: (input: { name: string; categoryId: string; isEnabled: boolean; initialVariants: VariantFormInput[] }) => Promise<void> };
+type Props = { mode: "create" | "edit"; open: boolean; categories: ProductCategory[]; product: ProductDetail | null; submitting: boolean; errorMessage?: string | null; fieldErrors?: Record<string, string[]>; onClose: () => void; onSubmit: (input: { imageUrl?: string | null; name: string; categoryId: string; isEnabled: boolean; initialVariants: VariantFormInput[] }) => Promise<void> };
 const input = "h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500";
 function emptyVariant(): VariantFormInput { return { name: "", sku: "", price: "", isEnabled: true }; }
 
@@ -15,6 +18,9 @@ export default function ProductFormDialog(props: Props) {
 }
 
 function ProductFormDialogBody({ mode, categories, product, submitting, errorMessage, fieldErrors, onClose, onSubmit }: Omit<Props, "open">) {
+  const [imageUrl, setImageUrl] = useState<string | null>(product?.imageUrl ?? null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [name, setName] = useState(product?.name ?? "");
   const [categoryId, setCategoryId] = useState(product?.category.id ?? categories[0]?.id ?? "");
   const [isEnabled, setIsEnabled] = useState(product?.manualAvailability !== "DISABLED");
@@ -31,16 +37,33 @@ function ProductFormDialogBody({ mode, categories, product, submitting, errorMes
     }
     setClientErrors(errors); return errors.length === 0;
   }
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); if (!validate()) return; await onSubmit({ name:name.trim(), categoryId, isEnabled, initialVariants: mode === "create" ? variants.map(v=>({...v,name:v.name.trim(),sku:v.sku.trim(),price:v.price.trim()})) : [] }); }
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (uploading || submitting || !validate()) return;
+    setUploading(true);
+    try {
+      let savedImageUrl = imageUrl;
+      if (imageFile) {
+        const body = new FormData(); body.append("image", imageFile);
+        const result = await apiJsonFetch<{ imageUrl: string }>(mode === "create" ? "/admin/product-images" : "/admin/product-images/replacement", { method: "POST", body });
+        savedImageUrl = result.imageUrl;
+        setImageUrl(savedImageUrl); setImageFile(null);
+      }
+      await onSubmit({ imageUrl: savedImageUrl, name: name.trim(), categoryId, isEnabled, initialVariants: mode === "create" ? variants.map(v => ({ ...v, name: v.name.trim(), sku: v.sku.trim(), price: v.price.trim() })) : [] });
+    } catch (error) {
+      setClientErrors([error instanceof Error ? error.message : "Failed to upload product image."]);
+    } finally { setUploading(false); }
+  }
   const updateVariant = (index: number, patch: Partial<VariantFormInput>) => setVariants(current => current.map((v,i)=>i===index ? {...v,...patch} : v));
   return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
     <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
       <header className="bg-[var(--modal-header-background)] flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5"><div><h2 className="text-xl font-bold text-slate-900">{mode === "create" ? "Add Product" : "Edit Product"}</h2><p className="mt-1 text-sm text-slate-500">{mode === "create" ? "Create a new product, set availability, and organize category details." : "Update product information, availability, and details."}</p></div><button type="button" onClick={onClose} aria-label="Close" className="rounded p-1 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button></header>
       <form onSubmit={handleSubmit} className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
         {(clientErrors.length || errorMessage) ? <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700"><ul>{clientErrors.map(e=><li key={e}>{e}</li>)}{errorMessage ? <li>{errorMessage}</li> : null}{fieldErrors ? Object.entries(fieldErrors).map(([k,v])=><li key={k}>{k}: {v.join(", ")}</li>) : null}</ul></div> : null}
-        <section className="rounded-lg border border-slate-200 p-4"><h3 className="text-sm font-bold text-slate-900">Product Information</h3><div className="mt-3 grid gap-4 sm:grid-cols-2"><label className="text-xs font-semibold text-slate-700">Product Name *<input value={name} onChange={e=>setName(e.target.value)} className={`${input} mt-1`} placeholder="Spanish Latte" /></label><label className="text-xs font-semibold text-slate-700">Category *<select value={categoryId} onChange={e=>setCategoryId(e.target.value)} className={`${input} mt-1`}><option value="">Select category</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label></div>{mode === "create" ? <div className="mt-4 flex items-center justify-between rounded-md bg-slate-50 px-3 py-3"><div><p className="text-xs font-semibold text-slate-800">POS Availability</p><p className="text-xs text-slate-500">{isEnabled ? "Enabled" : "Disabled"}</p></div><button type="button" role="switch" aria-label="POS availability" aria-checked={isEnabled} onClick={()=>setIsEnabled(v=>!v)} className={styles.switch}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${isEnabled ? "left-6" : "left-1"}`} /></button></div> : null}</section>
+        <section className="rounded-lg border border-slate-200 p-4"><h3 className="text-sm font-bold text-slate-900">Product Information</h3><div className="mt-3 grid gap-4 sm:grid-cols-2"><label className="text-xs font-semibold text-slate-700">Product Name *<input value={name} onChange={e=>setName(e.target.value)} className={`${input} mt-1`} placeholder="Spanish Latte" /></label><div className={styles.categoryField}><AdminSelect label="Category *" value={categoryId} onChange={setCategoryId} options={[{ value: "", label: "Select category" }, ...categories.map(c => ({ value: c.id, label: c.name }))]} /></div></div>{mode === "create" ? <div className="mt-4 flex items-center justify-between rounded-md bg-slate-50 px-3 py-3"><div><p className="text-xs font-semibold text-slate-800">POS Availability</p><p className="text-xs text-slate-500">{isEnabled ? "Enabled" : "Disabled"}</p></div><button type="button" role="switch" aria-label="POS availability" aria-checked={isEnabled} onClick={()=>setIsEnabled(v=>!v)} className={styles.switch}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${isEnabled ? "left-6" : "left-1"}`} /></button></div> : null}</section>
+        <ProductImagePicker imageUrl={imageUrl} file={imageFile} disabled={submitting || uploading} onChange={(file, remove) => { setImageFile(file); if (remove) setImageUrl(null); }} />
         {mode === "create" ? <section className="mt-4 rounded-lg border border-slate-200 p-4"><div className="flex items-start justify-between"><div><h3 className="text-sm font-bold text-slate-900">Product Setup</h3><p className="mt-1 text-xs text-slate-500">Add the initial variant required to sell this product.</p></div><button type="button" onClick={()=>setVariants(v=>[...v,emptyVariant()])} className={`${styles.secondary} ${styles.addVariant}`}><Plus className="h-3.5 w-3.5" /> Add Variant</button></div>{variants.map((v,i)=><div key={i} className={`mt-3 grid gap-3 rounded-md bg-slate-50 p-3 ${styles.variantRow}`}><input value={v.name} onChange={e=>updateVariant(i,{name:e.target.value})} placeholder="Variant name" aria-label="Variant name" className={`${input} ${styles.variantName}`} /><input value={v.sku} onChange={e=>updateVariant(i,{sku:e.target.value})} placeholder="SKU" className={input} /><input value={v.price} onChange={e=>updateVariant(i,{price:e.target.value})} placeholder="Price" className={input} /><label className="flex items-center gap-2 text-xs"><input type="checkbox" className={styles.checkbox} checked={v.isEnabled} onChange={e=>updateVariant(i,{isEnabled:e.target.checked})} /> Enabled</label></div>)}</section> : null}
-        <footer className="mt-5 flex justify-end gap-3 border-t border-slate-200 pt-4">{mode === "create" && <button type="button" onClick={onClose} className={styles.secondary}>Cancel</button>}<button type="submit" disabled={submitting} className={styles.primary}>{submitting ? "Saving..." : mode === "create" ? "Create Product" : "Save Changes"}</button></footer>
+        <footer className="mt-5 flex justify-end gap-3 border-t border-slate-200 pt-4">{mode === "create" && <button type="button" onClick={onClose} className={styles.secondary}>Cancel</button>}<button type="submit" disabled={submitting || uploading} className={styles.primary}>{submitting || uploading ? "Saving..." : mode === "create" ? "Create Product" : "Save Changes"}</button></footer>
       </form>
     </div>
   </div>;

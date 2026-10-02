@@ -1,25 +1,25 @@
 "use client";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import {
-  ArrowLeft, Search, ShoppingCart, Coffee, Cookie, Sandwich, Trash2, Minus, Plus,
-  StickyNote, Pencil, Loader2, Wifi, WifiOff, RotateCcw,
+  ArrowLeft, Search, ShoppingCart, Trash2, Minus, Plus,
+  StickyNote, Pencil, Loader2, Maximize2, Minimize2,
+  Coffee, Cookie, Sandwich, Utensils, CupSoda, CakeSlice,
 } from "lucide-react";
 import type {
   ConfiguredPosCartItemInput, PaymentMethod, PosCartItem, PosCheckoutPayload,
-  PosMenuProduct, PosOrder,
+  PosMenuCategory, PosMenuProduct, PosOrder,
 } from "@/lib/pos";
 import {
   checkoutPos, fetchPosMenu, refundOrder,
 } from "@/lib/pos";
 import {
-  cacheMenuSnapshot, createOfflineOperationId, enqueueQueuedCheckout,
-  getCachedMenuSnapshot, loadQueuedCheckouts, removeQueuedCheckout,
-  updateQueuedCheckout, type OfflineCheckoutEntry,
+  cacheMenuSnapshot, createOfflineOperationId, getCachedMenuSnapshot,
 } from "@/lib/pos-offline";
 import { calculateIncludedVat, formatPeso } from "@/lib/pos-utils";
+import ProductImage from "@/components/ProductImage";
 import ProductConfiguratorModal from "./modals/ProductConfiguratorModal";
 import VoidConfirmationModal from "./modals/VoidConfirmationModal";
 import PaymentModal, { type PaymentState } from "./modals/PaymentModal";
@@ -72,26 +72,29 @@ function buildCartItem(payload: ConfiguredPosCartItemInput, existing?: PosCartIt
 
 const getDiscountConfig = (discountValue: string) => DISCOUNT_OPTIONS.find((option) => option.value === discountValue) ?? DISCOUNT_OPTIONS[0];
 const defaultReversalState = (): ReversalState => ({ order: null, type: "REFUND", approverEmail: "", approverPassword: "", reasonCode: "", note: "", paymentReference: "" });
-const isNetworkError = (error: unknown) => error instanceof TypeError || String(error).toLowerCase().includes("failed to fetch") || String(error).toLowerCase().includes("network");
 
-function iconForCategory(categoryName: string) {
-  const normalized = categoryName.toLowerCase();
-  if (normalized.includes("coffee") || normalized.includes("drinks")) return <Coffee className="h-4 w-4" />;
-  if (normalized.includes("pastr")) return <Cookie className="h-4 w-4" />;
-  return <Sandwich className="h-4 w-4" />;
+function categoryIcon(categoryName: string) {
+  const name = categoryName.toLowerCase();
+  if (name.includes("pasta")) return Utensils;
+  if (name.includes("coffee") || name.includes("tea")) return Coffee;
+  if (name.includes("pastr") || name.includes("bread")) return Cookie;
+  if (name.includes("cake") || name.includes("dessert")) return CakeSlice;
+  if (name.includes("sandwich") || name.includes("burger")) return Sandwich;
+  if (name.includes("drink") || name.includes("beverage") || name.includes("smoothie")) return CupSoda;
+  return Utensils;
 }
 
 export default function StaffPOSPage() {
-  const { focusMode } = usePOSFocusMode();
+  const { focusMode, toggleFocusMode } = usePOSFocusMode();
   const user = useAuthStore((state) => state.user);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [choosingCategory, setChoosingCategory] = useState(true);
   const [cart, setCart] = useState<PosCartItem[]>([]);
   const [menuProducts, setMenuProducts] = useState<PosMenuProduct[]>([]);
+  const [menuCategories, setMenuCategories] = useState<PosMenuCategory[]>([]);
   const [menuLoading, setMenuLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [syncingQueue, setSyncingQueue] = useState(false);
   const [reversalSubmitting, setReversalSubmitting] = useState(false);
   const [configuratorProduct, setConfiguratorProduct] = useState<PosMenuProduct | null>(null);
   const [editingCartItem, setEditingCartItem] = useState<PosCartItem | null>(null);
@@ -102,25 +105,29 @@ export default function StaffPOSPage() {
   const [showPayment, setShowPayment] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [voidTargetItem, setVoidTargetItem] = useState<PosCartItem | null>(null);
-  const [queuedCheckouts, setQueuedCheckouts] = useState<OfflineCheckoutEntry[]>([]);
-  const [isOnline, setIsOnline] = useState(true);
   const [reversalState, setReversalState] = useState<ReversalState>(defaultReversalState());
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const syncInFlightRef = useRef(false);
 
   const discountConfig = getDiscountConfig(discount);
   const staffName = user?.name || user?.email || "Staff User";
-  const pendingSyncCount = queuedCheckouts.length;
-  const categories = useMemo(() => ["All", ...new Set(menuProducts.map((product) => product.category.name))], [menuProducts]);
+  // Apply admin enablement and stock availability to both live and cached menus.
+  const availableProducts = useMemo(() => menuProducts
+    .filter((product) => product.isEnabled)
+    .map((product) => ({
+      ...product,
+      variants: product.variants.filter((variant) => variant.isEnabled && variant.availability?.isSellable === true),
+    }))
+    .filter((product) => product.variants.length > 0), [menuProducts]);
+  const categories = useMemo(() => ["All", ...new Set(menuCategories.map((item) => item.name))], [menuCategories]);
   const filteredProducts = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return menuProducts.filter((product) => {
+    return availableProducts.filter((product) => {
       const matchCategory = category === "All" || product.category.name === category;
       const matchSearch = !term ? true : [product.name, product.category.name, ...product.variants.map((variant) => variant.sku)].join(" ").toLowerCase().includes(term);
       return matchCategory && matchSearch;
     });
-  }, [category, menuProducts, search]);
+  }, [category, availableProducts, search]);
   const totals = useMemo(() => {
     const subtotal = cart.reduce((sum, item) => sum + item.lineSubtotal, 0);
     const discountAmount = subtotal * discountConfig.rate;
@@ -128,7 +135,6 @@ export default function StaffPOSPage() {
     return { subtotal, discountAmount, total, tax: calculateIncludedVat(total) };
   }, [cart, discountConfig.rate]);
 
-  const refreshQueuedCheckouts = () => setQueuedCheckouts(loadQueuedCheckouts());
   const closeConfigurator = () => { setConfiguratorProduct(null); setEditingCartItem(null); };
   const resetTransaction = () => {
     setCart([]); setTransactionNote(""); setDiscount("none");
@@ -140,12 +146,14 @@ export default function StaffPOSPage() {
     try {
       const response = await fetchPosMenu();
       setMenuProducts(response.products);
+      setMenuCategories(response.categories);
       cacheMenuSnapshot(response);
       setError(null);
     } catch (nextError) {
       const cachedSnapshot = getCachedMenuSnapshot();
       if (cachedSnapshot) {
         setMenuProducts(cachedSnapshot.menu.products);
+        setMenuCategories(cachedSnapshot.menu.categories);
         setNotice(`Using cached menu from ${new Intl.DateTimeFormat("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(cachedSnapshot.cachedAt))}.`);
       } else {
         setError(nextError instanceof Error ? nextError.message : "Failed to load POS menu");
@@ -155,67 +163,7 @@ export default function StaffPOSPage() {
     }
   }
 
-  async function syncQueuedOrders() {
-    if (!useAuthStore.getState().can("pos.checkout")) return;
-    if (!navigator.onLine || syncInFlightRef.current) return;
-    const queue = loadQueuedCheckouts();
-    if (queue.length === 0) return;
-    syncInFlightRef.current = true;
-    setSyncingQueue(true);
-    let syncedCount = 0;
-    try {
-      for (const entry of queue) {
-        if (!useAuthStore.getState().can("pos.checkout")) break;
-        updateQueuedCheckout(entry.operationId, (current) => ({ ...current, status: "SYNCING", error: null }));
-        refreshQueuedCheckouts();
-        try {
-          const response = await checkoutPos(entry.payload);
-          removeQueuedCheckout(entry.operationId);
-          refreshQueuedCheckouts();
-          setLatestReceipt(response.order);
-          syncedCount += 1;
-        } catch (nextError) {
-          if (isNetworkError(nextError)) {
-            updateQueuedCheckout(entry.operationId, (current) => ({ ...current, status: "PENDING", error: null }));
-            refreshQueuedCheckouts();
-            break;
-          }
-          updateQueuedCheckout(entry.operationId, (current) => ({
-            ...current,
-            status: "FAILED",
-            error: nextError instanceof Error ? nextError.message : "Queued checkout failed to sync",
-          }));
-          refreshQueuedCheckouts();
-        }
-      }
-      if (syncedCount > 0) {
-        setNotice(syncedCount === 1 ? "Queued checkout synced successfully." : `${syncedCount} queued checkouts synced successfully.`);
-
-      }
-    } finally {
-      syncInFlightRef.current = false;
-      setSyncingQueue(false);
-    }
-  }
-
-  useEffect(() => {
-    setIsOnline(typeof navigator !== "undefined" ? navigator.onLine : true);
-    refreshQueuedCheckouts();
-    const handleOnline = () => { setIsOnline(true); setNotice("Connection restored. Attempting to sync queued checkouts."); void syncQueuedOrders(); };
-    const handleOffline = () => { setIsOnline(false); setNotice("Offline mode enabled. Checkout commands will queue for sync."); };
-    const handleStorage = () => refreshQueuedCheckouts();
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-    window.addEventListener("storage", handleStorage);
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-      window.removeEventListener("storage", handleStorage);
-    };
-  }, []);
-
   useEffect(() => { void loadMenu(); }, []);
-  useEffect(() => { if (isOnline) void syncQueuedOrders(); }, [isOnline]);
 
   const addConfiguredItem = (payload: ConfiguredPosCartItemInput) => { setCart((current) => [...current, buildCartItem(payload)]); closeConfigurator(); };
   const updateConfiguredItem = (payload: ConfiguredPosCartItemInput) => {
@@ -225,8 +173,11 @@ export default function StaffPOSPage() {
     closeConfigurator();
   };
   const openEditItem = (cartItem: PosCartItem) => {
-    const product = menuProducts.find((item) => item.id === cartItem.productId);
-    if (!product) return;
+    const product = availableProducts.find((item) => item.id === cartItem.productId);
+    if (!product || !product.variants.some((variant) => variant.id === cartItem.productVariantId)) {
+      setError("This item is no longer available. Remove it from the cart and choose an available item.");
+      return;
+    }
     setEditingCartItem(cartItem); setConfiguratorProduct(product);
   };
   const updateQty = (cartId: string, nextQty: number) => {
@@ -249,19 +200,6 @@ export default function StaffPOSPage() {
     discountRate: discountConfig.rate,
     notes: transactionNote || undefined,
   });
-  const queueCheckoutForSync = (payload: PosCheckoutPayload) => {
-    enqueueQueuedCheckout({
-      operationId: payload.idempotencyKey,
-      idempotencyKey: payload.idempotencyKey,
-      createdAt: new Date().toISOString(),
-      status: "PENDING",
-      payload,
-      preview: { totalAmount: totals.total, cartCount: cart.length, notes: transactionNote || undefined },
-    });
-    refreshQueuedCheckouts(); setShowPayment(false); resetTransaction();
-    setNotice("Checkout queued locally. It will sync when the connection returns.");
-  };
-
   const handleConfirmPayment = async () => {
     if (!useAuthStore.getState().can("pos.checkout")) return;
     if (!cart.length) return setError("No transaction to process.");
@@ -269,14 +207,12 @@ export default function StaffPOSPage() {
     if (totalPaid < totals.total) return setError("Incomplete payment. Please settle the full amount before checkout.");
     const operationId = createOfflineOperationId("checkout");
     const payload = buildCheckoutPayload(operationId);
-    if (!isOnline) return queueCheckoutForSync(payload);
     setCheckoutLoading(true); setError(null);
     try {
       const response = await checkoutPos(payload);
       setLatestReceipt(response.order); setShowPayment(false); setShowReceipt(true); resetTransaction();  setNotice(null);
     } catch (nextError) {
-      if (isNetworkError(nextError)) queueCheckoutForSync(payload);
-      else setError(nextError instanceof Error ? nextError.message : "Failed to complete checkout");
+      setError(nextError instanceof Error ? nextError.message : "Failed to complete checkout");
     } finally {
       setCheckoutLoading(false);
     }
@@ -302,25 +238,21 @@ export default function StaffPOSPage() {
 
   return (
     <div className={`${styles.posPage} w-full text-slate-900`} data-focus-mode={focusMode ? "true" : undefined} data-pos-scroll={!choosingCategory && (category === "All" || focusMode) ? "true" : undefined}>
-      <div className={`${styles.posContent} flex w-full flex-col gap-4`}>
-        <div className={`${focusStyles.retract} ${focusMode ? focusStyles.retracted : ""}`} inert={focusMode}>
-        <div className={focusStyles.retractInner}>
-        <header className="flex flex-col justify-between gap-3 rounded-3xl bg-white p-5 shadow-sm md:flex-row md:items-center">
-          <div>
-            <p className="text-sm font-medium text-[#232d46]">Staff Panel</p>
-            <h1 className="text-2xl font-bold">Staff POS</h1>
-            <p className="text-sm text-slate-500">Real menu browsing, backend-driven variants and modifiers, and checkout synced to inventory. Signed in as <span className="font-medium text-slate-700">{staffName}</span>.</p>
+      <div className={`${styles.posContent} flex w-full flex-col gap-4`} data-choosing-category={choosingCategory ? "true" : undefined}>
+        <header className={`${focusStyles.posHeader} ${focusMode ? focusStyles.posHeaderFocused : ""}`}>
+          <div className={focusStyles.posHeaderDetails} inert={focusMode} aria-hidden={focusMode}>
+            <div className={focusStyles.retractInner}>
+              <p className="text-sm font-medium text-[#232d46]">Staff Panel</p>
+              <h1 className="text-2xl font-bold">Staff POS</h1>
+              <p className="text-sm text-slate-500">Real menu browsing, backend-driven variants and modifiers, and checkout synced to inventory. Signed in as <span className="font-medium text-slate-700">{staffName}</span>.</p>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium ${isOnline ? "bg-emerald-50 text-emerald-700" : "bg-[#edf2f8] text-[#34445f]"}`}>{isOnline ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}{isOnline ? "Online" : "Offline"}</span>
-            <span className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">Pending Sync: {pendingSyncCount}</span>
-            {pendingSyncCount > 0 ? <PermissionAction permission="pos.checkout"><button onClick={() => void syncQueuedOrders()} type="button" disabled={!isOnline || syncingQueue} className="inline-flex items-center gap-2 rounded-2xl border border-[#cbd5e1] bg-[#edf2f8] px-4 py-2 text-sm font-medium text-[#34445f] hover:bg-[#dce2eb] disabled:opacity-60"><RotateCcw className={`h-4 w-4 ${syncingQueue ? "animate-spin" : ""}`} />{syncingQueue ? "Syncing..." : "Sync Queue"}</button></PermissionAction> : null}
-          </div>
+          <button type="button" className={`${focusStyles.toggle} ${focusStyles.posHeaderToggle}`} aria-pressed={focusMode} onClick={toggleFocusMode}>
+            {focusMode ? <Minimize2 size={18} aria-hidden="true" /> : <Maximize2 size={18} aria-hidden="true" />}
+            {focusMode ? "Exit Focus Mode" : "Focus Mode"}
+          </button>
         </header>
-        </div>
-        </div>
 
-        {!isOnline ? <div className="rounded-2xl border border-[#cbd5e1] bg-[#edf2f8] px-4 py-3 text-sm text-[#232d46]">Offline mode is active. Menu browsing stays available from cache, and new checkouts are queued locally until sync succeeds.</div> : null}
         {notice ? <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} /> : null}
         {error ? <ActionAlert tone="error" title="Action failed" message={error} onDismiss={() => setError(null)} /> : null}
 
@@ -336,7 +268,7 @@ export default function StaffPOSPage() {
             </div>
             {menuLoading ? (
               <p role="status" className="flex items-center gap-2 py-8 text-slate-500"><Loader2 className="h-5 w-5 animate-spin" />Loading categories...</p>
-            ) : menuProducts.length === 0 ? (
+            ) : menuCategories.length === 0 ? (
               <p className="py-8 text-slate-500">No menu categories available.</p>
             ) : (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 xl:gap-6">
@@ -365,19 +297,26 @@ export default function StaffPOSPage() {
               <div className="flex min-h-[360px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500"><span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Loading menu</span></div>
             ) : (
               <div className={styles.productGrid} role="region" aria-label="Products" tabIndex={category === "All" || focusMode ? 0 : undefined}>
-                {filteredProducts.length === 0 && <p className="col-span-full py-8 text-center text-slate-500">No products match your search in this category.</p>}
+                {filteredProducts.length === 0 && <p className="col-span-full py-8 text-center text-slate-500">{search.trim() ? "No available products match your search in this category." : "No products are currently available in this category."}</p>}
                 {filteredProducts.map((product) => {
+                  const CategoryIcon = categoryIcon(product.category.name);
                   const sellableVariants = product.variants.filter((variant) => variant.isEnabled && variant.availability?.isSellable);
                   const cheapestVariant = [...product.variants].sort((left, right) => Number(left.price) - Number(right.price))[0];
                   const isSellable = sellableVariants.length > 0;
                   return (
                     <button key={product.id} onClick={() => { setConfiguratorProduct(product); setEditingCartItem(null); }} type="button" disabled={!product.isEnabled || !isSellable} className={styles.productCard}>
-                      <div className={styles.productCardHeader}><span className={styles.productCategory}>{product.category.name}</span>{iconForCategory(product.category.name)}</div>
-                      <h3 className={styles.productName}>{product.name}</h3>
-                      <p className={styles.productDescription}>{product.variants.length} variant{product.variants.length === 1 ? "" : "s"} • {product.modifierGroups.length} modifier group{product.modifierGroups.length === 1 ? "" : "s"}</p>
-                      <div className={styles.productCardFooter}>
-                        <p className={styles.productPrice}><span>Starts at</span><strong>{formatPeso(cheapestVariant?.price ?? 0)}</strong></p>
-                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isSellable ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{isSellable ? "Available" : "Unavailable"}</span>
+                      <ProductImage src={product.imageUrl} name={product.name} />
+                      <div className={styles.productCardBody}>
+                        <div className={styles.productCategoryRow}>
+                          <span className={styles.productCategory}>{product.category.name}</span>
+                          <CategoryIcon size={16} strokeWidth={1.75} aria-hidden="true" />
+                        </div>
+                        <h3 className={styles.productName}>{product.name}</h3>
+                        <p className={styles.productDescription}><span className={styles.availableDot} />Available {product.variants.length} variant{product.variants.length === 1 ? "" : "s"}</p>
+                        <div className={styles.productCardFooter}>
+                          <p className={styles.productPrice}><strong>{formatPeso(cheapestVariant?.price ?? 0)}</strong><span>{product.variants.length > 1 ? " / from" : " / item"}</span></p>
+                          <span className={styles.productAdd} aria-hidden="true"><Plus size={18} /></span>
+                        </div>
                       </div>
                     </button>
                   );
@@ -433,7 +372,7 @@ export default function StaffPOSPage() {
 
             <div className={styles.cartActions}>
               <button onClick={handleCancelTransaction} type="button" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-100">Cancel Transaction</button>
-              <PermissionAction permission="pos.checkout"><button onClick={() => setShowPayment(true)} type="button" disabled={cart.length === 0} className="rounded-2xl bg-[#232d46] px-4 py-3 text-sm font-semibold text-white hover:bg-[#34445f] disabled:cursor-not-allowed disabled:bg-slate-300">{checkoutLoading ? "Processing..." : isOnline ? "Process Order" : "Queue Checkout"}</button></PermissionAction>
+              <PermissionAction permission="pos.checkout"><button onClick={() => setShowPayment(true)} type="button" disabled={cart.length === 0} className="rounded-2xl bg-[#232d46] px-4 py-3 text-sm font-semibold text-white hover:bg-[#34445f] disabled:cursor-not-allowed disabled:bg-slate-300">{checkoutLoading ? "Processing..." : "Process Order"}</button></PermissionAction>
             </div>
           </aside>
         </div>}

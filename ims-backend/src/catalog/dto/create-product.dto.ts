@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
   MaxLength,
+  Matches,
   ValidateNested,
 } from 'class-validator';
 
@@ -35,6 +36,11 @@ export class CreateProductVariantInputDto {
 }
 
 export class CreateProductDto {
+  @IsOptional()
+  @IsString()
+  @Matches(/^\/product-images\/[0-9a-f-]{36}\.webp$/)
+  imageUrl?: string | null;
+
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @IsNotEmpty()

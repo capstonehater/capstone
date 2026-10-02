@@ -11,6 +11,7 @@ import type {
   PosMenuProduct,
 } from "@/lib/pos";
 import { decimalToNumber, formatPeso } from "@/lib/pos-utils";
+import ProductImage from "@/components/ProductImage";
 import Modal from "./Modal";
 import styles from "./ProductConfiguratorModal.module.css";
 
@@ -215,16 +216,8 @@ export default function ProductConfiguratorModal({
   };
 
   return (
-    <Modal title={product.name} onClose={onClose} wide={product.modifierGroups.length > 0} bodyClassName={styles.body} footer={
+    <Modal title={product.name} onClose={onClose} closeButtonStyle="back" wide panelClassName={styles.openingPanel} bodyClassName={styles.body} footer={
 <div className={styles.footer}>
-        <button
-          onClick={onClose}
-          type="button"
-          className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium"
-        >
-          Cancel
-        </button>
-
         <button
           onClick={handleSubmit}
           type="button"
@@ -234,8 +227,10 @@ export default function ProductConfiguratorModal({
         </button>
       </div>
 }>
-      <div className={product.modifierGroups.length > 0 ? styles.layout : styles.simpleLayout}>
-        <div className="space-y-4">
+      <div className={styles.layout}>
+        <div className={styles.productOverview}>
+          <div className={styles.productPhoto}><ProductImage src={product.imageUrl} name={product.name} /></div>
+          <h3 className={styles.productTitle}>{product.name}</h3>
           <div className="rounded-2xl bg-slate-50 p-4">
             <p className="text-sm text-slate-500">Category: {product.category.name}</p>
             <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -256,6 +251,8 @@ export default function ProductConfiguratorModal({
             </div>
           </div>
 
+        </div>
+        <div className="space-y-4">
           <div>
             <label className="mb-2 block text-sm font-semibold">Variant</label>
             <div className="grid gap-2">
@@ -312,7 +309,6 @@ export default function ProductConfiguratorModal({
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
             />
           </div>
-        </div>
 
         <div className={product.modifierGroups.length > 0 ? "space-y-4" : styles.noModifiers}>
           <div className="flex items-center justify-between">
@@ -438,6 +434,7 @@ export default function ProductConfiguratorModal({
               {error}
             </div>
           ) : null}
+        </div>
         </div>
       </div>
 

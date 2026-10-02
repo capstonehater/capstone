@@ -124,6 +124,7 @@ export async function createProduct(
       method: "POST",
       body: JSON.stringify({
         name: payload.name,
+        imageUrl: payload.imageUrl,
         categoryId: payload.categoryId,
         isEnabled: payload.isEnabled,
         initialVariants: payload.initialVariants.map((variant) => ({
@@ -142,6 +143,7 @@ export async function createProduct(
 export async function updateProduct(
   productId: string,
   payload: {
+    imageUrl?: string | null;
     name?: string;
     categoryId?: string;
     isEnabled?: boolean;

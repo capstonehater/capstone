@@ -8,7 +8,11 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { MAX_PRODUCT_IMAGE_SIZE, saveProductImage } from './product-image';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user.type';
@@ -25,6 +29,28 @@ import { ProductManagementService } from './product-management.service';
 
 @Controller('admin')
 export class AdminProductsController {
+  @Post('product-images')
+  @RequirePermission('products.create')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      limits: { fileSize: MAX_PRODUCT_IMAGE_SIZE, files: 1 },
+    }),
+  )
+  uploadNewProductImage(@UploadedFile() file?: Express.Multer.File) {
+    return saveProductImage(file);
+  }
+
+  @Post('product-images/replacement')
+  @RequirePermission('products.edit')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      limits: { fileSize: MAX_PRODUCT_IMAGE_SIZE, files: 1 },
+    }),
+  )
+  uploadReplacementProductImage(@UploadedFile() file?: Express.Multer.File) {
+    return saveProductImage(file);
+  }
+
   constructor(
     private readonly productManagementService: ProductManagementService,
   ) {}

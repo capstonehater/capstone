@@ -9,6 +9,11 @@
   --bs-body-font-family: var(--font-sans);
 }
 
+/* Preserve page width when a modal locks scrolling and hides the scrollbar. */
+html {
+  scrollbar-gutter: stable;
+}
+
 html,
 body {
   background: var(--background);

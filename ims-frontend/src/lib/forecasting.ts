@@ -27,7 +27,7 @@ export type ForecastRun = {
   noteSeries?: Pick<ForecastSeries, 'materialId' | 'name' | 'unit' | 'metadata'>[];
 };
 export type NextForecastPeriod = { days: number; startDate: string; endDate: string };
-export type ForecastResponse = { run: ForecastRun | null; activeRun: ForecastRun | null; scope: string; periods: Pick<ForecastRun, 'id' | 'startDate' | 'endDate' | 'createdAt'>[]; nextScheduledDate: string | null; nextForecastPeriod: NextForecastPeriod; automaticRetryPending: boolean };
+export type ForecastResponse = { run: ForecastRun | null; activeRun: ForecastRun | null; scope: string; periods: Pick<ForecastRun, 'id' | 'startDate' | 'endDate' | 'createdAt'>[]; nextScheduledDate: string | null; nextForecastPeriod: NextForecastPeriod; automaticRetryPending: boolean; scheduleError: string | null; lastFailedRun: Pick<ForecastRun, 'id' | 'status' | 'startDate' | 'endDate' | 'error'> | null };
 export const fetchForecastProducts = () => apiJsonFetch<{ products: ForecastProduct[] }>('/forecasting/products');
 export const fetchForecast = (productId = '', runId = '') => apiJsonFetch<ForecastResponse>(`/forecasting/latest?${new URLSearchParams({ ...(productId ? { productId } : {}), ...(runId ? { runId } : {}) })}`);
 export const fetchForecastRun = (id: string) => apiJsonFetch<{ run: ForecastRun }>(`/forecasting/runs/${encodeURIComponent(id)}`);

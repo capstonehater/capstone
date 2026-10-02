@@ -27,7 +27,8 @@ export default function StaffDashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [focusEnabled, setFocusEnabled] = useState(false);
-  const focusMode = focusEnabled && (pathname === "/staff/dashboard" || pathname === "/staff/pos");
+  const isPOSPage = pathname === "/staff/dashboard" || pathname === "/staff/pos";
+  const focusMode = focusEnabled && isPOSPage;
   const links = getVisibleNavigation(useAuthStore()).flatMap(group => group.items).map(item =>
     item.authenticatedOnly ? {...item, href: "/staff/settings"} : item
   );
@@ -47,7 +48,7 @@ export default function StaffDashboardLayout({
         </nav>
         <button type="button" className={styles.staffCollapseButton} onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <Menu size={18} /> : <ChevronLeft size={18} />}</button>
       </aside>
-      <div className={`${styles.staffBody} ${focusStyles.body}`}><button type="button" className={`${styles.shellMobileMenu} ${focusStyles.mobileMenu}`} onClick={() => setSidebarOpen(true)} aria-label="Open navigation"><Menu size={20} /></button>{showHeader && pathname !== "/staff/transactions" && <div className={focusStyles.retract}><div className={focusStyles.retractInner}><StaffHeader focusMode={focusMode} onToggleFocus={pathname === "/staff/dashboard" || pathname === "/staff/pos" ? () => { setFocusEnabled((value) => !value); setSidebarOpen(false); } : undefined} /></div></div>}<main className={styles.content}>{children}</main></div>
+      <div className={`${styles.staffBody} ${focusStyles.body}`}><button type="button" className={`${styles.shellMobileMenu} ${focusStyles.mobileMenu}`} onClick={() => setSidebarOpen(true)} aria-label="Open navigation"><Menu size={20} /></button>{showHeader && !isPOSPage && pathname !== "/staff/transactions" && <div className={focusStyles.retract}><div className={focusStyles.retractInner}><StaffHeader /></div></div>}<main className={styles.content}>{children}</main></div>
     </div>
     </FocusModeContext.Provider>
   );

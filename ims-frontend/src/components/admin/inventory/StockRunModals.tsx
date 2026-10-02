@@ -1,4 +1,5 @@
 "use client";
+import AdminSelect from "@/components/admin/AdminSelect";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import type { FormEvent } from "react";
@@ -187,45 +188,8 @@ export default function StockRunModals({
                 </div>
 
                 <PermissionAction permission={"stockRuns.edit"}><form className="grid gap-4 rounded-[26px] border border-slate-200 bg-white p-5" onSubmit={onAddStockRunItem}>
-                  <InventoryField htmlFor="stock-run-item-material" label="Raw material">
-                    <select
-                      id="stock-run-item-material"
-                      value={stockRunItemForm.rawMaterialId}
-                      onChange={(event) => {
-                        const nextId = event.target.value;
-                        onStockRunItemFormChange((current) => ({ ...current, rawMaterialId: nextId }));
-                        onSelectRawMaterial(nextId);
-                      }}
-                      className={inventoryInputClasses}
-                    >
-                      <option value="">Select raw material</option>
-                      {summaries.map((summary) => (
-                        <option key={summary.rawMaterialId} value={summary.rawMaterialId}>
-                          {summary.name}
-                        </option>
-                      ))}
-                    </select>
-                  </InventoryField>
-                  <InventoryField htmlFor="stock-run-item-supplier" label="Supplier">
-                    <select
-                      id="stock-run-item-supplier"
-                      value={stockRunItemForm.supplierId}
-                      onChange={(event) =>
-                        onStockRunItemFormChange((current) => ({
-                          ...current,
-                          supplierId: event.target.value,
-                        }))
-                      }
-                      className={inventoryInputClasses}
-                    >
-                      <option value="">Optional supplier</option>
-                      {suppliers.map((supplier) => (
-                        <option key={supplier.id} value={supplier.id}>
-                          {supplier.name}
-                        </option>
-                      ))}
-                    </select>
-                  </InventoryField>
+                  <AdminSelect label="Raw material" value={stockRunItemForm.rawMaterialId} onChange={(rawMaterialId) => { onStockRunItemFormChange((current) => ({ ...current, rawMaterialId })); onSelectRawMaterial(rawMaterialId); }} options={[{ value: "", label: "Select raw material" }, ...summaries.map((summary) => ({ value: summary.rawMaterialId, label: summary.name }))]} />
+                  <AdminSelect label="Supplier" value={stockRunItemForm.supplierId} onChange={(supplierId) => onStockRunItemFormChange((current) => ({ ...current, supplierId }))} options={[{ value: "", label: "Optional supplier" }, ...suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))]} />
                   <InventoryField htmlFor="stock-run-item-quantity" label="Quantity">
                     <input
                       id="stock-run-item-quantity"

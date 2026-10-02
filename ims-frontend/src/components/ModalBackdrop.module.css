@@ -6,9 +6,14 @@
 }
 
 /* Keep the page locked until the last modal is removed, including stacked dialogs. */
-:global(html):has(.backdrop),
-:global(body):has(.backdrop) {
+:global(html):has(.backdrop) {
   overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Clip without creating a new scroll container for sticky page navigation. */
+:global(body):has(.backdrop) {
+  overflow: clip;
   overscroll-behavior: none;
 }
 

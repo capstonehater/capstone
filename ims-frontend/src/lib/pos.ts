@@ -56,6 +56,7 @@ export type PosMenuModifierGroup = {
 };
 
 export type PosMenuProduct = {
+  imageUrl?: string | null;
   id: string;
   name: string;
   isEnabled: boolean;

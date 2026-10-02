@@ -155,7 +155,7 @@ describe('User management and auth foundation (e2e)', () => {
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
 
     prismaMock.$transaction.mockImplementation(async (input: unknown) => {
       if (typeof input === 'function') {
@@ -196,7 +196,47 @@ describe('User management and auth foundation (e2e)', () => {
       imports: [AppModule],
     })
       .overrideProvider(PrismaService)
-      .useValue(prismaMock)
+      .useValue({
+        ...prismaMock,
+        user: {
+          ...prismaMock.user,
+          findUnique: (args: Prisma.UserFindUniqueArgs) => {
+            // Authorization reads concern the session actor, not the target
+            // user returned by each user-management test's query fixture.
+            if (args.select?.accessRoles && args.select?.accountStatus) {
+              const session =
+                prismaMock.authSession.findUnique.mock.results.at(-1)?.value;
+              return Promise.resolve(session).then((value) => {
+                const actor = value?.user ?? buildUser();
+                return {
+                  ...actor,
+                  accessRoles:
+                    actor.role === 'ADMINISTRATOR'
+                      ? [
+                          {
+                            assignedAt: new Date('2026-01-01T00:00:00Z'),
+                            role: {
+                              id: 'admin-role',
+                              key: 'ADMINISTRATOR',
+                              name: 'Administrator',
+                              description: 'Test administrator',
+                              revision: 1,
+                              permissions: [
+                                'users.view',
+                                'users.manage',
+                                'users.sessions.revoke',
+                              ].map((key) => ({ permission: { key } })),
+                            },
+                          },
+                        ]
+                      : [],
+                };
+              });
+            }
+            return prismaMock.user.findUnique(args);
+          },
+        },
+      })
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -341,6 +381,20 @@ describe('User management and auth foundation (e2e)', () => {
         email: 'admin@stockscout.com',
         name: 'Admin User',
         role: 'ADMINISTRATOR',
+        roles: [
+          {
+            id: 'admin-role',
+            key: 'ADMINISTRATOR',
+            name: 'Administrator',
+            description: 'Test administrator',
+          },
+        ],
+        effectivePermissions: [
+          'users.manage',
+          'users.sessions.revoke',
+          'users.view',
+        ],
+        authorizationRevision: expect.any(String),
       },
     });
     expect(response.headers['set-cookie']).toBeDefined();
@@ -539,7 +593,7 @@ describe('User management and auth foundation (e2e)', () => {
     expect(response.body.user.lockedUntil).toBeUndefined();
   });
 
-  it('blocks staff from administrator settings endpoints', async () => {
+  it('allows staff to read their own account settings', async () => {
     const cookieName = process.env.SESSION_COOKIE_NAME ?? 'ims_session';
 
     prismaMock.authSession.findUnique.mockResolvedValue(
@@ -549,14 +603,15 @@ describe('User management and auth foundation (e2e)', () => {
         role: 'STAFF',
       }),
     );
+    prismaMock.user.findUnique.mockResolvedValue(buildUser({ role: 'STAFF' }));
 
     await request(app.getHttpServer())
       .get('/settings/account')
       .set('Cookie', `${cookieName}=raw-session-token`)
-      .expect(403);
+      .expect(200);
   });
 
-  it('blocks manager accounts from administrator settings endpoints', async () => {
+  it('allows managers to read their own account settings', async () => {
     const cookieName = process.env.SESSION_COOKIE_NAME ?? 'ims_session';
 
     prismaMock.authSession.findUnique.mockResolvedValue(
@@ -566,11 +621,14 @@ describe('User management and auth foundation (e2e)', () => {
         role: 'MANAGER',
       }),
     );
+    prismaMock.user.findUnique.mockResolvedValue(
+      buildUser({ role: 'MANAGER' }),
+    );
 
     await request(app.getHttpServer())
       .get('/settings/account')
       .set('Cookie', `${cookieName}=raw-session-token`)
-      .expect(403);
+      .expect(200);
   });
 
   it('updates harmless settings profile fields without revoking sessions', async () => {

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -17,6 +18,7 @@ import {
 } from '../common/utils/manila-business-date.util';
 import { OrdersService } from '../orders/orders.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { removeProductImage } from './product-image';
 import { ArchiveProductDto } from './dto/archive-product.dto';
 import {
   CreateProductDto,
@@ -205,6 +207,7 @@ export class ProductManagementService {
     return {
       id: product.id,
       name: product.name,
+      imageUrl: product.imageUrl,
       category: {
         id: product.category.id,
         name: product.category.name,
@@ -259,6 +262,7 @@ export class ProductManagementService {
       await this.ensureProductNameAvailable(tx, dto.categoryId, dto.name);
       const product = await tx.product.create({
         data: {
+          imageUrl: dto.imageUrl,
           categoryId: dto.categoryId,
           name: dto.name,
           isEnabled: dto.isEnabled ?? true,
@@ -324,9 +328,21 @@ export class ProductManagementService {
       where: { id: productId },
       data: {
         name: dto.name,
+        imageUrl: dto.imageUrl,
         categoryId: dto.categoryId,
       },
     });
+
+    // Delete only after the replacement (or removal) is saved successfully.
+    if (dto.imageUrl !== undefined && existing.imageUrl && existing.imageUrl !== dto.imageUrl) {
+      try {
+        const references = await this.prisma.product.count({ where: { imageUrl: existing.imageUrl } });
+        if (references === 0) await removeProductImage(existing.imageUrl);
+      } catch {
+        // The product is already saved; avoid reporting a failed save on cleanup errors.
+        Logger.warn(`Product ${productId} saved, but its previous photo could not be cleaned up.`, ProductManagementService.name);
+      }
+    }
 
     if (dto.isEnabled !== undefined && dto.isEnabled !== existing.isEnabled) {
       await this.setProductManualAvailability(productId, {
@@ -1813,6 +1829,7 @@ export class ProductManagementService {
       select: {
         id: true,
         name: true,
+        imageUrl: true,
         categoryId: true,
         isEnabled: true,
         archivedAt: true,

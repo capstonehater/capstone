@@ -114,6 +114,7 @@ export class CatalogService {
       products: products.map((product) => ({
         id: product.id,
         name: product.name,
+        imageUrl: product.imageUrl,
         isEnabled: product.isEnabled,
         category: {
           id: product.category.id,

@@ -1,5 +1,6 @@
 .workspace { background:#f5f5f5;padding:0;border-radius:8px;color:#334155;font-family:var(--font-sans);font-size:16px;line-height:1.65 }
-.stats { display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:14px }
+.workspace > header { margin-bottom:20px }
+.stats { display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:20px }
 .stat,.panel { border:1px solid #dce2eb;border-radius:8px;background:white;padding:18px;box-shadow:0 0 1px #00000010 }
 .stat p { font-size:16px;color:#555;margin:0 0 3px }
 .stat strong { font-size:28px;font-weight:700;line-height:1.3;color:#232d46 }
@@ -94,9 +95,10 @@
 .running { display:flex;align-items:center;gap:10px;background:#edf6e9;color:#31572a;border-radius:10px;padding:12px;font-size:16px; }
 .generate:disabled { opacity:.6;cursor:wait; }
 .dataNotes { margin-bottom:20px;border:1px solid #dce2eb;border-radius:12px;background:#fff;color:#475569;font-size:16px; }
-.notesSummary { display:flex;align-items:center;gap:12px;padding:16px 18px;cursor:pointer;list-style:none;border-radius:12px; }
+.notesSummary { display:flex;align-items:center;gap:12px;padding:16px 18px;cursor:pointer;list-style:none;border-radius:12px;background:var(--modal-header-background); }
 .notesSummary::-webkit-details-marker { display:none; }
-.notesSummary:hover { background:#f8fafc; }
+.notesSummary:hover { background:var(--modal-header-background); }
+.dataNotes[open] > .notesSummary { border-radius:12px 12px 0 0; }
 .notesSummary > svg { flex-shrink:0;color:#475569; }
 .notesHeading { display:flex;flex-direction:column;gap:3px;min-width:0; }
 .notesHeading strong { color:#334155;font-size:16px; }
@@ -274,7 +276,7 @@
 @media(max-width:540px) { .refreshActions { width:100%;margin-top:0; } }
 
 /* Give the forecast controls more room while keeping narrow layouts fluid. */
-.filters { align-items:center;gap:18px;margin-bottom:24px;padding:12px 0; }
+.filters { align-items:center;gap:18px;margin-bottom:20px;padding:0; }
 .filters .periodPicker,.filters .dropdown,.filters .dayPicker { min-height:100px;padding:18px 20px;gap:10px;justify-content:center; }
 .filters .periodPicker { flex:1.2 1 280px;min-width:0; }
 .filters .dropdown { flex:1 1 240px;min-width:0; }
@@ -287,7 +289,7 @@
 .filters .refreshActions { margin-top:0; }
 .filters .dropdownOption,.filters .graphSelectOption { min-height:44px;font-size:16px; }
 @media(max-width:540px) {
-  .filters { gap:12px;padding:8px 0; }
+  .filters { gap:12px; }
   .filters .periodPicker,.filters .dropdown,.forecastSettings { flex-basis:100%; }
   .filters .periodPicker,.filters .dropdown,.filters .dayPicker { padding:16px; }
   .filters .refreshActions > .suggestionsButton { width:100%; }
