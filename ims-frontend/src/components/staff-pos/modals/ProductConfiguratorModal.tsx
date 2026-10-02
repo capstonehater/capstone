@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import type {
   ConfiguredPosCartItemInput,
@@ -62,6 +62,32 @@ export default function ProductConfiguratorModal({
   submitLabel,
   initialItem,
 }: Props) {
+  const [closing, setClosing] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const finishWithAnimation = useCallback((action: () => void) => {
+    if (closeTimer.current !== null) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      action();
+      return;
+    }
+    setClosing(true);
+    closeTimer.current = setTimeout(action, 180);
+  }, []);
+  const requestClose = useCallback(() => finishWithAnimation(onClose), [finishWithAnimation, onClose]);
+  useEffect(() => () => {
+    if (closeTimer.current !== null) clearTimeout(closeTimer.current);
+  }, []);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      event.preventDefault();
+      requestClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [requestClose]);
+
   const defaultVariant =
     product.variants.find((variant) => variant.id === initialItem?.productVariantId) ??
     product.variants.find((variant) => variant.availability?.isSellable) ??
@@ -202,7 +228,7 @@ export default function ProductConfiguratorModal({
     }
 
     setError(null);
-    onSubmit({
+    finishWithAnimation(() => onSubmit({
       productId: product.id,
       productName: product.name,
       categoryName: product.category.name,
@@ -212,14 +238,15 @@ export default function ProductConfiguratorModal({
       note,
       basePrice,
       modifierSelections: selectedModifiers,
-    });
+    }));
   };
 
   return (
-    <Modal title={product.name} onClose={onClose} closeButtonStyle="back" wide panelClassName={styles.openingPanel} bodyClassName={styles.body} footer={
+    <Modal title={product.name} onClose={requestClose} closeButtonStyle="back" wide panelClassName={closing ? styles.closingPanel : styles.openingPanel} bodyClassName={styles.body} footer={
 <div className={styles.footer}>
         <button
           onClick={handleSubmit}
+          disabled={closing}
           type="button"
           className="rounded-2xl bg-[#232d46] px-4 py-2 text-sm font-medium text-white hover:bg-[#34445f]"
         >

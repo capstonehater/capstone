@@ -1,11 +1,16 @@
 .body { padding: 24px; color: #1e293b; }
 .openingPanel { animation: openProduct 240ms cubic-bezier(.22, 1, .36, 1) both; }
+.closingPanel { animation: closeProduct 180ms ease-in both; pointer-events: none; }
+@keyframes closeProduct {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(12px) scale(.97); }
+}
 @keyframes openProduct {
   from { opacity: 0; transform: translateY(16px) scale(.97); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .openingPanel { animation: none; }
+  .openingPanel, .closingPanel { animation: none; }
 }
 .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
 .layout > div, .simpleLayout > div { min-width: 0; }
