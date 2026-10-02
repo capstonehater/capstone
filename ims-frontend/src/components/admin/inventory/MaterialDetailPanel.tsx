@@ -137,6 +137,7 @@ export default function MaterialDetailPanel({
   const [batchStatus, setBatchStatus] = useState("");
   const [batchSupplier, setBatchSupplier] = useState("");
   const [batchOrder, setBatchOrder] = useState("desc");
+  const invalidHistoryDates = Boolean(historyFrom && historyTo && historyFrom > historyTo);
   const activeBatches = batches.filter((batch) => Number(batch.remainingQuantity) > 0);
   const batchSuppliers = [...new Map(batches.filter((batch) => batch.supplier).map((batch) => [batch.supplier!.id, batch.supplier!])).values()];
   const matchingBatches = batches.filter((batch) => {
@@ -199,16 +200,18 @@ export default function MaterialDetailPanel({
       </div>
 
       {selectedSummary?.status === "LOW_STOCK" || selectedSummary?.status === "OUT_OF_STOCK" ? (
-        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5" size={18} />
-            <div>
-              <p className="font-semibold">{selectedSummary.name} needs attention</p>
-              <p className="mt-1 text-amber-800">
-                This material is {selectedSummary.status.replaceAll("_", " ").toLowerCase()}. Use
-                a stock run or waste entry so the ledger and summaries stay aligned.
-              </p>
+        <div className={styles.stockAlert} data-status={selectedSummary.status} role="status">
+          <span className={styles.stockAlertIcon}><AlertTriangle size={20} aria-hidden="true" /></span>
+          <div className={styles.stockAlertContent}>
+            <div className={styles.stockAlertHeading}>
+              <p className={styles.stockAlertTitle}>{selectedSummary.name}</p>
+              <span className={styles.stockAlertBadge}>{selectedSummary.status === "OUT_OF_STOCK" ? "Out of stock" : "Low stock"}</span>
             </div>
+            <p className={styles.stockAlertDescription}>
+              {selectedSummary.status === "OUT_OF_STOCK"
+                ? "No usable stock remaining. Create a stock run to replenish this material."
+                : "Stock is below the reorder point. Plan a stock run to replenish this material."}
+            </p>
           </div>
         </div>
       ) : null}
@@ -333,6 +336,11 @@ export default function MaterialDetailPanel({
                   />
                 </div>
               </div>
+              {invalidHistoryDates && (
+                <p role="alert" className={styles.dateError}>
+                  From date must be on or before To date. Correct the date range to update the history results.
+                </p>
+              )}
             </div>
           </div>
 

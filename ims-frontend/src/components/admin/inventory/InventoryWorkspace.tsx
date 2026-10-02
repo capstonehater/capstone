@@ -333,6 +333,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   }
 
   async function loadMaterialHistory(rawMaterialId: string) {
+    if (historyFrom && historyTo && historyFrom > historyTo) return;
     setHistoryLoading(true);
     try {
       const nextTransactions = await fetchRawMaterialTransactions(rawMaterialId, {
