@@ -1,5 +1,5 @@
-import InventoryReportsWorkspace from "@/components/admin/reports/InventoryReportsWorkspace";
-
-export default function InventoryReportsPage() {
-  return <InventoryReportsWorkspace />;
+import { redirect } from "next/navigation";
+import { legacyRouteHref } from "@/lib/routing/route-aliases";
+export default async function LegacyRoutePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  redirect(legacyRouteHref("legacy.reports.inventory", await searchParams));
 }

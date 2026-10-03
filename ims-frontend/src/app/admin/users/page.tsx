@@ -1,12 +1,5 @@
-"use client";
-
-import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
-import UsersWorkspace from "@/components/admin/users/UsersWorkspace";
-
-export default function UsersPage() {
-  return (
-    <AdminDashboardLayout fillContent showHeader={false}>
-      <UsersWorkspace />
-    </AdminDashboardLayout>
-  );
+import { redirect } from "next/navigation";
+import { legacyRouteHref } from "@/lib/routing/route-aliases";
+export default async function LegacyRoutePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  redirect(legacyRouteHref("legacy.users", await searchParams));
 }

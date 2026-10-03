@@ -3,15 +3,16 @@
 import Link from "next/link";
 import styles from "./ReportsHeader.module.css";
 import { usePathname } from "next/navigation";
+import { routeHref } from "@/lib/routing/routes";
 
 const SCOPES = [
   {
-    href: "/admin/reports/inventory",
+    href: routeHref("reports.inventory"),
     label: "Inventory Reports",
     description: "Stock health, waste, spend, and operational inventory reporting.",
   },
   {
-    href: "/admin/reports/pos",
+    href: routeHref("reports.pos"),
     label: "POS Reports",
     description: "Daily sales, transaction history, and point-of-sale performance.",
   },
@@ -24,8 +25,8 @@ export default function ReportsScopeSwitch() {
     <div className="grid gap-3 sm:grid-cols-2">
       {SCOPES.map((scope) => {
         const active =
-          scope.href === "/admin/reports/inventory"
-            ? pathname === "/admin/reports" || pathname.startsWith(scope.href)
+          scope.href === routeHref("reports.inventory")
+            ? pathname === routeHref("reports") || pathname.startsWith(scope.href)
             : pathname.startsWith(scope.href);
 
         return (

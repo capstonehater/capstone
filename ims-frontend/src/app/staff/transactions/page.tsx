@@ -1,13 +1,5 @@
-import AuthGuard from "@/components/auth/AuthGuard";
-import StaffDashboardLayout from "@/components/staff-pos/StaffDashboardLayout";
-import TransactionHistoryPage from "@/components/staff-pos/TransactionHistoryPage";
-
-export default function StaffTransactionsPage() {
-  return (
-    <AuthGuard>
-      <StaffDashboardLayout>
-        <TransactionHistoryPage />
-      </StaffDashboardLayout>
-    </AuthGuard>
-  );
+import { redirect } from "next/navigation";
+import { legacyRouteHref } from "@/lib/routing/route-aliases";
+export default async function LegacyRoutePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  redirect(legacyRouteHref("legacy.pos.transactions", await searchParams));
 }

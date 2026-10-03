@@ -5,7 +5,7 @@ import { useAdminPageEntrance } from "@/components/admin/useAdminPageEntrance";
 import styles from "@/components/layout/ApplicationShell.module.css";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminSidebar from "@/components/admin/AdminSidebar";
-import { Menu } from "lucide-react";
+import { NavigationMenuButton } from "@/components/layout/ShellControls";
 import { useSidebarStore } from "@/store/sidebarStore";
 
 type AdminDashboardLayoutProps = {
@@ -35,7 +35,7 @@ export default function AdminDashboardLayout({
       />
 
       <div className={styles.body}>
-        <button type="button" className={styles.shellMobileMenu} onClick={() => setSidebarOpen(true)} aria-expanded={sidebarOpen} aria-controls="admin-navigation" aria-label="Open navigation"><Menu size={20} /></button>
+        <NavigationMenuButton onOpen={() => setSidebarOpen(true)} expanded={sidebarOpen} controls="admin-navigation" />
         {showHeader ? <AdminHeader /> : null}
         <main ref={contentRef} className={styles.content}>{children}</main>
       </div>

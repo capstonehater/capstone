@@ -12,7 +12,7 @@ for (const ext of ['.ts', '.tsx']) require.extensions[ext] = (module, filename) 
 };
 const {useAuthStore} = require('../src/store/authStore.ts');
 const originalLoad=Module._load;
-let pathname='/admin/users';
+let pathname='/users';
 // Snapshot rendering uses the actual store; this is not a browser interaction test.
 Module._load=function(request,parent,isMain){
  if(request==='@/store/authStore') return {useAuthStore:Object.assign(selector=>selector?selector(useAuthStore.getState()):useAuthStore.getState(),useAuthStore)};
@@ -25,6 +25,7 @@ Module._load=function(request,parent,isMain){
 const nav=require('../src/components/layout/shell-navigation.ts');
 const {routes, routeIds, routeHref, resolveRouteId, canAccessRoute}=require('../src/lib/routing/routes.ts');
 const {routeAliases}=require('../src/lib/routing/route-aliases.ts');
+const {pageMetadata}=require('../src/lib/routing/page-metadata.ts');
 const {routePolicies}=require('../src/lib/routing/route-policy.ts');
 const {default:PermissionGuard,PermissionAction}=require('../src/components/auth/PermissionGuard.tsx');
 const PermissionRoute=require('../src/components/auth/PermissionRoute.tsx').default;
@@ -37,30 +38,30 @@ beforeEach(()=>useAuthStore.getState().logout());
 test('Administrator sees all menus with backend catalog grants',()=>{
  signIn(catalog,'ADMINISTRATOR');
  assert.deepEqual(featureHrefs(),nav.adminNavigation.flatMap(group=>group.items).filter(item=>item.routeId!=='settings').map(item=>item.href));
- assert.equal(nav.getDefaultLandingRoute(useAuthStore.getState()),'/admin/dashboard');
+ assert.equal(nav.getDefaultLandingRoute(useAuthStore.getState()),'/dashboard');
 });
 test('inventory-only account sees inventory and authenticated self settings',()=>{
- signIn(['inventory.view']);assert.deepEqual(featureHrefs(),['/admin/inventory']);
- assert.equal(nav.getDefaultLandingRoute(useAuthStore.getState()),'/admin/inventory');
- assert.equal(nav.getRouteAccess('/admin/inventory',useAuthStore.getState()),true);
- assert.equal(nav.getRouteAccess('/admin/inventory/suppliers',useAuthStore.getState()),false);
+ signIn(['inventory.view']);assert.deepEqual(featureHrefs(),['/inventory']);
+ assert.equal(nav.getDefaultLandingRoute(useAuthStore.getState()),'/inventory');
+ assert.equal(nav.getRouteAccess('/inventory',useAuthStore.getState()),true);
+ assert.equal(nav.getRouteAccess('/suppliers',useAuthStore.getState()),false);
  assert.equal(nav.getRouteAccess('/admin/inventory/materials/add',useAuthStore.getState()),false);
 });
 test('cashier sees POS without unrelated modules or history',()=>{
- signIn(['pos.view','pos.checkout']);assert.deepEqual(featureHrefs(),['/staff/pos']);
- assert.equal(nav.getDefaultLandingRoute(useAuthStore.getState()),'/staff/pos');
+ signIn(['pos.view','pos.checkout']);assert.deepEqual(featureHrefs(),['/pos']);
+ assert.equal(nav.getDefaultLandingRoute(useAuthStore.getState()),'/pos');
  assert.equal(nav.getRouteAccess('/staff/dashboard',useAuthStore.getState()),true);
- assert.equal(nav.getRouteAccess('/staff/transactions',useAuthStore.getState()),false);
+ assert.equal(nav.getRouteAccess('/pos/transactions',useAuthStore.getState()),false);
 });
 test('legacy role does not implicitly grant catalog permissions',()=>{
  signIn(['inventory.view'],'ADMINISTRATOR');
  assert.equal(useAuthStore.getState().can('products.delete'),false);
- assert.equal(nav.getRouteAccess('/admin/products',useAuthStore.getState()),false);
+ assert.equal(nav.getRouteAccess('/products',useAuthStore.getState()),false);
 });
 test('role management remains Administrator-only and settings stays self-service',()=>{
- signIn(catalog);assert.equal(nav.getRouteAccess('/admin/roles',useAuthStore.getState()),false);
- signIn([],'ADMINISTRATOR');assert.equal(nav.getRouteAccess('/admin/roles',useAuthStore.getState()),true);
- signIn([]);for(const route of ['/admin/settings','/staff/settings','/manager/settings'])assert.equal(nav.getRouteAccess(route,useAuthStore.getState()),true);
+ signIn(catalog);assert.equal(nav.getRouteAccess('/roles',useAuthStore.getState()),false);
+ signIn([],'ADMINISTRATOR');assert.equal(nav.getRouteAccess('/roles',useAuthStore.getState()),true);
+ signIn([]);for(const route of ['/settings','/settings','/settings'])assert.equal(nav.getRouteAccess(route,useAuthStore.getState()),true);
 });
 test('no grants lands on no-access',()=>{
  signIn([]);assert.equal(nav.getDefaultLandingRoute(useAuthStore.getState()),'/no-access');assert.deepEqual(featureHrefs(),[]);
@@ -79,7 +80,7 @@ test('all-of guard requires every grant and revocation hides actions',()=>{
  signIn(['inventory.view']);assert.equal(renderToStaticMarkup(component),'');
 });
 test('denied route shows No Access and never mounts the page data loader',()=>{
- signIn(['inventory.view']);pathname='/admin/users';let mounted=0;
+ signIn(['inventory.view']);pathname='/users';let mounted=0;
  function Users(){mounted++;return React.createElement('p',null,'Sensitive users');}
  const html=renderToStaticMarkup(React.createElement(PermissionRoute,null,React.createElement(Users)));
  assert.match(html,/No Access/);assert.doesNotMatch(html,/Sensitive users/);assert.equal(mounted,0);
@@ -94,7 +95,7 @@ test('navigation references registered policies using backend catalog keys and u
  const items=nav.adminNavigation.flatMap(group=>group.items).flatMap(item=>[item,...(item.children??[])]);
  for(const item of [...items,...nav.materialActions]) {
   assert.ok(routes[item.routeId]);
-  assert.equal(item.href, routeHref(item.routeId));
+  assert.equal(item.href, item.routeId.startsWith('legacy.') ? require('../src/lib/routing/route-aliases.ts').legacyRouteHref(item.routeId) : routeHref(item.routeId));
   for(const field of ['permission','permissions','authenticatedOnly','administratorOnly','policy']) assert.equal(field in item,false);
  }
  for(const policy of Object.values(routePolicies)) if(policy.type==='permission') {
@@ -130,48 +131,35 @@ test('action and request checks never invent a frontend permission',()=>{
  inspect(path.resolve(__dirname,'../src'));
 });
 
-// Independent expected contract: existing pages keep their URLs and grants.
+// Canonical and explicit legacy entries share policies, while compatibility pages redirect.
 const routeContract = [
- ['/admin/dashboard',['dashboard.view']],
- ['/admin/inventory',['inventory.view']],
- ['/admin/inventory/materials',['inventory.view']],
- ['/admin/inventory/materials/add',['inventory.view','inventory.create']],
- ['/admin/inventory/materials/create-stock-run',['inventory.view','stockRuns.create']],
- ['/admin/inventory/materials/record-waste',['inventory.view','inventory.waste']],
- ['/admin/inventory/stock-runs',['inventory.view']],
- ['/admin/inventory/low-stock',['inventory.view']],
- ['/admin/inventory/near-expiry',['inventory.view']],
- ['/admin/inventory/waste-insights',['inventory.view']],
- ['/admin/inventory/high-value',['inventory.view']],
- ['/admin/inventory/supplier-spend',['inventory.view']],
- ['/admin/inventory/suppliers',['suppliers.view']],
- ['/admin/suppliers',['suppliers.view']],
- ['/admin/products',['products.view']],
- ['/admin/reports',['reports.view']],
- ['/admin/reports/inventory',['reports.view']],
- ['/admin/reports/pos',['reports.view']],
- ['/admin/forecasting',['forecasting.view']],
- ['/admin/alerts',['alerts.view']],
- ['/admin/users',['users.view']],
- ['/admin/roles','legacy-administrator'],
- ['/admin/recommendations','legacy-administrator'],
- ['/admin/settings','authenticated'],
- ['/staff/settings','authenticated'],
- ['/manager/settings','authenticated'],
- ['/staff/pos',['pos.view']],
- ['/staff/dashboard',['pos.view']],
- ['/staff/transactions',['pos.orders.view']],
- ['/no-access','authenticated'],
+ ['/dashboard',['dashboard.view']], ['/inventory',['inventory.view']], ['/products',['products.view']], ['/suppliers',['suppliers.view']],
+ ['/reports',['reports.view']], ['/reports/inventory',['reports.view']], ['/reports/pos',['reports.view']], ['/forecasting',['forecasting.view']], ['/alerts',['alerts.view']],
+ ['/users',['users.view']], ['/roles','legacy-administrator'], ['/settings','authenticated'], ['/pos',['pos.view']], ['/pos/transactions',['pos.orders.view']],
+ ['/admin/dashboard',['dashboard.view']], ['/admin/inventory',['inventory.view']], ['/admin/inventory/materials',['inventory.view']],
+ ['/admin/inventory/materials/add',['inventory.view','inventory.create']], ['/admin/inventory/materials/create-stock-run',['inventory.view','stockRuns.create']],
+ ['/admin/inventory/materials/record-waste',['inventory.view','inventory.waste']], ['/admin/inventory/stock-runs',['inventory.view']],
+ ['/admin/inventory/low-stock',['inventory.view']], ['/admin/inventory/near-expiry',['inventory.view']], ['/admin/inventory/waste-insights',['inventory.view']],
+ ['/admin/inventory/high-value',['inventory.view']], ['/admin/inventory/supplier-spend',['inventory.view']], ['/admin/inventory/suppliers',['suppliers.view']],
+ ['/admin/suppliers',['suppliers.view']], ['/admin/products',['products.view']], ['/admin/reports',['reports.view']], ['/admin/reports/inventory',['reports.view']],
+ ['/admin/reports/pos',['reports.view']], ['/admin/forecasting',['forecasting.view']], ['/admin/alerts',['alerts.view']], ['/admin/users',['users.view']],
+ ['/admin/roles','legacy-administrator'], ['/admin/settings','authenticated'], ['/staff/settings','authenticated'], ['/manager/settings','authenticated'],
+ ['/staff/pos',['pos.view']], ['/staff/dashboard',['pos.view']], ['/staff/transactions',['pos.orders.view']],
+ ['/admin/recommendations','legacy-administrator'], ['/no-access','authenticated'],
 ];
 
-test('registry exactly covers protected filesystem pages without adding or changing URLs',()=>{
+test('route registry exactly covers canonical and legacy protected pages without redirect loops',()=>{
  const appDir=path.resolve(__dirname,'../src/app');
  const pages=[];
  function walk(dir) {
   for(const entry of fs.readdirSync(dir,{withFileTypes:true})) {
    const file=path.join(dir,entry.name);
    if(entry.isDirectory()) walk(file);
-   else if(entry.name==='page.tsx') pages.push('/'+path.relative(appDir,dir).replaceAll('\\','/'));
+   else if(entry.name==='page.tsx') {
+    const relative=path.relative(appDir,path.dirname(file)).replaceAll('\\','/');
+    const pathname='/'+relative.split('/').filter(segment=>!(segment.startsWith('(')&&segment.endsWith(')'))).join('/');
+    pages.push(pathname==='/'?'/':pathname);
+   }
   }
  }
  walk(appDir);
@@ -181,6 +169,7 @@ test('registry exactly covers protected filesystem pages without adding or chang
  assert.deepEqual([...registered].sort(),protectedPages.sort());
  assert.deepEqual([...registered].sort(),routeContract.map(([href])=>href).sort());
  for(const href of registered) assert.equal(routeHref(resolveRouteId(href)),href);
+ for(const alias of Object.values(routeAliases)) assert.equal(alias.target.startsWith('legacy.'),false);
 });
 
 test('every registered page denies logged-out or missing-identity access',()=>{
@@ -210,7 +199,7 @@ for(const role of ['STAFF','MANAGER','ADMINISTRATOR']) {
 test('unknown descendants cannot inherit a known route policy',()=>{
  signIn(catalog,'ADMINISTRATOR');
  for(const [href] of routeContract) assert.equal(nav.getRouteAccess(href+'/unregistered',useAuthStore.getState()),false,href);
- for(const href of ['/admin','/staff','/manager','/admin/inventoryish','/staff/pos-extra','/inventory','/pos','/products','/__proto__']) {
+ for(const href of ['/admin','/staff','/manager','/admin/inventoryish','/staff/pos-extra','/inventories','/pos-extra','/product','/__proto__']) {
   assert.equal(nav.getRouteAccess(href,useAuthStore.getState()),false,href);
  }
 });
@@ -225,18 +214,18 @@ test('non-navigation routes and aliases have independent explicit policy',()=>{
  const original=main.items;
  try {
   main.items=[];
-  assert.equal(nav.getRouteAccess('/admin/products',useAuthStore.getState()),true);
-  assert.equal(nav.getDefaultLandingRoute(useAuthStore.getState()),'/admin/products');
+  assert.equal(nav.getRouteAccess('/products',useAuthStore.getState()),true);
+  assert.equal(nav.getDefaultLandingRoute(useAuthStore.getState()),'/products');
  } finally { main.items=original; }
 });
 
 test('landing retains every existing priority including POS before inventory',()=>{
  const ordered=[
-  ['dashboard.view','/admin/dashboard'],['pos.view','/staff/pos'],
-  ['inventory.view','/admin/inventory'],['products.view','/admin/products'],
-  ['suppliers.view','/admin/inventory/suppliers'],['pos.orders.view','/staff/transactions'],
-  ['reports.view','/admin/reports'],['forecasting.view','/admin/forecasting'],
-  ['alerts.view','/admin/alerts'],['users.view','/admin/users'],
+  ['dashboard.view','/dashboard'],['pos.view','/pos'],
+  ['inventory.view','/inventory'],['products.view','/products'],
+  ['suppliers.view','/suppliers'],['pos.orders.view','/pos/transactions'],
+  ['reports.view','/reports'],['forecasting.view','/forecasting'],
+  ['alerts.view','/alerts'],['users.view','/users'],
  ];
  for(let i=0;i<ordered.length;i++) {
   signIn(ordered.slice(i).map(([key])=>key));
@@ -249,49 +238,60 @@ test('landing retains every existing priority including POS before inventory',()
 test('navigation preserves groups, ordering, report children, labels and icons',()=>{
  const icons=require('lucide-react');
  const expected=[
-  ['Main',[['Dashboard','/admin/dashboard','LayoutDashboard'],['Inventory','/admin/inventory','Boxes'],['Products','/admin/products','Package2'],['Suppliers','/admin/inventory/suppliers','UsersRound']]],
-  ['Point of Sale',[['POS','/staff/pos','ShoppingCart'],['Transaction History','/staff/transactions','ClipboardList']]],
-  ['Reports',[['Reports','/admin/reports','FileText'],['Forecasting','/admin/forecasting','TrendingUp'],['Alerts','/admin/alerts','Bell']]],
-  ['Management',[['User','/admin/users','UsersRound'],['Roles & Permissions','/admin/roles','Shield'],['Settings','/admin/settings','Settings']]],
+  ['Main',[['Dashboard','/dashboard','LayoutDashboard'],['Inventory','/inventory','Boxes'],['Products','/products','Package2'],['Suppliers','/suppliers','UsersRound']]],
+  ['Point of Sale',[['POS','/pos','ShoppingCart'],['Transaction History','/pos/transactions','ClipboardList']]],
+  ['Reports',[['Reports','/reports','FileText'],['Forecasting','/forecasting','TrendingUp'],['Alerts','/alerts','Bell']]],
+  ['Management',[['User','/users','UsersRound'],['Roles & Permissions','/roles','Shield'],['Settings','/settings','Settings']]],
  ];
  signIn(catalog,'ADMINISTRATOR');
  const actual=nav.getVisibleNavigation(useAuthStore.getState());
  assert.deepEqual(actual.map(g=>[g.label,g.items.map(i=>[i.label,i.href])]),expected.map(([label,items])=>[label,items.map(([text,href])=>[text,href])]));
  expected.forEach(([,items],gi)=>items.forEach(([, ,icon],ii)=>assert.equal(actual[gi].items[ii].icon,icons[icon])));
- assert.deepEqual(actual[2].items[0].children.map(i=>[i.label,i.href]),[['Inventory Reports','/admin/reports/inventory'],['POS Reports','/admin/reports/pos']]);
+ assert.deepEqual(actual[2].items[0].children.map(i=>[i.label,i.href]),[['Inventory Reports','/reports/inventory'],['POS Reports','/reports/pos']]);
  signIn([]);
- assert.deepEqual(nav.getVisibleNavigation(useAuthStore.getState()).map(g=>[g.label,g.items.map(i=>i.href)]),[['Management',['/admin/settings']]]);
- assert.equal(nav.matchesShellRoute('/admin/inventory/suppliers','/admin/inventory'),false);
- assert.equal(nav.matchesShellRoute('/admin/reports/pos','/admin/reports'),true);
+ assert.deepEqual(nav.getVisibleNavigation(useAuthStore.getState()).map(g=>[g.label,g.items.map(i=>i.href)]),[['Management',['/settings']]]);
+ assert.equal(nav.matchesShellRoute('/suppliers','/inventory'),false);
+ assert.equal(nav.matchesShellRoute('/reports/pos','/reports'),true);
 });
 
-test('compatibility metadata describes the existing aliases without flattening action policy',()=>{
- assert.equal(Object.keys(routeAliases).length,15);
+test('legacy aliases are explicit, policy-aligned, and point directly to canonical features',()=>{
+ assert.equal(Object.keys(routeAliases).length,28);
  for(const [id,alias] of Object.entries(routeAliases)) {
-  assert.ok(routes[id]);assert.ok(routes[alias.target]);assert.notEqual(id,alias.target);
-  if(alias.behavior==='shared-page') assert.equal(routes[id].policy,routes[alias.target].policy);
+  assert.ok(routes[id]); assert.ok(routes[alias.target]); assert.notEqual(id,alias.target);
+  assert.equal(/^\/(admin|staff|manager)\//.test(routes[id].href),true,id);
+  assert.equal(alias.target.startsWith('legacy.'),false,id);
+  if(!['legacy.inventory.materials.add','legacy.inventory.materials.createStockRun','legacy.inventory.materials.recordWaste'].includes(id)) assert.deepEqual(routes[id].policy,routes[alias.target].policy,id);
  }
  signIn(['inventory.view']);
  assert.equal(canAccessRoute('inventory',useAuthStore.getState()),true);
- assert.equal(canAccessRoute('inventory.materials.add',useAuthStore.getState()),false);
+ assert.equal(canAccessRoute('legacy.inventory.materials.add',useAuthStore.getState()),false);
 });
 
-test('inventory alias metadata agrees with actual existing redirects and draft encoding',async()=>{
+test('legacy adapters redirect directly and preserve supported query data',async()=>{
+ const clientAliases=new Set(['legacy.inventory.materials.add','legacy.inventory.materials.createStockRun','legacy.inventory.materials.recordWaste']);
  for(const [id,alias] of Object.entries(routeAliases)) {
-  if(alias.behavior!=='redirect') continue;
   const Page=require('../src/app'+routeHref(id)+'/page.tsx').default;
-  for(const draft of [undefined,'','draft /?&=+#']) {
-   const query=Object.entries(alias.query).map(([key,value])=>`${key}=${encodeURIComponent(value)}`).join('&');
-   const expected=routeHref(alias.target)+'?'+query+(alias.preserveQuery?.includes('draft')&&draft?'&draft='+encodeURIComponent(draft):'');
+  const params={draft:'draft /?&=+#',tab:'history',ignored:'value'};
+  const query=new URLSearchParams();
+  if(alias.preserveQuery===true) for(const [key,value] of Object.entries(params)) query.set(key,value);
+  else for(const key of alias.preserveQuery??[]) if(params[key]!==undefined) query.set(key,params[key]);
+  for(const [key,value] of Object.entries(alias.query??{})) query.set(key,value);
+  const suffix=query.toString(), expected=routeHref(alias.target)+(suffix?`?${suffix}`:'');
+  if(clientAliases.has(id)) {
+   const source=fs.readFileSync(path.resolve(__dirname,'../src/app'+routeHref(id)+'/page.tsx'),'utf8');
+   assert.match(source,/useEffect/);
+   assert.ok(source.includes(`router.replace(legacyRouteHref("${id}"))`),id);
+   assert.equal(require('../src/lib/routing/route-aliases.ts').legacyRouteHref(id,params),expected,id);
+  } else {
    let caught;
-   try {await Page({searchParams:Promise.resolve({draft,view:'ignored',action:'ignored'})});} catch(error) {caught=error;}
+   try {await Page({searchParams:Promise.resolve(params)});} catch(error) {caught=error;}
    assert.deepEqual(caught,{redirect:expected},id);
   }
  }
 });
 
-test('inventory query views, actions, fallback, draft and remount key stay unchanged',async()=>{
- const InventoryPage=require('../src/app/admin/inventory/page.tsx').default;
+test('inventory canonical query views, actions, fallback, draft and remount key stay unchanged',async()=>{
+ const InventoryPage=require('../src/app/(protected)/inventory/page.tsx').default;
  const views=['overview','materials','stock-runs','low-stock','near-expiry','waste','value','supplier'];
  signIn(['inventory.view']);
  for(const view of [...views,'unknown',undefined]) for(const action of ['create-material','stock-run-create','waste','invalid',undefined]) {
@@ -299,12 +299,16 @@ test('inventory query views, actions, fallback, draft and remount key stay uncha
   const element=await InventoryPage({searchParams:Promise.resolve({view,action,draft})});
   const expectedView=views.includes(view)?view:'overview';
   const expectedAction=['create-material','stock-run-create','waste'].includes(action)?action:undefined;
-  assert.equal(element.props.initialView,expectedView);
-  assert.equal(element.props.initialAction,expectedAction);
-  assert.equal(element.props.initialDraftId,draft);
-  assert.equal(element.key,`${expectedView}:${draft}:${expectedAction??''}`);
-  // usePathname omits search parameters. Admission does not grant an action.
-  const url=new URL('/admin/inventory?'+new URLSearchParams({view:view??'',action:action??'',draft}),'http://localhost');
+  assert.equal(element.props.searchParams.view,view);
+  assert.equal(element.props.searchParams.action,action);
+  // Canonical adapter passes query state through to the unchanged workspace.
+  const feature=require('../src/features/inventory/InventoryFeature.tsx').default;
+  const rendered=feature({searchParams:{view,action,draft}});
+  assert.equal(rendered.props.initialView,expectedView);
+  assert.equal(rendered.props.initialAction,expectedAction);
+  assert.equal(rendered.props.initialDraftId,draft);
+  assert.equal(rendered.key,`${expectedView}:${draft}:${expectedAction??''}`);
+  const url=new URL('/inventory?'+new URLSearchParams({view:view??'',action:action??'',draft}),'http://localhost');
   assert.equal(nav.getRouteAccess(url.pathname,useAuthStore.getState()),true);
  }
 });
@@ -325,21 +329,21 @@ test('no-access recovery keeps self settings and excludes recursive workspace li
  signIn([]);
  assert.equal(nav.getRouteAccess('/no-access',useAuthStore.getState()),true);
  let html=renderToStaticMarkup(React.createElement(NoAccess));
- assert.match(html,/href="\/admin\/settings"/);
+ assert.match(html,/href="\/settings"/);
  assert.match(html,/Sign out/);assert.doesNotMatch(html,/Open your workspace/);
  signIn(['pos.view']);
  html=renderToStaticMarkup(React.createElement(NoAccess));
- assert.match(html,/href="\/staff\/pos"/);
+ assert.match(html,/href="\/pos"/);
 });
 
 test('existing page titles and staff presentation metadata remain distinct',()=>{
- assert.deepEqual(nav.getAdminPageInfo('/admin/dashboard'),{label:'Dashboard',subtitle:"Welcome back! Here's your inventory overview."});
- assert.deepEqual(nav.getAdminPageInfo('/admin/suppliers'),nav.getAdminPageInfo('/admin/inventory/suppliers'));
- assert.equal(nav.getAdminPageInfo('/manager/settings').label,'Account Settings');
+ assert.deepEqual(nav.getAdminPageInfo('/dashboard'),{label:'Dashboard',subtitle:"Welcome back! Here's your inventory overview."});
+ assert.equal(nav.getAdminPageInfo('/admin/suppliers'),undefined);
+ assert.equal(nav.getAdminPageInfo('/settings').label,'Settings');
  assert.equal(nav.getAdminPageInfo('/admin/recommendations').label,'Recommendations');
- assert.equal(nav.getAdminPageInfo('/admin/inventory/materials/add').label,'Add Raw Material');
+ assert.equal(nav.getAdminPageInfo('/admin/inventory/materials/add'),undefined);
+ assert.equal(pageMetadata['legacy.inventory.materials.add'].label,'Add Raw Material');
  assert.equal(nav.getAdminPageInfo('/admin/inventory/materials'),undefined);
- assert.equal(nav.staffPageInfo['/staff/dashboard'].label,'Staff Dashboard');
- assert.equal(nav.staffPageInfo['/staff/pos'].label,'Staff POS');
- assert.equal(nav.staffPageInfo['/staff/settings'].label,'Account Settings');
+ assert.equal(nav.staffPageInfo['/pos'].label,'Staff POS');
+ assert.equal(nav.staffPageInfo['/settings'].label,'Account Settings');
 });

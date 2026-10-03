@@ -5,7 +5,8 @@ import SidebarAccount from "@/components/layout/SidebarAccount";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSidebarStore } from "@/store/sidebarStore";
-import { ChevronDown, ChevronLeft, Menu, X } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { NavigationOverlay, NavigationCloseButton, SidebarCollapseButton } from "@/components/layout/ShellControls";
 import { getVisibleNavigation, matchesShellRoute } from "@/components/layout/shell-navigation";
 import { useAuthStore } from "@/store/authStore";
 import styles from "@/components/layout/ApplicationShell.module.css";
@@ -69,14 +70,14 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
 
   return (
     <>
-      {isOpen && <button type="button" className={styles.overlay} onClick={onClose} aria-label="Close navigation" tabIndex={-1} />}
+      <NavigationOverlay open={isOpen} onClose={onClose} tabIndex={-1} />
       <aside id="admin-navigation" ref={sidebarRef} aria-label="Administrator navigation" className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""} ${collapsed ? styles.adminSidebarCollapsed : ""}`}>
         <div className={`${styles.brand} ${styles.brandWithAccount}`}>
           <div className={styles.sidebarBrandLogo}>
             <strong>{collapsed ? "CS" : "Cafe Salvacion"}</strong>
             {collapsed ? null : <p>Inventory Management</p>}
           </div>
-          <button type="button" onClick={onClose} className={styles.mobileClose} aria-label="Close navigation"><X size={20} /></button>
+          <NavigationCloseButton onClose={onClose} />
           <SidebarAccount collapsed={collapsed && !isOpen} onNavigate={navigateMain} />
         </div>
         <nav ref={restoreScroll} onScroll={event => setScrollTop(event.currentTarget.scrollTop)} className={styles.navigation}>
@@ -109,7 +110,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
                     <item.icon size={19} aria-hidden="true" /><span>{collapsed ? null : item.label}</span>
                   </Link>}
                   {item.children ? <div id={`sidebar-${item.label.toLowerCase()}`} className={styles.navDropdown} hidden={collapsed || !openSections[item.href]}>
-                    {(item.href === "/admin/reports" ? item.children : [{ label: "Overview", href: item.href }, ...item.children]).map(child => <Link key={child.href} href={child.href} onClick={navigate} className={styles.navSubLink} aria-current={!dropdownSelection && pathname === child.href ? "page" : undefined}>{child.label}</Link>)}
+                    {(item.href === "/reports" ? item.children : [{ label: "Overview", href: item.href }, ...item.children]).map(child => <Link key={child.href} href={child.href} onClick={navigate} className={styles.navSubLink} aria-current={!dropdownSelection && pathname === child.href ? "page" : undefined}>{child.label}</Link>)}
                   </div> : null}
                 </div>
               ))}
@@ -117,7 +118,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
           ))}
         </nav>
         <footer className={styles.footer}>{collapsed ? "CS" : "Cafe Salvacion IMS"}</footer>
-        <button type="button" className={styles.adminCollapseButton} onClick={onToggleCollapse} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <Menu size={18} /> : <ChevronLeft size={18} />}</button>
+        <SidebarCollapseButton className={styles.adminCollapseButton} collapsed={collapsed} onToggle={onToggleCollapse} />
       </aside>
     </>
   );

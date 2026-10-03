@@ -735,7 +735,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           formatQuantity={formatQuantity}
         /></PermissionAction>
 
-        {availabilityMaterial && <PermissionAction permission={"suppliers.searchAvailability"}><StoreAvailabilityModal key={availabilityMaterial.id} materialId={availabilityMaterial.id} materialName={availabilityMaterial.name} onClose={() => setAvailabilityMaterial(null)} onJourney={() => { setAvailabilityMaterial(null); router.push("/admin/inventory/suppliers"); }} /></PermissionAction>}
+        {availabilityMaterial && <PermissionAction permission={"suppliers.searchAvailability"}><StoreAvailabilityModal key={availabilityMaterial.id} materialId={availabilityMaterial.id} materialName={availabilityMaterial.name} onClose={() => setAvailabilityMaterial(null)} onJourney={() => { setAvailabilityMaterial(null); router.push("/suppliers"); }} /></PermissionAction>}
 
         <BatchTransactionModal
           batch={selectedBatch}

@@ -2,6 +2,7 @@ import { Bell, Boxes, FileText, LayoutDashboard, Package2, Settings, Shield, Use
 import { canAccessRoute, routeHref, type RouteId } from "@/lib/routing/routes";
 import type { RouteAccess } from "@/lib/routing/route-policy";
 import { pageMetadata } from "@/lib/routing/page-metadata";
+import { legacyRouteHref } from "@/lib/routing/route-aliases";
 
 type NavigationLink = { routeId: RouteId; label: string };
 type NavigationDefinition = NavigationLink & { icon: LucideIcon; children?: readonly NavigationLink[] };
@@ -57,11 +58,10 @@ export function getVisibleNavigation(access: RouteAccess) {
   })).filter(group => group.items.length > 0);
 }
 
-export const materialActions = (["inventory.materials.add", "inventory.materials.createStockRun", "inventory.materials.recordWaste"] as const)
-  .map(routeId => ({ routeId, href: routeHref(routeId), ...pageMetadata[routeId] }));
+export const materialActions = (["legacy.inventory.materials.add", "legacy.inventory.materials.createStockRun", "legacy.inventory.materials.recordWaste"] as const)
+  .map(routeId => ({ routeId, href: legacyRouteHref(routeId), ...pageMetadata[routeId] }));
 
 // Highlight matching is presentation only, never route admission.
 export function matchesShellRoute(pathname: string, href: string) {
-  if (href === routeHref("inventory") && pathname.startsWith(routeHref("suppliers"))) return false;
   return pathname === href || pathname.startsWith(`${href}/`);
 }

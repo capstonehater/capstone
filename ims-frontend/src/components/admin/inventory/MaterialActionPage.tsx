@@ -8,6 +8,7 @@ import { createRawMaterial, createStockRun, createInventoryWaste, fetchUnits, fe
 import { getDefaultWasteReasonCode, INVENTORY_WASTE_REASON_OPTIONS } from "@/lib/inventory-reason-options";
 import { useInventoryStore } from "@/store/inventoryStore";
 import styles from "./MaterialActionPage.module.css";
+import { routeHref } from "@/lib/routing/routes";
 
 type Action = "add" | "stock-run" | "waste";
 const details = {
@@ -95,8 +96,8 @@ export default function MaterialActionPage({ action }: { action: Action }) {
 
   return <AdminDashboardLayout>
     <div className={styles.page}>
-      <Link className={styles.back} href="/admin/inventory/materials"><ArrowLeft size={16} />Back to Materials</Link>
-      {success ? <section className={styles.success} role="status"><CheckCircle2 size={32} /><h2>{action === "waste" ? "Waste recorded" : action === "add" ? "Material created" : "Draft created"}</h2><p>{success}</p><Link className={styles.primary} href={draftId ? `/admin/inventory/stock-runs?draft=${encodeURIComponent(draftId)}` : "/admin/inventory/materials"}>{draftId ? "Continue to Draft" : "Return to Materials"}</Link></section> : <div className={styles.layout}>
+      <Link className={styles.back} href={`${routeHref("inventory")}?view=materials`}><ArrowLeft size={16} />Back to Materials</Link>
+      {success ? <section className={styles.success} role="status"><CheckCircle2 size={32} /><h2>{action === "waste" ? "Waste recorded" : action === "add" ? "Material created" : "Draft created"}</h2><p>{success}</p><Link className={styles.primary} href={draftId ? `${routeHref("inventory")}?view=stock-runs&draft=${encodeURIComponent(draftId)}` : `${routeHref("inventory")}?view=materials`}>{draftId ? "Continue to Draft" : "Return to Materials"}</Link></section> : <div className={styles.layout}>
         <section className={styles.card}>
           <div className={styles.cardHeading}><span className={styles.icon}><Icon size={22} /></span><div><h2>{info.heading}</h2><p>{info.description}</p></div></div>
           <form onSubmit={submit}>
@@ -118,7 +119,7 @@ export default function MaterialActionPage({ action }: { action: Action }) {
               </>}
               {action !== "add" && <label className={styles.full}>Notes <span className={styles.optional}>Optional</span><textarea rows={4} value={note} onChange={e => setNote(e.target.value)} placeholder={action === "waste" ? "Add context for this waste entry." : "Describe the delivery or items you plan to receive."} /></label>}
             </fieldset>
-            <div className={styles.actions}><Link className={styles.cancel} href="/admin/inventory/materials">Cancel</Link><button className={styles.primary} type="submit" disabled={saving || loading || !!loadError || (action === "waste" && (batchLoading || !batch))}>{saving ? "Saving..." : info.button}</button></div>
+            <div className={styles.actions}><Link className={styles.cancel} href={`${routeHref("inventory")}?view=materials`}>Cancel</Link><button className={styles.primary} type="submit" disabled={saving || loading || !!loadError || (action === "waste" && (batchLoading || !batch))}>{saving ? "Saving..." : info.button}</button></div>
           </form>
         </section>
         <aside className={styles.guide}><span className={styles.eyebrow}>MATERIALS / {action === "stock-run" ? "RECEIVING" : action === "waste" ? "WASTE" : "SETUP"}</span><h2>{info.help}</h2><p>{info.note}</p><div className={styles.tip}>{action === "add" ? "Next step: receive stock through a stock-run draft." : action === "stock-run" ? "Step 1: Create draft. Step 2: Add items and post." : "Record quantities in the material's base unit."}</div></aside>

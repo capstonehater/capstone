@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useState } from "react";
-import { ChevronLeft, Menu, X } from "lucide-react";
+import { NavigationOverlay, NavigationCloseButton, NavigationMenuButton, SidebarCollapseButton } from "@/components/layout/ShellControls";
 import { getVisibleNavigation } from "@/components/layout/shell-navigation";
 import { routeHref } from "@/lib/routing/routes";
 import { useAuthStore } from "@/store/authStore";
@@ -28,27 +28,25 @@ export default function StaffDashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [focusEnabled, setFocusEnabled] = useState(false);
-  const focusMode = focusEnabled && (pathname === "/staff/dashboard" || pathname === "/staff/pos");
-  const links = getVisibleNavigation(useAuthStore()).flatMap(group => group.items).map(item =>
-    item.routeId === "settings" ? {...item, href: routeHref("settings.staff")} : item
-  );
+  const focusMode = focusEnabled && pathname === routeHref("pos");
+  const links = getVisibleNavigation(useAuthStore()).flatMap(group => group.items);
 
   return (
     <FocusModeContext.Provider value={{ focusMode, toggleFocusMode: () => { setFocusEnabled((value) => !value); setSidebarOpen(false); } }}>
     <div className={`${styles.shell} ${collapsed ? styles.staffShellCollapsed : ""} ${focusMode ? focusStyles.focusShell : ""}`}>
-      {sidebarOpen ? <button type="button" className={styles.overlay} aria-label="Close navigation" onClick={() => setSidebarOpen(false)} /> : null}
+      <NavigationOverlay open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <aside inert={focusMode} className={`${styles.staffSidebar} ${focusStyles.sidebar} ${sidebarOpen ? styles.staffSidebarOpen : ""} ${collapsed ? styles.staffSidebarCollapsed : ""}`}>
-        <div className={styles.staffBrand}><div className={styles.sidebarBrandLogo}><strong>{collapsed ? "CS" : "Cafe Salvacion"}</strong>{!collapsed && <p>POS Management</p>}</div><button type="button" className={styles.mobileClose} onClick={() => setSidebarOpen(false)} aria-label="Close navigation"><X size={20} /></button></div>
+        <div className={styles.staffBrand}><div className={styles.sidebarBrandLogo}><strong>{collapsed ? "CS" : "Cafe Salvacion"}</strong>{!collapsed && <p>POS Management</p>}</div><NavigationCloseButton onClose={() => setSidebarOpen(false)} /></div>
         <SidebarAccount collapsed={collapsed && !sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
         <nav className={styles.staffNavigation} aria-label="Staff navigation">
           {links.map(({ label, href, icon: Icon }) => {
-            const active = pathname === href || (href === "/staff/pos" && pathname === "/staff/dashboard");
+            const active = pathname === href;
             return <Link key={href} href={href} aria-current={active ? "page" : undefined} title={collapsed ? label : undefined} className={styles.staffNavLink} onClick={() => setSidebarOpen(false)}><Icon size={18} /><span>{collapsed ? null : label}</span></Link>;
           })}
         </nav>
-        <button type="button" className={styles.staffCollapseButton} onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <Menu size={18} /> : <ChevronLeft size={18} />}</button>
+        <SidebarCollapseButton className={styles.staffCollapseButton} collapsed={collapsed} onToggle={() => setCollapsed((value) => !value)} />
       </aside>
-      <div className={`${styles.staffBody} ${focusStyles.body}`}><button type="button" className={`${styles.shellMobileMenu} ${focusStyles.mobileMenu}`} onClick={() => setSidebarOpen(true)} aria-label="Open navigation"><Menu size={20} /></button>{showHeader && pathname !== "/staff/transactions" && <div className={focusStyles.retract}><div className={focusStyles.retractInner}><StaffHeader focusMode={focusMode} onToggleFocus={pathname === "/staff/dashboard" || pathname === "/staff/pos" ? () => { setFocusEnabled((value) => !value); setSidebarOpen(false); } : undefined} /></div></div>}<main className={styles.content}>{children}</main></div>
+        <div className={`${styles.staffBody} ${focusStyles.body}`}><NavigationMenuButton className={`${styles.shellMobileMenu} ${focusStyles.mobileMenu}`} onOpen={() => setSidebarOpen(true)} />{showHeader && pathname !== routeHref("pos.transactions") && <div className={focusStyles.retract}><div className={focusStyles.retractInner}><StaffHeader focusMode={focusMode} onToggleFocus={pathname === routeHref("pos") ? () => { setFocusEnabled((value) => !value); setSidebarOpen(false); } : undefined} /></div></div>}<main className={styles.content}>{children}</main></div>
     </div>
     </FocusModeContext.Provider>
   );

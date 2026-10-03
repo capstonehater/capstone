@@ -1,12 +1,5 @@
-import StaffDashboardLayout from "../../../components/staff-pos/StaffDashboardLayout";
-import StaffPOSPage from "../../../components/staff-pos/StaffPOSPage";
-import AuthGuard from "@/components/auth/AuthGuard";
-export default function StaffDashboardPage() {
-  return (
-    <AuthGuard>
-      <StaffDashboardLayout>
-      <StaffPOSPage />
-    </StaffDashboardLayout>
-    </AuthGuard>
-  );
+import { redirect } from "next/navigation";
+import { legacyRouteHref } from "@/lib/routing/route-aliases";
+export default async function LegacyRoutePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  redirect(legacyRouteHref("legacy.dashboard.staff", await searchParams));
 }

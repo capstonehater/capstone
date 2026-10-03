@@ -1,10 +1,5 @@
-import StaffPOSPage from "@/components/staff-pos/StaffPOSPage";
-import StaffDashboardLayout from "@/components/staff-pos/StaffDashboardLayout";
-
-export default function Page() {
-  return (
-    <StaffDashboardLayout>
-      <StaffPOSPage />
-    </StaffDashboardLayout>
-  );
+import { redirect } from "next/navigation";
+import { legacyRouteHref } from "@/lib/routing/route-aliases";
+export default async function LegacyRoutePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  redirect(legacyRouteHref("legacy.pos", await searchParams));
 }

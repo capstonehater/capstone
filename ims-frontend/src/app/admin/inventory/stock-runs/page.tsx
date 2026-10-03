@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-export default async function Page({ searchParams }: { searchParams: Promise<{ draft?: string }> }) {
-  const { draft } = await searchParams;
-  redirect("/admin/inventory?view=stock-runs" + (draft ? "&draft=" + encodeURIComponent(draft) : ""));
+import { legacyRouteHref } from "@/lib/routing/route-aliases";
+export default async function LegacyRoutePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  redirect(legacyRouteHref("legacy.inventory.stockRuns", await searchParams));
 }

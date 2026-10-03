@@ -1,2 +1,5 @@
 import { redirect } from "next/navigation";
-export default function Page() { redirect("/admin/inventory?view=supplier"); }
+import { legacyRouteHref } from "@/lib/routing/route-aliases";
+export default async function LegacyRoutePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  redirect(legacyRouteHref("legacy.inventory.supplierSpend", await searchParams));
+}

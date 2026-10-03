@@ -1,5 +1,5 @@
-import PosReportsWorkspace from "@/components/admin/reports/PosReportsWorkspace";
-
-export default function PosReportsPage() {
-  return <PosReportsWorkspace />;
+import { redirect } from "next/navigation";
+import { legacyRouteHref } from "@/lib/routing/route-aliases";
+export default async function LegacyRoutePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  redirect(legacyRouteHref("legacy.reports.pos", await searchParams));
 }

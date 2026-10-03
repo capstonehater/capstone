@@ -1,5 +1,5 @@
-import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
-import RolesWorkspace from '@/components/admin/roles/RolesWorkspace';
-export default function RolesPage() {
-  return <AdminDashboardLayout showHeader={false}><RolesWorkspace /></AdminDashboardLayout>;
+import { redirect } from "next/navigation";
+import { legacyRouteHref } from "@/lib/routing/route-aliases";
+export default async function LegacyRoutePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  redirect(legacyRouteHref("legacy.roles", await searchParams));
 }
