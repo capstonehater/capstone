@@ -9,7 +9,7 @@ import {
   type AuthUser,
 } from "@/lib/auth";
 import { useAuthStore } from "@/store/authStore";
-import { getDefaultLandingRoute } from "@/components/layout/shell-navigation";
+import { getDefaultLandingRoute } from "@/lib/routing/landing";
 import styles from "./Login.module.css";
 import ActionAlert from "@/components/feedback/ActionAlert";
 

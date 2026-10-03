@@ -3,7 +3,7 @@
 import { Fragment, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
-import { getRouteAccess } from "@/components/layout/shell-navigation";
+import { getRouteAccess } from "@/lib/routing/routes";
 import NoAccess from "./NoAccess";
 
 export default function PermissionRoute({ children }: { children: ReactNode }) {

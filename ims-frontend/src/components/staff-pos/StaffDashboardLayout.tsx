@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { createContext, useContext, useState } from "react";
 import { ChevronLeft, Menu, X } from "lucide-react";
 import { getVisibleNavigation } from "@/components/layout/shell-navigation";
+import { routeHref } from "@/lib/routing/routes";
 import { useAuthStore } from "@/store/authStore";
 import styles from "@/components/layout/ApplicationShell.module.css";
 import StaffHeader from "./StaffHeader";
@@ -29,7 +30,7 @@ export default function StaffDashboardLayout({
   const [focusEnabled, setFocusEnabled] = useState(false);
   const focusMode = focusEnabled && (pathname === "/staff/dashboard" || pathname === "/staff/pos");
   const links = getVisibleNavigation(useAuthStore()).flatMap(group => group.items).map(item =>
-    item.authenticatedOnly ? {...item, href: "/staff/settings"} : item
+    item.routeId === "settings" ? {...item, href: routeHref("settings.staff")} : item
   );
 
   return (

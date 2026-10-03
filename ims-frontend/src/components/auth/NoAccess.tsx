@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
-import { getDefaultLandingRoute } from "@/components/layout/shell-navigation";
+import { getDefaultLandingRoute } from "@/lib/routing/landing";
+import { routeHref } from "@/lib/routing/routes";
 import { logoutSession } from "@/lib/auth";
 
 export default function NoAccess() {
@@ -16,7 +17,7 @@ export default function NoAccess() {
     <p className="mt-2 text-sm text-slate-600">Contact an administrator if you need permission.</p>
     <div className="mt-6 flex flex-wrap gap-4">
       {landing !== "/no-access" && <Link href={landing} className="underline">Open your workspace</Link>}
-      <Link href="/admin/settings" className="underline">Account settings</Link>
+      <Link href={routeHref("settings")} className="underline">Account settings</Link>
       <button type="button" className="underline" onClick={async () => { try { await logoutSession(); } finally { auth.logout(); router.replace("/login"); } }}>Sign out</button>
     </div>
   </section>;
