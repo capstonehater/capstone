@@ -38,6 +38,7 @@ export type ProductCategoryDto = {
 };
 
 export type ProductDetailDto = {
+  imageUrl?: string | null;
   id: string;
   name: string;
   category: {

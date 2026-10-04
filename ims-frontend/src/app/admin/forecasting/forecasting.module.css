@@ -1,5 +1,6 @@
 .workspace { background:#f5f5f5;padding:0;border-radius:8px;color:#334155;font-family:var(--font-sans);font-size:16px;line-height:1.65 }
-.stats { display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:14px }
+.workspace > header { margin-bottom:20px }
+.stats { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px }
 .stat,.panel { border:1px solid #dce2eb;border-radius:8px;background:white;padding:18px;box-shadow:0 0 1px #00000010 }
 .stat p { font-size:16px;color:#555;margin:0 0 3px }
 .stat strong { font-size:28px;font-weight:700;line-height:1.3;color:#232d46 }
@@ -234,24 +235,8 @@
 .statusNeutral { background:#f3f4f6;color:#5b6470;border-color:#dce0e5; }
 @media(max-width:540px) { .breakdown .summaryHeader { padding:16px; }.summaryScroll { max-height:360px; } }
 
-.forecastSettings { display:flex;align-items:center;gap:10px; }
-.dayPicker { display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:160px;margin-bottom:0;padding:10px 12px;border:1px solid #dce2eb;border-radius:16px;background:#fff;transition:border-color .15s,box-shadow .15s; }
-.dayPicker:focus-within { border-color:#94a3b8;box-shadow:0 0 0 3px #232d4610; }
-.dayPicker .graphSelectLabel { color:#475569;font-size:16px;font-weight:600;letter-spacing:.02em; }
-.dayPicker .graphSelectTrigger { width:100%;min-width:0;min-height:26px;padding:2px 0;border:0;border-radius:4px;background:transparent;box-shadow:none;color:#515767;font-size:16px;font-weight:600; }
-.dayPicker .graphSelectTrigger svg { color:#9096a1;transition:transform .15s; }
-.dayPicker .graphSelectTrigger[aria-expanded="true"] svg { transform:rotate(180deg); }
-.dayPicker .graphSelectTrigger:disabled { opacity:.55;cursor:not-allowed; }
-.dayPicker .graphSelectMenu { top:calc(100% + 8px);width:100%;max-height:264px;padding:6px;border-color:#dce2eb;box-shadow:0 12px 28px #18202c1a; }
-.dayPicker .graphSelectOption { min-height:38px;color:#515767;border-radius:7px; }
-.dayPicker .graphSelectOption:hover,.dayPicker .graphSelectOption:focus-visible { background:#f1f5f9;color:#232d46; }
-.dayPicker .graphSelectSelected { background:#edf1f7;color:#232d46; }
-.dayPicker .graphSelectSelected svg { color:#5274a4; }
-.saveDays { min-height:48px;padding:12px 20px;border:0;border-radius:8px;background:#232d46;color:#fff;font:inherit;font-size:16px;font-weight:600; }
-.saveDays:hover:not(:disabled) { background:#34425f; }
-.saveDays:disabled { opacity:.5;cursor:not-allowed; }
-@media(min-width:1101px) and (max-width:1400px) { .stats { grid-template-columns:repeat(3,minmax(0,1fr)); } }
-@media(max-width:540px) { .stats { grid-template-columns:1fr; }.forecastSettings { width:100%; }.dayPicker { flex:1; } }
+@media(min-width:1101px) and (max-width:1400px) { .stats { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:540px) { .stats { grid-template-columns:1fr; } }
 
 .titleRow { position:relative;display:flex;align-items:center;gap:8px; }
 .titleRow h1 { margin:0; }
@@ -274,22 +259,20 @@
 @media(max-width:540px) { .refreshActions { width:100%;margin-top:0; } }
 
 /* Give the forecast controls more room while keeping narrow layouts fluid. */
-.filters { align-items:center;gap:18px;margin-bottom:24px;padding:12px 0; }
-.filters .periodPicker,.filters .dropdown,.filters .dayPicker { min-height:100px;padding:18px 20px;gap:10px;justify-content:center; }
+.filters { align-items:center;gap:18px;margin-bottom:20px;padding:0; }
+.filters .periodPicker,.filters .dropdown { min-height:100px;padding:18px 20px;gap:10px;justify-content:center; }
 .filters .periodPicker { flex:1.2 1 280px;min-width:0; }
 .filters .dropdown { flex:1 1 240px;min-width:0; }
 .filters .filterLabel,.filters .graphSelectLabel { font-size:16px; }
 .filters .periodPicker strong,.filters .dropdownTrigger,.filters .graphSelectTrigger { font-size:18px;line-height:1.5; }
 .filters .dropdownTrigger span { max-width:none;min-width:0; }
-.forecastSettings { flex:1 1 300px;gap:14px;min-width:0; }
-.filters .dayPicker { flex:1;min-width:0; }
-.filters .saveDays,.filters .refreshActions > .suggestionsButton { min-height:56px;padding:16px 24px;font-size:16px; }
+.filters .refreshActions > .suggestionsButton { min-height:56px;padding:16px 24px;font-size:16px; }
 .filters .refreshActions { margin-top:0; }
 .filters .dropdownOption,.filters .graphSelectOption { min-height:44px;font-size:16px; }
 @media(max-width:540px) {
-  .filters { gap:12px;padding:8px 0; }
-  .filters .periodPicker,.filters .dropdown,.forecastSettings { flex-basis:100%; }
-  .filters .periodPicker,.filters .dropdown,.filters .dayPicker { padding:16px; }
+  .filters { gap:12px; }
+  .filters .periodPicker,.filters .dropdown { flex-basis:100%; }
+  .filters .periodPicker,.filters .dropdown { padding:16px; }
   .filters .refreshActions > .suggestionsButton { width:100%; }
 }
 

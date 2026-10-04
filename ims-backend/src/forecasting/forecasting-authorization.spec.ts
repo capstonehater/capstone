@@ -31,7 +31,6 @@ const routes = [
   { handler: 'products', method: 'get', path: 'products' },
   { handler: 'latest', method: 'get', path: 'latest' },
   { handler: 'run', method: 'get', path: 'runs/:id' },
-  { handler: 'saveSettings', method: 'put', path: 'settings' },
 ] as const;
 
 describe('Forecasting HTTP authorization', () => {
@@ -44,7 +43,6 @@ describe('Forecasting HTTP authorization', () => {
     products: jest.fn().mockResolvedValue({ products: [] }),
     latest: jest.fn().mockResolvedValue({ run: null }),
     run: jest.fn().mockResolvedValue({ run: { id: 'run-1' } }),
-    saveSettings: jest.fn().mockResolvedValue({ saved: true }),
   };
   const send = (
     route: (typeof routes)[number],
@@ -54,7 +52,7 @@ describe('Forecasting HTTP authorization', () => {
       `/forecasting/${route.path.replace(':id', 'run-1')}`,
     );
     if (token !== null) req.set('Cookie', `test_session=${token}`);
-    return route.method === 'put' ? req.send({ forecastDays: 7 }) : req;
+    return req;
   };
   const expectNoCalls = () => {
     for (const handler of Object.values(service))
@@ -146,16 +144,15 @@ describe('Forecasting HTTP authorization', () => {
     }
     for (const route of routes) {
       const handler = proto[route.handler];
-      const write = route.method === 'put';
       expect(reflector.get(PATH_METADATA, handler)).toBe(route.path);
       expect(reflector.get(METHOD_METADATA, handler)).toBe(
-        write ? RequestMethod.PUT : RequestMethod.GET,
+        RequestMethod.GET,
       );
       expect(reflector.get(ROLES_KEY, handler)).toEqual(
-        write ? [Role.ADMINISTRATOR] : undefined,
+        undefined,
       );
       expect(reflector.get(REQUIRED_PERMISSIONS_KEY, handler)).toEqual(
-        write ? undefined : ['forecasting.view'],
+        ['forecasting.view'],
       );
       expect(reflector.get(IS_PUBLIC_KEY, handler)).toBeUndefined();
     }
@@ -178,18 +175,17 @@ describe('Forecasting HTTP authorization', () => {
       [false, true].map((view) => ({ role, view })),
     ),
   )(
-    '$role with forecasting.view=$view enforces reads and legacy settings independently',
+    '$role with forecasting.view=$view enforces forecast access',
     async ({ role, view }) => {
       principal.role = role;
       grants = view ? ['forecasting.view'] : [];
       for (const route of routes) {
         jest.clearAllMocks();
-        const write = route.method === 'put';
-        const allowed = write ? role === Role.ADMINISTRATOR : view;
+        const allowed = view;
         await send(route).expect(allowed ? 200 : 403);
         expect(service[route.handler]).toHaveBeenCalledTimes(allowed ? 1 : 0);
         if (!allowed) expectNoCalls();
-        expect(findUnique).toHaveBeenCalledTimes(write ? 0 : 1);
+        expect(findUnique).toHaveBeenCalledTimes(1);
       }
     },
   );
@@ -208,7 +204,7 @@ describe('Forecasting HTTP authorization', () => {
     },
   );
 
-  it('preserves query, run id, settings forwarding and validation', async () => {
+  it('preserves query and run id forwarding', async () => {
     grants = ['forecasting.view'];
     await request(app.getHttpServer() as Server)
       .get('/forecasting/latest?productId=product-1&runId=run-1')
@@ -217,16 +213,13 @@ describe('Forecasting HTTP authorization', () => {
     expect(service.latest).toHaveBeenCalledWith('product-1', 'run-1');
     await send(routes[2]).expect(200, { run: { id: 'run-1' } });
     expect(service.run).toHaveBeenCalledWith('run-1');
+  });
+  it('removes the configurable forecast settings endpoint', async () => {
     principal.role = Role.ADMINISTRATOR;
-    grants = [];
-    await send(routes[3]).expect(200, { saved: true });
-    expect(service.saveSettings).toHaveBeenCalledWith(7);
-    service.saveSettings.mockClear();
     await request(app.getHttpServer() as Server)
       .put('/forecasting/settings')
       .set('Cookie', 'test_session=valid')
-      .send({ forecastDays: 31 })
-      .expect(400);
-    expect(service.saveSettings).not.toHaveBeenCalled();
+      .send({ forecastDays: 1 })
+      .expect(404);
   });
 });

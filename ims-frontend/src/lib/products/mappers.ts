@@ -156,6 +156,7 @@ function mapVariant(dto: ProductDetailDto["variants"][number]): ProductVariantDe
 export function mapProductDetail(dto: ProductDetailDto): ProductDetail {
   const effectiveStatus = mapEffectiveStatus(dto.effectiveStatus);
   const detail: ProductDetail = {
+    imageUrl: dto.imageUrl,
     id: dto.id,
     name: dto.name,
     category: dto.category,

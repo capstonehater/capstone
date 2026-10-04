@@ -1,5 +1,7 @@
 "use client";
 import ModalCloseButton from "@/components/ModalCloseButton";
+import { useState } from "react";
+import { openReceipt } from "@/lib/receipt";
 
 
 import type { PosOrder } from "@/lib/pos";
@@ -25,6 +27,7 @@ export default function PosTransactionDetailModal({
   loading,
   onClose,
 }: Props) {
+  const [printError, setPrintError] = useState("");
   if (!loading && !order) {
     return null;
   }
@@ -38,6 +41,12 @@ export default function PosTransactionDetailModal({
             <p className="mt-1 text-sm text-slate-500">
               Review the full receipt-level data returned by the existing order detail endpoint.
             </p>
+            {order && !loading && <button type="button" className="mt-3 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold" onClick={() => {
+              setPrintError("");
+              try { openReceipt(order); }
+              catch (error) { setPrintError(error instanceof Error ? error.message : "Unable to open receipt."); }
+            }}>Print Receipt / Save PDF</button>}
+            {printError && <p role="alert" className="mt-2 text-sm text-red-700">{printError}</p>}
           </div>
           <ModalCloseButton onClose={onClose} />
         </div>

@@ -1,16 +1,13 @@
 "use client";
-import { useAuthStore } from "@/store/authStore";
 
 import headerStyles from "@/components/admin/AdminSectionHeader.module.css";
 import { useEffect, useRef, useState } from 'react';
 import { Check, CircleAlert, LoaderCircle, RefreshCw } from 'lucide-react';
 import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
-import ActionAlert from '@/components/feedback/ActionAlert';
-import { fetchForecast, fetchForecastProducts, fetchForecastRun, saveForecastSettings, forecastPeriodDays, forecastTotal, type NextForecastPeriod, type ForecastProduct, type ForecastResponse, type Recommendation } from '@/lib/forecasting';
+import { fetchForecast, fetchForecastProducts, fetchForecastRun, forecastPeriodDays, forecastTotal, type ForecastProduct, type ForecastResponse, type Recommendation } from '@/lib/forecasting';
 import MaterialDropdown from '@/app/admin/forecasting/MaterialDropdown';
 import ForecastGraph from '@/app/admin/forecasting/ForecastGraph';
 import ForecastNotes from '@/app/admin/forecasting/ForecastNotes';
-import GraphSelect from '@/app/admin/forecasting/GraphSelect';
 import styles from '@/app/admin/forecasting/forecasting.module.css';
 
 const number = (value: number | null | undefined) => value == null ? 'N/A' : value.toLocaleString('en-PH', { maximumFractionDigits: 2 });
@@ -32,8 +29,6 @@ const materialStatus = (recommendation: Recommendation | undefined) => {
 };
 const dateLabel = (value: string) => new Date(`${value.slice(0, 10)}T12:00:00Z`).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 export default function ForecastingFeature() {
-  // TODO: move forecast configuration to a catalog permission when one exists.
-  const canConfigure = useAuthStore(state => state.user?.role === "ADMINISTRATOR");
   const [helpOpen, setHelpOpen] = useState(false);
   const helpRoot = useRef<HTMLDivElement>(null);
   const helpButton = useRef<HTMLButtonElement>(null);
@@ -70,32 +65,6 @@ export default function ForecastingFeature() {
   const [materialId, setMaterialId] = useState('');
   const [suggestions, setSuggestions] = useState(false);
   const [convertSummary, setConvertSummary] = useState(false);
-  const [nextPeriod, setNextPeriod] = useState<NextForecastPeriod | null>(null);
-  const [draftDays, setDraftDays] = useState<number | null>(null);
-  const [savingDays, setSavingDays] = useState(false);
-  const [settingsError, setSettingsError] = useState('');
-  const [settingsNotice, setSettingsNotice] = useState('');
-  const [unsavedNotice, setUnsavedNotice] = useState<number | null>(null);
-  const unsavedNoticeId = useRef(0);
-  const settingsRevision = useRef(0);
-  const selectedDays = draftDays ?? nextPeriod?.days ?? 7;
-  const saveDays = async () => {
-    if (savingDays || !nextPeriod || selectedDays === nextPeriod.days) return;
-    setSavingDays(true);
-    setUnsavedNotice(null);
-    setSettingsError('');
-    setNotice('');
-    settingsRevision.current += 1;
-    try {
-      const result = await saveForecastSettings(selectedDays);
-      settingsRevision.current += 1;
-      setNextPeriod(result.nextForecastPeriod);
-      setDraftDays(null);
-      setSettingsNotice(`Next forecast period saved: ${result.nextForecastPeriod.days} ${result.nextForecastPeriod.days === 1 ? 'day' : 'days'}.`);
-    } catch (reason) {
-      setSettingsError(reason instanceof Error ? reason.message : 'Unable to save the forecast period. Please try again.');
-    } finally { setSavingDays(false); }
-  };
   const loadedSelection = useRef<string | null>(null);
 
   useEffect(() => {
@@ -105,7 +74,6 @@ export default function ForecastingFeature() {
   useEffect(() => {
     let active = true;
     const selection = productId;
-    const revision = settingsRevision.current;
     const backgroundUpdate = loadedSelection.current === selection;
     const manualRefresh = manualRefreshPending.current;
     Promise.resolve().then(() => {
@@ -116,7 +84,6 @@ export default function ForecastingFeature() {
       if (!active) return;
       setProducts(catalog.products);
       setData(result);
-      if (revision === settingsRevision.current) setNextPeriod(result.nextForecastPeriod);
       loadedSelection.current = selection;
       if (result.activeRun) setRunId(result.activeRun.id);
       if (manualRefresh) {
@@ -182,8 +149,7 @@ export default function ForecastingFeature() {
         </button>
         {helpOpen && <div id="forecast-help" role="region" aria-label="About stock forecasts" className={styles.forecastHelp}>
           <p>See how much stock you may need and what to buy. Choose a saved period in the graph, then a product or material to explore.</p>
-          <p>Forecasts are prepared automatically after the current period ends (Philippine time). Save a duration from 1 to 30 days for future forecasts.</p>
-          <p>The saved duration applies to future forecasts. Saved and running forecasts keep their original dates.</p>
+          <p>Forecasts cover seven days and are prepared automatically after the current period ends (Philippine time).</p>
           {!loading && run && <p>{data?.scope} Displaying {dateLabel(run.startDate)} - {dateLabel(run.endDate)}. History through {run.historyEnd ? dateLabel(run.historyEnd) : 'N/A'}. Stock snapshot saved {new Date(run.createdAt).toLocaleString('en-PH')}.</p>}
         </div>}
       </div>
@@ -194,31 +160,12 @@ export default function ForecastingFeature() {
         ['Materials Forecasted', loading ? '...' : String(rows.length), 'Materials with usage estimates'],
         ['Restock Needed', loading ? '...' : String(restocks.length), 'Based on stock when this was saved'],
         ['Critical Materials', loading ? '...' : String(critical.length), 'May run out in the first two days'],
-        ['Latest Forecasted Period', periodDays ? `${periodDays} ${periodDays === 1 ? 'Day' : 'Days'}` : '...', run ? `${dateLabel(run.startDate)} - ${dateLabel(run.endDate)}` : 'Waiting for the first saved period'],
-        ['Next Forecast Period', nextPeriod ? `${nextPeriod.days} ${nextPeriod.days === 1 ? 'Day' : 'Days'}` : '...', nextPeriod ? `${dateLabel(nextPeriod.startDate)} - ${dateLabel(nextPeriod.endDate)}` : 'Loading saved setting'],
+        ['Forecasted Period', periodDays ? `${periodDays} ${periodDays === 1 ? 'Day' : 'Days'}` : '...', run ? `${dateLabel(run.startDate)} - ${dateLabel(run.endDate)}` : 'Waiting for the first saved period'],
       ].map(([label, value, detail]) => <section key={label} className={styles.stat}><p>{label}</p><strong>{value}</strong><div className={styles.statDetail}>{detail}</div></section>)}
     </div>
     <div className={styles.filters}>
       <div className={styles.periodPicker}><span className={styles.filterLabel}>Latest saved forecast</span><strong>{data?.periods[0] ? `${dateLabel(data.periods[0].startDate)} – ${dateLabel(data.periods[0].endDate)}` : 'None yet'}</strong></div>
       <MaterialDropdown products={products} value={productId} onChange={setProductId} />
-      {canConfigure && <form className={styles.forecastSettings} onSubmit={(event) => { event.preventDefault(); void saveDays(); }}>
-        <GraphSelect
-          label="Forecast days"
-          value={String(selectedDays)}
-          options={Array.from({ length: 30 }, (_, index) => ({ value: String(index + 1), label: `${index + 1} ${index === 0 ? 'day' : 'days'}` }))}
-          onChange={(value) => {
-            const days = Number(value);
-            setDraftDays(days);
-            setSettingsError('');
-            setSettingsNotice('');
-            setUnsavedNotice(nextPeriod && days !== nextPeriod.days ? ++unsavedNoticeId.current : null);
-          }}
-          disabled={!nextPeriod || savingDays}
-          describedBy={nextPeriod && selectedDays !== nextPeriod.days ? "forecast-days-help" : undefined}
-          className={styles.dayPicker}
-        />
-        <button type="submit" className={styles.saveDays} disabled={!nextPeriod || savingDays || selectedDays === nextPeriod.days}>{savingDays ? 'Saving...' : 'Save'}</button>
-      </form>}
       <div className={styles.refreshActions}>
         <button type="button" className={`${styles.suggestionsButton} ${styles.refreshButton}`} onClick={refreshRecords} disabled={refreshFeedback === 'refreshing'} aria-busy={refreshFeedback === 'refreshing'}>
           {refreshFeedback === 'success' ? <Check size={18} className={styles.refreshComplete} aria-hidden="true" /> : refreshFeedback === 'error' ? <CircleAlert size={18} aria-hidden="true" /> : <RefreshCw size={18} className={refreshFeedback === 'refreshing' ? styles.refreshSpinner : undefined} aria-hidden="true" />}
@@ -226,12 +173,6 @@ export default function ForecastingFeature() {
         </button>
       </div>
     </div>
-    {nextPeriod && selectedDays !== nextPeriod.days && <>
-      <span id="forecast-days-help" className="sr-only">Unsaved change. Select Save to update the next forecast period.</span>
-      {unsavedNotice !== null && <ActionAlert key={`unsaved-${unsavedNotice}`} placement="header" tone="warning" title="Unsaved change" message="Select Save to update the next forecast period." onDismiss={() => setUnsavedNotice(null)} />}
-    </>}
-    {settingsNotice && <ActionAlert key={settingsNotice} placement="header" tone="success" title="Forecast period saved" message={settingsNotice} onDismiss={() => setSettingsNotice('')} />}
-    {settingsError && <p role="alert" className={styles.errorMessage}>{settingsError}</p>}
     {data?.automaticRetryPending && !busy && <p role="status" className={`${styles.errorMessage} ${styles.noticePill}`}>Update delayed. Retries hourly. Saved periods available.</p>}
     {error && <p role="alert" className={styles.errorMessage}>{error}</p>}
     {notice && <p role="status" className={styles.message}>{notice}</p>}

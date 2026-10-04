@@ -68,7 +68,7 @@ describe('saved forecast period schedule', () => {
     const service = new ForecastingService(prisma as unknown as PrismaService);
     const result = await service.latest(undefined, 'older');
     expect(result.run?.id).toBe('older');
-    expect(result.nextForecastPeriod.days).toBe(30);
+    expect(result.nextForecastPeriod.days).toBe(7);
     const selectedQuery = findFirst.mock.calls.find(
       ([query]) => query.where.id === 'older',
     )?.[0];
@@ -77,23 +77,9 @@ describe('saved forecast period schedule', () => {
   });
 });
 
-describe('forecast duration settings', () => {
-  it.each([0, 31, 1.5, NaN, '7', null])(
-    'rejects invalid days %s before writing',
-    async (days) => {
-      const prisma = { $transaction: jest.fn() };
-      const service = new ForecastingService(
-        prisma as unknown as PrismaService,
-      );
-      await expect(service.saveSettings(days as number)).rejects.toThrow(
-        'between 1 and 30',
-      );
-      expect(prisma.$transaction).not.toHaveBeenCalled();
-    },
-  );
-
+describe('fixed weekly forecast period', () => {
   it.each([1, 30])(
-    'snapshots %i saved days into the run and worker',
+    'ignores legacy %i-day settings and generates seven days',
     async (forecastDays) => {
       const create = jest.fn(
         ({
@@ -129,52 +115,11 @@ describe('forecast duration settings', () => {
         .mockResolvedValue();
       const { run } = await service.generate('2026-01-29');
       expect(run.endDate).toEqual(
-        new Date(Date.UTC(2026, 0, 29 + forecastDays - 1)),
+        new Date(Date.UTC(2026, 0, 29 + 7 - 1)),
       );
-      expect(execute).toHaveBeenCalledWith('new', '2026-01-29', forecastDays);
+      expect(execute).toHaveBeenCalledWith('new', '2026-01-29', 7);
     },
   );
-
-  it('saves days durably and previews the period after the running forecast', async () => {
-    let forecastDays = 7;
-    const settings = {
-      findUnique: jest.fn(() => Promise.resolve({ forecastDays })),
-      upsert: jest.fn(({ update }: { update: { forecastDays: number } }) => {
-        forecastDays = update.forecastDays;
-        return Promise.resolve({ forecastDays });
-      }),
-    };
-    const prisma = {
-      forecastSettings: settings,
-      forecastRun: {
-        findFirst: jest
-          .fn()
-          .mockResolvedValue({ endDate: new Date('2099-01-31T00:00:00Z') }),
-      },
-      $transaction: transactionMock({
-        $queryRaw: jest.fn(),
-        forecastSettings: settings,
-      }),
-    };
-    const service = new ForecastingService(prisma as unknown as PrismaService);
-    expect(await service.saveSettings(30)).toEqual({
-      nextForecastPeriod: {
-        days: 30,
-        startDate: '2099-02-01',
-        endDate: '2099-03-02',
-      },
-    });
-    const restarted = new ForecastingService(
-      prisma as unknown as PrismaService,
-    );
-    expect(await restarted.saveSettings(1)).toEqual({
-      nextForecastPeriod: {
-        days: 1,
-        startDate: '2099-02-01',
-        endDate: '2099-02-01',
-      },
-    });
-  });
 
   it('waits for a variable-length saved period to end', () => {
     expect(

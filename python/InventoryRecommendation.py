@@ -49,8 +49,8 @@ def load_inputs():
     for column in ["CurrentStock", "LeadTime", "SafetyStock"]:
         inventory[column] = pd.to_numeric(inventory[column], errors="raise")
     counts = forecast.groupby(["RawMaterial", "Unit"])["Date"].nunique()
-    if (~counts.between(1, 30)).any() or counts.nunique() != 1 or forecast.duplicated(["RawMaterial", "Unit", "Date"]).any():
-        raise ValueError("Each material requires the same 1 to 30 distinct forecast dates; regenerate the incomplete CSV.")
+    if (counts != 7).any() or counts.nunique() != 1 or forecast.duplicated(["RawMaterial", "Unit", "Date"]).any():
+        raise ValueError("Each material requires exactly seven distinct forecast dates; regenerate the incomplete CSV.")
     if inventory["Product"].duplicated().any():
         raise ValueError("Inventory contains duplicate material names")
     return forecast, inventory

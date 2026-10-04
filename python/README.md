@@ -30,7 +30,6 @@ Restart the backend after adding the module or generating Prisma. Open `/admin/f
 
 ## Endpoints (administrator session required)
 
-- `PUT /forecasting/settings`: save `{ "forecastDays": 1 }` through `{ "forecastDays": 30 }`; returns the next period dates.
 - `GET /forecasting/products`: enabled, non-archived products.
 - `GET /forecasting/runs/:id`: RUNNING, COMPLETED or FAILED status.
 - `GET /forecasting/latest?productId=...&runId=...`: latest or selected completed results, saved periods, any active run, and `nextForecastPeriod` (`days`, `startDate`, `endDate`).
@@ -54,26 +53,22 @@ Each automatic forecast reads a fresh database snapshot. Only completed sales be
 
 The next scheduled period includes completed sales recorded before its start. A future date never trains on sales from its own forecast period. POS and stock are read within one repeatable-read database transaction.
 
-On dates with POS orders, actual POS totals replace the CSV for all materials. Other CSV dates remain historical backup. POS-only materials are supported once sufficient variable history exists. The daily store schedule uses calendar-day observations and a seven-day seasonal cycle. Every forecast contains exactly the saved number of calendar dates (1–30). The model is not retrained on every checkout; newly saved sales enter the next automatic forecast.
+On dates with POS orders, actual POS totals replace the CSV for all materials. Other CSV dates remain historical backup. POS-only materials are supported once sufficient variable history exists. The daily store schedule uses calendar-day observations and a seven-day seasonal cycle. Every forecast contains exactly seven calendar dates. The model is not retrained on every checkout; newly saved sales enter the next automatic forecast.
 
 Run all Python tests with `python -B -m unittest discover -s ../python -p "test_*.py"`.
 
 The web worker and standalone CLI use a log1p transformation (Box-Cox lambda 0) for SARIMA training and validation. This handles zero-demand days and keeps inverse-transformed interval bounds defined.
 
-## Saved forecast duration
+## Weekly forecast period
 
-Choose **Forecast days** between Product and Refresh records, then select **Save**.
-The **Next forecast period** card shows the persisted duration and inclusive date range.
-The default is 7 days; changes are shared across administrators and survive server restarts.
-Saving changes the length of future runs, without recalculating completed or running forecasts.
-The scheduler starts after the latest period ends in Philippine time; after downtime it starts
-on the current date rather than backfilling past predictions. A running job snapshots its duration
-when it is claimed, so a settings change cannot change its output length midway through training.
+Forecasts use a fixed seven-day period. The next forecast card shows its inclusive date range.
+The scheduler starts after the latest saved period ends in Philippine time; after downtime it
+starts on the current date rather than backfilling past predictions. Legacy duration settings
+are ignored. Existing saved forecasts retain their original dates and totals.
 
 Recommendations use `ForecastTotal` and `ForecastDays`; `Forecast7Days` remains a legacy CSV
-alias for the period total. Existing seven-day records remain readable. Percentage changes compare
-against the same number of historical calendar days. The CLI also accepts
-`python SARIMA.py --once --forecast-days 30` (CLI observations follow its business-day configuration).
+alias for the period total. Percentage changes compare against the same number of historical
+calendar days. Run the CLI with `python SARIMA.py --once`.
 The web bridge uses daily observations and seven-day seasonality for the store's daily
 1 PM–10 PM Philippine schedule. Forecasts are daily totals, not hourly estimates.
 Only complete Philippine calendar days enter POS training (today enters after midnight).

@@ -11,7 +11,7 @@ Dataset     : cafe_raw_material_daily_consumption.csv
 Description
 -----------
 This system automatically trains a SARIMA forecasting model for every product,
-evaluates each model, and forecasts the next 1 to 30 days of demand.
+evaluates each model, and forecasts the next seven days of demand.
 
 Workflow
 --------
@@ -136,8 +136,8 @@ CONFIG = {
 
 def validate_forecast_days(days):
     """Validate the user-facing forecast period; internal gap steps may be longer."""
-    if isinstance(days, bool) or not isinstance(days, (int, np.integer)) or not 1 <= days <= 30:
-        raise ValueError("Forecast days must be a whole number from 1 to 30")
+    if isinstance(days, bool) or not isinstance(days, (int, np.integer)) or days != 7:
+        raise ValueError("Forecast period must be seven days")
     return int(days)
 
 
@@ -1751,23 +1751,19 @@ def run_once(interactive=True):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Run SARIMA forecasting for a configurable 1 to 30 day period."
+        description="Run SARIMA forecasting for a fixed seven-day period."
     )
     parser.add_argument(
         "--schedule",
         action="store_true",
-        help="Run a forecast now, then repeat after the selected number of days.",
+        help="Run a forecast now, then repeat every seven days.",
     )
     parser.add_argument(
         "--once",
         action="store_true",
         help="Run once without opening the interactive product viewer.",
     )
-    parser.add_argument("--forecast-days", type=int, choices=range(1, 31), default=7,
-                        metavar="1-30", help="Forecast period and scheduled rerun interval (default: 7).")
     args = parser.parse_args()
-    CONFIG["FORECAST_DAYS"] = validate_forecast_days(args.forecast_days)
-    CONFIG["RERUN_DAYS"] = args.forecast_days
 
     if args.schedule:
         interval_seconds = CONFIG["RERUN_DAYS"] * 24 * 60 * 60

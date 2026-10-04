@@ -4,9 +4,15 @@ import {
   IsOptional,
   IsString,
   MaxLength,
+  Matches,
 } from 'class-validator';
 
 export class UpdateProductDto {
+  @IsOptional()
+  @IsString()
+  @Matches(/^\/product-images\/[0-9a-f-]{36}\.webp$/)
+  imageUrl?: string | null;
+
   @IsOptional()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()

@@ -480,6 +480,7 @@ export default function ProductsWorkspace() {
   }
 
   async function handleCreateProduct(input: {
+    imageUrl?: string | null;
     name: string;
     categoryId: string;
     isEnabled: boolean;
@@ -516,6 +517,7 @@ export default function ProductsWorkspace() {
   }
 
   async function handleUpdateProduct(input: {
+    imageUrl?: string | null;
     name: string;
     categoryId: string;
     isEnabled: boolean;
@@ -534,6 +536,7 @@ export default function ProductsWorkspace() {
     resetDialogFeedback();
     try {
       const updated = await updateProduct(selectedProductId, {
+        imageUrl: input.imageUrl,
         name: input.name,
         categoryId: input.categoryId,
       });

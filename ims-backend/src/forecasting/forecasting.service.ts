@@ -74,38 +74,13 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
     for (const child of this.children) child.kill();
   }
 
-  async saveSettings(forecastDays: number) {
-    if (
-      !Number.isInteger(forecastDays) ||
-      forecastDays < 1 ||
-      forecastDays > 30
-    ) {
-      throw new BadRequestException(
-        'Choose a whole number of days between 1 and 30',
-      );
-    }
-    await this.prisma.$transaction(async (tx) => {
-      // Share the claim lock so a running forecast keeps the horizon it started with.
-      await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(728194)`;
-      await tx.forecastSettings.upsert({
-        where: { id: 'default' },
-        create: { id: 'default', forecastDays },
-        update: { forecastDays },
-      });
-    });
-    return { nextForecastPeriod: await this.nextForecastPeriod() };
-  }
-
   private async nextForecastPeriod() {
-    const [settings, latest] = await Promise.all([
-      this.prisma.forecastSettings.findUnique({ where: { id: 'default' } }),
-      this.prisma.forecastRun.findFirst({
-        where: { status: { in: ['COMPLETED', 'RUNNING'] } },
-        orderBy: { endDate: 'desc' },
-        select: { endDate: true },
-      }),
-    ]);
-    const days = settings?.forecastDays ?? 7;
+    const latest = await this.prisma.forecastRun.findFirst({
+      where: { status: { in: ['COMPLETED', 'RUNNING'] } },
+      orderBy: { endDate: 'desc' },
+      select: { endDate: true },
+    });
+    const days = 7;
     const today = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Manila',
       year: 'numeric',
@@ -269,10 +244,7 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
           },
         });
         if (saved) return { run: saved, created: false };
-        const settings = await tx.forecastSettings.findUnique({
-          where: { id: 'default' },
-        });
-        const days = settings?.forecastDays ?? 7;
+        const days = 7;
         const end = new Date(start.getTime() + (days - 1) * 86400000);
         return {
           run: await tx.forecastRun.create({

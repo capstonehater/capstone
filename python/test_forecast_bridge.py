@@ -82,7 +82,7 @@ class ForecastBridgeTests(unittest.TestCase):
         def predict(model, stationary, horizon, exog_cols):
             return pd.DataFrame({'Date': pd.date_range('2026-08-01', periods=horizon),
                                  'Forecast': 10., 'Lower95': 5., 'Upper95': 15.})
-        for start, days in [('2026-10-01', 1), ('2026-10-01', 30), ('2026-09-26', 1)]:
+        for start, days in [('2026-10-01', 7), ('2026-09-26', 7)]:
             with self.subTest(start=start, days=days), patch.dict(SARIMA.CONFIG), \
                     patch('forecast_bridge.pd.read_csv', side_effect=[history.copy(), pd.DataFrame(columns=['Product'])]), \
                     patch('forecast_bridge.merge_pos_history', return_value=(history.copy(), {}, [])), \
@@ -108,17 +108,17 @@ class ForecastBridgeTests(unittest.TestCase):
                 self.assertEqual(points[0]['forecast'], 10)
 
     def test_variable_calendar_periods(self):
-        for days in (1, 15, 30):
+        for days in (7,):
             with self.subTest(days=days):
                 dates = forecast_calendar_days('2026-01-29', days)
                 self.assertEqual(len(dates), days)
                 self.assertEqual(dates[-1], pd.Timestamp('2026-01-29') + pd.Timedelta(days=days - 1))
-        for days in (0, 31, 1.5, True, '7', None):
+        for days in (0, 1, 15, 30, 31, 1.5, True, '7', None):
             with self.subTest(days=days), self.assertRaises(ValueError):
                 forecast_calendar_days('2026-01-29', days)
 
     def test_recommendations_use_selected_period_for_daily_demand_and_purchase(self):
-        for days in (1, 15, 30):
+        for days in (7,):
             with self.subTest(days=days):
                 forecast = pd.DataFrame({'Date': forecast_calendar_days('2026-01-29', days),
                     'RawMaterial': ['Milk'] * days, 'Unit': ['ML'] * days, 'Forecast': [10] * days,

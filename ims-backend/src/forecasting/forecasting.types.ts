@@ -24,7 +24,7 @@ export function validateWorkerResult(
   startDate: string,
   forecastDays = 7,
 ): WorkerResult {
-  if (!Number.isInteger(forecastDays) || forecastDays < 1 || forecastDays > 30)
+  if (forecastDays !== 7)
     throw new Error('Invalid forecast horizon');
   if (!value || typeof value !== 'object')
     throw new Error('Invalid Python output');

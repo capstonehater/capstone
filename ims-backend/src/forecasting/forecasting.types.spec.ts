@@ -46,8 +46,8 @@ describe('Python forecast boundary validation', () => {
   });
 });
 
-describe('variable forecast output lengths', () => {
-  it.each([1, 15, 30])(
+describe('fixed weekly forecast output', () => {
+  it.each([7])(
     'requires exactly %i consecutive points across month boundaries',
     (days) => {
       const result = valid();
@@ -64,7 +64,7 @@ describe('variable forecast output lengths', () => {
       expect(() => validateWorkerResult(result, '2026-01-29', days)).toThrow();
     },
   );
-  it.each([0, 31, 2.5])('rejects unsupported horizon %i', (days) => {
+  it.each([0, 1, 15, 30, 31, 2.5])('rejects unsupported horizon %i', (days) => {
     expect(() => validateWorkerResult(valid(), '2026-09-07', days)).toThrow(
       'Invalid forecast horizon',
     );

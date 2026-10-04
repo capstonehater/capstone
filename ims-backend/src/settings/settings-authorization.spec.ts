@@ -72,7 +72,6 @@ describe('Settings self-service authorization and account protections', () => {
   };
   const validateSession = jest.fn();
   const resolve = jest.fn();
-  const saveSettings = jest.fn();
   const send = (
     route: {
       method: 'get' | 'patch' | 'post' | 'put';
@@ -96,7 +95,7 @@ describe('Settings self-service authorization and account protections', () => {
         { provide: PasswordService, useValue: passwords },
         { provide: SessionService, useValue: { validateSession } },
         { provide: PermissionResolver, useValue: { resolve } },
-        { provide: ForecastingService, useValue: { saveSettings } },
+        { provide: ForecastingService, useValue: {} },
         { provide: APP_GUARD, useClass: SessionAuthGuard },
         { provide: APP_GUARD, useClass: PermissionsGuard },
         { provide: APP_GUARD, useClass: RolesGuard },
@@ -246,21 +245,6 @@ describe('Settings self-service authorization and account protections', () => {
     expect(response.headers['set-cookie']).toEqual(
       expect.arrayContaining([expect.stringContaining('test_session=;')]),
     );
-  });
-  it('retains Administrator-only authorization for global forecast settings', async () => {
-    await send({
-      method: 'put',
-      path: '/forecasting/settings',
-      body: { forecastDays: 7 },
-    }).expect(403);
-    expect(saveSettings).not.toHaveBeenCalled();
-    role = Role.ADMINISTRATOR;
-    await send({
-      method: 'put',
-      path: '/forecasting/settings',
-      body: { forecastDays: 7 },
-    }).expect(200);
-    expect(saveSettings).toHaveBeenCalledWith(7);
   });
   it('self-service has no role/permission/public overrides', () => {
     const reflector = new Reflector();

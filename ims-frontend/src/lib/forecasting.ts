@@ -32,8 +32,5 @@ export const fetchForecastProducts = () => apiJsonFetch<{ products: ForecastProd
 export const fetchForecast = (productId = '', runId = '') => apiJsonFetch<ForecastResponse>(`/forecasting/latest?${new URLSearchParams({ ...(productId ? { productId } : {}), ...(runId ? { runId } : {}) })}`);
 export const fetchForecastRun = (id: string) => apiJsonFetch<{ run: ForecastRun }>(`/forecasting/runs/${encodeURIComponent(id)}`);
 
-export const saveForecastSettings = (forecastDays: number) => apiJsonFetch<{ nextForecastPeriod: NextForecastPeriod }>('/forecasting/settings', {
-  method: 'PUT', body: JSON.stringify({ forecastDays }),
-});
 export const forecastPeriodDays = (run: Pick<ForecastRun, 'startDate' | 'endDate'>) => Math.round((Date.parse(run.endDate) - Date.parse(run.startDate)) / 86400000) + 1;
 export const forecastTotal = (series: ForecastSeries) => series.recommendation?.data.ForecastTotal ?? series.points.reduce((total, point) => total + Number(point.forecast), 0);

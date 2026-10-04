@@ -11,9 +11,9 @@ import { getVisibleNavigation, matchesShellRoute } from "@/components/layout/she
 import { useAuthStore } from "@/store/authStore";
 import styles from "@/components/layout/ApplicationShell.module.css";
 
-type AdminSidebarProps = { isOpen: boolean; onClose: () => void; collapsed: boolean; onToggleCollapse: () => void };
+type AdminSidebarProps = { isOpen: boolean; onClose: () => void; collapsed: boolean; onToggleCollapse: () => void; className?: string; inert?: boolean };
 
-export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleCollapse }: AdminSidebarProps) {
+export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleCollapse, className = "", inert = false }: AdminSidebarProps) {
   const pathname = usePathname();
   const navigation = getVisibleNavigation(useAuthStore());
   const [selectedDropdown, setSelectedDropdown] = useState<{ href: string; path: string } | null>(null);
@@ -71,7 +71,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
   return (
     <>
       <NavigationOverlay open={isOpen} onClose={onClose} tabIndex={-1} />
-      <aside id="admin-navigation" ref={sidebarRef} aria-label="Administrator navigation" className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""} ${collapsed ? styles.adminSidebarCollapsed : ""}`}>
+      <aside id="admin-navigation" ref={sidebarRef} inert={inert} aria-label="Application navigation" className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""} ${collapsed ? styles.adminSidebarCollapsed : ""} ${className}`}>
         <div className={`${styles.brand} ${styles.brandWithAccount}`}>
           <div className={styles.sidebarBrandLogo}>
             <strong>{collapsed ? "CS" : "Cafe Salvacion"}</strong>

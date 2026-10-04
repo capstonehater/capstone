@@ -1,8 +1,8 @@
 "use client";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
-import { Receipt } from "lucide-react";
+import { useState } from "react";
+import { buildReceiptHtml, openReceipt } from "@/lib/receipt";
 import type { PosOrder } from "@/lib/pos";
-import { formatDateTime, formatName, formatPeso } from "@/lib/pos-utils";
 import Modal from "./Modal";
 
 type Props = {
@@ -12,118 +12,29 @@ type Props = {
   onClose: () => void;
 };
 
-function statusTone(status: PosOrder["status"]) {
-  switch (status) {
-    case "REFUNDED":
-      return "bg-[#dce2eb] text-[#34445f]";
-    default:
-      return "bg-emerald-100 text-emerald-700";
-  }
-}
-
 export default function ReceiptModal({
   receipt,
   onRefund,
   reversalSubmitting = false,
   onClose,
 }: Props) {
+  const [printError, setPrintError] = useState("");
+  function handlePrint() {
+    setPrintError("");
+    try { openReceipt(receipt); }
+    catch (error) { setPrintError(error instanceof Error ? error.message : "Unable to open receipt."); }
+  }
   return (
     <Modal title="Receipt" onClose={onClose}>
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <Receipt className="h-5 w-5 text-[#232d46]" />
-          <div>
-            <h3 className="font-semibold">Receipt #{receipt.id}</h3>
-            <p className="text-sm text-slate-500">{formatDateTime(receipt.completedAt)}</p>
-          </div>
-          <span className={`ml-auto rounded-full px-3 py-1 text-xs font-semibold ${statusTone(receipt.status)}`}>
-            {receipt.status}
-          </span>
-        </div>
-
-        <div className="space-y-3 text-sm">
-          {receipt.items.map((item) => (
-            <div key={item.id} className="rounded-xl bg-white px-3 py-2">
-              <div className="flex justify-between gap-3">
-                <span>
-                  {item.quantity}x {item.productNameSnapshot} ({item.variantNameSnapshot})
-                </span>
-                <span>{formatPeso(item.lineSubtotal)}</span>
-              </div>
-              {item.modifiers.length > 0 ? (
-                <div className="mt-1 text-xs text-slate-500">
-                  {item.modifiers
-                    .map(
-                      (modifier) =>
-                        `${modifier.modifierNameSnapshot} x${modifier.quantity}`
-                    )
-                    .join(", ")}
-                </div>
-              ) : null}
-              {item.note ? (
-                <div className="mt-1 text-xs text-[#34445f]">Note: {item.note}</div>
-              ) : null}
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 space-y-2 border-t border-dashed border-slate-300 pt-4 text-sm">
-          <div className="flex justify-between">
-            <span>Subtotal (VAT Inclusive)</span>
-            <span>{formatPeso(receipt.subtotalAmount)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Discount</span>
-            <span>- {formatPeso(receipt.discountAmount)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>VAT Included (12%)</span>
-            <span>{formatPeso(receipt.taxAmount)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>COGS</span>
-            <span>{formatPeso(receipt.totalCogsAmount)}</span>
-          </div>
-          <div className="flex justify-between font-bold">
-            <span>Total</span>
-            <span>{formatPeso(receipt.totalAmount)}</span>
-          </div>
-        </div>
-
-        <div className="mt-4 grid gap-1 text-sm text-slate-600">
-          <p>
-            <span className="font-medium">Payment:</span>{" "}
-            {receipt.payments
-              .map((payment) => `${payment.method} ${formatPeso(payment.amount)}`)
-              .join(" + ")}
-          </p>
-          <p>
-            <span className="font-medium">Staff Name:</span> {formatName(receipt.createdBy)}
-          </p>
-          <p>
-            <span className="font-medium">Date & Time:</span>{" "}
-            {formatDateTime(receipt.completedAt)}
-          </p>
-          {receipt.notes ? (
-            <p>
-              <span className="font-medium">Notes:</span> {receipt.notes}
-            </p>
-          ) : null}
-          {receipt.reversal ? (
-            <div className="mt-2 rounded-xl border border-slate-200 bg-white px-3 py-3">
-              <p className="font-medium text-slate-900">
-                Refunded by{" "}
-                {formatName(receipt.reversal.actorUser)}
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                {formatDateTime(receipt.reversal.occurredAt)} • {receipt.reversal.reasonCode}
-              </p>
-              {receipt.reversal.note ? (
-                <p className="mt-2 text-xs text-slate-600">{receipt.reversal.note}</p>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
+      <div>
+        <iframe
+          title={`Receipt ${receipt.displayOrderNumber}`}
+          srcDoc={buildReceiptHtml(receipt).replace('<body>', '<body class="preview">')}
+          sandbox=""
+          className="h-[55vh] w-full rounded-xl border border-slate-200 bg-[#fffdf7]"
+        />
+        <p className="mt-3 text-xs text-slate-500">Open the HTML receipt to print, save as PDF, or download. No connected printer is required.</p>
+        {printError && <p role="alert" className="mt-2 text-sm text-red-700">{printError}</p>}
 
         <div className="mt-5 flex justify-end gap-2">
           {receipt.status === "COMPLETED" ? (
@@ -131,7 +42,7 @@ export default function ReceiptModal({
 
               <PermissionAction permission={"pos.refund"}><button
                 type="button"
-                disabled={reversalSubmitting}
+                disabled={reversalSubmitting || !onRefund}
                 onClick={() => onRefund?.(receipt)}
                 className="rounded-2xl border border-[#cbd5e1] px-4 py-2 text-sm font-medium text-[#34445f] hover:bg-[#edf2f8] disabled:opacity-60"
               >
@@ -141,6 +52,7 @@ export default function ReceiptModal({
           ) : null}
           <button
             type="button"
+            onClick={handlePrint}
             className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium"
           >
             Print Receipt

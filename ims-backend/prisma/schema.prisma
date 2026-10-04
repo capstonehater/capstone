@@ -228,6 +228,7 @@ model Category {
 }
 
 model Product {
+  imageUrl      String?   @map("image_url")
   id            String    @id @default(uuid())
   categoryId    String    @map("category_id")
   name          String

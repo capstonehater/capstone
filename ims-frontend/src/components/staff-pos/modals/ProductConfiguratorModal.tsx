@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import type {
   ConfiguredPosCartItemInput,
@@ -11,6 +11,7 @@ import type {
   PosMenuProduct,
 } from "@/lib/pos";
 import { decimalToNumber, formatPeso } from "@/lib/pos-utils";
+import ProductImage from "@/components/ProductImage";
 import Modal from "./Modal";
 import styles from "./ProductConfiguratorModal.module.css";
 
@@ -61,6 +62,32 @@ export default function ProductConfiguratorModal({
   submitLabel,
   initialItem,
 }: Props) {
+  const [closing, setClosing] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const finishWithAnimation = useCallback((action: () => void) => {
+    if (closeTimer.current !== null) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      action();
+      return;
+    }
+    setClosing(true);
+    closeTimer.current = setTimeout(action, 180);
+  }, []);
+  const requestClose = useCallback(() => finishWithAnimation(onClose), [finishWithAnimation, onClose]);
+  useEffect(() => () => {
+    if (closeTimer.current !== null) clearTimeout(closeTimer.current);
+  }, []);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      event.preventDefault();
+      requestClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [requestClose]);
+
   const defaultVariant =
     product.variants.find((variant) => variant.id === initialItem?.productVariantId) ??
     product.variants.find((variant) => variant.availability?.isSellable) ??
@@ -201,7 +228,7 @@ export default function ProductConfiguratorModal({
     }
 
     setError(null);
-    onSubmit({
+    finishWithAnimation(() => onSubmit({
       productId: product.id,
       productName: product.name,
       categoryName: product.category.name,
@@ -211,22 +238,15 @@ export default function ProductConfiguratorModal({
       note,
       basePrice,
       modifierSelections: selectedModifiers,
-    });
+    }));
   };
 
   return (
-    <Modal title={product.name} onClose={onClose} wide={product.modifierGroups.length > 0} bodyClassName={styles.body} footer={
+    <Modal title={product.name} onClose={requestClose} closeButtonStyle="back" wide panelClassName={closing ? styles.closingPanel : styles.openingPanel} bodyClassName={styles.body} footer={
 <div className={styles.footer}>
         <button
-          onClick={onClose}
-          type="button"
-          className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium"
-        >
-          Cancel
-        </button>
-
-        <button
           onClick={handleSubmit}
+          disabled={closing}
           type="button"
           className="rounded-2xl bg-[#232d46] px-4 py-2 text-sm font-medium text-white hover:bg-[#34445f]"
         >
@@ -234,8 +254,10 @@ export default function ProductConfiguratorModal({
         </button>
       </div>
 }>
-      <div className={product.modifierGroups.length > 0 ? styles.layout : styles.simpleLayout}>
-        <div className="space-y-4">
+      <div className={styles.layout}>
+        <div className={styles.productOverview}>
+          <div className={styles.productPhoto}><ProductImage src={product.imageUrl} name={product.name} /></div>
+          <h3 className={styles.productTitle}>{product.name}</h3>
           <div className="rounded-2xl bg-slate-50 p-4">
             <p className="text-sm text-slate-500">Category: {product.category.name}</p>
             <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -256,6 +278,8 @@ export default function ProductConfiguratorModal({
             </div>
           </div>
 
+        </div>
+        <div className="space-y-4">
           <div>
             <label className="mb-2 block text-sm font-semibold">Variant</label>
             <div className="grid gap-2">
@@ -312,7 +336,6 @@ export default function ProductConfiguratorModal({
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
             />
           </div>
-        </div>
 
         <div className={product.modifierGroups.length > 0 ? "space-y-4" : styles.noModifiers}>
           <div className="flex items-center justify-between">
@@ -438,6 +461,7 @@ export default function ProductConfiguratorModal({
               {error}
             </div>
           ) : null}
+        </div>
         </div>
       </div>
 
