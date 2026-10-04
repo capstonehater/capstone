@@ -1,4 +1,5 @@
 "use client";
+import AdminSelect from "@/components/admin/AdminSelect";
 
 import { RefreshCcw } from "lucide-react";
 import styles from "./InventorySummaryPanel.module.css";
@@ -54,7 +55,7 @@ export default function InventorySummaryPanel({
   formatMoney,
 }: InventorySummaryPanelProps) {
   return (
-    <section id="materials" className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4 2xl:h-[42rem] 2xl:min-h-0">
+    <section className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4 2xl:h-[42rem] 2xl:min-h-0">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-[#232d46]">Materials</h2>
@@ -73,7 +74,7 @@ export default function InventorySummaryPanel({
       </div>
 
       <div className={styles.filters}>
-        <div className="min-w-0 sm:col-span-2">
+        <div className="min-w-0">
         <InventoryField htmlFor="summary-search" label="Search">
           <input
             id="summary-search"
@@ -84,35 +85,8 @@ export default function InventorySummaryPanel({
           />
         </InventoryField>
         </div>
-        <InventoryField htmlFor="summary-status" label="Status">
-          <select
-            id="summary-status"
-            value={statusFilter}
-            onChange={(event) => onStatusFilterChange(event.target.value)}
-            className={styles.control}
-          >
-            <option value="">All statuses</option>
-            <option value="IN_STOCK">In stock</option>
-            <option value="LOW_STOCK">Low stock</option>
-            <option value="OUT_OF_STOCK">Out of stock</option>
-            <option value="INACTIVE">Archived</option>
-          </select>
-        </InventoryField>
-        <InventoryField htmlFor="summary-supplier" label="Supplier">
-          <select
-            id="summary-supplier"
-            value={supplierId}
-            onChange={(event) => onSupplierChange(event.target.value)}
-            className={styles.control}
-          >
-            <option value="">All suppliers</option>
-            {suppliers.map((supplier) => (
-              <option key={supplier.id} value={supplier.id}>
-                {supplier.name}
-              </option>
-            ))}
-          </select>
-        </InventoryField>
+        <AdminSelect label="Status" value={statusFilter} onChange={onStatusFilterChange} options={[{ value: "", label: "All statuses" }, { value: "IN_STOCK", label: "In stock" }, { value: "LOW_STOCK", label: "Low stock" }, { value: "OUT_OF_STOCK", label: "Out of stock" }, { value: "INACTIVE", label: "Archived" }]} />
+        <AdminSelect label="Supplier" value={supplierId} onChange={onSupplierChange} options={[{ value: "", label: "All suppliers" }, ...suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))]} />
       </div>
 
       <div className="mt-4 flex min-h-0 flex-1 overflow-hidden rounded-lg border border-slate-200">

@@ -1,5 +1,5 @@
 "use client";
-import modalStyles from "./InventoryModal.module.css";
+import AdminSelect from "@/components/admin/AdminSelect";
 
 import type { FormEvent } from "react";
 import {
@@ -68,49 +68,8 @@ export default function WasteModal({
       onClose={onClose}
     >
       <form className="grid gap-4 md:grid-cols-2" onSubmit={onSubmitWaste}>
-        <InventoryField htmlFor="waste-material" label="Raw material">
-          <select
-            id="waste-material"
-            value={wasteForm.rawMaterialId}
-            onChange={(event) => {
-              const nextId = event.target.value;
-              onWasteFormChange((current) => ({
-                ...current,
-                rawMaterialId: nextId,
-                batchId: "",
-              }));
-              onSelectRawMaterial(nextId);
-            }}
-            className={modalStyles.unitSelect}
-          >
-            <option value="">Select raw material</option>
-            {summaries.map((summary) => (
-              <option key={summary.rawMaterialId} value={summary.rawMaterialId}>
-                {summary.name}
-              </option>
-            ))}
-          </select>
-        </InventoryField>
-        <InventoryField htmlFor="waste-batch" label="Batch">
-          <select
-            id="waste-batch"
-            value={wasteForm.batchId}
-            onChange={(event) =>
-              onWasteFormChange((current) => ({
-                ...current,
-                batchId: event.target.value,
-              }))
-            }
-            className={modalStyles.unitSelect}
-          >
-            <option value="">Select batch</option>
-            {batches.map((batch) => (
-              <option key={batch.id} value={batch.id}>
-                {batch.id.slice(0, 8)} · remaining {formatQuantity(batch.remainingQuantity)}
-              </option>
-            ))}
-          </select>
-        </InventoryField>
+        <AdminSelect label="Raw material" value={wasteForm.rawMaterialId} onChange={(rawMaterialId) => { onWasteFormChange((current) => ({ ...current, rawMaterialId, batchId: "" })); onSelectRawMaterial(rawMaterialId); }} options={[{ value: "", label: "Select raw material" }, ...summaries.map((summary) => ({ value: summary.rawMaterialId, label: summary.name }))]} />
+        <AdminSelect label="Batch" value={wasteForm.batchId} onChange={(batchId) => onWasteFormChange((current) => ({ ...current, batchId }))} options={[{ value: "", label: "Select batch" }, ...batches.map((batch) => ({ value: batch.id, label: `${batch.id.slice(0, 8)} · remaining ${formatQuantity(batch.remainingQuantity)}` }))]} />
         <InventoryField htmlFor="waste-quantity" label="Quantity">
           <input
             id="waste-quantity"
@@ -128,25 +87,7 @@ export default function WasteModal({
             className={inventoryInputClasses}
           />
         </InventoryField>
-        <InventoryField htmlFor="waste-reason" label="Reason code">
-          <select
-            id="waste-reason"
-            value={wasteForm.reasonCode}
-            onChange={(event) =>
-              onWasteFormChange((current) => ({
-                ...current,
-                reasonCode: event.target.value,
-              }))
-            }
-            className={modalStyles.unitSelect}
-          >
-            {INVENTORY_WASTE_REASON_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </InventoryField>
+        <AdminSelect label="Reason code" value={wasteForm.reasonCode} onChange={(reasonCode) => onWasteFormChange((current) => ({ ...current, reasonCode }))} options={[...INVENTORY_WASTE_REASON_OPTIONS.map((option) => ({ value: option.value, label: option.label }))]} />
         <div className="md:col-span-2">
           <InventoryField htmlFor="waste-note" label="Note">
             <textarea
@@ -164,9 +105,6 @@ export default function WasteModal({
           </InventoryField>
         </div>
         <ModalActions>
-          <button type="button" onClick={onClose} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
-            Cancel
-          </button>
           <button type="submit" disabled={submitting} className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white">
             Record Waste
           </button>

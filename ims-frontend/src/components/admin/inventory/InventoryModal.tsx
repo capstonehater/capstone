@@ -1,8 +1,10 @@
 "use client";
+import { useEffect, useRef } from "react";
 import ModalCloseButton from "@/components/ModalCloseButton";
 import backdrop from "@/components/ModalBackdrop.module.css";
 
 import styles from "./InventoryModal.module.css";
+import motion from "./InventoryModalMotion.module.css";
 
 type InventoryModalProps = {
   title: string;
@@ -23,10 +25,26 @@ export default function InventoryModal({
   bodyClassName,
   professional = false,
 }: InventoryModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      // Native dialogs and open dropdowns handle Escape before the underlying modal.
+      if (document.querySelector("dialog[open]")) return;
+      const modals = document.querySelectorAll("[data-inventory-modal]");
+      if (modals.item(modals.length - 1) !== modalRef.current) return;
+      event.preventDefault();
+      onClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [onClose]);
+
   return (
-    <div className={`${backdrop.backdrop} ${professional ? styles.professional : ""} fixed inset-0 z-[90] flex items-center justify-center p-4`}>
+    <div ref={modalRef} data-inventory-modal className={`${backdrop.backdrop} ${motion.overlay} ${professional ? styles.professional : ""} fixed inset-0 z-[90] flex items-center justify-center p-4`}>
       <div
-        className={`flex max-h-[88vh] w-full flex-col overflow-hidden rounded-[32px] border border-white/40 bg-[#f8f3ec] shadow-[0_28px_90px_rgba(15,23,42,0.28)] ${wide ? "max-w-6xl" : "max-w-3xl"}`}
+        className={`${motion.panel} flex max-h-[88vh] w-full flex-col overflow-hidden rounded-[32px] border border-white/40 bg-[#f8f3ec] shadow-[0_28px_90px_rgba(15,23,42,0.28)] ${wide ? "max-w-6xl" : "max-w-3xl"}`}
       >
         <div className={`${styles.header} flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5`}>
           <div>

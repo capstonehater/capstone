@@ -10,6 +10,7 @@ import {
   Clock3,
 } from "lucide-react";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
+import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
 import InventoryReportModal from "@/components/admin/inventory/InventoryReportModal";
 import AdminSelect from "@/components/admin/AdminSelect";
 import { acknowledgeAlert, dismissAlert, fetchAlerts, type AlertRecord } from "@/lib/alerts";
@@ -113,8 +114,9 @@ export default function DashboardFeature() {
   }, [wasteSummary]);
 
   return (
-    <AdminDashboardLayout>
+    <AdminDashboardLayout showHeader={false}>
       <div className={styles.dashboard}>
+      <AdminSectionHeader className="mb-6" title="Dashboard" description="Welcome back! Here's your inventory overview." />
       {!canViewReports && <p className="rounded-xl border border-slate-200 bg-white p-5">Report summaries are unavailable with your current permissions. Use the navigation to open your available features.</p>}
       {error ? (
         <div className={styles.error}>

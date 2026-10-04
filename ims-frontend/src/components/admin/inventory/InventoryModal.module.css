@@ -1,4 +1,4 @@
-.professional { z-index:80; }
+.professional { z-index:80; font-family:var(--font-sans); }
 .professional > div { border:1px solid #dce2eb; border-radius:16px; background:#fff; box-shadow:0 24px 70px #0f172a33; }
 .professional > div > div:first-child { flex-shrink:0; padding:22px 24px; background:var(--modal-header-background); }
 .professional h2 { margin:0; font-size:24px; font-weight:650; line-height:1.35; color:#232d46; }
@@ -10,12 +10,12 @@
 .unitSelect option { background:#fff; color:#232d46; }
 .professional textarea { padding:12px; min-height:100px; }
 .professional input:focus,.professional select:focus,.professional textarea:focus { outline:2px solid #64748b; outline-offset:2px; border-color:#64748b; box-shadow:none; }
-.professional button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:40px; padding:9px 16px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; color:#334155; font-size:14px; font-weight:600; }
-.professional button:hover:not(:disabled) { background:#f1f5f9; }
+.professional button:not(:where([aria-haspopup="listbox"])) { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:40px; padding:9px 16px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; color:#334155; font-size:14px; font-weight:600; }
+.professional button:not(:where([aria-haspopup="listbox"])):hover:not(:disabled) { background:#f1f5f9; }
 .professional button[type="submit"] { background:#232d46; border-color:#232d46; color:#fff; }
 .professional button[type="submit"]:hover:not(:disabled) { background:#34425f; }
 .professional button:disabled { opacity:.5; cursor:not-allowed; }
-.professional button:focus-visible { outline:2px solid #64748b; outline-offset:3px; }
+.professional button:not(:where([aria-haspopup="listbox"])):focus-visible { outline:2px solid #64748b; outline-offset:3px; }
 .professional form > div:last-child { padding-top:18px; border-top:1px solid #e2e8f0; }
 
 .header { background:var(--modal-header-background); }

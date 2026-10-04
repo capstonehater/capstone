@@ -193,7 +193,9 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
       let current: SectionView = "overview";
       for (const [id] of workspaceSections) {
         const section = document.getElementById(id);
-        if (section && section.getBoundingClientRect().top <= threshold) current = id;
+        if (!section) continue;
+        const scrollOffset = Number.parseFloat(getComputedStyle(section).scrollMarginTop) || 0;
+        if (section.getBoundingClientRect().top <= Math.max(threshold, scrollOffset) + 2) current = id;
       }
       if (document.getElementById("stock-runs") && window.scrollY > 0 && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) current = "stock-runs";
       setActiveSection(current);
@@ -333,6 +335,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   }
 
   async function loadMaterialHistory(rawMaterialId: string) {
+    if (historyFrom && historyTo && historyFrom > historyTo) return;
     setHistoryLoading(true);
     try {
       const nextTransactions = await fetchRawMaterialTransactions(rawMaterialId, {
@@ -485,11 +488,9 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   return (
     <AdminDashboardLayout showHeader={false}>
       <div className={`flex min-w-0 w-full flex-col gap-5 bg-[#f5f5f5] text-[#232d46] `}>
-        <AdminSectionHeader title="Inventory" description="Check stock, receive deliveries, and take action from one workspace.">
-          <button type="button" disabled={initialLoading || submitting} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50" onClick={() => void refreshEverything(true).then(loadBusinessReports).catch(() => setError("Unable to refresh inventory. Please try again."))}>Refresh inventory</button>
-        </AdminSectionHeader>
+        <AdminSectionHeader title="Inventory" description="Check stock, receive deliveries, and take action from one workspace." />
         <nav ref={sectionNavRef} aria-label="Inventory sections" className={styles.sectionNav}>
-          {workspaceSections.filter(([id]) => id !== "stock-runs" || canViewStockRuns).map(([id, label]) => <a key={id} href={`#${id}`} aria-current={activeSection === id ? "location" : undefined} onClick={(event) => { event.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); }}>{label}</a>)}
+          {workspaceSections.filter(([id]) => id !== "stock-runs" || canViewStockRuns).map(([id, label]) => <a key={id} href={`#${id}`} aria-current={activeSection === id ? "location" : undefined} onClick={(event) => { event.preventDefault(); setActiveSection(id); document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); }}>{label}</a>)}
         </nav>
         <div className={styles.materialActions} aria-label="Material actions">
           <PermissionAction permission={"inventory.create"}><button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }}><Plus size={16} />Add Raw Material</button></PermissionAction>

@@ -45,7 +45,9 @@ export const useInventoryStore = create<InventoryState>((set) => ({
   setStatusFilter: (statusFilter) => set({ statusFilter }),
   setSupplierId: (supplierId) => set({ supplierId }),
   setSelectedRawMaterialId: (selectedRawMaterialId) =>
-    set({ selectedRawMaterialId }),
+    set((state) => state.selectedRawMaterialId === selectedRawMaterialId
+      ? state
+      : { selectedRawMaterialId, historyFrom: "", historyTo: "" }),
   setActivePanel: (activePanel) => set({ activePanel }),
   setHistoryType: (historyType) => set({ historyType }),
   setHistoryFrom: (historyFrom) => set({ historyFrom }),

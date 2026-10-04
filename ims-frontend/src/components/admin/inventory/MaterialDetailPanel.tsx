@@ -1,4 +1,7 @@
 "use client";
+import DateFilter from "@/components/staff-pos/DateFilter";
+import selectStyles from "@/components/admin/AdminSelect.module.css";
+import AdminSelect from "@/components/admin/AdminSelect";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useState } from "react";
@@ -12,7 +15,6 @@ import {
   Store,
 } from "lucide-react";
 import {
-  InventoryField,
   inventoryInputClasses,
 } from "@/components/admin/inventory/InventoryField";
 import type {
@@ -134,6 +136,7 @@ export default function MaterialDetailPanel({
   const [batchStatus, setBatchStatus] = useState("");
   const [batchSupplier, setBatchSupplier] = useState("");
   const [batchOrder, setBatchOrder] = useState("desc");
+  const invalidHistoryDates = Boolean(historyFrom && historyTo && historyFrom > historyTo);
   const activeBatches = batches.filter((batch) => Number(batch.remainingQuantity) > 0);
   const batchSuppliers = [...new Map(batches.filter((batch) => batch.supplier).map((batch) => [batch.supplier!.id, batch.supplier!])).values()];
   const matchingBatches = batches.filter((batch) => {
@@ -161,10 +164,10 @@ export default function MaterialDetailPanel({
 
   return (
     <section className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4 2xl:h-[42rem] 2xl:overflow-x-hidden 2xl:overflow-y-auto">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-[160px] flex-1">
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-lg font-bold text-[#232d46]">
+            <h2 className="mb-0 text-lg font-bold text-[#232d46]">
               {selectedMaterial?.name ?? selectedSummary?.name ?? "Raw Material"}
             </h2>
             {selectedSummary ? (
@@ -180,10 +183,12 @@ export default function MaterialDetailPanel({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex max-w-full flex-col items-start gap-2">
+          <div className="flex flex-wrap items-center gap-2">
           <PermissionAction permission={"suppliers.searchAvailability"}><InlineActionButton label="Store Availability" icon={<Store size={15} />} onClick={onStoreAvailability} /></PermissionAction>
           <PermissionAction permission={"inventory.edit"}><InlineActionButton label="Edit" icon={<ClipboardList size={15} />} onClick={onEdit} /></PermissionAction>
           <PermissionAction permission={"inventory.waste"}><InlineActionButton label="Record Waste" icon={<FlaskConical size={15} />} onClick={onWaste} /></PermissionAction>
+          </div>
           <PermissionAction permission={"inventory.archive"}><InlineActionButton
             label="Archive"
             icon={<Archive size={15} />}
@@ -194,16 +199,18 @@ export default function MaterialDetailPanel({
       </div>
 
       {selectedSummary?.status === "LOW_STOCK" || selectedSummary?.status === "OUT_OF_STOCK" ? (
-        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5" size={18} />
-            <div>
-              <p className="font-semibold">{selectedSummary.name} needs attention</p>
-              <p className="mt-1 text-amber-800">
-                This material is {selectedSummary.status.replaceAll("_", " ").toLowerCase()}. Use
-                a stock run or waste entry so the ledger and summaries stay aligned.
-              </p>
+        <div className={styles.stockAlert} data-status={selectedSummary.status} role="status">
+          <span className={styles.stockAlertIcon}><AlertTriangle size={20} aria-hidden="true" /></span>
+          <div className={styles.stockAlertContent}>
+            <div className={styles.stockAlertHeading}>
+              <p className={styles.stockAlertTitle}>{selectedSummary.name}</p>
+              <span className={styles.stockAlertBadge}>{selectedSummary.status === "OUT_OF_STOCK" ? "Out of stock" : "Low stock"}</span>
             </div>
+            <p className={styles.stockAlertDescription}>
+              {selectedSummary.status === "OUT_OF_STOCK"
+                ? "No usable stock remaining. Create a stock run to replenish this material."
+                : "Stock is below the reorder point. Plan a stock run to replenish this material."}
+            </p>
           </div>
         </div>
       ) : null}
@@ -242,26 +249,14 @@ export default function MaterialDetailPanel({
               ) : null}
             </div>
           </div>
-          <div className="grid gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 sm:grid-cols-2 xl:grid-cols-4">
-            <InventoryField htmlFor="batch-search" label="Search batches">
+          <div className={`${styles.historyFilters} grid gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 sm:grid-cols-2 xl:grid-cols-4`}>
+            <div>
+                  <label htmlFor="batch-search" className={selectStyles.label}>Search batches</label>
               <input id="batch-search" value={batchSearch} onChange={(event) => setBatchSearch(event.target.value)} placeholder="Batch ID, supplier, or stock run" className={inventoryInputClasses} />
-            </InventoryField>
-            <InventoryField htmlFor="batch-status" label="Status">
-              <select id="batch-status" value={batchStatus} onChange={(event) => setBatchStatus(event.target.value)} className={inventoryInputClasses}>
-                <option value="">All statuses</option><option value="active">Remaining stock</option><option value="depleted">Depleted</option>
-              </select>
-            </InventoryField>
-            <InventoryField htmlFor="batch-supplier" label="Supplier">
-              <select id="batch-supplier" value={batchSupplier} onChange={(event) => setBatchSupplier(event.target.value)} className={inventoryInputClasses}>
-                <option value="">All suppliers</option><option value="none">No supplier</option>
-                {batchSuppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
-              </select>
-            </InventoryField>
-            <InventoryField htmlFor="batch-order" label="Received date order">
-              <select id="batch-order" value={batchOrder} onChange={(event) => setBatchOrder(event.target.value)} className={inventoryInputClasses}>
-                <option value="desc">Newest first</option><option value="asc">Oldest first</option>
-              </select>
-            </InventoryField>
+            </div>
+            <AdminSelect label="Status" value={batchStatus} onChange={setBatchStatus} options={[{ value: "", label: "All statuses" }, { value: "active", label: "Remaining stock" }, { value: "depleted", label: "Depleted" }]} />
+            <AdminSelect label="Supplier" value={batchSupplier} onChange={setBatchSupplier} options={[{ value: "", label: "All suppliers" }, { value: "none", label: "No supplier" }, ...batchSuppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))]} />
+            <AdminSelect label="Received date order" value={batchOrder} onChange={setBatchOrder} options={[{ value: "desc", label: "Newest first" }, { value: "asc", label: "Oldest first" }]} />
           </div>
           <div tabIndex={0} role="region" aria-label="Batches table" className="h-[17rem] min-h-0 shrink-0 overflow-x-auto overflow-y-scroll [scrollbar-gutter:stable]">
             <table className="w-full min-w-[40rem] table-fixed text-sm">
@@ -326,41 +321,11 @@ export default function MaterialDetailPanel({
               </div>
 
               <div className={`${styles.historyFilters} grid gap-3 md:grid-cols-2 xl:grid-cols-4`}>
-                <InventoryField htmlFor="history-type" label="Transaction type">
-                  <select
-                    id="history-type"
-                    title={historyType ? historyType.replaceAll("_", " ") : "All transaction types"}
-                    value={historyType}
-                    onChange={(event) => onHistoryTypeChange(event.target.value)}
-                    className={inventoryInputClasses}
-                  >
-                    <option value="">All transaction types</option>
-                    <option value="STOCK_RUN">Stock run</option>
-                    <option value="ADJUSTMENT">Adjustment</option>
-                    <option value="WASTE">Waste</option>
-                    <option value="CHECKOUT">Checkout</option>
-                    <option value="REFUND">Refund</option>
-                  </select>
-                </InventoryField>
-                <InventoryField htmlFor="history-from" label="From date">
-                  <input
-                    id="history-from"
-                    type="date"
-                    value={historyFrom}
-                    onChange={(event) => onHistoryFromChange(event.target.value)}
-                    className={inventoryInputClasses}
-                  />
-                </InventoryField>
-                <InventoryField htmlFor="history-to" label="To date">
-                  <input
-                    id="history-to"
-                    type="date"
-                    value={historyTo}
-                    onChange={(event) => onHistoryToChange(event.target.value)}
-                    className={inventoryInputClasses}
-                  />
-                </InventoryField>
-                <InventoryField htmlFor="history-search" label="Search">
+                <AdminSelect label="Transaction type" value={historyType} onChange={onHistoryTypeChange} options={[{ value: "", label: "All transaction types" }, { value: "STOCK_RUN", label: "Stock run" }, { value: "ADJUSTMENT", label: "Adjustment" }, { value: "WASTE", label: "Waste" }, { value: "CHECKOUT", label: "Checkout" }, { value: "REFUND", label: "Refund" }]} />
+                <DateFilter label="From date" value={historyFrom} onChange={onHistoryFromChange} />
+                <DateFilter label="To date" value={historyTo} onChange={onHistoryToChange} />
+                <div>
+                  <label htmlFor="history-search" className={selectStyles.label}>Search</label>
                   <input
                     id="history-search"
                     title={historySearchInput || "Type, reason code, note, or actor"}
@@ -369,8 +334,13 @@ export default function MaterialDetailPanel({
                     placeholder="Type, reason code, note, or actor"
                     className={inventoryInputClasses}
                   />
-                </InventoryField>
+                </div>
               </div>
+              {invalidHistoryDates && (
+                <p role="alert" className={styles.dateError}>
+                  From date must be on or before To date. Correct the date range to update the history results.
+                </p>
+              )}
             </div>
           </div>
 

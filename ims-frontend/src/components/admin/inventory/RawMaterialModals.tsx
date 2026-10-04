@@ -1,4 +1,5 @@
 "use client";
+import AdminSelect from "@/components/admin/AdminSelect";
 import modalStyles from "./InventoryModal.module.css";
 
 import type { FormEvent } from "react";
@@ -87,23 +88,7 @@ export default function RawMaterialModals({
                 className={inventoryInputClasses}
               />
             </InventoryField>
-            <InventoryField htmlFor="material-unit" label="Base unit">
-              <select
-                id="material-unit"
-                value={materialForm.unitId}
-                onChange={(event) =>
-                  onMaterialFormChange((current) => ({ ...current, unitId: event.target.value }))
-                }
-                className={modalStyles.unitSelect}
-              >
-                <option value="">Select unit</option>
-                {units.map((unit) => (
-                  <option key={unit.id} value={unit.id}>
-                    {unit.name} ({unit.code})
-                  </option>
-                ))}
-              </select>
-            </InventoryField>
+            <AdminSelect label="Base unit" value={materialForm.unitId} onChange={(unitId) => onMaterialFormChange((current) => ({ ...current, unitId }))} options={[{ value: "", label: "Select unit" }, ...units.map((unit) => ({ value: unit.id, label: `${unit.name} (${unit.code})` }))]} />
             <InventoryField htmlFor="material-reorder" label="Reorder point">
               <input
                 id="material-reorder"
@@ -163,23 +148,7 @@ export default function RawMaterialModals({
                 className={inventoryInputClasses}
               />
             </InventoryField>
-            <InventoryField htmlFor="edit-material-unit" label="Base unit">
-              <select
-                id="edit-material-unit"
-                value={materialForm.unitId}
-                onChange={(event) =>
-                  onMaterialFormChange((current) => ({ ...current, unitId: event.target.value }))
-                }
-                className={modalStyles.unitSelect}
-              >
-                <option value="">Select unit</option>
-                {units.map((unit) => (
-                  <option key={unit.id} value={unit.id}>
-                    {unit.name} ({unit.code})
-                  </option>
-                ))}
-              </select>
-            </InventoryField>
+            <AdminSelect label="Base unit" value={materialForm.unitId} onChange={(unitId) => onMaterialFormChange((current) => ({ ...current, unitId }))} options={[{ value: "", label: "Select unit" }, ...units.map((unit) => ({ value: unit.id, label: `${unit.name} (${unit.code})` }))]} />
             <InventoryField htmlFor="edit-material-reorder" label="Reorder point">
               <input
                 id="edit-material-reorder"
@@ -198,9 +167,6 @@ export default function RawMaterialModals({
               />
             </InventoryField>
             <ModalActions>
-              <button type="button" onClick={onClose} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
-                Cancel
-              </button>
               <button type="submit" disabled={submitting} className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white">
                 Save Changes
               </button>
@@ -226,9 +192,6 @@ export default function RawMaterialModals({
               does not delete history or existing batches.
             </p>
             <ModalActions>
-              <button type="button" onClick={onClose} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
-                Cancel
-              </button>
               <button type="button" onClick={onArchiveMaterial} disabled={submitting} className={modalStyles.archiveAction}>
                 Archive Material
               </button>

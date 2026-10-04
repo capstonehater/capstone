@@ -95,9 +95,10 @@
 .running { display:flex;align-items:center;gap:10px;background:#edf6e9;color:#31572a;border-radius:10px;padding:12px;font-size:16px; }
 .generate:disabled { opacity:.6;cursor:wait; }
 .dataNotes { margin-bottom:20px;border:1px solid #dce2eb;border-radius:12px;background:#fff;color:#475569;font-size:16px; }
-.notesSummary { display:flex;align-items:center;gap:12px;padding:16px 18px;cursor:pointer;list-style:none;border-radius:12px; }
+.notesSummary { display:flex;align-items:center;gap:12px;padding:16px 18px;cursor:pointer;list-style:none;border-radius:12px;background:var(--modal-header-background); }
 .notesSummary::-webkit-details-marker { display:none; }
-.notesSummary:hover { background:#f8fafc; }
+.notesSummary:hover { background:var(--modal-header-background); }
+.dataNotes[open] > .notesSummary { border-radius:12px 12px 0 0; }
 .notesSummary > svg { flex-shrink:0;color:#475569; }
 .notesHeading { display:flex;flex-direction:column;gap:3px;min-width:0; }
 .notesHeading strong { color:#334155;font-size:16px; }

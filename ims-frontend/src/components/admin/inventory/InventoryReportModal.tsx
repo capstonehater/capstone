@@ -4,6 +4,7 @@ import ModalCloseButton from "@/components/ModalCloseButton";
 
 import { useEffect, useRef } from "react";
 import styles from "./InventoryReportModal.module.css";
+import motion from "./InventoryModalMotion.module.css";
 
 export default function InventoryReportModal({ title, description, onClose, children }: {
   title: string;
@@ -21,7 +22,7 @@ export default function InventoryReportModal({ title, description, onClose, chil
   return (
     <dialog
       ref={dialogRef}
-      className={styles.dialog}
+      className={`${styles.dialog} ${motion.panel}`}
       aria-labelledby="inventory-report-title"
       onCancel={(event) => {
         event.preventDefault();
