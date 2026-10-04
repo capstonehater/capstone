@@ -107,9 +107,6 @@ export default function RawMaterialModals({
               />
             </InventoryField>
             <ModalActions>
-              <button type="button" onClick={onClose} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
-                Cancel
-              </button>
               <button type="submit" disabled={submitting} className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white">
                 Create Material
               </button>

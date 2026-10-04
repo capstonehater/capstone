@@ -35,7 +35,7 @@ export const navigationGroups: readonly { label: string; items: readonly Navigat
   { label: "Management", items: [
     { routeId: "users", label: "User", icon: UsersRound },
     { routeId: "roles", label: "Roles & Permissions", icon: Shield },
-    { routeId: "settings", label: "Settings", icon: Settings },
+    { routeId: "settings", label: "My Account", icon: Settings },
   ] },
 ];
 

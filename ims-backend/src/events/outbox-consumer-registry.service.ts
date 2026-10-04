@@ -11,6 +11,8 @@ export class OutboxConsumerRegistryService {
   constructor(private readonly alertsService: AlertsService) {
     this.handlers = {
       'order.completed': (payload) => this.handleOperationalRefresh(payload),
+      // Retain the correction event for traceability; stock is unchanged.
+      'order.cash_payment_corrected': () => Promise.resolve(),
       'stock-run.posted': (payload) => this.handleOperationalRefresh(payload),
       'inventory.adjusted': (payload) => this.handleOperationalRefresh(payload),
       'inventory.waste-logged': (payload) =>

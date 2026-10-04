@@ -495,7 +495,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
         <div className={styles.materialActions} aria-label="Material actions">
           <PermissionAction permission={"inventory.create"}><button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }}><Plus size={16} />Add Raw Material</button></PermissionAction>
           <PermissionAction permission={"stockRuns.create"}><button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }}><Plus size={16} />Create Stock-Run Draft</button></PermissionAction>
-          <PermissionAction permission={"inventory.waste"}><button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setWasteForm(defaultWasteForm(selectedRawMaterialId)); setActivePanel("waste"); }}>Record Waste</button></PermissionAction>
+          <PermissionAction permission={"inventory.waste"}><button type="button" style={{ marginLeft: 8 }} disabled={initialLoading || submitting} onClick={() => { setError(null); setWasteForm(defaultWasteForm(selectedRawMaterialId)); setActivePanel("waste"); }}>Record Waste</button></PermissionAction>
         </div>
 
         <section id="overview" style={{ scrollMarginTop: 90 }} aria-label="Overview" className={styles.overview}>

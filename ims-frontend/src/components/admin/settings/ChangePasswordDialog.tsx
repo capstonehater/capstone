@@ -1,13 +1,15 @@
 "use client";
 
-import type { FormEvent } from "react";
+import type { FormEvent, InputHTMLAttributes } from "react";
 import { useState } from "react";
+import { Check, Eye, EyeOff, Circle } from "lucide-react";
+import passwordStyles from "./ChangePasswordDialog.module.css";
 import styles from "./EditAccountDialog.module.css";
 import InventoryModal from "@/components/admin/inventory/InventoryModal";
 import {
   InventoryField,
 } from "@/components/admin/inventory/InventoryField";
-import { PASSWORD_REQUIREMENTS_MESSAGE } from "@/lib/auth";
+import { PASSWORD_REQUIREMENTS, passwordChecks, meetsPasswordPolicy } from "@/lib/password-policy";
 import {
   changeSettingsPassword,
   type ChangePasswordResponse,
@@ -20,9 +22,15 @@ type ChangePasswordDialogProps = {
   onChanged: (response: ChangePasswordResponse) => void;
 };
 
-function validatePassword(value: string) {
-  if (value.length < 10 || value.length > 72) return false;
-  return /[A-Z]/.test(value) && /[a-z]/.test(value) && /\d/.test(value);
+function PasswordInput(props: InputHTMLAttributes<HTMLInputElement> & { label: string }) {
+  const [visible, setVisible] = useState(false);
+  const { label, ...inputProps } = props;
+  return <div className={passwordStyles.inputWrap}>
+    <input {...inputProps} type={visible ? "text" : "password"} />
+    <button type="button" disabled={props.disabled} aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()}`} aria-controls={props.id} aria-pressed={visible} onClick={() => setVisible(current => !current)}>
+      {visible ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
+    </button>
+  </div>;
 }
 
 export default function ChangePasswordDialog({
@@ -48,8 +56,8 @@ export default function ChangePasswordDialog({
       return;
     }
 
-    if (!validatePassword(newPassword)) {
-      setError(PASSWORD_REQUIREMENTS_MESSAGE);
+    if (!meetsPasswordPolicy(newPassword)) {
+      setError(PASSWORD_REQUIREMENTS);
       return;
     }
 
@@ -88,7 +96,9 @@ export default function ChangePasswordDialog({
         ) : null}
 
         <InventoryField htmlFor="settings-current-password" label="Current Password">
-          <input
+          <PasswordInput
+            label="Current password"
+            disabled={submitting}
             id="settings-current-password"
             type="password"
             value={currentPassword}
@@ -103,51 +113,54 @@ export default function ChangePasswordDialog({
           htmlFor="settings-new-password"
           label="New Password"
         >
-          <input
+          <PasswordInput
+            label="New password"
+            disabled={submitting}
             id="settings-new-password"
-            aria-describedby="settings-password-requirements"
+            aria-describedby="settings-password-requirements settings-password-strength"
             type="password"
             value={newPassword}
             onChange={(event) => setNewPassword(event.target.value)}
             className={inventoryInputClasses}
             autoComplete="new-password"
-            minLength={10}
-            maxLength={72}
+            minLength={8}
+            maxLength={16}
             required
           />
         </InventoryField>
 
-        <p id="settings-password-requirements">{PASSWORD_REQUIREMENTS_MESSAGE}</p>
+        <div className={passwordStyles.policy}>
+          <p id="settings-password-requirements">{PASSWORD_REQUIREMENTS}</p>
+          <div id="settings-password-strength" aria-live="polite" className={passwordStyles.strength}>
+            <span>Password strength</span><strong>{!newPassword ? "Not entered" : meetsPasswordPolicy(newPassword) ? (newPassword.length >= 12 ? "Strong" : "Moderate") : "Weak"}</strong>
+          </div>
+          <div className={passwordStyles.meter} aria-hidden="true">{[0, 1, 2, 3].map(index => <span key={index} data-active={newPassword.length > 0 && index < (meetsPasswordPolicy(newPassword) ? (newPassword.length >= 12 ? 4 : 3) : 1)} data-valid={meetsPasswordPolicy(newPassword)} />)}</div>
+          <ul className={passwordStyles.checks}>{passwordChecks(newPassword).map(check => <li key={check.label} data-met={check.met}>{check.met ? <Check size={15} aria-hidden="true" /> : <Circle size={13} aria-hidden="true" />}{check.label}</li>)}</ul>
+        </div>
 
         <InventoryField
           htmlFor="settings-confirm-password"
           label="Confirm New Password"
         >
-          <input
+          <PasswordInput
+            label="Confirm new password"
+            disabled={submitting}
             id="settings-confirm-password"
             type="password"
             value={confirmNewPassword}
             onChange={(event) => setConfirmNewPassword(event.target.value)}
             className={inventoryInputClasses}
             autoComplete="new-password"
-            minLength={10}
-            maxLength={72}
+            minLength={8}
+            maxLength={16}
             required
           />
         </InventoryField>
 
         <div className={styles.actions}>
           <button
-            type="button"
-            onClick={onClose}
-            disabled={submitting}
-            className="rounded-full border border-[#232d46]/15 bg-white px-5 py-2 text-sm font-semibold text-[#232d46] transition hover:border-slate-300 disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || !currentPassword || !meetsPasswordPolicy(newPassword) || newPassword !== confirmNewPassword}
             className="rounded-full bg-[#232d46] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#232d46]/90 disabled:opacity-50"
           >
             {submitting ? "Changing..." : "Change Password"}

@@ -1,0 +1,27 @@
+.modal { border:1px solid #dce2eb; border-radius:16px; color:#232d46; }
+.modal > div:first-child { flex-shrink:0; padding:20px 24px; }
+.modal > div:first-child h2 { margin:0; font-size:25px; font-weight:700; }
+.receipt { display:grid; gap:24px; font-size:16px; line-height:1.6; }
+.heading { display:flex; flex-wrap:wrap; align-items:center; gap:14px; padding-bottom:20px; border-bottom:1px solid #dce2eb; }
+.heading > svg { width:44px; height:44px; flex-shrink:0; padding:10px; border-radius:10px; background:#edf1f7; }
+.heading > div { flex:1 1 260px; min-width:0; }
+.heading h3 { margin:0; font-size:22px; line-height:1.4; font-weight:700; overflow-wrap:anywhere; }
+.heading p { margin:4px 0 0; font-size:15px; color:#475569; }
+.heading .reference { font-size:14px; overflow-wrap:anywhere; }
+.heading > span { margin-left:0; font-size:14px; padding:6px 12px; }
+.items { display:grid; gap:12px; }
+.items > div { padding:14px 16px; border:1px solid #dce2eb; border-radius:10px; background:#f8fafc; }
+.items > div > div:first-child { align-items:flex-start; font-size:16px; }
+.items > div > div:first-child > span:first-child { min-width:0; overflow-wrap:anywhere; }
+.items > div > div:first-child > span:last-child { flex-shrink:0; font-weight:600; font-variant-numeric:tabular-nums; }
+.totals { display:grid; gap:12px; }
+.totals > div { display:flex; justify-content:space-between; align-items:baseline; gap:20px; }
+.totals > div > span:last-child { white-space:nowrap; font-variant-numeric:tabular-nums; }
+.totals .total { padding:14px 16px; margin-top:4px; background:#edf1f7; border-radius:10px; font-size:21px; font-weight:700; }
+.details { display:grid; gap:10px; padding:18px; background:#f8fafc; border:1px solid #dce2eb; border-radius:10px; color:#475569; }
+.details p { margin:0; font-size:16px; overflow-wrap:anywhere; }
+.details p > span { color:#232d46; font-weight:600; }
+.actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:12px; padding:18px 24px; border-top:1px solid #dce2eb; background:white; flex-shrink:0; }
+.actions button { min-height:48px; padding:10px 18px; font-size:16px; font-weight:600; border-radius:10px; }
+.actions button:focus-visible { outline:2px solid #426da6; outline-offset:3px; }
+@media(max-width:480px) { .heading { gap:12px; }.actions { padding:16px; }.actions button { flex:1 1 auto; }.totals > div { gap:12px; } }

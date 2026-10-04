@@ -3,6 +3,7 @@
 
 import { usePathname } from "next/navigation";
 import { getAdminPageInfo } from "@/components/layout/shell-navigation";
+import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
 import styles from "@/components/layout/ApplicationShell.module.css";
 import { useAuthStore } from "@/store/authStore";
 import { routeHref } from "@/lib/routing/routes";
@@ -16,10 +17,11 @@ export default function AdminHeader() {
     : getAdminPageInfo(pathname);
 
   return (
-    <header className={styles.pageIntro}>
-      <h1 className={styles.title}>{page?.label.toUpperCase() ?? "CAFE SALVACION"}</h1>
-      <p className={styles.subtitle}>{page?.subtitle ?? "Inventory management"}</p>
-      {pathname === routeHref("dashboard") || pathname === routeHref("reports.inventory") ? <div className={styles.introDivider} /> : null}
-    </header>
+    <div className={styles.pageIntro}>
+      <AdminSectionHeader
+        title={page?.label ?? "Cafe Salvacion"}
+        description={page?.subtitle ?? "Inventory management"}
+      />
+    </div>
   );
 }

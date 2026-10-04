@@ -57,16 +57,16 @@ export default function InventorySummaryPanel({
   return (
     <section className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4 2xl:h-[42rem] 2xl:min-h-0">
       <div className="flex items-start justify-between gap-4">
-        <div>
+        <div className="min-w-0 flex-1">
           <h2 className="text-lg font-bold text-[#232d46]">Materials</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 truncate text-sm text-slate-500" title="Search and filter materials by stock status or supplier.">
             Search and filter materials by stock status or supplier.
           </p>
         </div>
         <button
           type="button"
           onClick={onRefresh}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-[#232d46] transition hover:border-slate-300 hover:bg-slate-50"
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-[#232d46] transition hover:border-slate-300 hover:bg-slate-50"
         >
           <RefreshCcw size={15} />
           Refresh

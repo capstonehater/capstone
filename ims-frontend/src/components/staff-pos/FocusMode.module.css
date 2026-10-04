@@ -33,10 +33,12 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding: 20px;
-  border-radius: 24px;
+  padding: 24px 20px;
+  border: 1px solid #dce2eb;
+  border-radius: 12px;
   background: #fff;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+  color: #232d46;
+  box-shadow: none;
   transition: padding 320ms cubic-bezier(.22, 1, .36, 1),
     gap 320ms ease, background-color 220ms ease, box-shadow 220ms ease;
 }
@@ -50,7 +52,9 @@
   transition: grid-template-rows 320ms cubic-bezier(.22, 1, .36, 1),
     opacity 160ms ease 180ms, visibility 0s linear 180ms;
 }
-.posHeaderFocused { padding: 0 0 12px; gap: 0; background: transparent; box-shadow: none; }
+.posHeader h1 { margin: 0; color: #232d46; font-size: 30px; font-weight: 700; line-height: 1.25; letter-spacing: -.025em; text-transform: uppercase; }
+.posHeader p { margin: 10px 0 0; color: #64748b; font-size: 14px; line-height: 1.6; }
+.posHeaderFocused { padding: 0 0 12px; gap: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .posHeaderFocused .posHeaderDetails {
   grid-template-rows: 0fr;
   opacity: 0;
@@ -61,6 +65,7 @@
 .posHeaderToggle { justify-self: end; white-space: nowrap; min-width: 164px; }
 @media (max-width: 767px) {
   .posHeader { grid-template-columns: minmax(0, 1fr); }
+  .posHeader h1 { font-size: 26px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .posHeader, .posHeaderDetails, .posHeaderFocused .posHeaderDetails { transition: none; }

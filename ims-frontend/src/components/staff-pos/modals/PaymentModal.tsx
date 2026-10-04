@@ -1,7 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
-import { CreditCard, Wallet } from "lucide-react";
+import { Banknote, Check, CreditCard, Wallet } from "lucide-react";
 import { formatPeso } from "@/lib/pos-utils";
 import Modal from "./Modal";
+import styles from "./PaymentModal.module.css";
 
 export type PaymentState = {
   cash: string;
@@ -17,6 +18,9 @@ type Props = {
   setPayments: Dispatch<SetStateAction<PaymentState>>;
   onClose: () => void;
   onConfirm: () => void;
+  cashCorrection?: boolean;
+  submitting?: boolean;
+  error?: string | null;
 };
 
 export default function PaymentModal({
@@ -26,6 +30,9 @@ export default function PaymentModal({
   setPayments,
   onClose,
   onConfirm,
+  cashCorrection = false,
+  submitting = false,
+  error,
 }: Props) {
   const totalPaid =
     Number(payments.cash || 0) +
@@ -35,128 +42,52 @@ export default function PaymentModal({
   const remaining = Math.max(total - totalPaid, 0);
   const change = Math.max(totalPaid - total, 0);
 
+  const methods = [
+    { key: "cash", label: "Cash", icon: Banknote },
+    { key: "gcash", label: "GCash", icon: Wallet },
+    { key: "maya", label: "Maya", icon: Wallet },
+    { key: "card", label: "Card", icon: CreditCard },
+  ] as const;
+
   return (
-    <Modal title="Payment Confirmation" onClose={onClose}>
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-3">
-          <div className="rounded-2xl bg-slate-50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Total Due
-            </p>
-            <p className="mt-2 text-3xl font-bold text-slate-900">{formatPeso(total)}</p>
-            <p className="mt-1 text-sm text-slate-500">
-              Split payments are supported. Final totals will still be confirmed by the backend.
-            </p>
-          </div>
-
-          <label className="block">
-            <span className="mb-1 inline-flex items-center gap-2 text-sm font-medium text-slate-700">
-              <CreditCard className="h-4 w-4" />
-              Cash
-            </span>
-            <input
-              type="number"
-              min="0"
-              value={payments.cash}
-              onChange={(e) =>
-                setPayments((prev) => ({ ...prev, cash: e.target.value }))
-              }
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
-              placeholder="0.00"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-1 inline-flex items-center gap-2 text-sm font-medium text-slate-700">
-              <Wallet className="h-4 w-4" />
-              GCash
-            </span>
-            <input
-              type="number"
-              min="0"
-              value={payments.gcash}
-              onChange={(e) =>
-                setPayments((prev) => ({ ...prev, gcash: e.target.value }))
-              }
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
-              placeholder="0.00"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-1 inline-flex items-center gap-2 text-sm font-medium text-slate-700">
-              <Wallet className="h-4 w-4" />
-              Maya
-            </span>
-            <input
-              type="number"
-              min="0"
-              value={payments.maya}
-              onChange={(e) =>
-                setPayments((prev) => ({ ...prev, maya: e.target.value }))
-              }
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
-              placeholder="0.00"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-1 inline-flex items-center gap-2 text-sm font-medium text-slate-700">
-              <CreditCard className="h-4 w-4" />
-              Card
-            </span>
-            <input
-              type="number"
-              min="0"
-              value={payments.card}
-              onChange={(e) =>
-                setPayments((prev) => ({ ...prev, card: e.target.value }))
-              }
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#232d46]"
-              placeholder="0.00"
-            />
-          </label>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 p-4">
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Settlement Summary
-          </h3>
-
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-slate-500">Amount Paid</span>
-              <span>{formatPeso(totalPaid)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Remaining</span>
-              <span
-                className={
-                  remaining > 0 ? "font-semibold text-rose-600" : "text-[#232d46]"
-                }
-              >
-                {formatPeso(remaining)}
+    <Modal title="Payment Confirmation" onClose={submitting ? () => {} : onClose} panelClassName={styles.modal} bodyClassName={styles.body} footer={
+      <footer className={styles.footer}>
+        <button type="button" onClick={onClose} disabled={submitting} className={styles.cancel}>Cancel</button>
+        <button onClick={onConfirm} type="button" disabled={submitting || cartCount === 0 || totalPaid < total} className={styles.confirm}>
+          <Check size={18} aria-hidden="true" />{submitting ? "Saving..." : cashCorrection ? "Update Payment" : "Confirm Payment"}
+        </button>
+      </footer>
+    }>
+      {error && <p role="alert" className="mb-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
+      <div className={styles.totalCard}>
+        <div><p className={styles.eyebrow}>Total due</p><p className={styles.total}>{formatPeso(total)}</p></div>
+        <span className={styles.itemCount}>{cartCount} {cartCount === 1 ? "item" : "items"}</span>
+      </div>
+      <div className={styles.grid}>
+        <section className={styles.methods} aria-label="Payment methods">
+          <h3 className={styles.sectionTitle}>Payment methods</h3>
+          <p className={styles.description}>{cashCorrection ? "Update the cash received for this order." : "Enter the amount received for each method."}</p>
+          <div className={styles.fields}>
+            {methods.map(({ key, label, icon: Icon }) => <label key={key} className={styles.field}>
+              <span className={styles.label}><Icon size={17} aria-hidden="true" />{label}</span>
+              <span className={styles.inputWrap}><span className={styles.currency} aria-hidden="true">PHP</span>
+                <input disabled={submitting || (cashCorrection && key !== "cash")} type="number" min="0" step="0.01" inputMode="decimal" value={payments[key]} onChange={event => setPayments(prev => ({ ...prev, [key]: event.target.value }))} placeholder="0.00" />
               </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Change</span>
-              <span>{formatPeso(change)}</span>
-            </div>
+            </label>)}
           </div>
-
-          <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-xs text-slate-600">
-            You can combine cash and e-wallet payments for a single checkout.
-          </div>
-
-          <button
-            onClick={onConfirm}
-            type="button"
-            disabled={cartCount === 0 || totalPaid < total}
-            className="mt-4 w-full rounded-2xl bg-[#232d46] px-4 py-3 text-sm font-semibold text-white hover:bg-[#34445f] disabled:cursor-not-allowed disabled:bg-slate-300"
-          >
-            Confirm Payment
-          </button>
-        </div>
+          <p className={styles.hint}>{cashCorrection ? "Items, total, and other payment methods stay the same." : "You can split a payment across multiple methods."}</p>
+        </section>
+        <section className={styles.summary} aria-label="Settlement summary">
+          <h3 className={styles.sectionTitle}>Settlement summary</h3>
+          <dl className={styles.breakdown}>
+            <div><dt>Amount paid</dt><dd>{formatPeso(totalPaid)}</dd></div>
+            <div><dt>Remaining balance</dt><dd className={remaining > 0 ? styles.remaining : undefined}>{formatPeso(remaining)}</dd></div>
+            <div className={styles.change}><dt>Change to return</dt><dd>{formatPeso(change)}</dd></div>
+          </dl>
+          <p className={`${styles.status} ${remaining > 0 ? styles.pending : styles.ready}`}>
+            {remaining > 0 ? `Receive ${formatPeso(remaining)} more to complete payment.` : "Payment covered. Ready to confirm."}
+          </p>
+        </section>
       </div>
     </Modal>
   );

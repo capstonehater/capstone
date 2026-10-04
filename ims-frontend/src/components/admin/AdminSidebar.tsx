@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import SidebarAccount from "@/components/layout/SidebarAccount";
+import AlertCountBadge from "@/components/layout/AlertCountBadge";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { ChevronDown } from "lucide-react";
 import { NavigationOverlay, NavigationCloseButton, SidebarCollapseButton } from "@/components/layout/ShellControls";
-import { getVisibleNavigation, matchesShellRoute } from "@/components/layout/shell-navigation";
+import { adminNavigation, getVisibleNavigation, matchesShellRoute } from "@/components/layout/shell-navigation";
+import { routeHref } from "@/lib/routing/routes";
 import { useAuthStore } from "@/store/authStore";
 import styles from "@/components/layout/ApplicationShell.module.css";
 
@@ -30,6 +32,12 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
   const openSections = useSidebarStore(state => state.openSections);
   const toggleSection = useSidebarStore(state => state.toggleSection);
   const expandSection = useSidebarStore(state => state.expandSection);
+  useEffect(() => {
+    const activeSection = adminNavigation.flatMap(group => group.items).find(item =>
+      item.children && matchesShellRoute(pathname, item.href),
+    );
+    if (activeSection) expandSection(activeSection.href);
+  }, [pathname, expandSection]);
   const setScrollTop = useSidebarStore(state => state.setScrollTop);
   const restoreScroll = useCallback((node: HTMLElement | null) => {
     if (node) node.scrollTop = useSidebarStore.getState().scrollTop;
@@ -91,7 +99,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
                     title={collapsed ? item.label : undefined}
                     aria-label={collapsed ? item.label : undefined}
                     className={`${styles.navLink} ${styles.navToggle}`}
-                    data-active={dropdownSelection === item.href}
+                    data-active={dropdownSelection === item.href || matchesShellRoute(pathname, item.href)}
                     aria-expanded={!collapsed && !!openSections[item.href]}
                     aria-controls={`sidebar-${item.label.toLowerCase()}`}
                     onClick={() => {
@@ -108,9 +116,10 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
                     {!collapsed && <><span>{item.label}</span><ChevronDown size={16} className={styles.navChevron} aria-hidden="true" /></>}
                   </button> : <Link href={item.href} title={collapsed ? item.label : undefined} onClick={navigateMain} className={styles.navLink} aria-current={!dropdownSelection && matchesShellRoute(pathname, item.href.split("#")[0]) ? "page" : undefined}>
                     <item.icon size={19} aria-hidden="true" /><span>{collapsed ? null : item.label}</span>
+                    {item.href === routeHref("alerts") && <AlertCountBadge collapsed={collapsed} />}
                   </Link>}
                   {item.children ? <div id={`sidebar-${item.label.toLowerCase()}`} className={styles.navDropdown} hidden={collapsed || !openSections[item.href]}>
-                    {(item.href === "/reports" ? item.children : [{ label: "Overview", href: item.href }, ...item.children]).map(child => <Link key={child.href} href={child.href} onClick={navigate} className={styles.navSubLink} aria-current={!dropdownSelection && pathname === child.href ? "page" : undefined}>{child.label}</Link>)}
+                    {(item.href === "/reports" ? item.children : [{ label: "Overview", href: item.href }, ...item.children]).map(child => <Link key={child.href} href={child.href} onClick={navigate} className={styles.navSubLink} aria-current={pathname === child.href ? "page" : undefined}>{child.label}</Link>)}
                   </div> : null}
                 </div>
               ))}

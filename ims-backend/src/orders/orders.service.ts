@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -31,6 +33,7 @@ import { RecipeResolverService } from '../recipes/recipe-resolver.service';
 import { CheckoutDto, CheckoutItemDto } from './dto/checkout.dto';
 import { ReverseOrderDto } from './dto/reverse-order.dto';
 import { PricingService } from './pricing.service';
+import { UpdateCashPaymentDto } from './dto/update-cash-payment.dto';
 import { ListOrdersDto } from './dto/list-orders.dto';
 
 type TxClient = Prisma.TransactionClient;
@@ -335,6 +338,30 @@ export class OrdersService {
     }
 
     return order;
+  }
+
+  async updateCashPayment(orderId: string, dto: UpdateCashPaymentDto, actorUserId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM orders WHERE id = ${orderId} FOR UPDATE`;
+      const order = await tx.order.findUnique({ where: { id: orderId }, include: { payments: true } });
+      if (!order) throw new NotFoundException('Order not found');
+      if (order.createdByUserId !== actorUserId) throw new ForbiddenException('Only the cashier who completed this order can correct its cash payment');
+      if (order.status !== OrderStatus.COMPLETED) throw new BadRequestException('Only completed orders can have their cash payment corrected');
+      const cash = order.payments.filter(payment => payment.method === 'CASH');
+      if (cash.length !== 1) throw new BadRequestException('This order must have one existing cash payment');
+      const amount = toDecimal(dto.amount);
+      if (!cash[0].amount.equals(toDecimal(dto.expectedAmount))) throw new ConflictException('The cash payment has changed. Reload the receipt before editing it');
+      const otherPaid = sumDecimals(order.payments.filter(payment => payment.method !== 'CASH').map(payment => payment.amount));
+      if (amount.plus(otherPaid).lessThan(order.totalAmount)) throw new BadRequestException('Payment total is less than the order total');
+      if (!amount.equals(cash[0].amount)) {
+        await tx.orderPayment.update({ where: { id: cash[0].id }, data: { amount } });
+        await this.outboxService.enqueue(tx, {
+          aggregateType: 'order', aggregateId: orderId, eventType: 'order.cash_payment_corrected',
+          payload: { orderId, actorUserId, previousAmount: cash[0].amount.toString(), amount: amount.toString() },
+        });
+      }
+      return this.getOrderByIdWithClient(tx, orderId);
+    });
   }
 
   async refundOrder(

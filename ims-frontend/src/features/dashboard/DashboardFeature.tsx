@@ -114,7 +114,7 @@ export default function DashboardFeature() {
   }, [wasteSummary]);
 
   return (
-    <AdminDashboardLayout showHeader={false}>
+    <AdminDashboardLayout showHeader={false} whiteTop>
       <div className={styles.dashboard}>
       <AdminSectionHeader className="mb-6" title="Dashboard" description="Welcome back! Here's your inventory overview." />
       {!canViewReports && <p className="rounded-xl border border-slate-200 bg-white p-5">Report summaries are unavailable with your current permissions. Use the navigation to open your available features.</p>}
@@ -134,13 +134,13 @@ export default function DashboardFeature() {
           ].map(({ label, value, detail }) => (
             <div key={label} className={styles.inventoryCard}>
               <dt className={styles.cardLabel}><span>{label}</span></dt>
-              <dd className={styles.cardValue}>{loading ? <span className={styles.skeleton} aria-label="Loading" /> : value == null ? "—" : value.toLocaleString("en-PH")}</dd>
+              <dd className={styles.cardValue}>{loading ? <span className={styles.skeleton} aria-label="Loading" /> : value == null ? "â€”" : value.toLocaleString("en-PH")}</dd>
               <dd className={styles.cardDetail}>{detail}</dd>
             </div>
           ))}
           <div className={`${styles.inventoryCard} ${styles.valueCard}`}>
             <dt className={styles.cardLabel}><span>Inventory value</span></dt>
-            <dd className={styles.cardValue}>{loading ? <span className={styles.skeleton} aria-label="Loading" /> : inventoryHealth ? formatPeso(inventoryHealth.summary.totalInventoryValue) : "—"}</dd>
+            <dd className={styles.cardValue}>{loading ? <span className={styles.skeleton} aria-label="Loading" /> : inventoryHealth ? formatPeso(inventoryHealth.summary.totalInventoryValue) : "â€”"}</dd>
             <dd className={styles.cardDetail}>Total value of stock on hand</dd>
           </div>
         </dl>
@@ -158,7 +158,7 @@ export default function DashboardFeature() {
                 <div className={styles.itemMain}>
                   <div>
                     <p className={styles.itemName}>
-                      {variant.productName} • {variant.variantName}
+                      {variant.productName} â€¢ {variant.variantName}
                     </p>
                     <p className={styles.muted}>{variant.sku}</p>
                   </div>
@@ -167,7 +167,7 @@ export default function DashboardFeature() {
                       {formatPeso(variant.revenue)}
                     </p>
                     <p className={styles.itemMeta}>
-                      {variant.quantitySold} sold •{" "}
+                      {variant.quantitySold} sold â€¢{" "}
                       {(variant.marginRate * 100).toFixed(1)}% margin
                     </p>
                   </div>
@@ -225,7 +225,7 @@ export default function DashboardFeature() {
           </div></div></div>
 
         <div className={styles.panel}><div className={styles.panelHeader}><h2 className={styles.panelTitle}>Waste Reason</h2><button className={styles.viewAll} type="button" onClick={() => setActiveModal("waste")}>View All</button></div><div className={styles.panelBody}><div className={styles.donutWrap}><div className={styles.donut} style={{ background: wasteGradient }} aria-label="Waste reason breakdown" /><div className={styles.legend}>{!wasteSummary?.byReason.length && <p className={styles.muted}>{loading ? "Loading waste records..." : "No waste records in this period."}</p>}
-            {(wasteSummary?.byReason ?? []).map((reason, index, rows) => { const total = rows.reduce((sum, item) => sum + Number(item.cost), 0); const percentage = total ? (Number(reason.cost) / total) * 100 : 0; return <div key={reason.reasonCode} className={styles.legendRow}><span><i className={styles.legendDot} style={{ backgroundColor: WASTE_COLORS[index % WASTE_COLORS.length] }} />{reason.reasonCode.replaceAll("_", " ")}</span><strong>{percentage.toFixed(0)}% · {formatPeso(reason.cost)}</strong></div>; })}
+            {(wasteSummary?.byReason ?? []).map((reason, index, rows) => { const total = rows.reduce((sum, item) => sum + Number(item.cost), 0); const percentage = total ? (Number(reason.cost) / total) * 100 : 0; return <div key={reason.reasonCode} className={styles.legendRow}><span><i className={styles.legendDot} style={{ backgroundColor: WASTE_COLORS[index % WASTE_COLORS.length] }} />{reason.reasonCode.replaceAll("_", " ")}</span><strong>{percentage.toFixed(0)}% Â· {formatPeso(reason.cost)}</strong></div>; })}
           </div></div><p className={styles.totalWaste}>Total Waste Cost <strong>{formatPeso(wasteSummary?.totals.cost ?? "0")}</strong></p></div></div>
 
         <div className={styles.panel}><div className={styles.panelHeader}><h2 className={styles.panelTitle}>Recent Orders</h2><button className={styles.viewAll} type="button" onClick={() => setActiveModal("orders")}>View All</button></div><div className={styles.panelBody}><div className={styles.orderTable}><div className={styles.orderHead}><span>Order / staff</span><span>Date / status</span><span>Amount</span></div>
@@ -251,7 +251,7 @@ export default function DashboardFeature() {
               <div className={styles.alertContent}>
                 <strong>{alert.title}</strong>
                 <span>{alert.message}</span>
-                <small>Material: {alert.rawMaterial?.name ?? "N/A"} · Batch: {alert.stockBatch?.id.slice(0, 8) ?? "N/A"} · Expiry: {formatDate(alert.expiryDate)}</small>
+                <small>Material: {alert.rawMaterial?.name ?? "N/A"} Â· Batch: {alert.stockBatch?.id.slice(0, 8) ?? "N/A"} Â· Expiry: {formatDate(alert.expiryDate)}</small>
               </div>
               <div className={styles.alertTags}>
                 <span className={styles.alertTagWarning}>{alert.type.replaceAll("_", " ")}</span>
@@ -283,7 +283,9 @@ export default function DashboardFeature() {
             </tbody>
           </table>
         </div>
-        <a className={styles.workspaceLink} href={activeModal === "orders" ? "/reports/pos" : activeModal === "expiry" ? "/inventory" : "/reports/inventory"}>Open full workspace →</a>
+        <footer className={styles.modalFooter}>
+          <a className={styles.workspaceLink} href={activeModal === "orders" ? "/reports/pos" : activeModal === "expiry" ? "/inventory" : "/reports/inventory"}>Open full workspace â†’</a>
+        </footer>
       </InventoryReportModal></PermissionAction>}
       </div>
     </AdminDashboardLayout>

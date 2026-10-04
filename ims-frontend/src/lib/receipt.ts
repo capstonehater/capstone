@@ -8,11 +8,16 @@ function escapeHtml(value: string | number) {
   })[character]!);
 }
 
+export function getReceiptPaymentSummary(order: Pick<PosOrder, "payments" | "totalAmount">) {
+  const paidCents = order.payments.reduce((sum, payment) => sum + Math.round(Number(payment.amount) * 100), 0);
+  const totalCents = Math.round(Number(order.totalAmount) * 100);
+  return { paid: paidCents / 100, change: Math.max(0, paidCents - totalCents) / 100 };
+}
+
 export function buildReceiptHtml(order: PosOrder, logoUrl = "/cs-receipt.svg", footerLogoUrl = "/bottom-header.svg") {
   const text = escapeHtml;
   const money = (value: string | number) => text(formatPeso(value));
-  const paid = Math.round(order.payments.reduce((sum, payment) => sum + Number(payment.amount), 0) * 100) / 100;
-  const change = Math.max(0, Math.round((paid - Number(order.totalAmount)) * 100) / 100);
+  const { paid, change } = getReceiptPaymentSummary(order);
   const date = new Intl.DateTimeFormat("en-PH", {
     timeZone: "Asia/Manila", dateStyle: "medium", timeStyle: "short",
   }).format(new Date(order.completedAt));

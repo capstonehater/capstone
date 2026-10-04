@@ -12,12 +12,14 @@ type AdminDashboardLayoutProps = {
   children: React.ReactNode;
   fillContent?: boolean;
   showHeader?: boolean;
+  whiteTop?: boolean;
 };
 
 export default function AdminDashboardLayout({
   children,
   fillContent = false,
   showHeader = true,
+  whiteTop = false,
 }: AdminDashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const contentRef = useAdminPageEntrance();
@@ -34,7 +36,7 @@ export default function AdminDashboardLayout({
         onToggleCollapse={toggleCollapsed}
       />
 
-      <div className={styles.body}>
+      <div className={`${styles.body} ${whiteTop ? styles.bodyWhiteTop : ""}`}>
         <NavigationMenuButton onOpen={() => setSidebarOpen(true)} expanded={sidebarOpen} controls="admin-navigation" />
         {showHeader ? <AdminHeader /> : null}
         <main ref={contentRef} className={styles.content}>{children}</main>

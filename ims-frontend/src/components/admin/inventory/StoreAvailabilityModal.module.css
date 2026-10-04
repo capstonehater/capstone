@@ -17,7 +17,7 @@
 }
 
 .dialog::backdrop {
-  background: #0f172a65;
+  background: rgb(35 45 70 / 35%);
   backdrop-filter: blur(5px);
 }
 
@@ -31,14 +31,16 @@
 
 .header { background:var(--modal-header-background);
   flex-shrink: 0;
-  padding: 28px 32px 22px;
+  padding: 16px 24px;
   border-bottom: 1px solid #e4e9f2;
 }
 
-.heading { display: flex; align-items: center; gap: 12px; }
-.heading h2 { margin: 0; font-size: 23px; font-weight: 700; letter-spacing: -0.5px; }
-.icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: #e8eef7; color: #5274a4; }
-.product { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; margin-top: 16px; padding: 7px 12px; border: 1px solid #d5ddea; border-radius: 20px; background: #f1f5fa; color: #232d46; font-size: 14px; font-weight: 600; }
+.headerRow { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.heading { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.heading .icon { flex-shrink: 0; }
+.heading h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+.icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: #e8eef7; color: #5274a4; }
+.product { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; margin-top: 10px; padding: 7px 12px; border: 1px solid #d5ddea; border-radius: 20px; background: #f1f5fa; color: #232d46; font-size: 14px; font-weight: 600; }
 .product svg { flex-shrink: 0; }
 .product span { overflow-wrap: anywhere; }
 

@@ -14,6 +14,7 @@ type InventoryModalProps = {
   wide?: boolean;
   bodyClassName?: string;
   professional?: boolean;
+  panelClassName?: string;
 };
 
 export default function InventoryModal({
@@ -24,6 +25,7 @@ export default function InventoryModal({
   wide = false,
   bodyClassName,
   professional = false,
+  panelClassName = "",
 }: InventoryModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -44,11 +46,11 @@ export default function InventoryModal({
   return (
     <div ref={modalRef} data-inventory-modal className={`${backdrop.backdrop} ${motion.overlay} ${professional ? styles.professional : ""} fixed inset-0 z-[90] flex items-center justify-center p-4`}>
       <div
-        className={`${motion.panel} flex max-h-[88vh] w-full flex-col overflow-hidden rounded-[32px] border border-white/40 bg-[#f8f3ec] shadow-[0_28px_90px_rgba(15,23,42,0.28)] ${wide ? "max-w-6xl" : "max-w-3xl"}`}
+        className={`${motion.panel} flex max-h-[88vh] w-full flex-col overflow-hidden rounded-[32px] border border-white/40 bg-[#f8f3ec] shadow-[0_28px_90px_rgba(15,23,42,0.28)] ${wide ? "max-w-6xl" : "max-w-3xl"} ${panelClassName}`}
       >
-        <div className={`${styles.header} flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5`}>
+        <div className={`${styles.header} flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-4`}>
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
+            <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
             {description ? (
               <p className="mt-1 text-sm text-slate-500">{description}</p>
             ) : null}

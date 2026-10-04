@@ -8,5 +8,5 @@ import SettingsFeature from "./SettingsFeature";
 export default function SettingsRoute() {
   const role = useAuthStore(state => state.user?.role);
   if (role === "STAFF") return <StaffDashboardLayout showHeader={false}><SettingsFeature /></StaffDashboardLayout>;
-  return <AdminDashboardLayout showHeader={role !== "ADMINISTRATOR"}><SettingsFeature presentation={role === "MANAGER" ? "account" : "standard"} /></AdminDashboardLayout>;
+  return <AdminDashboardLayout showHeader={false}><SettingsFeature presentation={role === "MANAGER" ? "account" : "standard"} /></AdminDashboardLayout>;
 }

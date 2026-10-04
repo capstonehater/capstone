@@ -1,0 +1,2794 @@
+﻿diff --git a/ims-frontend/src/app/admin/dashboard/dashboard.module.css b/ims-frontend/src/app/admin/dashboard/dashboard.module.css
+index 97d7a17..f8f87f2 100644
+--- a/ims-frontend/src/app/admin/dashboard/dashboard.module.css
++++ b/ims-frontend/src/app/admin/dashboard/dashboard.module.css
+@@ -178,5 +178,6 @@
+ .detailTable th, .detailTable td { text-align:left; }
+ .detailTable .numeric { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+ .detailTable .identifier { max-width:300px; overflow-wrap:anywhere; }
+-.workspaceLink { display:inline-flex; align-items:center; min-height:44px; margin-top:20px; padding:10px 16px; border-radius:10px; background:#232d46; color:#fff; font-size:15px; font-weight:600; }
++.modalFooter { display:flex; justify-content:flex-end; margin-top:20px; }
++.workspaceLink { display:inline-flex; align-items:center; min-height:44px; padding:10px 16px; border-radius:10px; background:#232d46; color:#fff; font-size:15px; font-weight:600; }
+ .workspaceLink:hover { color:#fff; background:#34445f; }
+diff --git a/ims-frontend/src/app/admin/dashboard/page.tsx b/ims-frontend/src/app/admin/dashboard/page.tsx
+index 6cd5abf..d59df20 100644
+--- a/ims-frontend/src/app/admin/dashboard/page.tsx
++++ b/ims-frontend/src/app/admin/dashboard/page.tsx
+@@ -113,7 +113,7 @@ export default function AdminDashboardPage() {
+   }, [wasteSummary]);
+ 
+   return (
+-    <AdminDashboardLayout>
++    <AdminDashboardLayout whiteTop>
+       <div className={styles.dashboard}>
+       {!canViewReports && <p className="rounded-xl border border-slate-200 bg-white p-5">Report summaries are unavailable with your current permissions. Use the navigation to open your available features.</p>}
+       {error ? (
+@@ -281,7 +281,9 @@ export default function AdminDashboardPage() {
+             </tbody>
+           </table>
+         </div>
+-        <a className={styles.workspaceLink} href={activeModal === "orders" ? "/admin/reports/pos" : activeModal === "expiry" ? "/admin/inventory" : "/admin/reports/inventory"}>Open full workspace →</a>
++        <footer className={styles.modalFooter}>
++          <a className={styles.workspaceLink} href={activeModal === "orders" ? "/admin/reports/pos" : activeModal === "expiry" ? "/admin/inventory" : "/admin/reports/inventory"}>Open full workspace →</a>
++        </footer>
+       </InventoryReportModal></PermissionAction>}
+       </div>
+     </AdminDashboardLayout>
+diff --git a/ims-frontend/src/app/admin/forecasting/GraphSelect.tsx b/ims-frontend/src/app/admin/forecasting/GraphSelect.tsx
+index 061286b..c0a361e 100644
+--- a/ims-frontend/src/app/admin/forecasting/GraphSelect.tsx
++++ b/ims-frontend/src/app/admin/forecasting/GraphSelect.tsx
+@@ -1,54 +1,11 @@
+ "use client";
+ 
+-import { useEffect, useId, useRef, useState } from 'react';
+-import { Check, ChevronDown } from 'lucide-react';
+-import styles from './forecasting.module.css';
++import AdminSelect from "@/components/admin/AdminSelect";
+ 
+ type Option = { value: string; label: string };
+ 
+-export default function GraphSelect({ label, value, options, onChange, className = '', disabled = false, describedBy }: {
++export default function GraphSelect({ label, value, options, onChange, className = "", disabled = false, describedBy }: {
+   label: string; value: string; options: Option[]; onChange: (value: string) => void; className?: string; disabled?: boolean; describedBy?: string;
+ }) {
+-  const [open, setOpen] = useState(false);
+-  const root = useRef<HTMLDivElement>(null);
+-  const trigger = useRef<HTMLButtonElement>(null);
+-  const items = useRef<(HTMLButtonElement | null)[]>([]);
+-  const id = useId();
+-  const selected = options.find((option) => option.value === value) ?? options[0];
+-
+-  useEffect(() => {
+-    if (!open) return;
+-    const dismiss = (event: PointerEvent) => {
+-      if (!root.current?.contains(event.target as Node)) setOpen(false);
+-    };
+-    document.addEventListener('pointerdown', dismiss);
+-    return () => document.removeEventListener('pointerdown', dismiss);
+-  }, [open]);
+-
+-  const openMenu = () => {
+-    if (disabled) return;
+-    setOpen(true);
+-    requestAnimationFrame(() => items.current[options.findIndex((option) => option.value === value)]?.focus());
+-  };
+-  return <div ref={root} className={`${styles.graphSelect} ${className}`} onBlur={(event) => {
+-    if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+-  }} onKeyDown={(event) => {
+-    if (event.key === 'Escape' && open) { event.preventDefault(); setOpen(false); trigger.current?.focus(); }
+-  }}>
+-    <span id={`${id}-label`} className={styles.graphSelectLabel}>{label}</span>
+-    <button ref={trigger} type="button" disabled={disabled} aria-describedby={describedBy} className={styles.graphSelectTrigger} aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="listbox" aria-expanded={open && !disabled} aria-controls={open && !disabled ? `${id}-options` : undefined} onClick={() => open ? setOpen(false) : openMenu()} onKeyDown={(event) => {
+-      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); openMenu(); }
+-    }}><span id={`${id}-value`}>{selected?.label ?? 'Select'}</span><ChevronDown size={17} aria-hidden="true" /></button>
+-    {open && !disabled && <div id={`${id}-options`} role="listbox" aria-labelledby={`${id}-label`} className={styles.graphSelectMenu}>
+-      {options.map((option, index) => <button key={option.value} ref={(node) => { items.current[index] = node; }} type="button" role="option" aria-selected={option.value === value} className={`${styles.graphSelectOption} ${option.value === value ? styles.graphSelectSelected : ''}`} onClick={() => { onChange(option.value); setOpen(false); trigger.current?.focus(); }} onKeyDown={(event) => {
+-        let next = index;
+-        if (event.key === 'ArrowDown') next = (index + 1) % options.length;
+-        else if (event.key === 'ArrowUp') next = (index + options.length - 1) % options.length;
+-        else if (event.key === 'Home') next = 0;
+-        else if (event.key === 'End') next = options.length - 1;
+-        else return;
+-        event.preventDefault(); items.current[next]?.focus();
+-      }}>{option.label}{option.value === value && <Check size={16} aria-hidden="true" />}</button>)}
+-    </div>}
+-  </div>;
++  return <div className={className}><AdminSelect label={label} value={value} options={options} onChange={onChange} disabled={disabled} describedBy={describedBy} /></div>;
+ }
+diff --git a/ims-frontend/src/app/admin/forecasting/MaterialDropdown.tsx b/ims-frontend/src/app/admin/forecasting/MaterialDropdown.tsx
+index 4cf34a9..a0259f6 100644
+--- a/ims-frontend/src/app/admin/forecasting/MaterialDropdown.tsx
++++ b/ims-frontend/src/app/admin/forecasting/MaterialDropdown.tsx
+@@ -1,56 +1,8 @@
+ "use client";
+ 
+-import { useEffect, useMemo, useRef, useState } from "react";
+-import { Layers, Package, ChevronDown } from "lucide-react";
++import AdminSelect from "@/components/admin/AdminSelect";
+ import styles from "./forecasting.module.css";
+ 
+ export default function MaterialDropdown({ value, onChange, products }: { value: string; onChange: (value: string) => void; products: { id: string; name: string }[] }) {
+-  const options = useMemo(() => [{ value: "", label: "All products", icon: Layers }, ...products.map((product) => ({ value: product.id, label: product.name, icon: Package }))], [products]);
+-  const [open, setOpen] = useState(false);
+-  const root = useRef<HTMLDivElement>(null);
+-  const trigger = useRef<HTMLButtonElement>(null);
+-  const items = useRef<(HTMLButtonElement | null)[]>([]);
+-  const selected = options.find((option) => option.value === value) ?? options[0];
+-  const Icon = selected.icon;
+-
+-  useEffect(() => {
+-    if (!open) return;
+-    items.current[options.findIndex((option) => option.value === value)]?.focus();
+-    const dismiss = (event: PointerEvent) => {
+-      if (!root.current?.contains(event.target as Node)) setOpen(false);
+-    };
+-    document.addEventListener("pointerdown", dismiss);
+-    return () => document.removeEventListener("pointerdown", dismiss);
+-  }, [open, value, options]);
+-
+-  return (
+-    <div ref={root} className={`${styles.materialFilter} ${styles.dropdown}`} onBlur={(event) => {
+-      if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+-    }} onKeyDown={(event) => {
+-      if (event.key === "Escape") { event.preventDefault(); setOpen(false); trigger.current?.focus(); }
+-    }}>
+-      <span id="material-type-label" className={styles.filterLabel}>Product</span>
+-      <button ref={trigger} type="button" className={styles.dropdownTrigger} aria-labelledby="material-type-label material-type-value" aria-haspopup="menu" aria-expanded={open} aria-controls={open ? "material-menu" : undefined} onClick={() => setOpen(!open)} onKeyDown={(event) => {
+-        if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); setOpen(true); }
+-      }}>
+-        <Icon size={20} aria-hidden="true" /><span id="material-type-value">{selected.label}</span><ChevronDown size={18} aria-hidden="true" />
+-      </button>
+-      {open && <div id="material-menu" role="menu" aria-labelledby="material-type-label" className={styles.dropdownMenu}>
+-        {options.map((option, index) => {
+-          const OptionIcon = option.icon;
+-          return <button key={option.value} ref={(node) => { items.current[index] = node; }} type="button" role="menuitemradio" aria-checked={value === option.value} className={`${styles.dropdownOption} ${value === option.value ? styles.dropdownSelected : ""}`} onClick={() => {
+-            onChange(option.value); setOpen(false); trigger.current?.focus();
+-          }} onKeyDown={(event) => {
+-            let next = index;
+-            if (event.key === "ArrowDown") next = (index + 1) % options.length;
+-            else if (event.key === "ArrowUp") next = (index + options.length - 1) % options.length;
+-            else if (event.key === "Home") next = 0;
+-            else if (event.key === "End") next = options.length - 1;
+-            else return;
+-            event.preventDefault(); items.current[next]?.focus();
+-          }}><OptionIcon size={22} aria-hidden="true" /><span>{option.label}</span></button>;
+-        })}
+-      </div>}
+-    </div>
+-  );
++  return <div className={styles.materialFilter}><AdminSelect label="Product" value={value} onChange={onChange} options={[{ value: "", label: "All products" }, ...products.map(product => ({ value: product.id, label: product.name }))]} /></div>;
+ }
+diff --git a/ims-frontend/src/app/admin/reports/layout.tsx b/ims-frontend/src/app/admin/reports/layout.tsx
+index 8ce8563..fe0a135 100644
+--- a/ims-frontend/src/app/admin/reports/layout.tsx
++++ b/ims-frontend/src/app/admin/reports/layout.tsx
+@@ -13,7 +13,7 @@ export default function ReportsLayout({
+   const pathname = usePathname();
+   const dedicatedReportPage = pathname === "/admin/reports/inventory" || pathname === "/admin/reports/pos";
+   return (
+-    <AdminDashboardLayout showHeader={pathname === "/admin/reports/inventory"}>
++    <AdminDashboardLayout showHeader={pathname === "/admin/reports/inventory"} whiteTop={pathname === "/admin/reports/inventory"}>
+       <div className="space-y-6">
+         {!dedicatedReportPage && <AdminSectionHeader title="Admin Reports" description="Review stock health, purchasing costs, and sales performance for your selected period.">
+           <div className="w-full max-w-3xl"><ReportsScopeSwitch /></div>
+diff --git a/ims-frontend/src/app/admin/settings/page.tsx b/ims-frontend/src/app/admin/settings/page.tsx
+index 2c317c3..3efc36c 100644
+--- a/ims-frontend/src/app/admin/settings/page.tsx
++++ b/ims-frontend/src/app/admin/settings/page.tsx
+@@ -4,24 +4,13 @@ import readable from "@/components/admin/ReadableWorkspace.module.css";
+ 
+ import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
+ import SettingsWorkspace from "@/components/admin/settings/SettingsWorkspace";
++import MyAccountHeader from "@/components/admin/settings/MyAccountHeader";
+ 
+ export default function SettingsPage() {
+   return (
+     <AdminDashboardLayout showHeader={false}>
+       <div className={`${readable.readable} space-y-6`}>
+-        <section className="overflow-hidden rounded-[28px] border border-[#232d46]/10 bg-white shadow-sm">
+-          <div className="bg-[#f5f5f5] p-6 md:p-8">
+-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#232d46]">
+-              Account
+-            </p>
+-            <h1 className="mt-2 text-2xl font-bold text-[#232d46] md:text-3xl">
+-              SETTINGS
+-            </h1>
+-            <p className="mt-2 max-w-2xl text-sm text-[#232d46]/75">
+-              Manage your account information and security.
+-            </p>
+-          </div>
+-        </section>
++        <MyAccountHeader />
+         <SettingsWorkspace />
+       </div>
+     </AdminDashboardLayout>
+diff --git a/ims-frontend/src/app/manager/settings/page.tsx b/ims-frontend/src/app/manager/settings/page.tsx
+index d82bcf4..aa289a3 100644
+--- a/ims-frontend/src/app/manager/settings/page.tsx
++++ b/ims-frontend/src/app/manager/settings/page.tsx
+@@ -2,18 +2,13 @@
+ 
+ import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
+ import SettingsWorkspace from "@/components/admin/settings/SettingsWorkspace";
++import MyAccountHeader from "@/components/admin/settings/MyAccountHeader";
+ 
+ export default function ManagerSettingsPage() {
+   return (
+-    <AdminDashboardLayout>
++    <AdminDashboardLayout showHeader={false}>
+       <div className="space-y-6">
+-        <section className="overflow-hidden rounded-[28px] border border-[#232d46]/15 bg-white shadow-sm">
+-          <div className="bg-[#f5f5f5] p-6 md:p-8">
+-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#232d46]">Manager Account</p>
+-            <h1 className="mt-2 text-2xl font-bold text-[#232d46] md:text-3xl">ACCOUNT SETTINGS</h1>
+-            <p className="mt-2 max-w-2xl text-sm text-[#232d46]/75">Manage your account information and password.</p>
+-          </div>
+-        </section>
++        <MyAccountHeader />
+         <SettingsWorkspace />
+       </div>
+     </AdminDashboardLayout>
+diff --git a/ims-frontend/src/app/staff/settings/page.tsx b/ims-frontend/src/app/staff/settings/page.tsx
+index e6bb90a..0d17012 100644
+--- a/ims-frontend/src/app/staff/settings/page.tsx
++++ b/ims-frontend/src/app/staff/settings/page.tsx
+@@ -3,18 +3,13 @@
+ import StaffDashboardLayout from "@/components/staff-pos/StaffDashboardLayout";
+ import SettingsWorkspace from "@/components/admin/settings/SettingsWorkspace";
+ import readable from "@/components/admin/ReadableWorkspace.module.css";
++import MyAccountHeader from "@/components/admin/settings/MyAccountHeader";
+ 
+ export default function StaffSettingsPage() {
+   return (
+     <StaffDashboardLayout showHeader={false}>
+       <div className={`${readable.readable} space-y-6`}>
+-        <section className="overflow-hidden rounded-[28px] border border-[#232d46]/10 bg-white shadow-sm">
+-          <div className="bg-[#f5f5f5] p-6 md:p-8">
+-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#232d46]">Account</p>
+-            <h1 className="mt-2 text-2xl font-bold text-[#232d46] md:text-3xl">SETTINGS</h1>
+-            <p className="mt-2 max-w-2xl text-sm text-[#232d46]/75">Manage your account information and security.</p>
+-          </div>
+-        </section>
++        <MyAccountHeader />
+         <SettingsWorkspace />
+       </div>
+     </StaffDashboardLayout>
+diff --git a/ims-frontend/src/components/ModalBackdrop.module.css b/ims-frontend/src/components/ModalBackdrop.module.css
+index 24fcc42..8516f1b 100644
+--- a/ims-frontend/src/components/ModalBackdrop.module.css
++++ b/ims-frontend/src/components/ModalBackdrop.module.css
+@@ -1,7 +1,7 @@
+ .backdrop {
+   background: rgb(35 45 70 / 35%);
+-  -webkit-backdrop-filter: blur(1.55px);
+-  backdrop-filter: blur(1.55px);
++  -webkit-backdrop-filter: blur(5px);
++  backdrop-filter: blur(5px);
+   overscroll-behavior: contain;
+ }
+ 
+diff --git a/ims-frontend/src/components/ModalCloseButton.module.css b/ims-frontend/src/components/ModalCloseButton.module.css
+index 91396ab..dd0d596 100644
+--- a/ims-frontend/src/components/ModalCloseButton.module.css
++++ b/ims-frontend/src/components/ModalCloseButton.module.css
+@@ -7,11 +7,11 @@
+   height: 40px;
+   min-height: 40px;
+   padding: 0;
+-  border: 0;
++  border: 1px solid #cbd5e1;
+   border-radius: 8px;
+-  background: transparent;
++  background: #fff;
+   color: #475569;
+   cursor: pointer;
+ }
+-.button.button:hover { background: #cbd5e1; color: #0f172a; }
++.button.button:hover { background: #f1f5f9; border-color: #94a3b8; color: #0f172a; }
+ .button.button:focus-visible { outline: 2px solid #475569; outline-offset: 2px; }
+diff --git a/ims-frontend/src/components/admin/AdminDashboardLayout.tsx b/ims-frontend/src/components/admin/AdminDashboardLayout.tsx
+index 77df9e6..cbd5b86 100644
+--- a/ims-frontend/src/components/admin/AdminDashboardLayout.tsx
++++ b/ims-frontend/src/components/admin/AdminDashboardLayout.tsx
+@@ -12,12 +12,14 @@ type AdminDashboardLayoutProps = {
+   children: React.ReactNode;
+   fillContent?: boolean;
+   showHeader?: boolean;
++  whiteTop?: boolean;
+ };
+ 
+ export default function AdminDashboardLayout({
+   children,
+   fillContent = false,
+   showHeader = true,
++  whiteTop = false,
+ }: AdminDashboardLayoutProps) {
+   const [sidebarOpen, setSidebarOpen] = useState(false);
+   const contentRef = useAdminPageEntrance();
+@@ -34,7 +36,7 @@ export default function AdminDashboardLayout({
+         onToggleCollapse={toggleCollapsed}
+       />
+ 
+-      <div className={styles.body}>
++      <div className={`${styles.body} ${whiteTop ? styles.bodyWhiteTop : ""}`}>
+         <button type="button" className={styles.shellMobileMenu} onClick={() => setSidebarOpen(true)} aria-expanded={sidebarOpen} aria-controls="admin-navigation" aria-label="Open navigation"><Menu size={20} /></button>
+         {showHeader ? <AdminHeader /> : null}
+         <main ref={contentRef} className={styles.content}>{children}</main>
+diff --git a/ims-frontend/src/components/admin/AdminHeader.tsx b/ims-frontend/src/components/admin/AdminHeader.tsx
+index dc6ce24..afccd29 100644
+--- a/ims-frontend/src/components/admin/AdminHeader.tsx
++++ b/ims-frontend/src/components/admin/AdminHeader.tsx
+@@ -3,6 +3,7 @@
+ 
+ import { usePathname } from "next/navigation";
+ import { getAdminPageInfo } from "@/components/layout/shell-navigation";
++import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
+ import styles from "@/components/layout/ApplicationShell.module.css";
+ 
+ export default function AdminHeader() {
+@@ -10,10 +11,11 @@ export default function AdminHeader() {
+   const page = getAdminPageInfo(pathname);
+ 
+   return (
+-    <header className={styles.pageIntro}>
+-      <h1 className={styles.title}>{page?.label.toUpperCase() ?? "CAFE SALVACION"}</h1>
+-      <p className={styles.subtitle}>{page?.subtitle ?? "Inventory management"}</p>
+-      {pathname === "/admin/dashboard" || pathname === "/admin/reports/inventory" ? <div className={styles.introDivider} /> : null}
+-    </header>
++    <div className={styles.pageIntro}>
++      <AdminSectionHeader
++        title={page?.label ?? "Cafe Salvacion"}
++        description={page?.subtitle ?? "Inventory management"}
++      />
++    </div>
+   );
+ }
+diff --git a/ims-frontend/src/components/admin/AdminSelect.module.css b/ims-frontend/src/components/admin/AdminSelect.module.css
+index 4f0c0d5..4954f2a 100644
+--- a/ims-frontend/src/components/admin/AdminSelect.module.css
++++ b/ims-frontend/src/components/admin/AdminSelect.module.css
+@@ -1,4 +1,6 @@
+ .select { min-width: 0; }
++.hiddenLabel, .validationSelect { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
++.trigger:disabled { cursor: not-allowed; opacity: .5; }
+ .label { display: block; margin-bottom: 6px; color: #475569; font-size: 15px; font-weight: 600; }
+ .trigger { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 12px; background: #fff; color: #232d46; font: inherit; font-size: 16px; font-weight: 600; text-align: left; box-shadow: 0 1px 2px #0f172a0a; }
+ .trigger:hover, .trigger[aria-expanded="true"] { border-color: #475569; background: #f8fafc; }
+diff --git a/ims-frontend/src/components/admin/AdminSelect.tsx b/ims-frontend/src/components/admin/AdminSelect.tsx
+index 236edce..269daa8 100644
+--- a/ims-frontend/src/components/admin/AdminSelect.tsx
++++ b/ims-frontend/src/components/admin/AdminSelect.tsx
+@@ -10,9 +10,15 @@ type Props = {
+   value: string;
+   options: { value: string; label: string }[];
+   onChange: (value: string) => void;
++  disabled?: boolean;
++  id?: string;
++  hideLabel?: boolean;
++  name?: string;
++  required?: boolean;
++  describedBy?: string;
+ };
+ 
+-export default function AdminSelect({ label, value, options, onChange }: Props) {
++export default function AdminSelect({ label, value, options, onChange, disabled = false, id: triggerId, hideLabel = false, name, required = false, describedBy }: Props) {
+   const [position, setPosition] = useState<CSSProperties | null>(null);
+   const root = useRef<HTMLDivElement>(null);
+   const trigger = useRef<HTMLButtonElement>(null);
+@@ -46,6 +52,7 @@ export default function AdminSelect({ label, value, options, onChange }: Props)
+   }, [position, options, value]);
+ 
+   function openMenu() {
++    if (disabled || trigger.current?.matches(":disabled")) return;
+     const rect = trigger.current?.getBoundingClientRect();
+     if (!rect) return;
+     setPortalTarget(trigger.current?.closest("dialog") ?? document.body);
+@@ -62,8 +69,11 @@ export default function AdminSelect({ label, value, options, onChange }: Props)
+   }
+ 
+   return <div ref={root} className={styles.select}>
+-    <span id={`${id}-label`} className={styles.label}>{label}</span>
+-    <button ref={trigger} type="button" className={styles.trigger}
++    <span id={`${id}-label`} className={hideLabel ? styles.hiddenLabel : styles.label}>{label}</span>
++    {required || name ? <select className={styles.validationSelect} aria-hidden="true" tabIndex={-1} value={value} name={name} required={required} disabled={disabled} onChange={event => onChange(event.target.value)} onInvalid={() => trigger.current?.focus()}>
++      {options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
++    </select> : null}
++    <button ref={trigger} id={triggerId} disabled={disabled} aria-describedby={describedBy} type="button" className={styles.trigger}
+       aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="listbox" aria-expanded={!!position}
+       aria-controls={position ? `${id}-options` : undefined}
+       onClick={() => position ? setPosition(null) : openMenu()}
+diff --git a/ims-frontend/src/components/admin/AdminSidebar.tsx b/ims-frontend/src/components/admin/AdminSidebar.tsx
+index 537f4d1..6203ad4 100644
+--- a/ims-frontend/src/components/admin/AdminSidebar.tsx
++++ b/ims-frontend/src/components/admin/AdminSidebar.tsx
+@@ -2,11 +2,12 @@
+ 
+ import Link from "next/link";
+ import SidebarAccount from "@/components/layout/SidebarAccount";
++import AlertCountBadge from "@/components/layout/AlertCountBadge";
+ import { usePathname } from "next/navigation";
+ import { useCallback, useEffect, useRef, useState } from "react";
+ import { useSidebarStore } from "@/store/sidebarStore";
+ import { ChevronDown, ChevronLeft, Menu, X } from "lucide-react";
+-import { getVisibleNavigation, matchesShellRoute } from "@/components/layout/shell-navigation";
++import { adminNavigation, getVisibleNavigation, matchesShellRoute } from "@/components/layout/shell-navigation";
+ import { useAuthStore } from "@/store/authStore";
+ import styles from "@/components/layout/ApplicationShell.module.css";
+ 
+@@ -29,6 +30,12 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
+   const openSections = useSidebarStore(state => state.openSections);
+   const toggleSection = useSidebarStore(state => state.toggleSection);
+   const expandSection = useSidebarStore(state => state.expandSection);
++  useEffect(() => {
++    const activeSection = adminNavigation.flatMap(group => group.items).find(item =>
++      item.children && matchesShellRoute(pathname, item.href),
++    );
++    if (activeSection) expandSection(activeSection.href);
++  }, [pathname, expandSection]);
+   const setScrollTop = useSidebarStore(state => state.setScrollTop);
+   const restoreScroll = useCallback((node: HTMLElement | null) => {
+     if (node) node.scrollTop = useSidebarStore.getState().scrollTop;
+@@ -90,7 +97,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
+                     title={collapsed ? item.label : undefined}
+                     aria-label={collapsed ? item.label : undefined}
+                     className={`${styles.navLink} ${styles.navToggle}`}
+-                    data-active={dropdownSelection === item.href}
++                    data-active={dropdownSelection === item.href || matchesShellRoute(pathname, item.href)}
+                     aria-expanded={!collapsed && !!openSections[item.href]}
+                     aria-controls={`sidebar-${item.label.toLowerCase()}`}
+                     onClick={() => {
+@@ -107,9 +114,10 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
+                     {!collapsed && <><span>{item.label}</span><ChevronDown size={16} className={styles.navChevron} aria-hidden="true" /></>}
+                   </button> : <Link href={item.href} title={collapsed ? item.label : undefined} onClick={navigateMain} className={styles.navLink} aria-current={!dropdownSelection && matchesShellRoute(pathname, item.href.split("#")[0]) ? "page" : undefined}>
+                     <item.icon size={19} aria-hidden="true" /><span>{collapsed ? null : item.label}</span>
++                    {item.href === "/admin/alerts" && <AlertCountBadge collapsed={collapsed} />}
+                   </Link>}
+                   {item.children ? <div id={`sidebar-${item.label.toLowerCase()}`} className={styles.navDropdown} hidden={collapsed || !openSections[item.href]}>
+-                    {(item.href === "/admin/reports" ? item.children : [{ label: "Overview", href: item.href }, ...item.children]).map(child => <Link key={child.href} href={child.href} onClick={navigate} className={styles.navSubLink} aria-current={!dropdownSelection && pathname === child.href ? "page" : undefined}>{child.label}</Link>)}
++                    {(item.href === "/admin/reports" ? item.children : [{ label: "Overview", href: item.href }, ...item.children]).map(child => <Link key={child.href} href={child.href} onClick={navigate} className={styles.navSubLink} aria-current={pathname === child.href ? "page" : undefined}>{child.label}</Link>)}
+                   </div> : null}
+                 </div>
+               ))}
+diff --git a/ims-frontend/src/components/admin/StyledSelect.tsx b/ims-frontend/src/components/admin/StyledSelect.tsx
+new file mode 100644
+index 0000000..e9c07c6
+--- /dev/null
++++ b/ims-frontend/src/components/admin/StyledSelect.tsx
+@@ -0,0 +1,27 @@
++"use client";
++
++import { Children, isValidElement, type ReactNode, type SelectHTMLAttributes } from "react";
++import AdminSelect from "./AdminSelect";
++
++type Props = Omit<SelectHTMLAttributes<HTMLSelectElement>, "onChange" | "value"> & {
++  value: string;
++  onValueChange: (value: string) => void;
++};
++
++function optionText(children: ReactNode): string {
++  return Children.toArray(children).map(child => isValidElement<{ children?: ReactNode }>(child) ? optionText(child.props.children) : String(child)).join("");
++}
++
++function collectOptions(children: ReactNode): { value: string; label: string }[] {
++  return Children.toArray(children).flatMap(child => {
++    if (!isValidElement<{ value?: string; children?: ReactNode }>(child)) return [];
++    return child.type === "option"
++      ? [{ value: String(child.props.value ?? optionText(child.props.children)), label: optionText(child.props.children) }]
++      : collectOptions(child.props.children);
++  });
++}
++
++// Keep existing option lists and form behavior while sharing the application menu UI.
++export default function StyledSelect({ value, onValueChange, children, id, disabled, required, name, "aria-label": label }: Props) {
++  return <AdminSelect label={label ?? "Select option"} hideLabel value={value} onChange={onValueChange} options={collectOptions(children)} id={id} disabled={disabled} required={required} name={name} />;
++}
+diff --git a/ims-frontend/src/components/admin/inventory/InventoryField.tsx b/ims-frontend/src/components/admin/inventory/InventoryField.tsx
+index 98a7852..20e0cca 100644
+--- a/ims-frontend/src/components/admin/inventory/InventoryField.tsx
++++ b/ims-frontend/src/components/admin/inventory/InventoryField.tsx
+@@ -4,6 +4,7 @@ type InventoryFieldProps = {
+   htmlFor: string;
+   label: string;
+   hint?: string;
++  required?: boolean;
+   children: React.ReactNode;
+ };
+ 
+@@ -17,6 +18,7 @@ export function InventoryField({
+   htmlFor,
+   label,
+   hint,
++  required = false,
+   children,
+ }: InventoryFieldProps) {
+   return (
+@@ -26,6 +28,7 @@ export function InventoryField({
+         className="block text-sm font-semibold text-slate-800"
+       >
+         {label}
++        {required ? <span className="text-red-600" aria-hidden="true"> *</span> : null}
+       </label>
+       {hint ? <p className="text-xs text-slate-500">{hint}</p> : null}
+       {children}
+diff --git a/ims-frontend/src/components/admin/inventory/InventoryInsightPage.tsx b/ims-frontend/src/components/admin/inventory/InventoryInsightPage.tsx
+index b671fdc..d2e7341 100644
+--- a/ims-frontend/src/components/admin/inventory/InventoryInsightPage.tsx
++++ b/ims-frontend/src/components/admin/inventory/InventoryInsightPage.tsx
+@@ -93,5 +93,5 @@ export default function InventoryInsightPage({ kind, embedded = false }: { kind:
+       </section>
+     </>
+   );
+-  return embedded ? panel : <AdminDashboardLayout showHeader={false}>{panel}</AdminDashboardLayout>;
++  return embedded ? panel : <AdminDashboardLayout showHeader={false} whiteTop>{panel}</AdminDashboardLayout>;
+ }
+diff --git a/ims-frontend/src/components/admin/inventory/InventoryModal.module.css b/ims-frontend/src/components/admin/inventory/InventoryModal.module.css
+index 8170507..b69a362 100644
+--- a/ims-frontend/src/components/admin/inventory/InventoryModal.module.css
++++ b/ims-frontend/src/components/admin/inventory/InventoryModal.module.css
+@@ -1,8 +1,8 @@
+ .professional { z-index:80; font-family:var(--font-sans); }
+ .professional > div { border:1px solid #dce2eb; border-radius:16px; background:#fff; box-shadow:0 24px 70px #0f172a33; }
+-.professional > div > div:first-child { flex-shrink:0; padding:22px 24px; background:var(--modal-header-background); }
+-.professional h2 { margin:0; font-size:24px; font-weight:650; line-height:1.35; color:#232d46; }
+-.professional p { margin-bottom:0; font-size:14px; line-height:1.6; color:#64748b; }
++.professional > div > div:first-child { flex-shrink:0; padding:16px 24px; background:var(--modal-header-background); }
++.professional h2 { margin:0; font-size:20px; font-weight:650; line-height:1.3; color:#232d46; }
++.professional p { margin-top:4px; margin-bottom:0; font-size:13px; line-height:1.5; color:#64748b; }
+ .professional label { color:#334155; font-size:14px; font-weight:600; }
+ .professional input,.professional select,.professional textarea { box-sizing:border-box; width:100%; border:1px solid #cbd5e1; border-radius:8px; background:#fff; color:#232d46; font-size:14px; box-shadow:none; }
+ .professional input,.professional select { height:44px; padding:0 12px; padding-block:0; line-height:normal; }
+diff --git a/ims-frontend/src/components/admin/inventory/InventoryModal.tsx b/ims-frontend/src/components/admin/inventory/InventoryModal.tsx
+index 575062c..b0bdf0d 100644
+--- a/ims-frontend/src/components/admin/inventory/InventoryModal.tsx
++++ b/ims-frontend/src/components/admin/inventory/InventoryModal.tsx
+@@ -12,6 +12,7 @@ type InventoryModalProps = {
+   wide?: boolean;
+   bodyClassName?: string;
+   professional?: boolean;
++  panelClassName?: string;
+ };
+ 
+ export default function InventoryModal({
+@@ -22,15 +23,16 @@ export default function InventoryModal({
+   wide = false,
+   bodyClassName,
+   professional = false,
++  panelClassName = "",
+ }: InventoryModalProps) {
+   return (
+     <div className={`${backdrop.backdrop} ${professional ? styles.professional : ""} fixed inset-0 z-[90] flex items-center justify-center p-4`}>
+       <div
+-        className={`flex max-h-[88vh] w-full flex-col overflow-hidden rounded-[32px] border border-white/40 bg-[#f8f3ec] shadow-[0_28px_90px_rgba(15,23,42,0.28)] ${wide ? "max-w-6xl" : "max-w-3xl"}`}
++        className={`flex max-h-[88vh] w-full flex-col overflow-hidden rounded-[32px] border border-white/40 bg-[#f8f3ec] shadow-[0_28px_90px_rgba(15,23,42,0.28)] ${wide ? "max-w-6xl" : "max-w-3xl"} ${panelClassName}`}
+       >
+-        <div className={`${styles.header} flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5`}>
++        <div className={`${styles.header} flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-4`}>
+           <div>
+-            <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
++            <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+             {description ? (
+               <p className="mt-1 text-sm text-slate-500">{description}</p>
+             ) : null}
+diff --git a/ims-frontend/src/components/admin/inventory/InventoryReportModal.module.css b/ims-frontend/src/components/admin/inventory/InventoryReportModal.module.css
+index 58a3f77..278cf12 100644
+--- a/ims-frontend/src/components/admin/inventory/InventoryReportModal.module.css
++++ b/ims-frontend/src/components/admin/inventory/InventoryReportModal.module.css
+@@ -1,12 +1,9 @@
+ .dialog { margin:auto; padding:0; width:min(1200px, calc(100vw - 32px)); height:auto; max-height:88dvh; border:1px solid #dce2eb; border-radius:20px; background:#f5f5f5; color:#232d46; overflow:hidden; box-shadow:0 24px 80px #0f172a40; }
+ .dialog[open] { position:fixed; inset:0; margin:auto; display:flex; flex-direction:column; height:fit-content; max-height:calc(100dvh - 48px); }
+-@media (min-width:1024px) {
+-  .dialog[open] { left:var(--shell-sidebar-width, 0px); width:min(1200px, calc(100vw - var(--shell-sidebar-width, 0px) - 48px)); max-width:calc(100vw - var(--shell-sidebar-width, 0px) - 48px); }
+-}
+-.dialog::backdrop { background:#0f172a88; }
+-.header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:20px 24px; background:var(--modal-header-background); border-bottom:1px solid #dce2eb; }
+-.header h2 { margin:0; font-size:clamp(24px, 3vw, 36px); line-height:1.3; font-weight:700; }
+-.header p { margin:10px 0 0; color:#475569; font-size:16px; line-height:1.6; }
++.dialog::backdrop { background:rgb(35 45 70 / 35%); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); }
++.header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 24px; background:var(--modal-header-background); border-bottom:1px solid #dce2eb; }
++.header h2 { margin:0; font-size:20px; line-height:1.3; font-weight:700; }
++.header p { margin:4px 0 0; color:#475569; font-size:13px; line-height:1.5; }
+ .header button { padding:8px 18px; border:1px solid #cbd5e1; border-radius:8px; background:white; cursor:pointer; }
+ .header button:focus-visible { outline:2px solid #232d46; outline-offset:3px; }
+ .body { flex:0 1 auto; min-height:0; overflow:auto; overscroll-behavior:contain; padding:20px; }
+diff --git a/ims-frontend/src/components/admin/inventory/InventoryWorkspace.module.css b/ims-frontend/src/components/admin/inventory/InventoryWorkspace.module.css
+index 199a53d..5c0d64d 100644
+--- a/ims-frontend/src/components/admin/inventory/InventoryWorkspace.module.css
++++ b/ims-frontend/src/components/admin/inventory/InventoryWorkspace.module.css
+@@ -68,7 +68,7 @@
+ }
+ 
+ .materialActions { display:flex; flex-wrap:wrap; flex-shrink:0; gap:12px; }
+-.sectionNav { position:sticky; top:0; z-index:20; display:flex; width:calc(100% + 64px); margin-inline:-32px; gap:6px; overflow-x:auto; padding:10px 32px; border-block:1px solid #dce2eb; border-radius:0; background:#fff; box-shadow:0 4px 12px #232d4608; }
++.sectionNav { position:sticky; top:0; z-index:20; display:flex; width:100%; max-width:100%; margin-inline:0; gap:6px; overflow-x:auto; padding:10px 16px; border:1px solid #dce2eb; border-radius:10px; background:#fff; box-shadow:0 4px 12px #232d4608; }
+ .sectionNav a { flex:0 0 auto; min-height:44px; display:flex; align-items:center; justify-content:center; padding:10px 14px; border:0; border-radius:8px; background:transparent; color:#334155; font-size:16px; font-weight:600; }
+ .sectionNav a:hover { background:#f1f5f9; }
+ .sectionNav a[aria-current="location"] { background:#232d46; color:#fff; }
+@@ -108,11 +108,7 @@
+ .sectionNav { margin-top:-28px; }
+ @media (max-width:1279px) { .sectionNav { margin-top:-24px; } }
+ @media (max-width:639px) { .sectionNav { margin-top:-20px; } }
+-@media (max-width:1023px) { .sectionNav { padding-left:64px; } }
+ .pageSection { scroll-margin-top:90px; min-width:0; }
+ .sectionDivider { display:block; width:100%; height:2px; margin:8px 0 24px; padding:0; border:0; background-color:#aeb9ca; opacity:1; }
+ 
+-@media (max-width:1279px) { .sectionNav { width:calc(100% + 48px); margin-inline:-24px; padding-inline:24px; } }
+-@media (max-width:639px) { .sectionNav { width:calc(100% + 32px); margin-inline:-16px; padding-inline:16px; } .sectionNav a { font-size:15px; } }
+-
+-@media (max-width:1023px) { .sectionNav { padding-left:64px; } }
++@media (max-width:639px) { .sectionNav a { font-size:15px; } }
+diff --git a/ims-frontend/src/components/admin/inventory/InventoryWorkspace.tsx b/ims-frontend/src/components/admin/inventory/InventoryWorkspace.tsx
+index f8e4062..77e81a6 100644
+--- a/ims-frontend/src/components/admin/inventory/InventoryWorkspace.tsx
++++ b/ims-frontend/src/components/admin/inventory/InventoryWorkspace.tsx
+@@ -493,7 +493,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
+         <div className={styles.materialActions} aria-label="Material actions">
+           <PermissionAction permission={"inventory.create"}><button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }}><Plus size={16} />Add Raw Material</button></PermissionAction>
+           <PermissionAction permission={"stockRuns.create"}><button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }}><Plus size={16} />Create Stock-Run Draft</button></PermissionAction>
+-          <PermissionAction permission={"inventory.waste"}><button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setWasteForm(defaultWasteForm(selectedRawMaterialId)); setActivePanel("waste"); }}>Record Waste</button></PermissionAction>
++          <PermissionAction permission={"inventory.waste"}><button type="button" style={{ marginLeft: 8 }} disabled={initialLoading || submitting} onClick={() => { setError(null); setWasteForm(defaultWasteForm(selectedRawMaterialId)); setActivePanel("waste"); }}>Record Waste</button></PermissionAction>
+         </div>
+ 
+         <section id="overview" style={{ scrollMarginTop: 90 }} aria-label="Overview" className={styles.overview}>
+diff --git a/ims-frontend/src/components/admin/inventory/MaterialActionPage.tsx b/ims-frontend/src/components/admin/inventory/MaterialActionPage.tsx
+index 9cdd966..92cce32 100644
+--- a/ims-frontend/src/components/admin/inventory/MaterialActionPage.tsx
++++ b/ims-frontend/src/components/admin/inventory/MaterialActionPage.tsx
+@@ -1,5 +1,6 @@
+ "use client";
+ 
++import StyledSelect from "@/components/admin/StyledSelect";
+ import Link from "next/link";
+ import { useEffect, useRef, useState, type FormEvent } from "react";
+ import { ArrowLeft, CheckCircle2, PackagePlus, ClipboardList, Trash2 } from "lucide-react";
+@@ -107,14 +108,14 @@ export default function MaterialActionPage({ action }: { action: Action }) {
+               {action !== "waste" && <label className={action === "stock-run" ? styles.full : undefined}>{action === "add" ? "Raw material name" : "Draft name"}<input required value={name} onChange={e => setName(e.target.value)} placeholder={action === "add" ? "e.g. Evaporated Milk" : "e.g. Monday Produce Run"} /></label>}
+               {action === "add" && <>
+                 <label>SKU<input required value={sku} onChange={e => setSku(e.target.value)} placeholder="e.g. RM-EVAP-001" /><small>Use a unique code for this material.</small></label>
+-                <label>Base unit<select required value={unitId} onChange={e => setUnitId(e.target.value)}><option value="">Select a unit</option>{units.map(unit => <option key={unit.id} value={unit.id}>{unit.name} ({unit.code})</option>)}</select></label>
++                <label>Base unit<StyledSelect aria-label="Base unit" required value={unitId} onValueChange={value => setUnitId(value)}><option value="">Select a unit</option>{units.map(unit => <option key={unit.id} value={unit.id}>{unit.name} ({unit.code})</option>)}</StyledSelect></label>
+                 <label>Reorder point<input required type="number" min="0" step="0.0001" value={reorderPoint} onChange={e => setReorderPoint(e.target.value)} /><small>Measured in the selected base unit.</small></label>
+               </>}
+               {action === "waste" && <>
+-                <label>Raw material<select required value={materialId} onChange={e => { setMaterialId(e.target.value); setBatchId(""); setBatches([]); }}><option value="">Select a material</option>{materials.map(row => <option key={row.rawMaterialId} value={row.rawMaterialId}>{row.name} ({row.unit.code})</option>)}</select></label>
+-                <label>Batch<select required disabled={!materialId || batchLoading} value={batchId} onChange={e => setBatchId(e.target.value)}><option value="">{batchLoading ? "Loading batches..." : "Select a batch"}</option>{batches.map(row => <option key={row.id} value={row.id}>{row.id.slice(0, 8)} - {Number(row.remainingQuantity).toLocaleString()} remaining</option>)}</select>{materialId && !batchLoading && !batches.length && <small>No batches with remaining stock. Choose another material.</small>}</label>
++                <label>Raw material<StyledSelect aria-label="Raw material" required value={materialId} onValueChange={value => { setMaterialId(value); setBatchId(""); setBatches([]); }}><option value="">Select a material</option>{materials.map(row => <option key={row.rawMaterialId} value={row.rawMaterialId}>{row.name} ({row.unit.code})</option>)}</StyledSelect></label>
++                <label>Batch<StyledSelect aria-label="Batch" required disabled={!materialId || batchLoading} value={batchId} onValueChange={value => setBatchId(value)}><option value="">{batchLoading ? "Loading batches..." : "Select a batch"}</option>{batches.map(row => <option key={row.id} value={row.id}>{row.id.slice(0, 8)} - {Number(row.remainingQuantity).toLocaleString()} remaining</option>)}</StyledSelect>{materialId && !batchLoading && !batches.length && <small>No batches with remaining stock. Choose another material.</small>}</label>
+                 <label>Quantity{material && ` (${material.unit.code})`}<input required type="number" min="0.0001" step="0.0001" max={batch ? Number(batch.remainingQuantity) : undefined} value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="Enter waste quantity" />{batch && <small>Available: {Number(batch.remainingQuantity).toLocaleString()} {material?.unit.code}</small>}</label>
+-                <label>Reason<select required value={reason} onChange={e => setReason(e.target.value)}>{INVENTORY_WASTE_REASON_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
++                <label>Reason<StyledSelect aria-label="Reason" required value={reason} onValueChange={value => setReason(value)}>{INVENTORY_WASTE_REASON_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</StyledSelect></label>
+               </>}
+               {action !== "add" && <label className={styles.full}>Notes <span className={styles.optional}>Optional</span><textarea rows={4} value={note} onChange={e => setNote(e.target.value)} placeholder={action === "waste" ? "Add context for this waste entry." : "Describe the delivery or items you plan to receive."} /></label>}
+             </fieldset>
+diff --git a/ims-frontend/src/components/admin/inventory/RawMaterialModals.tsx b/ims-frontend/src/components/admin/inventory/RawMaterialModals.tsx
+index 9f11b5b..42bfac3 100644
+--- a/ims-frontend/src/components/admin/inventory/RawMaterialModals.tsx
++++ b/ims-frontend/src/components/admin/inventory/RawMaterialModals.tsx
+@@ -112,9 +112,6 @@ export default function RawMaterialModals({
+               />
+             </InventoryField>
+             <ModalActions>
+-              <button type="button" onClick={onClose} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
+-                Cancel
+-              </button>
+               <button type="submit" disabled={submitting} className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white">
+                 Create Material
+               </button>
+diff --git a/ims-frontend/src/components/admin/inventory/StockRunModals.tsx b/ims-frontend/src/components/admin/inventory/StockRunModals.tsx
+index a8cd2f9..74674ad 100644
+--- a/ims-frontend/src/components/admin/inventory/StockRunModals.tsx
++++ b/ims-frontend/src/components/admin/inventory/StockRunModals.tsx
+@@ -136,9 +136,6 @@ export default function StockRunModals({
+               />
+             </InventoryField>
+             <div className="flex justify-end gap-3 pt-2">
+-              <button type="button" onClick={onClose} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
+-                Cancel
+-              </button>
+               <button type="submit" disabled={submitting} className="rounded-full bg-[#f45a1f] px-5 py-2 text-sm font-semibold text-white">
+                 Create Draft
+               </button>
+diff --git a/ims-frontend/src/components/admin/inventory/StoreAvailabilityModal.module.css b/ims-frontend/src/components/admin/inventory/StoreAvailabilityModal.module.css
+index f09e18b..5488e79 100644
+--- a/ims-frontend/src/components/admin/inventory/StoreAvailabilityModal.module.css
++++ b/ims-frontend/src/components/admin/inventory/StoreAvailabilityModal.module.css
+@@ -17,7 +17,7 @@
+ }
+ 
+ .dialog::backdrop {
+-  background: #0f172a65;
++  background: rgb(35 45 70 / 35%);
+   backdrop-filter: blur(5px);
+ }
+ 
+@@ -31,16 +31,16 @@
+ 
+ .header { background:var(--modal-header-background);
+   flex-shrink: 0;
+-  padding: 28px 32px 22px;
++  padding: 16px 24px;
+   border-bottom: 1px solid #e4e9f2;
+ }
+ 
+ .headerRow { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+ .heading { display: flex; align-items: center; gap: 12px; min-width: 0; }
+ .heading .icon { flex-shrink: 0; }
+-.heading h2 { margin: 0; font-size: 23px; font-weight: 700; letter-spacing: -0.5px; }
+-.icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: #e8eef7; color: #5274a4; }
+-.product { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; margin-top: 16px; padding: 7px 12px; border: 1px solid #d5ddea; border-radius: 20px; background: #f1f5fa; color: #232d46; font-size: 14px; font-weight: 600; }
++.heading h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
++.icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: #e8eef7; color: #5274a4; }
++.product { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; margin-top: 10px; padding: 7px 12px; border: 1px solid #d5ddea; border-radius: 20px; background: #f1f5fa; color: #232d46; font-size: 14px; font-weight: 600; }
+ .product svg { flex-shrink: 0; }
+ .product span { overflow-wrap: anywhere; }
+ 
+diff --git a/ims-frontend/src/components/admin/products/ProductActionDialog.module.css b/ims-frontend/src/components/admin/products/ProductActionDialog.module.css
+index 99e69c9..4c3e23a 100644
+--- a/ims-frontend/src/components/admin/products/ProductActionDialog.module.css
++++ b/ims-frontend/src/components/admin/products/ProductActionDialog.module.css
+@@ -1,10 +1,10 @@
+-.overlay { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 20px; background: #0f172a80; }
++.overlay { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgb(35 45 70 / 35%); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+ .dialog { width: 100%; max-width: 520px; max-height: calc(100dvh - 40px); overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; color: #334155; box-shadow: 0 24px 64px #0f172a33; }
+-.header { background:var(--modal-header-background); display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 24px; border-bottom: 1px solid #e2e8f0; }
+-.header h2 { margin: 0; color: #232d46; font-size: 24px; font-weight: 700; line-height: 1.3; }
+-.header p { margin: 8px 0 0; color: #64748b; font-size: 14px; line-height: 1.6; }
+-.close { display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #64748b; }
+-.close:hover { background: #f1f5f9; color: #232d46; }
++.header { background:var(--modal-header-background); display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 16px 20px; border-bottom: 1px solid #e2e8f0; }
++.header h2 { margin: 0; color: #232d46; font-size: 20px; font-weight: 700; line-height: 1.3; }
++.header p { margin: 4px 0 0; color: #64748b; font-size: 13px; line-height: 1.5; }
++.close { display: grid; place-items: center; flex-shrink: 0; width: 40px; height: 40px; padding: 0; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #475569; }
++.close:hover { background: #f1f5f9; border-color: #94a3b8; color: #232d46; }
+ .body { display: grid; gap: 18px; padding: 24px; }
+ .body p { margin: 0; }
+ .notice, .dangerNotice { padding: 14px 16px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; color: #475569; font-size: 14px; line-height: 1.6; }
+diff --git a/ims-frontend/src/components/admin/products/ProductFormDialog.module.css b/ims-frontend/src/components/admin/products/ProductFormDialog.module.css
+index b330dd5..c75189d 100644
+--- a/ims-frontend/src/components/admin/products/ProductFormDialog.module.css
++++ b/ims-frontend/src/components/admin/products/ProductFormDialog.module.css
+@@ -13,6 +13,9 @@
+ }
+ 
+ .primary { background: #232d46; border-color: #232d46; color: #fff; }
++.dialogHeader { padding: 20px 24px; }
++.dialogTitle { margin: 0; color: #232d46; font-size: 20px; font-weight: 700; line-height: 1.3; }
++.dialogDescription { margin: 4px 0 0; color: #64748b; font-size: 13px; line-height: 1.5; }
+ .primary:hover:not(:disabled) { background: #34425f; border-color: #34425f; }
+ .secondary { background: #fff; color: #334155; }
+ .secondary:hover:not(:disabled) { background: #f1f5f9; border-color: #94a3b8; }
+diff --git a/ims-frontend/src/components/admin/products/ProductFormDialog.tsx b/ims-frontend/src/components/admin/products/ProductFormDialog.tsx
+index 4abeed7..4c7ad1e 100644
+--- a/ims-frontend/src/components/admin/products/ProductFormDialog.tsx
++++ b/ims-frontend/src/components/admin/products/ProductFormDialog.tsx
+@@ -55,15 +55,15 @@ function ProductFormDialogBody({ mode, categories, product, submitting, errorMes
+     } finally { setUploading(false); }
+   }
+   const updateVariant = (index: number, patch: Partial<VariantFormInput>) => setVariants(current => current.map((v,i)=>i===index ? {...v,...patch} : v));
+-  return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
++  return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-[5px] p-4">
+     <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+-      <header className="bg-[var(--modal-header-background)] flex shrink-0 items-start justify-between border-b border-slate-200 px-6 py-5"><div><h2 className="text-xl font-bold text-slate-900">{mode === "create" ? "Add Product" : "Edit Product"}</h2><p className="mt-1 text-sm text-slate-500">{mode === "create" ? "Create a new product, set availability, and organize category details." : "Update product information, availability, and details."}</p></div><button type="button" onClick={onClose} aria-label="Close" className="rounded p-1 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button></header>
++      <header className={`${styles.dialogHeader} bg-[var(--modal-header-background)] flex shrink-0 items-center justify-between border-b border-slate-200`}><div><h2 className={styles.dialogTitle}>{mode === "create" ? "Add Product" : "Edit Product"}</h2><p className={styles.dialogDescription}>{mode === "create" ? "Create a new product, set availability, and organize category details." : "Update product information, availability, and details."}</p></div><button type="button" onClick={onClose} aria-label="Close" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white p-0 text-slate-600 hover:border-slate-400 hover:bg-slate-50"><X className="h-5 w-5" /></button></header>
+       <form onSubmit={handleSubmit} className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+         {(clientErrors.length || errorMessage) ? <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700"><ul>{clientErrors.map(e=><li key={e}>{e}</li>)}{errorMessage ? <li>{errorMessage}</li> : null}{fieldErrors ? Object.entries(fieldErrors).map(([k,v])=><li key={k}>{k}: {v.join(", ")}</li>) : null}</ul></div> : null}
+         <section className="rounded-lg border border-slate-200 p-4"><h3 className="text-sm font-bold text-slate-900">Product Information</h3><div className="mt-3 grid gap-4 sm:grid-cols-2"><label className="text-xs font-semibold text-slate-700">Product Name *<input value={name} onChange={e=>setName(e.target.value)} className={`${input} mt-1`} placeholder="Spanish Latte" /></label><div className={styles.categoryField}><AdminSelect label="Category *" value={categoryId} onChange={setCategoryId} options={[{ value: "", label: "Select category" }, ...categories.map(c => ({ value: c.id, label: c.name }))]} /></div></div>{mode === "create" ? <div className="mt-4 flex items-center justify-between rounded-md bg-slate-50 px-3 py-3"><div><p className="text-xs font-semibold text-slate-800">POS Availability</p><p className="text-xs text-slate-500">{isEnabled ? "Enabled" : "Disabled"}</p></div><button type="button" role="switch" aria-label="POS availability" aria-checked={isEnabled} onClick={()=>setIsEnabled(v=>!v)} className={styles.switch}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${isEnabled ? "left-6" : "left-1"}`} /></button></div> : null}</section>
+         <ProductImagePicker imageUrl={imageUrl} file={imageFile} disabled={submitting || uploading} onChange={(file, remove) => { setImageFile(file); if (remove) setImageUrl(null); }} />
+         {mode === "create" ? <section className="mt-4 rounded-lg border border-slate-200 p-4"><div className="flex items-start justify-between"><div><h3 className="text-sm font-bold text-slate-900">Product Setup</h3><p className="mt-1 text-xs text-slate-500">Add the initial variant required to sell this product.</p></div><button type="button" onClick={()=>setVariants(v=>[...v,emptyVariant()])} className={`${styles.secondary} ${styles.addVariant}`}><Plus className="h-3.5 w-3.5" /> Add Variant</button></div>{variants.map((v,i)=><div key={i} className={`mt-3 grid gap-3 rounded-md bg-slate-50 p-3 ${styles.variantRow}`}><input value={v.name} onChange={e=>updateVariant(i,{name:e.target.value})} placeholder="Variant name" aria-label="Variant name" className={`${input} ${styles.variantName}`} /><input value={v.sku} onChange={e=>updateVariant(i,{sku:e.target.value})} placeholder="SKU" className={input} /><input value={v.price} onChange={e=>updateVariant(i,{price:e.target.value})} placeholder="Price" className={input} /><label className="flex items-center gap-2 text-xs"><input type="checkbox" className={styles.checkbox} checked={v.isEnabled} onChange={e=>updateVariant(i,{isEnabled:e.target.checked})} /> Enabled</label></div>)}</section> : null}
+-        <footer className="mt-5 flex justify-end gap-3 border-t border-slate-200 pt-4">{mode === "create" && <button type="button" onClick={onClose} className={styles.secondary}>Cancel</button>}<button type="submit" disabled={submitting || uploading} className={styles.primary}>{submitting || uploading ? "Saving..." : mode === "create" ? "Create Product" : "Save Changes"}</button></footer>
++        <footer className="mt-5 flex justify-end gap-3 border-t border-slate-200 pt-4"><button type="submit" disabled={submitting || uploading} className={styles.primary}>{submitting || uploading ? "Saving..." : mode === "create" ? "Create Product" : "Save Changes"}</button></footer>
+       </form>
+     </div>
+   </div>;
+diff --git a/ims-frontend/src/components/admin/products/ProductIngredientUsageTab.tsx b/ims-frontend/src/components/admin/products/ProductIngredientUsageTab.tsx
+index 4220a44..c85de5a 100644
+--- a/ims-frontend/src/components/admin/products/ProductIngredientUsageTab.tsx
++++ b/ims-frontend/src/components/admin/products/ProductIngredientUsageTab.tsx
+@@ -1,5 +1,6 @@
+ "use client";
+ 
++import StyledSelect from "@/components/admin/StyledSelect";
+ import { inventoryInputClasses } from "@/components/admin/inventory/InventoryField";
+ import type { ProductIngredientUsage, ProductUsageScope } from "@/lib/products";
+ import { formatDateTime, formatPeso } from "./product-ui";
+@@ -37,9 +38,9 @@ export default function ProductIngredientUsageTab({
+         <div className="grid gap-3 sm:grid-cols-2">
+           <label className="space-y-1 text-sm font-medium text-slate-700">
+             <span>Usage window</span>
+-            <select
++            <StyledSelect aria-label="Usage window"
+               value={usageScope}
+-              onChange={(event) => onScopeChange(event.target.value as ProductUsageScope)}
++              onValueChange={(value) => onScopeChange(value as ProductUsageScope)}
+               className={inventoryInputClasses}
+             >
+               {scopeOptions.map((option) => (
+@@ -47,7 +48,7 @@ export default function ProductIngredientUsageTab({
+                   {option.label}
+                 </option>
+               ))}
+-            </select>
++            </StyledSelect>
+           </label>
+           <label className="space-y-1 text-sm font-medium text-slate-700">
+             <span>{usageScope === "ONE_DAY" ? "Business date" : "Window end date"}</span>
+diff --git a/ims-frontend/src/components/admin/products/RecipeEditor.tsx b/ims-frontend/src/components/admin/products/RecipeEditor.tsx
+index 8d7de20..2b15ece 100644
+--- a/ims-frontend/src/components/admin/products/RecipeEditor.tsx
++++ b/ims-frontend/src/components/admin/products/RecipeEditor.tsx
+@@ -1,5 +1,6 @@
+ "use client";
+ 
++import StyledSelect from "@/components/admin/StyledSelect";
+ import { useMemo, useState } from "react";
+ import styles from "./VariantsRecipe.module.css";
+ import {
+@@ -142,14 +143,14 @@ export default function RecipeEditor({
+                   className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-[minmax(0,1fr)_200px_180px_auto]"
+                 >
+                   <InventoryField htmlFor={`recipe-material-${index}`} label="Raw material">
+-                    <select
++                    <StyledSelect aria-label="Raw material"
+                       id={`recipe-material-${index}`}
+                       value={row.rawMaterialId}
+-                      onChange={(event) =>
++                      onValueChange={(value) =>
+                         setRows((current) =>
+                           current.map((item, itemIndex) =>
+                             itemIndex === index
+-                              ? { ...item, rawMaterialId: event.target.value }
++                              ? { ...item, rawMaterialId: value }
+                               : item,
+                           ),
+                         )
+@@ -162,7 +163,7 @@ export default function RecipeEditor({
+                           {material.name} ({material.unit.code})
+                         </option>
+                       ))}
+-                    </select>
++                    </StyledSelect>
+                   </InventoryField>
+ 
+                   <InventoryField htmlFor={`recipe-unit-${index}`} label="Native unit">
+@@ -225,13 +226,6 @@ export default function RecipeEditor({
+         )}
+ 
+         <div className="flex justify-end gap-3">
+-          <button
+-            type="button"
+-            onClick={() => void handleClose()}
+-            className={styles.secondary}
+-          >
+-            Cancel
+-          </button>
+           <button
+             type="button"
+             disabled={submitting || loading}
+diff --git a/ims-frontend/src/components/admin/products/RestoreProductDialog.tsx b/ims-frontend/src/components/admin/products/RestoreProductDialog.tsx
+index 667cb28..b6ea4a3 100644
+--- a/ims-frontend/src/components/admin/products/RestoreProductDialog.tsx
++++ b/ims-frontend/src/components/admin/products/RestoreProductDialog.tsx
+@@ -2,4 +2,4 @@
+ import { X } from "lucide-react";
+ import type { ProductDetail } from "@/lib/products";
+ type Props={open:boolean;product:ProductDetail|null;submitting:boolean;onClose:()=>void;onConfirm:()=>Promise<void>};
+-export default function RestoreProductDialog({open,product,submitting,onClose,onConfirm}:Props){if(!open||!product)return null;return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4"><div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl"><header className="bg-[var(--modal-header-background)] flex items-start justify-between border-b border-slate-200 px-6 py-5"><div><h2 className="text-xl font-bold text-slate-900">Restore Product</h2><p className="mt-1 text-sm text-slate-500">Return this archived product to the active product workspace.</p></div><button onClick={onClose} aria-label="Close" className="rounded p-1 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5"/></button></header><div className="space-y-4 p-6"><div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">This product will become visible in active product lists again. Existing history and configuration will be preserved.</div><div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-sm"><p><b>Product:</b> {product.name}</p><p><b>Category:</b> {product.category.name}</p><p><b>Current lifecycle:</b> Archived</p><p><b>Variants:</b> {product.variantCount} &nbsp; <b>Ingredients:</b> {product.ingredientCount}</p></div><footer className="flex justify-end gap-3 border-t border-slate-200 pt-4"><button onClick={onClose} className="rounded-md border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-700">Cancel</button><button onClick={()=>void onConfirm()} disabled={submitting} className="rounded-md bg-emerald-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">{submitting?"Restoring...":"Restore Product"}</button></footer></div></div></div>}
++export default function RestoreProductDialog({open,product,submitting,onClose,onConfirm}:Props){if(!open||!product)return null;return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-[5px] p-4"><div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl"><header className="bg-[var(--modal-header-background)] flex items-start justify-between border-b border-slate-200 px-6 py-4"><div><h2 className="text-lg font-bold text-slate-900">Restore Product</h2><p className="mt-1 text-[13px] text-slate-500">Return this archived product to the active product workspace.</p></div><button onClick={onClose} aria-label="Close" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white p-0 text-slate-600 hover:border-slate-400 hover:bg-slate-50"><X className="h-5 w-5"/></button></header><div className="space-y-4 p-6"><div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">This product will become visible in active product lists again. Existing history and configuration will be preserved.</div><div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-sm"><p><b>Product:</b> {product.name}</p><p><b>Category:</b> {product.category.name}</p><p><b>Current lifecycle:</b> Archived</p><p><b>Variants:</b> {product.variantCount} &nbsp; <b>Ingredients:</b> {product.ingredientCount}</p></div><footer className="flex justify-end gap-3 border-t border-slate-200 pt-4"><button onClick={()=>void onConfirm()} disabled={submitting} className="rounded-md bg-emerald-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">{submitting?"Restoring...":"Restore Product"}</button></footer></div></div></div>}
+diff --git a/ims-frontend/src/components/admin/products/VariantFormDialog.tsx b/ims-frontend/src/components/admin/products/VariantFormDialog.tsx
+index ac533c3..c7fb1c6 100644
+--- a/ims-frontend/src/components/admin/products/VariantFormDialog.tsx
++++ b/ims-frontend/src/components/admin/products/VariantFormDialog.tsx
+@@ -172,13 +172,6 @@ function VariantFormDialogBody({
+           Variant manually enabled
+         </label>
+         <div className="md:col-span-2 flex justify-end gap-3 pt-2">
+-          <button
+-            type="button"
+-            onClick={onClose}
+-            className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700"
+-          >
+-            Cancel
+-          </button>
+           <button
+             type="submit"
+             disabled={submitting}
+diff --git a/ims-frontend/src/components/admin/reports/InventoryAvailabilityRiskSection.tsx b/ims-frontend/src/components/admin/reports/InventoryAvailabilityRiskSection.tsx
+index 9b0df1c..2a34de9 100644
+--- a/ims-frontend/src/components/admin/reports/InventoryAvailabilityRiskSection.tsx
++++ b/ims-frontend/src/components/admin/reports/InventoryAvailabilityRiskSection.tsx
+@@ -103,9 +103,9 @@ export default function InventoryAvailabilityRiskSection({
+ 
+       <section data-report="availability-tables">
+         <WidgetCard title="Materials With Recorded Stockout Time" className="report-stockout">
+-          <div className="overflow-x-auto">
+-            <div className="min-w-[520px] overflow-hidden rounded-2xl border border-slate-200">
+-              <div className="grid grid-cols-[1.2fr_0.8fr_0.9fr_0.9fr_0.9fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
++          <div className="report-stockout-scroll">
++            <div className="min-w-[520px]">
++              <div className="report-stockout-heading grid grid-cols-[1.2fr_0.8fr_0.9fr_0.9fr_0.9fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                 <span>Material</span>
+                 <span>SKU</span>
+                 <span>Stockout Time</span>
+@@ -113,7 +113,7 @@ export default function InventoryAvailabilityRiskSection({
+                 <span>Events</span>
+                 <span>Current State</span>
+               </div>
+-              <div className="max-h-[28rem] overflow-y-auto">
++              <div>
+                 {loading ? (
+                   <div className="px-4 py-6 text-sm text-slate-500">
+                     Loading stockout history...
+diff --git a/ims-frontend/src/components/admin/reports/InventoryReports.module.css b/ims-frontend/src/components/admin/reports/InventoryReports.module.css
+index 4117c5a..72656f0 100644
+--- a/ims-frontend/src/components/admin/reports/InventoryReports.module.css
++++ b/ims-frontend/src/components/admin/reports/InventoryReports.module.css
+@@ -23,7 +23,10 @@
+ .workspace [data-report="availability"], .workspace [data-report="availability-tables"], .workspace [data-report="linked"], .workspace [data-report="linked-details"], .workspace [data-report="linked-support"], .workspace [data-report="variant-details"] { display: contents; }
+ .workspace [data-report="linked"] > *, .workspace [data-report="linked-support"] > * { margin-top: 0; margin-bottom: 0; }
+ .workspace :global(.report-risk) { grid-column: 1 / 6; grid-row: 3; }
+-.workspace :global(.report-stockout) { grid-column: 6 / -1; grid-row: 3 / 5; }
++.workspace :global(.report-stockout) { grid-column: 6 / -1; grid-row: 3 / 5; display: flex; flex-direction: column; min-height: 0; }
++.workspace :global(.report-stockout) > h2 { flex-shrink: 0; }
++.workspace :global(.report-stockout-scroll) { flex: 1 1 0; min-height: 0; overflow: auto; border: 1px solid #dce2eb; border-radius: 8px; }
++.workspace :global(.report-stockout-heading) { position: sticky; top: 0; z-index: 1; }
+ .workspace [data-report="consumption-intro"] { grid-column: 1 / 6; grid-row: 4; }
+ .workspace [data-report="consumption-metrics"] { grid-column: 1 / -1; grid-row: 5; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; padding: 0; border: 0; background: transparent; box-shadow: none; }
+ .workspace :global(.report-top-selling) { grid-column: 1 / -1; grid-row: 6; }
+@@ -52,7 +55,7 @@
+ .workspace :global(.report-badge) { display: inline-block; border: 1px solid #7ad44d; border-radius: 3px; background: #e7fbdc; color: #247412; padding: 2px 8px; font-size: 13px; }
+ .workspace :global(.report-empty) { text-align: center; color: #777; padding: 24px 8px; }
+ .workspace :global(.report-empty) svg { display: block; margin: 0 auto 8px; padding: 6px; width: 40px; height: 40px; border-radius: 50%; color: #232d46; background: #ededed; }
+-.workspace :global(.report-stockout) > div, .workspace :global(.report-high-usage) > div, .workspace :global(.report-variants) > div { max-height: 390px; overflow: auto; }
++.workspace :global(.report-high-usage) > div, .workspace :global(.report-variants) > div { max-height: 390px; overflow: auto; }
+ .workspace :global(.report-stockout) :global(.grid), .workspace :global(.report-high-usage) :global(.grid), .workspace :global(.report-variants) :global(.grid) { gap: 8px; padding: 10px; font-size: 13px; }
+ .workspace :global(.report-stockout) :global(.uppercase), .workspace :global(.report-high-usage) :global(.uppercase), .workspace :global(.report-variants) :global(.uppercase) { font-size: 13px; letter-spacing: 0; background: #f5f5f5; }
+ .workspace :global(.report-low-stock) p, .workspace :global(.report-movements) p, .workspace :global(.report-drilldown) > div { font-size: 14px; }
+@@ -61,6 +64,7 @@
+ @media (max-width: 1100px) {
+   .workspace { grid-template-columns: 1fr; }
+   .workspace section { grid-column: 1 / -1 !important; grid-row: auto !important; }
++  .workspace :global(.report-stockout-scroll) { flex: 0 1 auto; max-height: 390px; }
+   .kpiGrid, .workspace [data-report="consumption-metrics"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+ }
+ @media (max-width: 600px) {
+diff --git a/ims-frontend/src/components/admin/reports/PosAuditExceptionsSection.tsx b/ims-frontend/src/components/admin/reports/PosAuditExceptionsSection.tsx
+index 4af9d49..2c5e6ef 100644
+--- a/ims-frontend/src/components/admin/reports/PosAuditExceptionsSection.tsx
++++ b/ims-frontend/src/components/admin/reports/PosAuditExceptionsSection.tsx
+@@ -1,5 +1,7 @@
+ "use client";
+ 
++import AdminSelect from "@/components/admin/AdminSelect";
++
+ import { useEffect, useState } from "react";
+ import SummaryCard from "@/components/dashboard/SummaryCard";
+ import WidgetCard from "@/components/dashboard/WidgetCard";
+@@ -256,41 +258,24 @@ export default function PosAuditExceptionsSection({
+                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+               />
+             </label>
+-            <label className="text-sm font-medium text-neutral-700">
+-              <span className="mb-1 block">Order Status</span>
+-              <select
+-                value={status}
+-                onChange={(event) => {
+-                  setStatus(event.target.value as OrderStatus | "");
++            <AdminSelect
++              label="Order Status"
++              value={status}
++              onChange={(value) => {
++                  setStatus(value as OrderStatus | "");
+                   setPage(1);
+                 }}
+-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+-              >
+-                <option value="">All statuses</option>
+-                {POS_STATUS_OPTIONS.map((option) => (
+-                  <option key={option.value} value={option.value}>
+-                    {option.label}
+-                  </option>
+-                ))}
+-              </select>
+-            </label>
+-            <label className="text-sm font-medium text-neutral-700">
+-              <span className="mb-1 block">Exception Type</span>
+-              <select
+-                value={exceptionType}
+-                onChange={(event) => {
+-                  setExceptionType(event.target.value as "ALL" | PosAuditExceptionKind);
++              options={[{ value: "", label: "All statuses" }, ...POS_STATUS_OPTIONS]}
++            />
++            <AdminSelect
++              label="Exception Type"
++              value={exceptionType}
++              onChange={(value) => {
++                  setExceptionType(value as "ALL" | PosAuditExceptionKind);
+                   setPage(1);
+                 }}
+-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+-              >
+-                {EXCEPTION_TYPE_OPTIONS.map((option) => (
+-                  <option key={option.value} value={option.value}>
+-                    {option.label}
+-                  </option>
+-                ))}
+-              </select>
+-            </label>
++              options={EXCEPTION_TYPE_OPTIONS}
++            />
+             <button
+               type="button"
+               disabled={loading || exportingFormat !== null}
+diff --git a/ims-frontend/src/components/admin/reports/PosPeakHoursSection.tsx b/ims-frontend/src/components/admin/reports/PosPeakHoursSection.tsx
+index c67132a..a9257e1 100644
+--- a/ims-frontend/src/components/admin/reports/PosPeakHoursSection.tsx
++++ b/ims-frontend/src/components/admin/reports/PosPeakHoursSection.tsx
+@@ -1,5 +1,7 @@
+ "use client";
+ 
++import AdminSelect from "@/components/admin/AdminSelect";
++
+ import PosReportEmpty from "./PosReportEmpty";
+ 
+ import { useEffect, useState } from "react";
+@@ -163,20 +165,12 @@ export default function PosPeakHoursSection({
+             </p>
+           </div>
+           <div className="grid gap-3 sm:grid-cols-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_repeat(2,minmax(0,0.8fr))]">
+-            <label className="text-sm font-medium text-neutral-700">
+-              <span className="mb-1 block">Day Type</span>
+-              <select
+-                value={dayType}
+-                onChange={(event) => setDayType(event.target.value as PosPeakDayType)}
+-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+-              >
+-                {DAY_TYPE_OPTIONS.map((option) => (
+-                  <option key={option.value} value={option.value}>
+-                    {option.label}
+-                  </option>
+-                ))}
+-              </select>
+-            </label>
++            <AdminSelect
++              label="Day Type"
++              value={dayType}
++              onChange={(value) => setDayType(value as PosPeakDayType)}
++              options={DAY_TYPE_OPTIONS}
++            />
+             <div className="flex items-end gap-2">
+               {(["table", "line"] as const).map((option) => (
+                 <button
+diff --git a/ims-frontend/src/components/admin/reports/PosProductPerformanceSection.tsx b/ims-frontend/src/components/admin/reports/PosProductPerformanceSection.tsx
+index 9228834..8f0f87d 100644
+--- a/ims-frontend/src/components/admin/reports/PosProductPerformanceSection.tsx
++++ b/ims-frontend/src/components/admin/reports/PosProductPerformanceSection.tsx
+@@ -1,5 +1,7 @@
+ "use client";
+ 
++import AdminSelect from "@/components/admin/AdminSelect";
++
+ import PosReportEmpty from "./PosReportEmpty";
+ 
+ import { useEffect, useMemo, useState } from "react";
+@@ -202,21 +204,12 @@ export default function PosProductPerformanceSection({
+           </div>
+ 
+           <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-[minmax(0,1.1fr)_repeat(2,minmax(0,0.8fr))]">
+-            <label className="text-sm font-medium text-neutral-700">
+-              <span className="mb-1 block">Category</span>
+-              <select
+-                value={categoryId}
+-                onChange={(event) => setCategoryId(event.target.value)}
+-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+-              >
+-                <option value="">All categories</option>
+-                {categories.map((category) => (
+-                  <option key={category.id} value={category.id}>
+-                    {category.name}
+-                  </option>
+-                ))}
+-              </select>
+-            </label>
++            <AdminSelect
++              label="Category"
++              value={categoryId}
++              onChange={(value) => setCategoryId(value)}
++              options={[{ value: "", label: "All categories" }, ...categories.map(category => ({ value: category.id, label: category.name }))]}
++            />
+             <button
+               type="button"
+               disabled={loading || exportingFormat !== null}
+diff --git a/ims-frontend/src/components/admin/reports/PosReports.module.css b/ims-frontend/src/components/admin/reports/PosReports.module.css
+index 7a63cc6..02bddf7 100644
+--- a/ims-frontend/src/components/admin/reports/PosReports.module.css
++++ b/ims-frontend/src/components/admin/reports/PosReports.module.css
+@@ -6,6 +6,13 @@
+ .dateControls { display:flex; align-items:center; flex-wrap:wrap; gap:16px; }
+ .dateControls label { display:flex; align-items:center; gap:10px; font-size: 14px; }
+ .workspace input,.workspace select { min-width:0; border:1px solid #dce2eb; border-radius:6px; padding:8px 12px; font-size: 14px; background:#fff; color:#333; }
++.workspace input[placeholder] { text-overflow: ellipsis; }
++.workspace input::placeholder { text-overflow: ellipsis; }
++.workspace :global(.pos-history-filters) { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
++.workspace :global(.pos-history-filters) > label, .workspace :global(.pos-history-select) { flex: 1 1 160px; min-width: 0; }
++.workspace :global(.pos-history-filters) :is(input, select) { height: 44px; padding: 8px 12px; line-height: 1.5; }
++.workspace :global(.pos-history-exports) { display: flex; flex-wrap: wrap; gap: 12px; }
++.workspace :global(.pos-history-exports) > button { min-height: 44px; padding: 8px 16px; white-space: nowrap; }
+ .workspace button { cursor:pointer; }
+ .workspace button:disabled { cursor:default; opacity:.5; }
+ .workspace :is(button,input,select):focus-visible { outline:2px solid #232d46; outline-offset:3px; }
+diff --git a/ims-frontend/src/components/admin/reports/PosSalesAnalyticsSection.tsx b/ims-frontend/src/components/admin/reports/PosSalesAnalyticsSection.tsx
+index c28deec..75148f6 100644
+--- a/ims-frontend/src/components/admin/reports/PosSalesAnalyticsSection.tsx
++++ b/ims-frontend/src/components/admin/reports/PosSalesAnalyticsSection.tsx
+@@ -1,5 +1,7 @@
+ "use client";
+ 
++import AdminSelect from "@/components/admin/AdminSelect";
++
+ import PosReportEmpty from "./PosReportEmpty";
+ 
+ import { useEffect, useMemo, useState } from "react";
+@@ -207,22 +209,14 @@ export default function PosSalesAnalyticsSection({
+       <section className="rounded-2xl bg-white p-6 shadow-sm">
+         <div>
+           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+-            <label className="text-sm font-medium text-neutral-700">
+-              <span className="mb-1 block">Grouping</span>
+-              <select
+-                value={groupBy}
+-                onChange={(event) =>
+-                  setGroupBy(event.target.value as PosSalesAnalyticsGroupBy)
++            <AdminSelect
++              label="Grouping"
++              value={groupBy}
++              onChange={(value) =>
++                  setGroupBy(value as PosSalesAnalyticsGroupBy)
+                 }
+-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+-              >
+-                {GROUP_OPTIONS.map((option) => (
+-                  <option key={option.value} value={option.value}>
+-                    {option.label}
+-                  </option>
+-                ))}
+-              </select>
+-            </label>
++              options={GROUP_OPTIONS}
++            />
+             <div className="flex items-end gap-2">
+               {(["table", "line"] as const).map((option) => (
+                 <button
+@@ -248,21 +242,12 @@ export default function PosSalesAnalyticsSection({
+                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+               />
+             </label>
+-            <label className="text-sm font-medium text-neutral-700">
+-              <span className="mb-1 block">Payment Method</span>
+-              <select
+-                value={paymentMethod}
+-                onChange={(event) => setPaymentMethod(event.target.value as PaymentMethod | "")}
+-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+-              >
+-                <option value="">All methods</option>
+-                {POS_PAYMENT_METHOD_OPTIONS.map((option) => (
+-                  <option key={option.value} value={option.value}>
+-                    {option.label}
+-                  </option>
+-                ))}
+-              </select>
+-            </label>
++            <AdminSelect
++              label="Payment Method"
++              value={paymentMethod}
++              onChange={(value) => setPaymentMethod(value as PaymentMethod | "")}
++              options={[{ value: "", label: "All methods" }, ...POS_PAYMENT_METHOD_OPTIONS]}
++            />
+             <button
+               type="button"
+               disabled={loading || exportingFormat !== null}
+diff --git a/ims-frontend/src/components/admin/reports/PosTransactionDetailModal.tsx b/ims-frontend/src/components/admin/reports/PosTransactionDetailModal.tsx
+index 2212a20..c5abd03 100644
+--- a/ims-frontend/src/components/admin/reports/PosTransactionDetailModal.tsx
++++ b/ims-frontend/src/components/admin/reports/PosTransactionDetailModal.tsx
+@@ -30,12 +30,12 @@ export default function PosTransactionDetailModal({
+   }
+ 
+   return (
+-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 py-8">
++    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-[5px] px-4 py-8">
+       <div className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+-        <div className="bg-[var(--modal-header-background)] flex items-start justify-between border-b border-slate-200 px-6 py-5">
++        <div className="bg-[var(--modal-header-background)] flex items-start justify-between border-b border-slate-200 px-6 py-4">
+           <div>
+-            <h2 className="text-xl font-semibold text-slate-900">Transaction Detail</h2>
+-            <p className="mt-1 text-sm text-slate-500">
++            <h2 className="text-lg font-semibold text-slate-900">Transaction Detail</h2>
++            <p className="mt-1 text-[13px] text-slate-500">
+               Review the full receipt-level data returned by the existing order detail endpoint.
+             </p>
+           </div>
+diff --git a/ims-frontend/src/components/admin/reports/PosTransactionHistorySection.tsx b/ims-frontend/src/components/admin/reports/PosTransactionHistorySection.tsx
+index f25b153..31eb2bd 100644
+--- a/ims-frontend/src/components/admin/reports/PosTransactionHistorySection.tsx
++++ b/ims-frontend/src/components/admin/reports/PosTransactionHistorySection.tsx
+@@ -1,6 +1,7 @@
+ "use client";
+ 
+ import PosReportEmpty from "./PosReportEmpty";
++import AdminSelect from "@/components/admin/AdminSelect";
+ 
+ import { useEffect, useState } from "react";
+ import WidgetCard from "@/components/dashboard/WidgetCard";
+@@ -200,7 +201,7 @@ export default function PosTransactionHistorySection({
+       ) : null}
+ 
+       <section className="rounded-2xl bg-white p-6 shadow-sm">
+-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
++        <div className="flex flex-col gap-4">
+           <div>
+             <h3 className="text-xl font-semibold text-neutral-900">Transaction History</h3>
+             <p className="mt-2 text-sm text-neutral-600">
+@@ -208,7 +209,7 @@ export default function PosTransactionHistorySection({
+             </p>
+           </div>
+ 
+-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
++          <div className="pos-history-filters">
+             <label className="text-sm font-medium text-neutral-700">
+               <span className="mb-1 block">Order Number / UUID</span>
+               <input
+@@ -233,43 +234,29 @@ export default function PosTransactionHistorySection({
+                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+               />
+             </label>
+-            <label className="text-sm font-medium text-neutral-700">
+-              <span className="mb-1 block">Payment Method</span>
+-              <select
++            <div className="pos-history-select">
++              <AdminSelect
++                label="Payment Method"
+                 value={paymentMethod}
+-                onChange={(event) => {
+-                  setPaymentMethod(event.target.value as PaymentMethod | "");
++                onChange={(value) => {
++                  setPaymentMethod(value as PaymentMethod | "");
+                   setPage(1);
+                 }}
+-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+-              >
+-                <option value="">All methods</option>
+-                {POS_PAYMENT_METHOD_OPTIONS.map((option) => (
+-                  <option key={option.value} value={option.value}>
+-                    {option.label}
+-                  </option>
+-                ))}
+-              </select>
+-            </label>
+-            <label className="text-sm font-medium text-neutral-700">
+-              <span className="mb-1 block">Status</span>
+-              <select
++                options={[{ value: "", label: "All methods" }, ...POS_PAYMENT_METHOD_OPTIONS]}
++              />
++            </div>
++            <div className="pos-history-select">
++              <AdminSelect
++                label="Status"
+                 value={status}
+-                onChange={(event) => {
+-                  setStatus(event.target.value as OrderStatus | "");
++                onChange={(value) => {
++                  setStatus(value as OrderStatus | "");
+                   setPage(1);
+                 }}
+-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
+-              >
+-                <option value="">All statuses</option>
+-                {POS_STATUS_OPTIONS.map((option) => (
+-                  <option key={option.value} value={option.value}>
+-                    {option.label}
+-                  </option>
+-                ))}
+-              </select>
+-            </label>
+-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
++                options={[{ value: "", label: "All statuses" }, ...POS_STATUS_OPTIONS]}
++              />
++            </div>
++            <div className="pos-history-exports">
+               <button
+                 type="button"
+                 disabled={loading || exportingFormat !== null}
+diff --git a/ims-frontend/src/components/admin/roles/RoleDialog.tsx b/ims-frontend/src/components/admin/roles/RoleDialog.tsx
+index 54ebbda..e6e2b3a 100644
+--- a/ims-frontend/src/components/admin/roles/RoleDialog.tsx
++++ b/ims-frontend/src/components/admin/roles/RoleDialog.tsx
+@@ -1,12 +1,14 @@
+ "use client";
+ import { useEffect, useId, useRef } from 'react';
++import { X } from 'lucide-react';
+ import styles from './RolesWorkspace.module.css';
+-export default function RoleDialog({ title, children, onClose, busy }: { title: string; children: React.ReactNode; onClose: () => void; busy: boolean }) {
++export default function RoleDialog({ title, description, children, footer, onClose, busy }: { title: string; description?: string; children: React.ReactNode; footer?: React.ReactNode; onClose: () => void; busy: boolean }) {
+   const ref = useRef<HTMLDialogElement>(null);
+   const titleId = useId();
+   useEffect(() => { const dialog = ref.current; dialog?.showModal(); return () => dialog?.close(); }, []);
+   return <dialog ref={ref} className={styles.dialog} aria-labelledby={titleId} onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }}>
+-    <header><h2 id={titleId}>{title}</h2><button type="button" onClick={onClose} disabled={busy}>Close</button></header>
++    <header><div className={styles.dialogHeading}><h2 id={titleId}>{title}</h2>{description && <p>{description}</p>}</div><button type="button" onClick={onClose} disabled={busy} aria-label="Close dialog"><X size={20} /></button></header>
+     <div className={styles.dialogBody}>{children}</div>
++    {footer && <div className={styles.dialogFooter}>{footer}</div>}
+   </dialog>;
+ }
+diff --git a/ims-frontend/src/components/admin/roles/RolesWorkspace.module.css b/ims-frontend/src/components/admin/roles/RolesWorkspace.module.css
+index 7e9094e..0c7cef0 100644
+--- a/ims-frontend/src/components/admin/roles/RolesWorkspace.module.css
++++ b/ims-frontend/src/components/admin/roles/RolesWorkspace.module.css
+@@ -1,6 +1,6 @@
+ .workspace { display:grid; gap:20px; min-width:0; color:#232d46; }
+ .notice { margin:0; padding:12px 16px; border:1px solid #dce2eb; border-radius:8px; background:#edf1f7; font-size:13px; color:#526078; }
+-.layout { display:grid; grid-template-columns:300px minmax(0,1fr); gap:20px; align-items:start; }
++.layout { display:grid; grid-template-columns:360px minmax(0,1fr); gap:24px; align-items:start; }
+ .panel { min-width:0; padding:20px; border:1px solid #dce2eb; border-radius:12px; background:white; }
+ .panel h2 { margin:0; font-size:22px; font-weight:700; }
+ .listHeader { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; margin-bottom:20px; }
+@@ -38,15 +38,85 @@
+ .toggle input:checked { background:#248249; }
+ .toggle input:checked:before { transform:translateX(16px); }
+ .toggle input:disabled { cursor:default; }
+-.saveBar { position:sticky; bottom:0; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; background:white; border-top:1px solid #dce2eb; padding:16px 0 0; margin-top:20px; font-size:13px; }
++.saveBar { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; background:#fff; border-top:1px solid #dce2eb; padding:16px 0; margin-top:20px; font-size:13px; }
+ .empty { padding:24px 12px; font-size:14px; color:#64748b; }
+ .error { padding:12px; background:#fff1f2; border:1px solid #fecdd3; border-radius:8px; color:#9f1239; font-size:13px; }
+-.dialog { margin:auto; width:min(760px,calc(100vw - 32px)); max-height:88dvh; padding:0; border:1px solid #dce2eb; border-radius:16px; color:#232d46; background:white; overflow:hidden; }
++.dialog { margin:auto; width:min(920px,calc(100vw - 32px)); max-height:90dvh; padding:0; border:1px solid #dce2eb; border-radius:16px; color:#232d46; background:#fff !important; opacity:1; color-scheme:light; overflow:hidden; isolation:isolate; box-shadow:0 24px 80px #0f172a40; font-size:16px; line-height:1.6; }
+ .dialog[open] { display:flex; flex-direction:column; }
+-.dialog::backdrop { background:#0f172a88; }
+-.dialog > header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:20px; border-bottom:1px solid #dce2eb; }
+-.dialog h2 { font-size:22px; font-weight:700; margin:0; }
+-.dialog > header button { padding:7px 12px; border:1px solid #cbd5e1; border-radius:7px; background:white; }
+-.dialogBody { padding:20px; overflow:auto; min-height:0; overscroll-behavior:contain; }
++.dialog::backdrop { background:rgb(35 45 70 / 35%); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); }
++.dialog > header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:20px 24px; border-bottom:1px solid #dce2eb; background:var(--modal-header-background); }
++.dialog h2 { font-size:26px; font-weight:700; margin:0; }
++.dialogHeading { min-width:0; }
++.dialogHeading p { margin:6px 0 0; color:#475569; font-size:16px; line-height:1.6; }
++.dialog > header button { display:grid; place-items:center; flex-shrink:0; width:48px; height:48px; padding:0; border:1px solid #cbd5e1; border-radius:10px; background:#fff; color:#475569; }
++.dialog > header button:hover:not(:disabled) { background:#f1f5f9; border-color:#94a3b8; color:#232d46; }
++.dialogBody { flex:1 1 auto; padding:24px 28px; overflow:auto; min-height:0; overscroll-behavior:contain; background:#fff; }
++.dialogBody > form { display:block; }
++.dialogFooter { display:flex; flex-shrink:0; justify-content:flex-end; align-items:center; gap:12px; padding:16px 20px; border-top:1px solid #dce2eb; background:#fff; opacity:1; box-shadow:0 -8px 16px #fff; }
++.dialog .primary:disabled { opacity:1; border-color:#9299a6; background:#9299a6; color:#fff; }
++.dialog .fields { margin:0 0 28px; gap:20px; }
++.dialog .fields label { font-size:16px; color:#334155; }
++.dialog .fields input,.dialog .fields textarea { font-size:17px; font-weight:400; line-height:1.5; padding:12px 14px; border-radius:10px; }
++.dialog .fields input { min-height:50px; }
++.dialog .fields textarea { min-height:110px; resize:vertical; }
++.dialog h3 { font-size:21px; margin-bottom:16px; }
++.dialog .matrix { gap:24px; }
++.dialog .matrix fieldset { padding:4px 20px 8px; border-radius:12px; border-color:#cbd5e1; }
++.dialog .matrix legend { font-size:18px; padding:0 8px; color:#232d46; }
++.dialog .permission { padding:16px 0; gap:24px; min-height:82px; }
++.dialog .permission > div:first-child { min-width:0; }
++.dialog .permission strong { font-size:17px; line-height:1.5; }
++.dialog .permission small { font-size:15px; line-height:1.6; color:#475569; margin-top:6px; }
++.dialog .toggle { gap:10px; font-size:14px; font-weight:600; color:#475569; min-height:44px; }
++.dialog .toggle input { width:48px; height:28px; flex-shrink:0; margin:0; }
++.dialog .toggle input:before { width:22px; height:22px; }
++.dialog .toggle input:checked:before { transform:translateX(20px); }
++.dialogFooter { padding:20px 28px; }
++.dialogFooter :is(.primary,.secondary,.danger) { min-height:48px; padding:11px 24px; border-radius:10px; font-size:16px; }
++.workspace { font-size:16px; line-height:1.6; }
++.workspace .notice { padding:16px 20px; font-size:15px; line-height:1.6; color:#475569; }
++.workspace .panel { padding:24px; }
++.workspace .panel h2 { font-size:26px; }
++.workspace .listHeader { gap:16px; }
++.workspace .listHeader small { font-size:15px; }
++.workspace .search,.workspace .fields label { font-size:16px; color:#334155; }
++.workspace .search input,.workspace .fields input,.workspace .fields textarea { min-height:48px; font-size:16px; font-weight:400; border-radius:10px; }
++.workspace .roleList { gap:12px; }
++.workspace .roleItem { padding:18px; border-radius:10px; }
++.workspace .roleItem strong { font-size:18px; }
++.workspace .roleItem span,.workspace .roleItem small { font-size:15px; line-height:1.6; color:#475569; }
++.workspace .roleItem:hover:not(:disabled):not([aria-pressed="true"]) { background:#edf1f7; border-color:#cbd5e1; }
++.workspace .detailHeader { align-items:center; padding-bottom:24px; }
++.workspace .detailHeader p { font-size:16px; color:#475569; }
++.workspace .badge { padding:6px 10px; font-size:14px; }
++.workspace :is(.primary,.secondary,.danger) { min-height:48px; padding:11px 18px; border-radius:10px; font-size:16px; }
++.workspace .primary:hover:not(:disabled) { background:#34425f; }
++.workspace .secondary:hover:not(:disabled) { background:#f1f5f9; }
++.workspace .matrixHeading { margin:28px 0 20px; }
++.workspace .matrixHeading h3 { margin:0; font-size:22px; }
++.workspace .matrixHeading span { font-size:15px; color:#475569; }
++.workspace .matrix { gap:24px; }
++.workspace .matrix fieldset { padding:4px 20px 8px; border-radius:12px; border-color:#cbd5e1; }
++.workspace .matrix legend { font-size:18px; padding:0 8px; }
++.workspace .permission { min-height:82px; padding:16px 0; gap:24px; }
++.permission > span:first-child { min-width:0; overflow-wrap:anywhere; }
++.workspace .permission strong { font-size:17px; line-height:1.5; }
++.workspace .permission small { font-size:15px; line-height:1.6; color:#475569; margin-top:6px; }
++.workspace .toggle { gap:10px; font-size:14px; font-weight:600; color:#475569; min-height:44px; }
++.workspace .toggle input { width:48px; height:28px; flex-shrink:0; margin:0; }
++.workspace .toggle input:before { width:22px; height:22px; }
++.workspace .toggle input:checked:before { transform:translateX(20px); }
++.workspace .saveBar,.workspace .empty,.workspace .error { font-size:16px; }
++@media(max-width:600px) {
++  .workspace .panel { padding:18px; }
++  .workspace .matrix fieldset { padding-inline:12px; }
++  .workspace .permission { gap:12px; }
++  .workspace .listHeader { align-items:flex-start; }
++  .dialog > header { padding:18px; }
++  .dialogBody { padding:20px 18px; }
++  .dialog .matrix fieldset { padding-inline:12px; }
++  .dialog .permission { gap:12px; }
++  .dialogFooter { padding:16px 18px; }
++}
+ @media(max-width:900px) { .layout { grid-template-columns:1fr; } .roleList { max-height:260px; } }
+ @media(prefers-reduced-motion:reduce) { .toggle input,.toggle input:before { transition:none; } }
+diff --git a/ims-frontend/src/components/admin/roles/RolesWorkspace.tsx b/ims-frontend/src/components/admin/roles/RolesWorkspace.tsx
+index 19157ef..d9ee5e7 100644
+--- a/ims-frontend/src/components/admin/roles/RolesWorkspace.tsx
++++ b/ims-frontend/src/components/admin/roles/RolesWorkspace.tsx
+@@ -104,9 +104,9 @@ export default function RolesWorkspace() {
+         </form>}
+       </section>
+     </div>}
+-    {modal && <RoleDialog title={modal === 'create' ? 'Create Role' : 'Delete Role'} busy={busy} onClose={closeDialog}>
++    {modal && <RoleDialog title={modal === 'create' ? 'Create Role' : 'Delete Role'} description={modal === 'create' ? 'Set a role name and choose the permissions this role can access.' : undefined} busy={busy} onClose={closeDialog} footer={modal === 'create' ? <button form="create-role-form" className={styles.primary} disabled={busy || !newDraft.name.trim()}>{busy ? 'Creating...' : 'Create Role'}</button> : <button type="button" className={styles.danger} onClick={() => void remove()} disabled={busy}>{busy ? 'Deleting...' : 'Delete Role'}</button>}>
+       {dialogError && <p className={styles.error} role="alert">{dialogError}</p>}
+-      {modal === 'create' ? <form onSubmit={(event) => { event.preventDefault(); void create(); }}><RoleFields draft={newDraft} onChange={setNewDraft} disabled={busy} /><h3>Permissions</h3><RolePermissionMatrix permissions={permissions} selected={newDraft.permissionKeys} disabled={busy} onChange={(keys) => setNewDraft((value) => ({ ...value, permissionKeys: keys }))} /><footer className={styles.saveBar}><button type="button" className={styles.secondary} onClick={closeDialog} disabled={busy}>Cancel</button><button className={styles.primary} disabled={busy || !newDraft.name.trim()}>{busy ? 'Creating...' : 'Create Role'}</button></footer></form> : <><p>Delete <strong>{selected?.name}</strong>? This permanently removes the role and its permission configuration.</p><footer className={styles.saveBar}><button className={styles.secondary} onClick={closeDialog} disabled={busy}>Cancel</button><button className={styles.danger} onClick={() => void remove()} disabled={busy}>{busy ? 'Deleting...' : 'Delete Role'}</button></footer></>}
++      {modal === 'create' ? <form id="create-role-form" onSubmit={(event) => { event.preventDefault(); void create(); }}><RoleFields draft={newDraft} onChange={setNewDraft} disabled={busy} /><h3>Permissions</h3><RolePermissionMatrix permissions={permissions} selected={newDraft.permissionKeys} disabled={busy} onChange={(keys) => setNewDraft((value) => ({ ...value, permissionKeys: keys }))} /></form> : <p>Delete <strong>{selected?.name}</strong>? This permanently removes the role and its permission configuration.</p>}
+     </RoleDialog>}
+   </div>;
+ }
+diff --git a/ims-frontend/src/components/admin/settings/ChangePasswordDialog.tsx b/ims-frontend/src/components/admin/settings/ChangePasswordDialog.tsx
+index dfe155b..1b427e0 100644
+--- a/ims-frontend/src/components/admin/settings/ChangePasswordDialog.tsx
++++ b/ims-frontend/src/components/admin/settings/ChangePasswordDialog.tsx
+@@ -137,14 +137,6 @@ export default function ChangePasswordDialog({
+         </InventoryField>
+ 
+         <div className={styles.actions}>
+-          <button
+-            type="button"
+-            onClick={onClose}
+-            disabled={submitting}
+-            className="rounded-full border border-[#232d46]/15 bg-white px-5 py-2 text-sm font-semibold text-[#232d46] transition hover:border-slate-300 disabled:opacity-50"
+-          >
+-            Cancel
+-          </button>
+           <button
+             type="submit"
+             disabled={submitting}
+diff --git a/ims-frontend/src/components/admin/settings/EditAccountDialog.tsx b/ims-frontend/src/components/admin/settings/EditAccountDialog.tsx
+index 5082a61..774e810 100644
+--- a/ims-frontend/src/components/admin/settings/EditAccountDialog.tsx
++++ b/ims-frontend/src/components/admin/settings/EditAccountDialog.tsx
+@@ -6,6 +6,7 @@ import styles from "./EditAccountDialog.module.css";
+ import { useEffect, useState } from "react";
+ import InventoryModal from "@/components/admin/inventory/InventoryModal";
+ import ProfilePictureCropper from "./ProfilePictureCropper";
++import cropStyles from "./ProfilePictureCropper.module.css";
+ import {
+   InventoryField,
+ } from "@/components/admin/inventory/InventoryField";
+@@ -105,7 +106,7 @@ export default function EditAccountDialog({
+ 
+   if (cropFile) {
+     return (
+-      <InventoryModal title="Crop profile picture" description="Adjust your photo before adding it to your profile." onClose={() => setCropFile(null)}>
++      <InventoryModal title="Crop profile picture" description="Adjust your photo before adding it to your profile." panelClassName={cropStyles.modal} bodyClassName={cropStyles.body} onClose={() => setCropFile(null)}>
+         <ProfilePictureCropper
+           file={cropFile}
+           onCancel={() => setCropFile(null)}
+@@ -227,14 +228,6 @@ export default function EditAccountDialog({
+ 
+         </div>
+         <div className={styles.actions}>
+-          <button
+-            type="button"
+-            onClick={onClose}
+-            disabled={submitting}
+-            className="rounded-full border border-[#232d46]/15 bg-white px-5 py-2 text-sm font-semibold text-[#232d46] transition hover:border-slate-300 disabled:opacity-50"
+-          >
+-            Cancel
+-          </button>
+           <button
+             type="submit"
+             disabled={submitting}
+diff --git a/ims-frontend/src/components/admin/settings/MyAccountHeader.module.css b/ims-frontend/src/components/admin/settings/MyAccountHeader.module.css
+new file mode 100644
+index 0000000..8a2ecf3
+--- /dev/null
++++ b/ims-frontend/src/components/admin/settings/MyAccountHeader.module.css
+@@ -0,0 +1,21 @@
++.header { display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:24px; }
++.header > h1,.header > p { grid-column:1; }
++.header > div { grid-column:2; grid-row:1 / 3; align-self:center; margin:0; }
++.header > div > button { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:48px; border:1px solid #fecdd3; border-radius:10px; background:#fff1f2; color:#be123c; font-size:16px; }
++.header > div > button:hover:not(:disabled) { background:#ffe4e6; }
++@media(max-width:600px) { .header { grid-template-columns:1fr; row-gap:16px; }.header > div { grid-column:1; grid-row:auto; } }
++.confirmation { margin:auto; width:min(460px,calc(100vw - 32px)); max-height:90dvh; overflow:auto; padding:0; border:1px solid #dce2eb; border-radius:16px; background:#fff; color:#232d46; box-shadow:0 24px 70px #0f172a33; }
++.confirmation::backdrop { background:rgb(35 45 70 / 40%); backdrop-filter:blur(5px); }
++.confirmationBody { padding:28px; }
++.confirmationHeading { display:flex; align-items:center; gap:16px; margin-bottom:24px; }
++.logoutIcon { display:grid; place-items:center; flex-shrink:0; width:52px; height:52px; border:1px solid #fecdd3; border-radius:14px; color:#be123c; background:#fff1f2; }
++.confirmationBody h2 { margin:0; font-size:23px; line-height:1.3; font-weight:700; }
++.confirmationBody .confirmationSubtitle { margin:5px 0 0; font-size:15px; color:#64748b; }
++.confirmationBody p { margin:0; font-size:17px; line-height:1.6; color:#475569; }
++.confirmationActions { display:flex; flex-wrap:wrap; gap:12px; padding:20px 28px; border-top:1px solid #e2e8f0; background:#f8fafc; }
++.confirmationActions button { display:inline-flex; align-items:center; justify-content:center; gap:8px; flex:1 1 150px; min-height:48px; padding:10px 18px; border:1px solid #cbd5e1; border-radius:10px; background:#fff; color:#232d46; font-size:16px; font-weight:600; cursor:pointer; }
++.confirmationActions .confirmLogout { background:#be123c; border-color:#be123c; color:#fff; }
++.confirmationActions button:hover:not(:disabled) { background:#edf1f7; }
++.confirmationActions .confirmLogout:hover:not(:disabled) { background:#9f1239; }
++.confirmationActions button:disabled { opacity:.6; cursor:not-allowed; }
++.confirmationActions button:focus-visible { outline:2px solid #426da6; outline-offset:3px; }
+diff --git a/ims-frontend/src/components/admin/settings/MyAccountHeader.tsx b/ims-frontend/src/components/admin/settings/MyAccountHeader.tsx
+new file mode 100644
+index 0000000..c7d214b
+--- /dev/null
++++ b/ims-frontend/src/components/admin/settings/MyAccountHeader.tsx
+@@ -0,0 +1,50 @@
++"use client";
++
++import { useEffect, useId, useRef, useState } from "react";
++import { LogOut } from "lucide-react";
++import { useLogout } from "@/hooks/useLogout";
++import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
++import styles from "./MyAccountHeader.module.css";
++
++export default function MyAccountHeader() {
++  const logout = useLogout();
++  const [loggingOut, setLoggingOut] = useState(false);
++  const [confirming, setConfirming] = useState(false);
++  async function confirmLogout() {
++      if (loggingOut) return;
++      setLoggingOut(true);
++      try { await logout(); } catch { /* useLogout clears the session and redirects even if the request fails. */ }
++  }
++  return <>
++    <AdminSectionHeader title="My Account" description="Manage your account information and security." className={styles.header}>
++      <button type="button" disabled={loggingOut} onClick={() => setConfirming(true)}><LogOut size={18} aria-hidden="true" />Logout</button>
++    </AdminSectionHeader>
++    {confirming && <LogoutConfirmation busy={loggingOut} onCancel={() => setConfirming(false)} onConfirm={() => void confirmLogout()} />}
++  </>;
++}
++
++function LogoutConfirmation({ busy, onCancel, onConfirm }: { busy: boolean; onCancel: () => void; onConfirm: () => void }) {
++  const dialogRef = useRef<HTMLDialogElement>(null);
++  const cancelRef = useRef<HTMLButtonElement>(null);
++  const titleId = useId();
++  const descriptionId = useId();
++  useEffect(() => {
++    const dialog = dialogRef.current;
++    dialog?.showModal();
++    cancelRef.current?.focus();
++    return () => dialog?.close();
++  }, []);
++  return <dialog ref={dialogRef} className={styles.confirmation} aria-labelledby={titleId} aria-describedby={descriptionId} onCancel={event => { event.preventDefault(); if (!busy) onCancel(); }}>
++    <div className={styles.confirmationBody}>
++      <div className={styles.confirmationHeading}>
++        <span className={styles.logoutIcon}><LogOut size={24} aria-hidden="true" /></span>
++        <div><h2 id={titleId}>Confirm logout</h2><p className={styles.confirmationSubtitle}>End your current session</p></div>
++      </div>
++      <p id={descriptionId}>Are you sure you want to log out?</p>
++    </div>
++    <div className={styles.confirmationActions}>
++      <button ref={cancelRef} type="button" disabled={busy} onClick={onCancel}>Stay signed in</button>
++      <button type="button" disabled={busy} className={styles.confirmLogout} onClick={onConfirm}><LogOut size={18} aria-hidden="true" />{busy ? "Logging out..." : "Log out"}</button>
++    </div>
++  </dialog>;
++}
+diff --git a/ims-frontend/src/components/admin/settings/ProfilePictureCropper.module.css b/ims-frontend/src/components/admin/settings/ProfilePictureCropper.module.css
+new file mode 100644
+index 0000000..63abfb7
+--- /dev/null
++++ b/ims-frontend/src/components/admin/settings/ProfilePictureCropper.module.css
+@@ -0,0 +1,26 @@
++.modal { border:1px solid #dce2eb; border-radius:16px; background:#fff; color:#232d46; }
++.modal > div:first-child { flex-shrink:0; padding:22px 24px; }
++.modal h2 { margin:0; font-size:24px; font-weight:700; line-height:1.3; }
++.modal > div:first-child p { margin:6px 0 0; font-size:16px; line-height:1.5; color:#475569; }
++.body { display:flex; flex:1; min-height:0; overflow:hidden; }
++.cropper { display:flex; flex-direction:column; min-height:0; width:100%; }
++.content { display:grid; grid-template-columns:minmax(0,320px) minmax(0,1fr); gap:24px; align-items:center; padding:24px; overflow-y:auto; min-height:0; }
++.instructions,.hint { grid-column:1/-1; margin:0; font-size:16px; line-height:1.6; color:#475569; }
++.preview { position:relative; width:100%; aspect-ratio:1; overflow:hidden; border-radius:12px; background:#e2e8f0; }
++.controls { display:grid; gap:18px; border:1px solid #dce2eb; border-radius:12px; padding:20px; min-width:0; margin:0; background:#f8fafc; }
++.controls label { display:grid; gap:8px; font-size:16px; font-weight:600; line-height:1.5; }
++.controls input[type="range"] { width:100%; height:32px; margin:0; accent-color:#232d46; cursor:pointer; }
++.controls button { min-height:44px; font-size:16px; }
++.footer { display:flex; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; gap:12px; padding:18px 24px; border-top:1px solid #dce2eb; background:#fff; }
++.footer button { min-height:48px; padding:10px 22px; border-radius:10px; font-size:16px; font-weight:600; }
++.cancel { border:1px solid #cbd5e1; background:#fff; color:#232d46; }
++.apply { border:1px solid #232d46; background:#232d46; color:#fff; }
++.cancel:hover:not(:disabled) { background:#f1f5f9; }
++.apply:hover:not(:disabled) { background:#34425f; }
++.cropper button:disabled { opacity:.5; cursor:not-allowed; }
++.cropper :is(button,input):focus-visible { outline:2px solid #426da6; outline-offset:3px; }
++@media(max-width:640px) {
++  .content { grid-template-columns:minmax(0,1fr); gap:18px; padding:20px; }
++  .preview { max-width:280px; justify-self:center; }
++  .footer { padding:16px 20px; }
++}
+diff --git a/ims-frontend/src/components/admin/settings/ProfilePictureCropper.tsx b/ims-frontend/src/components/admin/settings/ProfilePictureCropper.tsx
+index b6c47f3..d95e192 100644
+--- a/ims-frontend/src/components/admin/settings/ProfilePictureCropper.tsx
++++ b/ims-frontend/src/components/admin/settings/ProfilePictureCropper.tsx
+@@ -2,6 +2,7 @@
+ 
+ import { useEffect, useRef, useState } from "react";
+ import ActionAlert from "@/components/feedback/ActionAlert";
++import styles from "./ProfilePictureCropper.module.css";
+ 
+ const clamp = (value: number) => Math.max(-1, Math.min(1, value));
+ 
+@@ -68,10 +69,11 @@ export default function ProfilePictureCropper({ file, onCancel, onApply }: {
+   }
+ 
+   return (
+-    <div className="mx-auto grid max-w-md gap-5">
++    <div className={styles.cropper}>
++      <div className={styles.content}>
+       {error && <ActionAlert tone="error" title="Unable to crop picture" message={error} onDismiss={() => setError(null)} />}
+-      <p className="m-0 text-center text-sm text-slate-600">Drag to reposition, then zoom to frame your photo.</p>
+-      <div className="relative mx-auto aspect-square w-full max-w-80 overflow-hidden rounded-2xl bg-slate-200">
++      <p className={styles.instructions}>Drag to reposition, then zoom to frame your photo.</p>
++      <div className={styles.preview}>
+         <canvas
+           ref={canvasRef} width={512} height={512}
+           aria-label="Profile photo crop preview. Use the sliders below to adjust the crop."
+@@ -98,7 +100,7 @@ export default function ProfilePictureCropper({ file, onCancel, onApply }: {
+         <div aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full border-2 border-white shadow-[0_0_0_100px_rgba(15,23,42,0.55)]" />
+         {!image && <p role="status" className="absolute inset-0 grid place-items-center p-4 text-center text-sm text-slate-700">{error ? "Choose another picture to continue." : "Loading picture..."}</p>}
+       </div>
+-      <fieldset disabled={!image || saving} className="grid gap-3">
++      <fieldset disabled={!image || saving} className={styles.controls}>
+         <legend className="sr-only">Adjust photo crop</legend>
+         <label className="grid gap-2 text-sm font-semibold text-[#232d46]">Zoom ({zoom.toFixed(1)}×)
+           <input className="w-full accent-[#232d46]" type="range" min={1} max={3} step={0.01} value={zoom} onChange={(event) => setZoom(Number(event.target.value))} />
+@@ -111,10 +113,11 @@ export default function ProfilePictureCropper({ file, onCancel, onApply }: {
+         </label>
+         <button type="button" className="justify-self-start text-sm font-semibold text-[#232d46] underline" onClick={() => { setZoom(1); setPosition({ x: 0, y: 0 }); }}>Reset crop</button>
+       </fieldset>
+-      <p className="m-0 text-xs text-slate-500">The circle shows how your profile picture will appear. Save your account changes to upload it.</p>
+-      <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+-        <button type="button" disabled={saving} onClick={onCancel} className="rounded-full border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-[#232d46] disabled:opacity-50">Cancel</button>
+-        <button type="button" disabled={!image || saving} onClick={applyCrop} className="rounded-full bg-[#232d46] px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">{saving ? "Cropping..." : "Use photo"}</button>
++      <p className={styles.hint}>The circle shows your profile picture. Save your account changes to upload it.</p>
++      </div>
++      <div className={styles.footer}>
++        <button type="button" disabled={saving} onClick={onCancel} className={styles.cancel}>Cancel</button>
++        <button type="button" disabled={!image || saving} onClick={applyCrop} className={styles.apply}>{saving ? "Cropping..." : "Use photo"}</button>
+       </div>
+     </div>
+   );
+diff --git a/ims-frontend/src/components/admin/suppliers/SupplierWorkspace.tsx b/ims-frontend/src/components/admin/suppliers/SupplierWorkspace.tsx
+index fcb37b3..a4bf1b8 100644
+--- a/ims-frontend/src/components/admin/suppliers/SupplierWorkspace.tsx
++++ b/ims-frontend/src/components/admin/suppliers/SupplierWorkspace.tsx
+@@ -221,15 +221,14 @@ export default function SupplierWorkspace({
+         </section>
+       </div>
+ 
+-      {deleteTarget ? <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget && !submitting) setDeleteTarget(null); }}>
++      {deleteTarget ? <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 backdrop-blur-[5px] p-4" onMouseDown={(event) => { if (event.target === event.currentTarget && !submitting) setDeleteTarget(null); }}>
+         <section role="dialog" aria-modal="true" aria-labelledby="delete-supplier-title" className="w-full max-w-md rounded-xl border border-slate-200 bg-white shadow-xl">
+           <header className="bg-[var(--modal-header-background)] flex items-start justify-between gap-4 border-b border-slate-200 p-5">
+             <div><p className="text-xs font-semibold uppercase tracking-wide text-red-700">Warning</p><h2 id="delete-supplier-title" className="mt-1 text-lg font-semibold text-slate-900">Delete Supplier</h2><p className="mt-1 text-sm text-slate-600">Confirm removal of this supplier record.</p></div>
+-            <button type="button" onClick={() => setDeleteTarget(null)} disabled={submitting} aria-label="Close confirmation" className="rounded-md p-1 text-slate-500 hover:bg-slate-100"><X size={20} /></button>
++            <button type="button" onClick={() => setDeleteTarget(null)} disabled={submitting} aria-label="Close confirmation" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white p-0 text-slate-600 hover:border-slate-400 hover:bg-slate-50"><X size={20} /></button>
+           </header>
+           <div className="p-5"><div className="rounded-lg border border-slate-200 bg-slate-50 p-4"><p className="font-semibold text-slate-900">{deleteTarget.name}</p><p className="mt-1 text-sm text-slate-600">{deleteTarget.contactInfo || "No contact information"}</p><p className="mt-1 text-xs text-slate-500">{deleteTarget.address || "No location saved"}</p></div><p className="mt-4 text-sm text-slate-600">The server will enforce existing supplier deletion rules. Deletion may be blocked when the record is in use.</p></div>
+           <footer className="flex justify-end gap-2 border-t border-slate-200 p-4">
+-            <button type="button" onClick={() => setDeleteTarget(null)} disabled={submitting} className={styles.secondary}>Cancel</button>
+             <PermissionAction permission={"suppliers.delete"}><button type="button" onClick={() => void confirmDelete()} disabled={submitting} className="h-10 rounded-lg bg-red-700 px-4 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50">{submitting ? "Deleting..." : "Delete Supplier"}</button></PermissionAction>
+           </footer>
+         </section>
+diff --git a/ims-frontend/src/components/admin/users/UserRolesSection.tsx b/ims-frontend/src/components/admin/users/UserRolesSection.tsx
+index e3e1acc..d971fcf 100644
+--- a/ims-frontend/src/components/admin/users/UserRolesSection.tsx
++++ b/ims-frontend/src/components/admin/users/UserRolesSection.tsx
+@@ -60,7 +60,7 @@ export default function UserRolesSection({ userId, userName, isSelf, onChanged }
+         const assigned = data?.roles.some((item) => item.id === role.id) ?? false;
+         return <label key={role.id}><input type="checkbox" disabled={busy || assigned} checked={assigned || selection.includes(role.id)} onChange={(event) => setSelection((ids) => event.target.checked ? [...ids, role.id] : ids.filter((id) => id !== role.id))} /><span><strong>{role.name}</strong><small>{assigned ? 'Already assigned' : role.description || 'No description'}</small></span></label>;
+       }) : <p>No roles are available. Create roles in Roles & Permissions first.</p>}</div> : <p>Remove <strong>{removing?.name}</strong> from <strong>{userName}</strong>? The role itself will not be deleted.</p>}
+-      <footer className={styles.actions}><button disabled={busy} onClick={close}>Cancel</button><button className={assigning ? styles.primary : styles.danger} disabled={busy || (assigning && !selection.length)} onClick={() => void save()}>{busy ? 'Saving...' : assigning ? 'Save Roles' : 'Remove Role'}</button></footer>
++      <footer className={styles.actions}><button className={assigning ? styles.primary : styles.danger} disabled={busy || (assigning && !selection.length)} onClick={() => void save()}>{busy ? 'Saving...' : assigning ? 'Save Roles' : 'Remove Role'}</button></footer>
+     </RoleDialog>}
+   </section>;
+ }
+diff --git a/ims-frontend/src/components/admin/users/UsersWorkspace.tsx b/ims-frontend/src/components/admin/users/UsersWorkspace.tsx
+index 64c66a1..38b017b 100644
+--- a/ims-frontend/src/components/admin/users/UsersWorkspace.tsx
++++ b/ims-frontend/src/components/admin/users/UsersWorkspace.tsx
+@@ -1,8 +1,10 @@
+ "use client";
++import StyledSelect from "@/components/admin/StyledSelect";
+ import { PermissionAction } from "@/components/auth/PermissionGuard";
+ 
+ import UserEffectivePermissions from "./UserEffectivePermissions";
+ import UserRolesSection from "./UserRolesSection";
++import AdminSelect from "@/components/admin/AdminSelect";
+ 
+ import readable from "@/components/admin/ReadableWorkspace.module.css";
+ 
+@@ -836,22 +838,17 @@ function FilterSelect({
+   onChange: (value: string) => void;
+ }) {
+   return (
+-    <label className="space-y-2">
+-      <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+-        {label}
+-      </span>
+-      <select
++    <div>
++      <AdminSelect
++        label={label}
+         value={value}
+-        onChange={(event) => onChange(event.target.value)}
+-        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#f45a1f] focus:ring-2 focus:ring-[#f45a1f]/15"
+-      >
+-        {options.map(([optionValue, optionLabel]) => (
+-          <option key={optionValue || "all"} value={optionValue}>
+-            {optionLabel}
+-          </option>
+-        ))}
+-      </select>
+-    </label>
++        onChange={onChange}
++        options={options.map(([optionValue, optionLabel]) => ({
++          value: optionValue,
++          label: optionLabel,
++        }))}
++      />
++    </div>
+   );
+ }
+ 
+@@ -1394,20 +1391,20 @@ function UserFormDialogBody({
+         ) : null}
+ 
+         <div className={styles.nameFields}>
+-        <InventoryField htmlFor={`${mode}-user-first-name`} label="First Name">
++        <InventoryField htmlFor={`${mode}-user-first-name`} label="First Name" required>
+           <input id={`${mode}-user-first-name`} autoComplete="given-name" required value={firstName} onChange={(event) => setFirstName(event.target.value)} className={inventoryInputClasses} />
+         </InventoryField>
+-        <InventoryField htmlFor={`${mode}-user-last-name`} label="Last Name">
++        <InventoryField htmlFor={`${mode}-user-last-name`} label="Last Name" required>
+           <input id={`${mode}-user-last-name`} autoComplete="family-name" required value={lastName} onChange={(event) => setLastName(event.target.value)} className={inventoryInputClasses} />
+         </InventoryField>
+         <InventoryField htmlFor={`${mode}-user-middle-initial`} label="Middle Initial">
+           <input id={`${mode}-user-middle-initial`} aria-label="Middle initial (optional)" placeholder="Optional" value={middleInitial} maxLength={1} onChange={(event) => setMiddleInitial(event.target.value.toUpperCase())} className={inventoryInputClasses} />
+         </InventoryField>
+         </div>
+-        <InventoryField htmlFor={`${mode}-user-email`} label="Email">
++        <InventoryField htmlFor={`${mode}-user-email`} label="Email" required>
+           <input id={`${mode}-user-email`} type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} className={inventoryInputClasses} placeholder="name@example.com" />
+         </InventoryField>
+-        <InventoryField htmlFor={`${mode}-user-phone`} label="Phone">
++        <InventoryField htmlFor={`${mode}-user-phone`} label="Phone" required>
+           <input id={`${mode}-user-phone`} type="tel" autoComplete="tel" required value={phone} onChange={(event) => setPhone(event.target.value)} className={inventoryInputClasses} placeholder="+639171234567" />
+         </InventoryField>
+         <InventoryField
+@@ -1415,11 +1412,11 @@ function UserFormDialogBody({
+           label="Role"
+           hint={mode === "create" ? undefined : editingSelf ? "Self role changes are protected." : "Manager is reserved for future implementation."}
+         >
+-          <select
++          <StyledSelect aria-label="Role"
+             id={`${mode}-user-role`}
+             value={(editingSelf || editingReservedManager) && user ? user.role : role}
+             disabled={editingSelf || editingReservedManager}
+-            onChange={(event) => setRole(event.target.value as AssignableUserRole)}
++            onValueChange={(value) => setRole(value as AssignableUserRole)}
+             className={styles.roleSelect}
+           >
+             {editingReservedManager ? (
+@@ -1427,13 +1424,10 @@ function UserFormDialogBody({
+             ) : null}
+             <option value="ADMINISTRATOR">Administrator</option>
+             <option value="STAFF">Staff</option>
+-          </select>
++          </StyledSelect>
+         </InventoryField>
+ 
+         <div className={styles.userDialogActions}>
+-          <button type="button" onClick={onClose} disabled={submitting} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">
+-            Cancel
+-          </button>
+           <button type="submit" disabled={submitting} className="rounded-full bg-slate-950 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">
+             {submitting ? "Saving..." : mode === "create" ? "Create User" : "Save Changes"}
+           </button>
+@@ -1478,9 +1472,6 @@ function ConfirmDialog({
+           <p className="mt-1 text-sm text-slate-500">{dialog.user.email}</p>
+         </div>
+         <div className="flex justify-end gap-3">
+-          <button type="button" onClick={onClose} disabled={submitting} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">
+-            Cancel
+-          </button>
+           <button
+             type="button"
+             disabled={submitting}
+diff --git a/ims-frontend/src/components/inventory/AddItemModal.tsx b/ims-frontend/src/components/inventory/AddItemModal.tsx
+index 22372e6..c53ed73 100644
+--- a/ims-frontend/src/components/inventory/AddItemModal.tsx
++++ b/ims-frontend/src/components/inventory/AddItemModal.tsx
+@@ -1,6 +1,8 @@
+ "use client";
+ 
++import StyledSelect from "@/components/admin/StyledSelect";
+ import { useState } from "react";
++import ModalCloseButton from "@/components/ModalCloseButton";
+ 
+ type Props = {
+   isOpen: boolean;
+@@ -103,14 +105,17 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }: Props) {
+   };
+ 
+   return (
+-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
++    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-[5px] p-4">
+       <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-lg">
+         <div className="p-6">
+-          <div className="mb-5">
+-            <h2 className="text-4xl font-bold text-neutral-900">Add New Item</h2>
++          <div className="mb-5 flex items-start justify-between gap-4 border-b border-neutral-200 pb-3">
++            <div>
++            <h2 className="text-xl font-bold text-neutral-900">Add New Item</h2>
+             <p className="mt-2 text-sm text-neutral-600">
+               Fill in the details below to add a new item to your inventory
+             </p>
++            </div>
++            <ModalCloseButton onClose={onClose} />
+           </div>
+ 
+           <form onSubmit={handleSubmit}>
+@@ -148,14 +153,14 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }: Props) {
+                   <label className="mb-1 block text-sm font-medium text-neutral-800">
+                     Product Type <span className="text-red-500">*</span>
+                   </label>
+-                  <select
++                  <StyledSelect aria-label="Type"
+                     value={form.type}
+-                    onChange={(e) => updateField("type", e.target.value)}
++                    onValueChange={(value) => updateField("type", value)}
+                     className="w-full rounded-lg bg-[#d9d9d9] px-3 py-2 text-sm outline-none"
+                   >
+                     <option value="retail">Retail</option>
+                     <option value="manufactured">Manufactured</option>
+-                  </select>
++                  </StyledSelect>
+                 </div>
+ 
+                 <div>
+@@ -267,14 +272,6 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }: Props) {
+             </div>
+ 
+             <div className="mt-6 flex justify-end gap-2 border-t border-neutral-400 pt-4">
+-              <button
+-                type="button"
+-                onClick={onClose}
+-                className="rounded-lg border border-neutral-300 px-6 py-2 text-sm text-neutral-700"
+-              >
+-                Cancel
+-              </button>
+-
+               <button
+                 type="submit"
+                 className="rounded-lg bg-[#f45a1f] px-6 py-2 text-sm font-medium text-white"
+@@ -287,4 +284,4 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }: Props) {
+       </div>
+     </div>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/ims-frontend/src/components/inventory/DeleteItemModal.tsx b/ims-frontend/src/components/inventory/DeleteItemModal.tsx
+index 90672a4..a2c379a 100644
+--- a/ims-frontend/src/components/inventory/DeleteItemModal.tsx
++++ b/ims-frontend/src/components/inventory/DeleteItemModal.tsx
+@@ -1,6 +1,7 @@
+ "use client";
+ 
+ import type { InventoryItem } from "../../types/inventory";
++import ModalCloseButton from "@/components/ModalCloseButton";
+ 
+ type Props = {
+   isOpen: boolean;
+@@ -18,22 +19,18 @@ export default function DeleteItemModal({
+   if (!isOpen || !item) return null;
+ 
+   return (
+-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4">
++    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 backdrop-blur-[5px] p-4">
+       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
+-        <h2 className="text-2xl font-bold text-red-600">Delete Item</h2>
++        <header className="mb-3 flex items-center justify-between border-b border-neutral-200 pb-3">
++          <h2 className="text-xl font-bold text-red-600">Delete Item</h2>
++          <ModalCloseButton onClose={onClose} />
++        </header>
+         <p className="mt-3 text-sm text-neutral-600">
+           Are you sure you want to delete <span className="font-semibold">{item.name}</span>?
+           This action cannot be undone.
+         </p>
+ 
+         <div className="mt-6 flex justify-end gap-2">
+-          <button
+-            onClick={onClose}
+-            className="rounded-lg px-4 py-2 text-neutral-700"
+-          >
+-            Cancel
+-          </button>
+-
+           <button
+             onClick={() => onConfirm(item.id)}
+             className="rounded-lg bg-red-600 px-4 py-2 text-white"
+@@ -44,4 +41,4 @@ export default function DeleteItemModal({
+       </div>
+     </div>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/ims-frontend/src/components/inventory/EditItemModal.tsx b/ims-frontend/src/components/inventory/EditItemModal.tsx
+index b4aba8e..d952f03 100644
+--- a/ims-frontend/src/components/inventory/EditItemModal.tsx
++++ b/ims-frontend/src/components/inventory/EditItemModal.tsx
+@@ -1,4 +1,5 @@
+ "use client";
++import StyledSelect from "@/components/admin/StyledSelect";
+ import ModalCloseButton from "@/components/ModalCloseButton";
+ 
+ 
+@@ -55,12 +56,12 @@ export default function EditItemModal({
+   };
+ 
+   return (
+-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4">
++    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 backdrop-blur-[5px] p-4">
+       <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-lg">
+-        <div className="mb-5 flex items-start justify-between gap-4">
++        <div className="mb-4 flex items-start justify-between gap-4 border-b border-neutral-200 pb-3">
+           <div>
+-            <h2 className="text-2xl font-bold">Edit Item</h2>
+-            <p className="text-sm text-neutral-500">
++            <h2 className="text-xl font-bold">Edit Item</h2>
++            <p className="text-[13px] text-neutral-500">
+               Update the selected inventory item.
+             </p>
+           </div>
+@@ -84,16 +85,16 @@ export default function EditItemModal({
+               className="rounded-lg border p-3"
+             />
+ 
+-            <select
++            <StyledSelect aria-label="Type"
+               value={form.type}
+-              onChange={(e) =>
+-                updateField("type", e.target.value as "manufactured" | "retail")
++              onValueChange={(value) =>
++                updateField("type", value as "manufactured" | "retail")
+               }
+               className="rounded-lg border p-3"
+             >
+               <option value="retail">Retail</option>
+               <option value="manufactured">Manufactured</option>
+-            </select>
++            </StyledSelect>
+ 
+             <input
+               value={form.unit}
+@@ -156,13 +157,6 @@ export default function EditItemModal({
+           </div>
+ 
+           <div className="mt-6 flex justify-end gap-2">
+-            <button
+-              type="button"
+-              onClick={onClose}
+-              className="rounded-lg px-4 py-2 text-neutral-700"
+-            >
+-              Cancel
+-            </button>
+ 
+             <button
+               type="submit"
+@@ -175,4 +169,4 @@ export default function EditItemModal({
+       </div>
+     </div>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/ims-frontend/src/components/inventory/InventoryHeader.tsx b/ims-frontend/src/components/inventory/InventoryHeader.tsx
+index 50359db..2a86ef4 100644
+--- a/ims-frontend/src/components/inventory/InventoryHeader.tsx
++++ b/ims-frontend/src/components/inventory/InventoryHeader.tsx
+@@ -1,3 +1,4 @@
++import StyledSelect from "@/components/admin/StyledSelect";
+ import {
+   LayoutGrid,
+   List,
+@@ -122,30 +123,30 @@ export default function InventoryHeader({
+           />
+         </div>
+ 
+-        <select
++        <StyledSelect aria-label="Status"
+           value={statusFilter}
+-          onChange={(e) => setStatusFilter(e.target.value)}
++          onValueChange={(value) => setStatusFilter(value)}
+           className="rounded-lg border px-3 py-2 text-sm"
+         >
+           <option value="All">All Status</option>
+           <option value="In Stock">In Stock</option>
+           <option value="Low Stock">Low Stock</option>
+           <option value="Out of Stock">Out of Stock</option>
+-        </select>
++        </StyledSelect>
+ 
+-        <select
++        <StyledSelect aria-label="Category"
+           value={categoryFilter}
+-          onChange={(e) => setCategoryFilter(e.target.value)}
++          onValueChange={(value) => setCategoryFilter(value)}
+           className="rounded-lg border px-3 py-2 text-sm"
+         >
+           <option value="All">All Categories</option>
+           <option value="Food">Food</option>
+           <option value="Beverage">Beverage</option>
+-        </select>
++        </StyledSelect>
+ 
+-        <select
++        <StyledSelect aria-label="Sort by"
+           value={sortBy}
+-          onChange={(e) => setSortBy(e.target.value)}
++          onValueChange={(value) => setSortBy(value)}
+           className="rounded-lg border px-3 py-2 text-sm"
+         >
+           <option value="name-asc">Name (A-Z)</option>
+@@ -153,7 +154,7 @@ export default function InventoryHeader({
+           <option value="stock-desc">Stock (high to low)</option>
+           <option value="price-asc">Price (low to high)</option>
+           <option value="price-desc">Price (high to low)</option>
+-        </select>
++        </StyledSelect>
+ 
+         <div className="ml-auto flex gap-1">
+           <button
+diff --git a/ims-frontend/src/components/inventory/RecommendModal.tsx b/ims-frontend/src/components/inventory/RecommendModal.tsx
+index 8411d8d..cf6c898 100644
+--- a/ims-frontend/src/components/inventory/RecommendModal.tsx
++++ b/ims-frontend/src/components/inventory/RecommendModal.tsx
+@@ -36,15 +36,15 @@ export default function RecommendModal({ isOpen, onClose, item }: Props) {
+   if (!isOpen || !item) return null;
+ 
+   return (
+-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4">
++    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 backdrop-blur-[5px] p-4">
+       <div className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-lg">
+-        <div className="mb-5 flex items-start justify-between gap-4">
++        <div className="mb-4 flex items-start justify-between gap-4 border-b border-neutral-200 pb-3">
+           <div>
+             <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-[#f45a1f]">
+               <Sparkles size={16} />
+               AI Store Recommendation
+             </div>
+-            <h2 className="text-2xl font-bold">Recommended stores for {item.name}</h2>
++            <h2 className="text-xl font-bold">Recommended stores for {item.name}</h2>
+             <p className="text-sm text-neutral-500">
+               Based on stock urgency, estimated distance, and supplier pricing.
+             </p>
+@@ -105,4 +105,4 @@ export default function RecommendModal({ isOpen, onClose, item }: Props) {
+       </div>
+     </div>
+   );
+-}   
+\ No newline at end of file
++}
+diff --git a/ims-frontend/src/components/inventory/RestockItemModal.tsx b/ims-frontend/src/components/inventory/RestockItemModal.tsx
+index 9711bc9..d7e84c8 100644
+--- a/ims-frontend/src/components/inventory/RestockItemModal.tsx
++++ b/ims-frontend/src/components/inventory/RestockItemModal.tsx
+@@ -61,12 +61,12 @@ export default function RestockItemModal({
+   };
+ 
+   return (
+-    <div className="fixed inset-0 z-[95] flex items-center justify-center bg-black/40 p-4">
++    <div className="fixed inset-0 z-[95] flex items-center justify-center bg-black/40 backdrop-blur-[5px] p-4">
+       <div className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-lg">
+-        <div className="mb-5 flex items-start justify-between gap-4">
++        <div className="mb-4 flex items-start justify-between gap-4 border-b border-neutral-200 pb-3">
+           <div>
+-            <h2 className="text-2xl font-bold">Restock Item</h2>
+-            <p className="text-sm text-neutral-500">
++            <h2 className="text-xl font-bold">Restock Item</h2>
++            <p className="text-[13px] text-neutral-500">
+               Update expiration date, stock, unit price, and current supplier.
+             </p>
+           </div>
+@@ -140,13 +140,6 @@ export default function RestockItemModal({
+           </div>
+ 
+           <div className="mt-6 flex justify-end gap-2">
+-            <button
+-              type="button"
+-              onClick={onClose}
+-              className="rounded-lg px-4 py-2 text-neutral-700"
+-            >
+-              Cancel
+-            </button>
+ 
+             <button
+               type="submit"
+@@ -159,4 +152,4 @@ export default function RestockItemModal({
+       </div>
+     </div>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/ims-frontend/src/components/inventory/ViewItemModal.tsx b/ims-frontend/src/components/inventory/ViewItemModal.tsx
+index 0b1f076..3495d6b 100644
+--- a/ims-frontend/src/components/inventory/ViewItemModal.tsx
++++ b/ims-frontend/src/components/inventory/ViewItemModal.tsx
+@@ -14,11 +14,11 @@ export default function ViewItemModal({ isOpen, onClose, item }: Props) {
+   if (!isOpen || !item) return null;
+ 
+   return (
+-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4">
++    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 backdrop-blur-[5px] p-4">
+       <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-lg">
+-        <div className="mb-5 flex items-start justify-between gap-4">
++        <div className="mb-4 flex items-start justify-between gap-4 border-b border-neutral-200 pb-3">
+           <div>
+-            <h2 className="text-2xl font-bold">Item Details</h2>
++            <h2 className="text-xl font-bold">Item Details</h2>
+             <p className="text-sm text-neutral-500">
+               View complete inventory information.
+             </p>
+@@ -86,4 +86,4 @@ export default function ViewItemModal({ isOpen, onClose, item }: Props) {
+       </div>
+     </div>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/ims-frontend/src/components/layout/AlertCountBadge.module.css b/ims-frontend/src/components/layout/AlertCountBadge.module.css
+new file mode 100644
+index 0000000..5d62bd4
+--- /dev/null
++++ b/ims-frontend/src/components/layout/AlertCountBadge.module.css
+@@ -0,0 +1,2 @@
++.badge { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; margin-left:auto; min-width:26px; height:26px; padding:0 6px; border-radius:999px; background:#dc2626; color:#fff; font-size:13px; line-height:1; font-weight:700; font-variant-numeric:tabular-nums; }
++.collapsed { position:absolute; top:1px; right:4px; min-width:20px; height:20px; padding:0 4px; font-size:11px; }
+diff --git a/ims-frontend/src/components/layout/AlertCountBadge.tsx b/ims-frontend/src/components/layout/AlertCountBadge.tsx
+new file mode 100644
+index 0000000..b55ef18
+--- /dev/null
++++ b/ims-frontend/src/components/layout/AlertCountBadge.tsx
+@@ -0,0 +1,37 @@
++"use client";
++
++import { useEffect, useState } from "react";
++import { fetchUnreadAlertCount } from "@/lib/alerts";
++import { useAuthStore } from "@/store/authStore";
++import styles from "./AlertCountBadge.module.css";
++
++export default function AlertCountBadge({ collapsed = false }: { collapsed?: boolean }) {
++  const user = useAuthStore(state => state.user);
++  const [count, setCount] = useState(0);
++  useEffect(() => {
++    if (!user) return;
++    let active = true;
++    let pending = false;
++    async function refresh() {
++      if (pending) return;
++      pending = true;
++      try {
++        const result = await fetchUnreadAlertCount();
++        if (active) setCount(result.count);
++      } catch { /* Retry on the next refresh; keep the last known count. */ }
++      finally { pending = false; }
++    }
++    void refresh();
++    const timer = window.setInterval(() => void refresh(), 30000);
++    window.addEventListener("focus", refresh);
++    window.addEventListener("alerts-updated", refresh);
++    return () => {
++      active = false;
++      window.clearInterval(timer);
++      window.removeEventListener("focus", refresh);
++      window.removeEventListener("alerts-updated", refresh);
++    };
++  }, [user]);
++  if (!user || count < 1) return null;
++  return <span className={`${styles.badge} ${collapsed ? styles.collapsed : ""}`} aria-label={`${count} unread notifications`} title={`${count} unread notifications`}>{count > 99 ? "99+" : count}</span>;
++}
+diff --git a/ims-frontend/src/components/layout/ApplicationShell.module.css b/ims-frontend/src/components/layout/ApplicationShell.module.css
+index ef41868..813be41 100644
+--- a/ims-frontend/src/components/layout/ApplicationShell.module.css
++++ b/ims-frontend/src/components/layout/ApplicationShell.module.css
+@@ -10,7 +10,9 @@
+   min-height: 100vh;
+   background: var(--shell-background);
+ }
+-.body { min-width: 0; transition: margin-left .25s ease; }
++.body { display: flow-root; min-width: 0; background: var(--shell-background); transition: margin-left .25s ease; }
++.bodyWhiteTop { background: var(--shell-background); }
++.navLink,.staffNavLink { position:relative; }
+ @media (min-width: 1280px) {
+   .fillContent .body { height: 100dvh; display: flex; flex-direction: column; }
+   .fillContent .header { flex-shrink: 0; }
+@@ -19,7 +21,7 @@
+ .content { min-width: 0; padding: 28px 32px 40px; }
+ .header { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 64px; padding: 10px 32px; border-bottom: 1px solid var(--shell-border); background: var(--shell-background); color: #111; }
+ .heading { min-width: 0; }
+-.pageIntro { flex-shrink: 0; padding: 20px 32px 0; color: #111; }
++.pageIntro { flex-shrink: 0; margin: 18px 32px 0; color: #111; }
+ .introDivider { margin-top:24px; border-bottom:1px solid #e2e8f0; }
+ .title { margin: 0; font-size: 30px; letter-spacing: -.025em; line-height: 1.25; font-weight: 700; }
+ .subtitle { margin: 4px 0 0; font-size: 15px; line-height: 1.6; color: #526078; }
+@@ -74,15 +76,25 @@
+ .navSubLink { display: flex; align-items: center; gap: 8px; padding: 8px 10px; color: #e8edf7; font-size: 14px; line-height: 1.5; text-decoration: none; }
+ .navSubLink:hover { color: #65f05b; }
+ .sidebar a:focus-visible, .sidebar button:focus-visible { outline: 2px solid var(--shell-accent); outline-offset: 3px; }
+-.staffSidebar { position: fixed; inset: 0 auto 0 0; z-index: 60; display: flex; flex-direction: column; width: 240px; height: 100dvh; background: var(--shell-navy); color: #f4f5f8; transition: width .25s ease, transform .25s ease; }
++.staffSidebar { position: fixed; inset: 0 auto 0 0; z-index: 60; display: flex; flex-direction: column; width: 300px; height: 100dvh; background: var(--shell-navy); color: #f4f5f8; transition: width .25s ease, transform .25s ease; }
+ .staffSidebarCollapsed { width: 76px; }
+ .staffBrand { display: flex; align-items: center; justify-content: space-between; min-height: 86px; padding: 20px; border-bottom: 1px solid #ffffff40; font-size: 16px; }
+ .staffBrand { justify-content: center; }
+ .staffBrand p { margin: 0; color: #b5bac6; font-size: 14px; line-height: 1.5; }
+ .staffNavigation { flex: 1; padding: 22px 12px; }
+-.staffNavLink { display: flex; align-items: center; gap: 12px; min-height: 42px; margin: 6px 0; padding: 9px 12px; border-left: 2px solid transparent; color: #eef0f5; font-size: 14px; text-decoration: none; transition: background .2s ease, color .2s ease; }
++.staffNavGroup + .staffNavGroup { margin-top: 18px; }
++.staffGroupTitle { margin: 0 10px 8px; color: #bec9dc; font-size: 12px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; }
++.staffNavLink { display: flex; align-items: center; gap: 12px; min-height: 42px; margin: 4px 0; padding: 9px 12px; border-left: 2px solid transparent; color: #eef0f5; font-size: 16px; font-weight: 500; line-height: 1.5; text-decoration: none; transition: background .2s ease, color .2s ease; }
+ .staffNavLink:hover { background: #ffffff12; color: white; }
+ .staffNavLink[aria-current="page"] { border-left-color: var(--shell-accent); color: var(--shell-accent); background: #ffffff0d; }
++.staffNavToggle { width: 100%; border-top: 0; border-right: 0; border-bottom: 0; background: transparent; text-align: left; cursor: pointer; }
++.staffNavToggle[data-active="true"] { border-left-color: var(--shell-accent); color: var(--shell-accent); }
++.staffNavChevron { flex-shrink: 0; margin-left: auto; transition: transform .2s ease; }
++.staffNavToggle[aria-expanded="true"] .staffNavChevron { transform: rotate(180deg); }
++.staffNavSubmenu { display: grid; gap: 2px; padding: 2px 0 6px 31px; }
++.staffNavSubmenu[hidden] { display: none; }
++.staffNavSubLink { display: block; padding: 5px 10px; border-left: 1px solid #ffffff30; color: #b5bac6; font-size: 13px; line-height: 1.5; text-decoration: none; }
++.staffNavSubLink:hover, .staffNavSubLink[aria-current="page"] { border-left-color: var(--shell-accent); color: var(--shell-accent); }
+ .staffCollapseButton { position: absolute; top: 50%; right: -18px; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; transform: translateY(-50%); border: 1px solid #ffffff40; border-radius: 50%; background: var(--shell-navy); color: white; cursor: pointer; transition: background .2s ease, transform .25s ease; }
+ .staffCollapseButton:hover { background: #ffffff12; }
+ .staffMobileMenu { display: none; }
+@@ -92,13 +104,16 @@
+ .adminSidebarCollapsed .navLink { justify-content: center; gap: 0; padding-inline: 0; }
+ .staffSidebarCollapsed .staffBrand { padding-inline: 8px; }
+ .staffSidebarCollapsed .staffNavLink { justify-content: center; gap: 0; padding-inline: 0; }
++.staffSidebarCollapsed .staffNavToggle { justify-content: center; }
++.staffSidebarCollapsed .staffGroupTitle { display: none; }
+ .adminShellCollapsed .body { margin-left: 76px; --shell-sidebar-width: 76px; }
+ .adminCollapseButton { position: absolute; top: 50%; right: -18px; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; transform: translateY(-50%); border: 1px solid #ffffff40; border-radius: 50%; background: var(--shell-navy); color: white; cursor: pointer; transition: background .2s ease, transform .25s ease; }
+ .adminCollapseButton svg { transition: transform .25s ease; }
+ .adminSidebarCollapsed .adminCollapseButton svg { transform: rotate(180deg); }
+ .adminCollapseButton:hover { background: #ffffff12; }
+-.staffBody { min-width: 0; margin-left: 240px; transition: margin-left .25s ease; }
++.staffBody { min-width: 0; margin-left: 300px; transition: margin-left .25s ease; }
+ .staffShellCollapsed .staffBody { margin-left: 76px; }
++.staffBody .content > * { width: 100%; max-width: none; margin-inline: 0; }
+ .sidebarAccount { position: relative; flex-shrink: 0; padding: 14px 12px; border-bottom: 1px solid #ffffff30; }
+ .brand.brandWithAccount { position: relative; flex-direction: column; align-items: stretch; gap: 16px; padding: 24px 0 16px; }
+ .brandWithAccount > .mobileClose { position: absolute; top: 12px; right: 8px; }
+@@ -132,12 +147,15 @@
+   .overlay { display: none; }
+ }
+ @media (max-width: 1279px) {
+-  .pageIntro { padding: 20px 24px 0; }
++  .pageIntro { margin: 18px 24px 0; }
+   .shell { --shell-sidebar-width: 280px; }
+   .header { padding: 18px 24px; }
+   .content { padding: 24px; }
+   .actions { gap: 12px; }
+   .email { max-width: 180px; }
++  .staffSidebar:not(.staffSidebarCollapsed) { width: 280px; }
++  .staffBody { margin-left: 280px; }
++  .staffShellCollapsed .staffBody { margin-left: 76px; }
+ }
+ @media (max-width: 1023px) {
+   .sidebar { visibility: hidden; transform: translateX(-100%); }
+@@ -149,14 +167,14 @@
+ @media (max-width: 1023px) {
+   .staffSidebar { visibility: hidden; transform: translateX(-100%); }
+   .staffSidebarOpen { visibility: visible; transform: translateX(0); }
+-  .staffSidebarCollapsed { width: 240px; }
++  .staffSidebarCollapsed { width: 300px; }
+   .staffBody, .staffShellCollapsed .staffBody { margin-left: 0; }
+   .staffMobileMenu { position: fixed; top: 14px; left: 14px; z-index: 45; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 1px solid var(--shell-border); border-radius: 8px; background: white; color: var(--shell-navy); }
+   .adminShellCollapsed .body { margin-left: 0; }
+   .adminSidebarCollapsed { width: 300px; }
+ }
+ @media (max-width: 639px) {
+-  .pageIntro { padding: 16px 16px 0; }
++  .pageIntro { margin: 16px 16px 0; }
+   .header { flex-wrap: wrap; gap: 16px; padding: 16px; }
+   .title { font-size: 23px; }
+   .subtitle { font-size: 14px; }
+diff --git a/ims-frontend/src/components/layout/SidebarAccount.tsx b/ims-frontend/src/components/layout/SidebarAccount.tsx
+index 39c7a57..f82791a 100644
+--- a/ims-frontend/src/components/layout/SidebarAccount.tsx
++++ b/ims-frontend/src/components/layout/SidebarAccount.tsx
+@@ -1,47 +1,15 @@
+ "use client";
+ 
+-import Link from "next/link";
+-import { usePathname } from "next/navigation";
+-import { useEffect, useRef, useState } from "react";
+-import { ChevronDown, LogOut, Settings } from "lucide-react";
+ import ProfileAvatar from "@/components/auth/ProfileAvatar";
+-import { useLogout } from "@/hooks/useLogout";
+ import { useAuthStore } from "@/store/authStore";
+ import styles from "./ApplicationShell.module.css";
+ 
+-export default function SidebarAccount({ collapsed = false, onNavigate }: { collapsed?: boolean; onNavigate?: () => void }) {
++export default function SidebarAccount({ collapsed = false }: { collapsed?: boolean; onNavigate?: () => void }) {
+   const user = useAuthStore(state => state.user);
+-  const logout = useLogout();
+-  const [open, setOpen] = useState(false);
+-  const root = useRef<HTMLDivElement>(null);
+-  const trigger = useRef<HTMLButtonElement>(null);
+-  const pathname = usePathname();
+-  const settingsHref = pathname.startsWith("/staff") ? "/staff/settings" : "/admin/settings";
+-
+-  useEffect(() => {
+-    if (!open) return;
+-    const outside = (event: MouseEvent) => {
+-      if (!root.current?.contains(event.target as Node)) setOpen(false);
+-    };
+-    const escape = (event: KeyboardEvent) => {
+-      if (event.key === "Escape") { setOpen(false); trigger.current?.focus(); }
+-    };
+-    document.addEventListener("mousedown", outside);
+-    document.addEventListener("keydown", escape);
+-    return () => { document.removeEventListener("mousedown", outside); document.removeEventListener("keydown", escape); };
+-  }, [open]);
+-
+-  return (
+-    <div ref={root} className={`${styles.sidebarAccount} ${collapsed ? styles.accountCollapsed : ""}`} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false); }}>
+-      <button ref={trigger} type="button" className={styles.accountTrigger} aria-label="Open account menu" aria-expanded={open} onClick={() => setOpen(value => !value)}>
+-        <ProfileAvatar />
+-        <span className={styles.accountIdentity}><strong>{user?.name ?? "Account"}</strong><span>{user?.email ?? "Account settings"}</span></span>
+-        <ChevronDown size={16} className={styles.accountChevron} />
+-      </button>
+-      {open && <div className={styles.accountDropdown}>
+-        <Link href={settingsHref} onClick={() => { setOpen(false); onNavigate?.(); }}><Settings size={17} />Account Settings</Link>
+-        <button type="button" onClick={async () => { setOpen(false); await logout(); }}><LogOut size={17} />Logout</button>
+-      </div>}
++  return <div className={`${styles.sidebarAccount} ${collapsed ? styles.accountCollapsed : ""}`}>
++    <div className={styles.accountTrigger}>
++      <ProfileAvatar />
++      <span className={styles.accountIdentity}><strong>{user?.name ?? "Account"}</strong><span>{user?.email ?? "My Account"}</span></span>
+     </div>
+-  );
++  </div>;
+ }
+diff --git a/ims-frontend/src/components/layout/shell-navigation.ts b/ims-frontend/src/components/layout/shell-navigation.ts
+index 12fbb74..1e4f306 100644
+--- a/ims-frontend/src/components/layout/shell-navigation.ts
++++ b/ims-frontend/src/components/layout/shell-navigation.ts
+@@ -49,7 +49,7 @@ export const adminNavigation: { label: string; items: NavigationItem[] }[] = [
+   { label: "Management", items: [
+     { label: "User", href: "/admin/users", permission: "users.view", icon: UsersRound, subtitle: "Manage user accounts and access." },
+     { label: "Roles & Permissions", href: "/admin/roles", administratorOnly: true, icon: Shield, subtitle: "Manage user roles and control feature access." },
+-    { label: "Settings", href: "/admin/settings", authenticatedOnly: true, icon: Settings, subtitle: "Manage your account and security settings." },
++    { label: "My Account", href: "/admin/settings", authenticatedOnly: true, icon: Settings, subtitle: "Manage your account and security settings." },
+   ] },
+ ];
+ 
+@@ -68,13 +68,13 @@ const adminPageInfo: Record<string, ShellPageInfo> = Object.fromEntries(
+ materialActions.forEach(item => { adminPageInfo[item.href] = item; });
+ adminPageInfo["/admin/suppliers"] = adminPageInfo["/admin/inventory/suppliers"];
+ adminPageInfo["/admin/recommendations"] = { label: "Recommendations", subtitle: "Review recommendations for your inventory and purchasing decisions." };
+-adminPageInfo["/manager/settings"] = { label: "Account Settings", subtitle: "Manage your account and security settings." };
++adminPageInfo["/manager/settings"] = { label: "My Account", subtitle: "Manage your account and security settings." };
+ 
+ export const staffPageInfo: Record<string, ShellPageInfo> = {
+   "/staff/dashboard": { label: "Staff Dashboard", subtitle: "Welcome back! Here's your POS and daily transaction overview." },
+   "/staff/pos": { label: "Staff POS", subtitle: "Create orders, accept payments, and manage daily sales." },
+   "/staff/transactions": { label: "Transaction History", subtitle: "Review your transactions and receipts." },
+-  "/staff/settings": { label: "Account Settings", subtitle: "Manage your account and security settings." },
++  "/staff/settings": { label: "My Account", subtitle: "Manage your account and security settings." },
+ };
+ 
+ export function getAdminPageInfo(pathname: string): ShellPageInfo | undefined {
+diff --git a/ims-frontend/src/components/staff-pos/FocusMode.module.css b/ims-frontend/src/components/staff-pos/FocusMode.module.css
+index b7d286a..b89ecc2 100644
+--- a/ims-frontend/src/components/staff-pos/FocusMode.module.css
++++ b/ims-frontend/src/components/staff-pos/FocusMode.module.css
+@@ -34,10 +34,12 @@
+   grid-template-columns: minmax(0, 1fr) auto;
+   align-items: center;
+   gap: 12px;
+-  padding: 20px;
+-  border-radius: 24px;
++  padding: 24px 20px;
++  border: 1px solid #dce2eb;
++  border-radius: 12px;
+   background: #fff;
+-  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
++  color: #232d46;
++  box-shadow: none;
+   transition: padding 320ms cubic-bezier(.22, 1, .36, 1),
+     gap 320ms ease, background-color 220ms ease, box-shadow 220ms ease;
+ }
+@@ -51,7 +53,9 @@
+   transition: grid-template-rows 320ms cubic-bezier(.22, 1, .36, 1),
+     opacity 160ms ease 180ms, visibility 0s linear 180ms;
+ }
+-.posHeaderFocused { padding: 0 0 12px; gap: 0; background: transparent; box-shadow: none; }
++.posHeader h1 { margin: 0; color: #232d46; font-size: 30px; font-weight: 700; line-height: 1.25; letter-spacing: -.025em; text-transform: uppercase; }
++.posHeader p { margin: 10px 0 0; color: #64748b; font-size: 14px; line-height: 1.6; }
++.posHeaderFocused { padding: 0 0 12px; gap: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+ .posHeaderFocused .posHeaderDetails {
+   grid-template-rows: 0fr;
+   opacity: 0;
+@@ -63,6 +67,7 @@
+ .posHeaderToggle { justify-self: end; white-space: nowrap; min-width: 164px; }
+ @media (max-width: 767px) {
+   .posHeader { grid-template-columns: minmax(0, 1fr); }
++  .posHeader h1 { font-size: 26px; }
+ }
+ @media (prefers-reduced-motion: reduce) {
+   .posHeader, .posHeaderDetails, .posHeaderFocused .posHeaderDetails { transition: none; }
+diff --git a/ims-frontend/src/components/staff-pos/StaffDashboardLayout.tsx b/ims-frontend/src/components/staff-pos/StaffDashboardLayout.tsx
+index 790c8d1..fc435a3 100644
+--- a/ims-frontend/src/components/staff-pos/StaffDashboardLayout.tsx
++++ b/ims-frontend/src/components/staff-pos/StaffDashboardLayout.tsx
+@@ -3,12 +3,13 @@
+ import Link from "next/link";
+ import { usePathname } from "next/navigation";
+ import { createContext, useContext, useState } from "react";
+-import { ChevronLeft, Menu, X } from "lucide-react";
++import { ChevronDown, ChevronLeft, Menu, X } from "lucide-react";
+ import { getVisibleNavigation } from "@/components/layout/shell-navigation";
+ import { useAuthStore } from "@/store/authStore";
+ import styles from "@/components/layout/ApplicationShell.module.css";
+ import StaffHeader from "./StaffHeader";
+ import SidebarAccount from "@/components/layout/SidebarAccount";
++import AlertCountBadge from "@/components/layout/AlertCountBadge";
+ import focusStyles from "./FocusMode.module.css";
+ 
+ const FocusModeContext = createContext({ focusMode: false, toggleFocusMode: () => {} });
+@@ -27,11 +28,15 @@ export default function StaffDashboardLayout({
+   const [sidebarOpen, setSidebarOpen] = useState(false);
+   const [collapsed, setCollapsed] = useState(false);
+   const [focusEnabled, setFocusEnabled] = useState(false);
++  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+   const isPOSPage = pathname === "/staff/dashboard" || pathname === "/staff/pos";
+   const focusMode = focusEnabled && isPOSPage;
+-  const links = getVisibleNavigation(useAuthStore()).flatMap(group => group.items).map(item =>
+-    item.authenticatedOnly ? {...item, href: "/staff/settings"} : item
+-  );
++  const navigation = getVisibleNavigation(useAuthStore()).map(group => ({
++    ...group,
++    items: group.items.map(item =>
++      item.authenticatedOnly ? { ...item, href: "/staff/settings" } : item,
++    ),
++  }));
+ 
+   return (
+     <FocusModeContext.Provider value={{ focusMode, toggleFocusMode: () => { setFocusEnabled((value) => !value); setSidebarOpen(false); } }}>
+@@ -41,10 +46,25 @@ export default function StaffDashboardLayout({
+         <div className={styles.staffBrand}><div className={styles.sidebarBrandLogo}><strong>{collapsed ? "CS" : "Cafe Salvacion"}</strong>{!collapsed && <p>POS Management</p>}</div><button type="button" className={styles.mobileClose} onClick={() => setSidebarOpen(false)} aria-label="Close navigation"><X size={20} /></button></div>
+         <SidebarAccount collapsed={collapsed && !sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
+         <nav className={styles.staffNavigation} aria-label="Staff navigation">
+-          {links.map(({ label, href, icon: Icon }) => {
+-            const active = pathname === href || (href === "/staff/pos" && pathname === "/staff/dashboard");
+-            return <Link key={href} href={href} aria-current={active ? "page" : undefined} title={collapsed ? label : undefined} className={styles.staffNavLink} onClick={() => setSidebarOpen(false)}><Icon size={18} /><span>{collapsed ? null : label}</span></Link>;
+-          })}
++          {navigation.map(group => <div key={group.label} className={styles.staffNavGroup}>
++            {!collapsed && <h2 className={styles.staffGroupTitle}>{group.label}</h2>}
++            {group.items.map(({ label, href, icon: Icon, children }) => {
++              const active = pathname === href || (href === "/staff/pos" && pathname === "/staff/dashboard");
++              const childActive = children?.some(child => pathname === child.href || pathname.startsWith(`${child.href}/`)) ?? false;
++              if (children?.length) return <div key={href}>
++                <button type="button" aria-expanded={!collapsed && !!openSections[href]} aria-label={collapsed ? label : undefined} title={collapsed ? label : undefined} className={`${styles.staffNavLink} ${styles.staffNavToggle}`} data-active={childActive} onClick={() => {
++                  if (collapsed) setCollapsed(false);
++                  setOpenSections(current => ({ ...current, [href]: !current[href] }));
++                }}>
++                  <Icon size={18} /><span>{collapsed ? null : label}</span>{!collapsed && <ChevronDown size={16} className={styles.staffNavChevron} aria-hidden="true" />}
++                </button>
++                {!collapsed && <div className={styles.staffNavSubmenu} hidden={!openSections[href]}>
++                  {children.map(child => <Link key={child.href} href={child.href} aria-current={pathname === child.href ? "page" : undefined} className={styles.staffNavSubLink} onClick={() => setSidebarOpen(false)}>{child.label}</Link>)}
++                </div>}
++              </div>;
++              return <Link key={href} href={href} aria-current={active ? "page" : undefined} title={collapsed ? label : undefined} className={styles.staffNavLink} onClick={() => setSidebarOpen(false)}><Icon size={18} /><span>{collapsed ? null : label}</span>{href === "/admin/alerts" && <AlertCountBadge collapsed={collapsed} />}</Link>;
++            })}
++          </div>)}
+         </nav>
+         <button type="button" className={styles.staffCollapseButton} onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <Menu size={18} /> : <ChevronLeft size={18} />}</button>
+       </aside>
+diff --git a/ims-frontend/src/components/staff-pos/StaffPOSPage.module.css b/ims-frontend/src/components/staff-pos/StaffPOSPage.module.css
+index a026ac2..e9a72e4 100644
+--- a/ims-frontend/src/components/staff-pos/StaffPOSPage.module.css
++++ b/ims-frontend/src/components/staff-pos/StaffPOSPage.module.css
+@@ -1,3 +1,5 @@
++.posPage { max-width: none; margin-inline: 0; }
++
+ .cart { min-width: 0; padding: 24px; border: 1px solid #cbd5e1; border-radius: 16px; background: #fff; color: #1e293b; font-size: 16px; line-height: 1.6; align-self: start; }
+ .cart h2 { margin: 0; font-size: 26px; font-weight: 700; line-height: 1.3; }
+ .cart h3 { margin: 0 0 6px; font-size: 21px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+@@ -112,9 +114,9 @@
+   display:flex;
+   align-items:center;
+   justify-content:center;
+-  min-height:112px;
++  min-height:96px;
+   min-width:0;
+-  padding:24px;
++  padding:20px;
+   border:1px solid #cbd5e1;
+   border-top:4px solid #232d46;
+   border-radius:12px;
+diff --git a/ims-frontend/src/components/staff-pos/StaffPOSPage.tsx b/ims-frontend/src/components/staff-pos/StaffPOSPage.tsx
+index 74a7061..81962e8 100644
+--- a/ims-frontend/src/components/staff-pos/StaffPOSPage.tsx
++++ b/ims-frontend/src/components/staff-pos/StaffPOSPage.tsx
+@@ -86,7 +86,6 @@ function categoryIcon(categoryName: string) {
+ 
+ export default function StaffPOSPage() {
+   const { focusMode, toggleFocusMode } = usePOSFocusMode();
+-  const user = useAuthStore((state) => state.user);
+   const [search, setSearch] = useState("");
+   const [category, setCategory] = useState("All");
+   const [choosingCategory, setChoosingCategory] = useState(true);
+@@ -110,7 +109,6 @@ export default function StaffPOSPage() {
+   const [notice, setNotice] = useState<string | null>(null);
+ 
+   const discountConfig = getDiscountConfig(discount);
+-  const staffName = user?.name || user?.email || "Staff User";
+   // Apply admin enablement and stock availability to both live and cached menus.
+   const availableProducts = useMemo(() => menuProducts
+     .filter((product) => product.isEnabled)
+@@ -242,9 +240,8 @@ export default function StaffPOSPage() {
+         <header className={`${focusStyles.posHeader} ${focusMode ? focusStyles.posHeaderFocused : ""}`}>
+           <div className={focusStyles.posHeaderDetails} inert={focusMode} aria-hidden={focusMode}>
+             <div className={focusStyles.retractInner}>
+-              <p className="text-sm font-medium text-[#232d46]">Staff Panel</p>
+               <h1 className="text-2xl font-bold">Staff POS</h1>
+-              <p className="text-sm text-slate-500">Real menu browsing, backend-driven variants and modifiers, and checkout synced to inventory. Signed in as <span className="font-medium text-slate-700">{staffName}</span>.</p>
++              <p>Create orders, accept payments, and manage daily sales.</p>
+             </div>
+           </div>
+           <button type="button" className={`${focusStyles.toggle} ${focusStyles.posHeaderToggle}`} aria-pressed={focusMode} onClick={toggleFocusMode}>
+@@ -258,7 +255,7 @@ export default function StaffPOSPage() {
+ 
+         <div key={choosingCategory ? "categories" : "products"} className={`${styles.orderArea} ${choosingCategory ? styles.returnToCategories : styles.openCategory}`}>
+         {choosingCategory ? (
+-          <section aria-labelledby="pos-categories-title" className={`${styles.categoryPanel} min-h-[60dvh] w-full py-4`}>
++          <section aria-labelledby="pos-categories-title" className={`${styles.categoryPanel} min-h-0 w-full py-4`}>
+             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+               <div>
+                 <h2 id="pos-categories-title" className="text-2xl font-bold text-[#232d46]">Choose a Category</h2>
+diff --git a/ims-frontend/src/components/staff-pos/TransactionHistory.module.css b/ims-frontend/src/components/staff-pos/TransactionHistory.module.css
+index a6e1848..1cbdc74 100644
+--- a/ims-frontend/src/components/staff-pos/TransactionHistory.module.css
++++ b/ims-frontend/src/components/staff-pos/TransactionHistory.module.css
+@@ -1,6 +1,6 @@
+-.pageHeader { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding-bottom: 24px; border-bottom: 1px solid #dce2eb; }
+-.pageHeader h1 { margin: 0 0 8px; font-size: 28px; line-height: 1.3; font-weight: 700; color: #232d46; }
+-.pageHeader p { margin: 0; color: #475569; font-size: 15px; }
++.pageHeader { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 24px 20px; border: 1px solid #dce2eb; border-radius: 12px; background: #fff; }
++.pageHeader h1 { margin: 0; font-size: 30px; line-height: 1.25; font-weight: 700; letter-spacing: -.025em; text-transform: uppercase; color: #232d46; }
++.pageHeader p { margin: 10px 0 0; color: #64748b; font-size: 14px; line-height: 1.6; }
+ .pageHeader button { border: 0; border-radius: 10px; background: #232d46; color: #fff; padding: 10px 20px; min-height: 44px; font-size: 14px; font-weight: 600; }
+ .pageHeader button:disabled { opacity: .65; cursor: wait; }
+ .tableScroll { max-height: 65dvh; overflow: auto; border: 1px solid #dce2eb; border-radius: 12px; background: #fff; }
+@@ -17,13 +17,15 @@
+ .actions { display: flex; justify-content: center; align-items: center; gap: 8px; }
+ .actions button { padding: 8px 14px; min-height: 38px; border-radius: 8px; font-size: 13px; white-space: nowrap; }
+ .table .empty { padding: 40px 20px; text-align: center; color: #475569; }
+-.filters { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px 16px; padding: 20px; border: 1px solid #dce2eb; border-radius: 16px; background: #fff; }
++.filters { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)) auto; gap: 14px 12px; align-items: end; padding: 16px; border: 1px solid #dce2eb; border-radius: 16px; background: #fff; }
+ .searchLabel { min-width: 0; color: #475569; font-size: 15px; font-weight: 600; }
+ .searchInput { display: block; width: 100%; min-height: 44px; margin-top: 6px; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 12px; background: #fff; color: #232d46; font: inherit; font-size: 16px; font-weight: 400; box-shadow: 0 1px 2px #0f172a0a; }
+ .searchInput::placeholder { color: #64748b; }
+ .searchInput:hover { border-color: #475569; }
+ .searchInput:focus-visible, .clearFilters:focus-visible { outline: 2px solid #475569; outline-offset: 2px; }
+-.clearFilters { grid-column: 1 / -1; justify-self: start; min-height: 38px; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 10px; background: #edf2f8; color: #232d46; font-size: 14px; font-weight: 600; }
++.clearFilters { justify-self: end; min-height: 38px; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 10px; background: #edf2f8; color: #232d46; font-size: 14px; font-weight: 600; }
+ .clearFilters:hover { background: #dce2eb; }
+-@media (max-width: 1199px) { .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
++@media (max-width: 1199px) { .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } .clearFilters { grid-column: 1 / -1; justify-self: start; } }
++@media (min-width: 1200px) and (max-width: 1499px) { .filters { grid-template-columns: repeat(3, minmax(0, 1fr)); } .clearFilters { grid-column: 3; } }
+ @media (max-width: 639px) { .filters { grid-template-columns: minmax(0, 1fr); padding: 16px; } }
++@media (max-width: 640px) { .pageHeader { padding: 20px 16px; } .pageHeader h1 { font-size: 26px; } }
+diff --git a/ims-frontend/src/components/staff-pos/modals/Modal.tsx b/ims-frontend/src/components/staff-pos/modals/Modal.tsx
+index 65fd13d..8149e48 100644
+--- a/ims-frontend/src/components/staff-pos/modals/Modal.tsx
++++ b/ims-frontend/src/components/staff-pos/modals/Modal.tsx
+@@ -31,7 +31,7 @@ export default function Modal({
+           wide ? "max-w-5xl" : "max-w-2xl"
+         } flex max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl ${panelClassName}`}
+       >
+-        <div className="bg-[var(--modal-header-background)] flex items-center justify-between border-b px-6 py-4">
++        <div className="bg-[var(--modal-header-background)] flex items-center justify-between border-b border-slate-200 px-6 py-4">
+           <h2 className="flex-1 text-lg font-semibold text-slate-900">{title}</h2>
+           {showCloseButton && closeButtonStyle === "back" && (
+             <button type="button" onClick={onClose} aria-label="Back to products" title="Back to products" className="ml-3 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 transition-colors duration-150 hover:border-slate-400 hover:bg-slate-200 hover:text-slate-900 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600">
+diff --git a/ims-frontend/src/components/staff-pos/modals/ReceiptModal.module.css b/ims-frontend/src/components/staff-pos/modals/ReceiptModal.module.css
+new file mode 100644
+index 0000000..7c3fb41
+--- /dev/null
++++ b/ims-frontend/src/components/staff-pos/modals/ReceiptModal.module.css
+@@ -0,0 +1,27 @@
++.modal { border:1px solid #dce2eb; border-radius:16px; color:#232d46; }
++.modal > div:first-child { flex-shrink:0; padding:20px 24px; }
++.modal > div:first-child h2 { margin:0; font-size:25px; font-weight:700; }
++.receipt { display:grid; gap:24px; font-size:16px; line-height:1.6; }
++.heading { display:flex; flex-wrap:wrap; align-items:center; gap:14px; padding-bottom:20px; border-bottom:1px solid #dce2eb; }
++.heading > svg { width:44px; height:44px; flex-shrink:0; padding:10px; border-radius:10px; background:#edf1f7; }
++.heading > div { flex:1 1 260px; min-width:0; }
++.heading h3 { margin:0; font-size:22px; line-height:1.4; font-weight:700; overflow-wrap:anywhere; }
++.heading p { margin:4px 0 0; font-size:15px; color:#475569; }
++.heading .reference { font-size:14px; overflow-wrap:anywhere; }
++.heading > span { margin-left:0; font-size:14px; padding:6px 12px; }
++.items { display:grid; gap:12px; }
++.items > div { padding:14px 16px; border:1px solid #dce2eb; border-radius:10px; background:#f8fafc; }
++.items > div > div:first-child { align-items:flex-start; font-size:16px; }
++.items > div > div:first-child > span:first-child { min-width:0; overflow-wrap:anywhere; }
++.items > div > div:first-child > span:last-child { flex-shrink:0; font-weight:600; font-variant-numeric:tabular-nums; }
++.totals { display:grid; gap:12px; }
++.totals > div { display:flex; justify-content:space-between; align-items:baseline; gap:20px; }
++.totals > div > span:last-child { white-space:nowrap; font-variant-numeric:tabular-nums; }
++.totals .total { padding:14px 16px; margin-top:4px; background:#edf1f7; border-radius:10px; font-size:21px; font-weight:700; }
++.details { display:grid; gap:10px; padding:18px; background:#f8fafc; border:1px solid #dce2eb; border-radius:10px; color:#475569; }
++.details p { margin:0; font-size:16px; overflow-wrap:anywhere; }
++.details p > span { color:#232d46; font-weight:600; }
++.actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:12px; padding:18px 24px; border-top:1px solid #dce2eb; background:white; flex-shrink:0; }
++.actions button { min-height:48px; padding:10px 18px; font-size:16px; font-weight:600; border-radius:10px; }
++.actions button:focus-visible { outline:2px solid #426da6; outline-offset:3px; }
++@media(max-width:480px) { .heading { gap:12px; }.actions { padding:16px; }.actions button { flex:1 1 auto; }.totals > div { gap:12px; } }
+diff --git a/ims-frontend/src/components/staff-pos/modals/ReceiptModal.tsx b/ims-frontend/src/components/staff-pos/modals/ReceiptModal.tsx
+index 4c8ec19..be90319 100644
+--- a/ims-frontend/src/components/staff-pos/modals/ReceiptModal.tsx
++++ b/ims-frontend/src/components/staff-pos/modals/ReceiptModal.tsx
+@@ -4,6 +4,7 @@ import { Receipt } from "lucide-react";
+ import type { PosOrder } from "@/lib/pos";
+ import { formatDateTime, formatName, formatPeso } from "@/lib/pos-utils";
+ import Modal from "./Modal";
++import styles from "./ReceiptModal.module.css";
+ 
+ type Props = {
+   receipt: PosOrder;
+@@ -28,12 +29,42 @@ export default function ReceiptModal({
+   onClose,
+ }: Props) {
+   return (
+-    <Modal title="Receipt" onClose={onClose}>
+-      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
+-        <div className="mb-4 flex items-center gap-2">
++    <Modal title="Receipt" onClose={onClose} panelClassName={styles.modal} footer={
++        <div className={styles.actions}>
++          {receipt.status === "COMPLETED" ? (
++            <>
++
++              <PermissionAction permission={"pos.refund"}><button
++                type="button"
++                disabled={reversalSubmitting}
++                onClick={() => onRefund?.(receipt)}
++                className="rounded-2xl border border-[#cbd5e1] px-4 py-2 text-sm font-medium text-[#34445f] hover:bg-[#edf2f8] disabled:opacity-60"
++              >
++                Refund Order
++              </button></PermissionAction>
++            </>
++          ) : null}
++          <button
++            type="button"
++            className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium"
++          >
++            Print Receipt
++          </button>
++          <button
++            onClick={onClose}
++            type="button"
++            className="rounded-2xl bg-[#232d46] px-4 py-2 text-sm font-medium text-white hover:bg-[#34445f]"
++          >
++            Done
++          </button>
++        </div>
++      }>
++      <div className={styles.receipt}>
++        <div className={styles.heading}>
+           <Receipt className="h-5 w-5 text-[#232d46]" />
+           <div>
+-            <h3 className="font-semibold">Receipt #{receipt.id}</h3>
++            <h3 className="font-semibold">{receipt.displayOrderNumber || `Receipt #${receipt.id.slice(0, 8)}`}</h3>
++            <p className={styles.reference}>Order ID: {receipt.id}</p>
+             <p className="text-sm text-slate-500">{formatDateTime(receipt.completedAt)}</p>
+           </div>
+           <span className={`ml-auto rounded-full px-3 py-1 text-xs font-semibold ${statusTone(receipt.status)}`}>
+@@ -41,7 +72,7 @@ export default function ReceiptModal({
+           </span>
+         </div>
+ 
+-        <div className="space-y-3 text-sm">
++        <div className={styles.items}>
+           {receipt.items.map((item) => (
+             <div key={item.id} className="rounded-xl bg-white px-3 py-2">
+               <div className="flex justify-between gap-3">
+@@ -67,7 +98,7 @@ export default function ReceiptModal({
+           ))}
+         </div>
+ 
+-        <div className="mt-4 space-y-2 border-t border-dashed border-slate-300 pt-4 text-sm">
++        <div className={styles.totals}>
+           <div className="flex justify-between">
+             <span>Subtotal (VAT Inclusive)</span>
+             <span>{formatPeso(receipt.subtotalAmount)}</span>
+@@ -84,13 +115,13 @@ export default function ReceiptModal({
+             <span>COGS</span>
+             <span>{formatPeso(receipt.totalCogsAmount)}</span>
+           </div>
+-          <div className="flex justify-between font-bold">
++          <div className={styles.total}>
+             <span>Total</span>
+             <span>{formatPeso(receipt.totalAmount)}</span>
+           </div>
+         </div>
+ 
+-        <div className="mt-4 grid gap-1 text-sm text-slate-600">
++        <div className={styles.details}>
+           <p>
+             <span className="font-medium">Payment:</span>{" "}
+             {receipt.payments
+@@ -124,35 +155,6 @@ export default function ReceiptModal({
+             </div>
+           ) : null}
+         </div>
+-
+-        <div className="mt-5 flex justify-end gap-2">
+-          {receipt.status === "COMPLETED" ? (
+-            <>
+-
+-              <PermissionAction permission={"pos.refund"}><button
+-                type="button"
+-                disabled={reversalSubmitting}
+-                onClick={() => onRefund?.(receipt)}
+-                className="rounded-2xl border border-[#cbd5e1] px-4 py-2 text-sm font-medium text-[#34445f] hover:bg-[#edf2f8] disabled:opacity-60"
+-              >
+-                Refund Order
+-              </button></PermissionAction>
+-            </>
+-          ) : null}
+-          <button
+-            type="button"
+-            className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium"
+-          >
+-            Print Receipt
+-          </button>
+-          <button
+-            onClick={onClose}
+-            type="button"
+-            className="rounded-2xl bg-[#232d46] px-4 py-2 text-sm font-medium text-white hover:bg-[#34445f]"
+-          >
+-            Done
+-          </button>
+-        </div>
+       </div>
+     </Modal>
+   );
+diff --git a/ims-frontend/src/lib/alerts.ts b/ims-frontend/src/lib/alerts.ts
+index f940546..92a9a02 100644
+--- a/ims-frontend/src/lib/alerts.ts
++++ b/ims-frontend/src/lib/alerts.ts
+@@ -100,6 +100,7 @@ export async function acknowledgeAlert(alertId: string, note?: string) {
+       body: JSON.stringify(note ? { note } : {}),
+     }
+   );
++  if (typeof window !== "undefined") window.dispatchEvent(new Event("alerts-updated"));
+   return response.alert;
+ }
+ 
+@@ -111,5 +112,6 @@ export async function dismissAlert(alertId: string, note?: string) {
+       body: JSON.stringify(note ? { note } : {}),
+     }
+   );
++  if (typeof window !== "undefined") window.dispatchEvent(new Event("alerts-updated"));
+   return response.alert;
+ }

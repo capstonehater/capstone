@@ -259,6 +259,13 @@ export async function checkoutPos(payload: PosCheckoutPayload) {
   });
 }
 
+export async function updateCashPayment(orderId: string, amount: number, expectedAmount: number) {
+  const response = await apiJsonFetch<{ order: PosOrder }>(`/orders/${orderId}/cash-payment`, {
+    method: "PATCH", body: JSON.stringify({ amount, expectedAmount }),
+  });
+  return response.order;
+}
+
 export async function fetchOrders(params: {
   from?: string;
   to?: string;

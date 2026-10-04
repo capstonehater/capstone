@@ -13,7 +13,7 @@ import type {
   PosMenuCategory, PosMenuProduct, PosOrder,
 } from "@/lib/pos";
 import {
-  checkoutPos, fetchPosMenu, refundOrder,
+  checkoutPos, fetchPosMenu, refundOrder, updateCashPayment,
 } from "@/lib/pos";
 import {
   cacheMenuSnapshot, createOfflineOperationId, getCachedMenuSnapshot,
@@ -86,7 +86,6 @@ function categoryIcon(categoryName: string) {
 
 export default function StaffPOSPage() {
   const { focusMode, toggleFocusMode } = usePOSFocusMode();
-  const user = useAuthStore((state) => state.user);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [choosingCategory, setChoosingCategory] = useState(true);
@@ -102,6 +101,7 @@ export default function StaffPOSPage() {
   const [discount, setDiscount] = useState("none");
   const [payments, setPayments] = useState<PaymentState>({ cash: "", gcash: "", maya: "", card: "" });
   const [latestReceipt, setLatestReceipt] = useState<PosOrder | null>(null);
+  const [cashCorrectionOrder, setCashCorrectionOrder] = useState<PosOrder | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [voidTargetItem, setVoidTargetItem] = useState<PosCartItem | null>(null);
@@ -110,7 +110,6 @@ export default function StaffPOSPage() {
   const [notice, setNotice] = useState<string | null>(null);
 
   const discountConfig = getDiscountConfig(discount);
-  const staffName = user?.name || user?.email || "Staff User";
   // Apply admin enablement and stock availability to both live and cached menus.
   const availableProducts = useMemo(() => menuProducts
     .filter((product) => product.isEnabled)
@@ -200,8 +199,34 @@ export default function StaffPOSPage() {
     discountRate: discountConfig.rate,
     notes: transactionNote || undefined,
   });
+  const returnToPayment = () => {
+    if (!latestReceipt || checkoutLoading) return;
+    const cash = latestReceipt.payments.filter(payment => payment.method === "CASH");
+    if (cash.length !== 1) return;
+    const saved: PaymentState = { cash: "", gcash: "", maya: "", card: "" };
+    for (const [key, method] of [["cash", "CASH"], ["gcash", "GCASH"], ["maya", "MAYA"], ["card", "CARD"]] as const) {
+      saved[key] = String(latestReceipt.payments.filter(payment => payment.method === method).reduce((sum, payment) => sum + Number(payment.amount), 0));
+    }
+    setPayments(saved); setCashCorrectionOrder(latestReceipt); setError(null); setShowReceipt(false); setShowPayment(true);
+  };
+  const closePayment = () => {
+    if (checkoutLoading) return;
+    setShowPayment(false);
+    if (cashCorrectionOrder) { setCashCorrectionOrder(null); setShowReceipt(true); setPayments({ cash: "", gcash: "", maya: "", card: "" }); }
+  };
   const handleConfirmPayment = async () => {
-    if (!useAuthStore.getState().can("pos.checkout")) return;
+    if (checkoutLoading || !useAuthStore.getState().can("pos.checkout")) return;
+    if (cashCorrectionOrder) {
+      setCheckoutLoading(true); setError(null);
+      try {
+        const previousCash = cashCorrectionOrder.payments.find(payment => payment.method === "CASH")!;
+        const order = await updateCashPayment(cashCorrectionOrder.id, Number(payments.cash), Number(previousCash.amount));
+        setLatestReceipt(order); setCashCorrectionOrder(null); setShowPayment(false); setShowReceipt(true);
+        setPayments({ cash: "", gcash: "", maya: "", card: "" });
+      } catch (nextError) { setError(nextError instanceof Error ? nextError.message : "Unable to update cash payment."); }
+      finally { setCheckoutLoading(false); }
+      return;
+    }
     if (!cart.length) return setError("No transaction to process.");
     const totalPaid = ([payments.cash, payments.gcash, payments.maya, payments.card]).reduce((sum, value) => sum + Number(value || 0), 0);
     if (totalPaid < totals.total) return setError("Incomplete payment. Please settle the full amount before checkout.");
@@ -242,9 +267,8 @@ export default function StaffPOSPage() {
         <header className={`${focusStyles.posHeader} ${focusMode ? focusStyles.posHeaderFocused : ""}`}>
           <div className={focusStyles.posHeaderDetails} inert={focusMode} aria-hidden={focusMode}>
             <div className={focusStyles.retractInner}>
-              <p className="text-sm font-medium text-[#232d46]">Staff Panel</p>
               <h1 className="text-2xl font-bold">Staff POS</h1>
-              <p className="text-sm text-slate-500">Real menu browsing, backend-driven variants and modifiers, and checkout synced to inventory. Signed in as <span className="font-medium text-slate-700">{staffName}</span>.</p>
+              <p>Create orders, accept payments, and manage daily sales.</p>
             </div>
           </div>
           <button type="button" className={`${focusStyles.toggle} ${focusStyles.posHeaderToggle}`} aria-pressed={focusMode} onClick={toggleFocusMode}>
@@ -258,7 +282,7 @@ export default function StaffPOSPage() {
 
         <div key={choosingCategory ? "categories" : "products"} className={`${styles.orderArea} ${choosingCategory ? styles.returnToCategories : styles.openCategory}`}>
         {choosingCategory ? (
-          <section aria-labelledby="pos-categories-title" className={`${styles.categoryPanel} min-h-[60dvh] w-full py-4`}>
+          <section aria-labelledby="pos-categories-title" className={`${styles.categoryPanel} min-h-0 w-full py-4`}>
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 id="pos-categories-title" className="text-2xl font-bold text-[#232d46]">Choose a Category</h2>
@@ -381,8 +405,8 @@ export default function StaffPOSPage() {
 
       {configuratorProduct ? <ProductConfiguratorModal product={configuratorProduct} initialItem={editingCartItem} onClose={closeConfigurator} onSubmit={editingCartItem ? updateConfiguredItem : addConfiguredItem} submitLabel={editingCartItem ? "Save Changes" : "Add to Cart"} /> : null}
       {voidTargetItem ? <VoidConfirmationModal item={voidTargetItem} onClose={() => setVoidTargetItem(null)} onConfirm={() => { if (!voidTargetItem) return; setCart((current) => current.filter((item) => item.cartId !== voidTargetItem.cartId)); if (editingCartItem?.cartId === voidTargetItem.cartId) closeConfigurator(); setVoidTargetItem(null); }} /> : null}
-      {showPayment ? <PermissionAction permission={"pos.checkout"}><PaymentModal total={totals.total} cartCount={cart.length} payments={payments} setPayments={setPayments} onClose={() => setShowPayment(false)} onConfirm={() => void handleConfirmPayment()} /></PermissionAction> : null}
-      {showReceipt && latestReceipt ? <ReceiptModal receipt={latestReceipt} reversalSubmitting={reversalSubmitting} onRefund={(order) => openReversalModal(order, "REFUND")} onClose={() => setShowReceipt(false)} /> : null}
+      {showPayment ? <PermissionAction permission={"pos.checkout"}><PaymentModal total={cashCorrectionOrder ? Number(cashCorrectionOrder.totalAmount) : totals.total} cartCount={cashCorrectionOrder ? cashCorrectionOrder.items.length : cart.length} payments={payments} setPayments={setPayments} onClose={closePayment} cashCorrection={!!cashCorrectionOrder} submitting={checkoutLoading} error={error} onConfirm={() => void handleConfirmPayment()} /></PermissionAction> : null}
+      {showReceipt && latestReceipt ? <ReceiptModal receipt={latestReceipt} onBackToPayment={latestReceipt.createdBy.id === useAuthStore.getState().user?.id && latestReceipt.payments.filter(payment => payment.method === "CASH").length === 1 ? returnToPayment : undefined} reversalSubmitting={reversalSubmitting} onRefund={(order) => openReversalModal(order, "REFUND")} onClose={() => setShowReceipt(false)} /> : null}
       {reversalState.order ? <PermissionAction permission={"pos.refund"}><OrderReversalModal order={reversalState.order} type={reversalState.type} approverEmail={reversalState.approverEmail} approverPassword={reversalState.approverPassword} reasonCode={reversalState.reasonCode} note={reversalState.note} paymentReference={reversalState.paymentReference} submitting={reversalSubmitting} onApproverEmailChange={(value) => setReversalState((current) => ({ ...current, approverEmail: value }))} onApproverPasswordChange={(value) => setReversalState((current) => ({ ...current, approverPassword: value }))} onReasonCodeChange={(value) => setReversalState((current) => ({ ...current, reasonCode: value }))} onNoteChange={(value) => setReversalState((current) => ({ ...current, note: value }))} onPaymentReferenceChange={(value) => setReversalState((current) => ({ ...current, paymentReference: value }))} onClose={() => setReversalState(defaultReversalState())} onConfirm={() => void submitReversal()} /></PermissionAction> : null}
     </div>
   );

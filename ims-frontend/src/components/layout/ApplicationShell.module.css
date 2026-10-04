@@ -10,7 +10,9 @@
   min-height: 100vh;
   background: var(--shell-background);
 }
-.body { min-width: 0; transition: margin-left .25s ease; }
+.body { display: flow-root; min-width: 0; background: var(--shell-background); transition: margin-left .25s ease; }
+.bodyWhiteTop { background: var(--shell-background); }
+.navLink,.staffNavLink { position:relative; }
 @media (min-width: 1280px) {
   .fillContent .body { height: 100dvh; display: flex; flex-direction: column; }
   .fillContent .header { flex-shrink: 0; }
@@ -19,7 +21,7 @@
 .content { min-width: 0; padding: 28px 32px 40px; }
 .header { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 64px; padding: 10px 32px; border-bottom: 1px solid var(--shell-border); background: var(--shell-background); color: #111; }
 .heading { min-width: 0; }
-.pageIntro { flex-shrink: 0; padding: 20px 32px 0; color: #111; }
+.pageIntro { flex-shrink: 0; margin: 18px 32px 0; color: #111; }
 .introDivider { margin-top:24px; border-bottom:1px solid #e2e8f0; }
 .title { margin: 0; font-size: 30px; letter-spacing: -.025em; line-height: 1.25; font-weight: 700; }
 .subtitle { margin: 4px 0 0; font-size: 15px; line-height: 1.6; color: #526078; }
@@ -64,7 +66,7 @@
 .navSubLink[aria-current="page"] { color: var(--shell-accent); border-left-color: var(--shell-accent); }
 .navSubLink { display: block; padding: 5px 10px; color: #b5bac6; font-size: 12px; text-decoration: none; border-left: 1px solid #ffffff30; }
 .navSubLink:hover { color: var(--shell-accent); border-left-color: var(--shell-accent); }
-.footer { padding: 18px 22px; border-top: 1px solid #ffffff60; color: #b5bac6; font-size: 13px; }
+.footer { padding: 18px 22px; border-top: 1px solid #ffffff60; color: #b5bac6; font-size: 13px; text-align: center; }
 .mobileClose, .mobileMenu { display: none; }
 .overlay { position: fixed; inset: 0; z-index: 55; border: 0; background: #11182780; }
 .header a:focus-visible, .header button:focus-visible { outline: 2px solid #1682b2; outline-offset: 3px; }
@@ -74,15 +76,25 @@
 .navSubLink { display: flex; align-items: center; gap: 8px; padding: 8px 10px; color: #e8edf7; font-size: 14px; line-height: 1.5; text-decoration: none; }
 .navSubLink:hover { color: #65f05b; }
 .sidebar a:focus-visible, .sidebar button:focus-visible { outline: 2px solid var(--shell-accent); outline-offset: 3px; }
-.staffSidebar { position: fixed; inset: 0 auto 0 0; z-index: 60; display: flex; flex-direction: column; width: 240px; height: 100dvh; background: var(--shell-navy); color: #f4f5f8; transition: width .25s ease, transform .25s ease; }
+.staffSidebar { position: fixed; inset: 0 auto 0 0; z-index: 60; display: flex; flex-direction: column; width: 300px; height: 100dvh; background: var(--shell-navy); color: #f4f5f8; transition: width .25s ease, transform .25s ease; }
 .staffSidebarCollapsed { width: 76px; }
 .staffBrand { display: flex; align-items: center; justify-content: space-between; min-height: 86px; padding: 20px; border-bottom: 1px solid #ffffff40; font-size: 16px; }
 .staffBrand { justify-content: center; }
 .staffBrand p { margin: 0; color: #b5bac6; font-size: 14px; line-height: 1.5; }
 .staffNavigation { flex: 1; padding: 22px 12px; }
-.staffNavLink { display: flex; align-items: center; gap: 12px; min-height: 42px; margin: 6px 0; padding: 9px 12px; border-left: 2px solid transparent; color: #eef0f5; font-size: 14px; text-decoration: none; transition: background .2s ease, color .2s ease; }
+.staffNavGroup + .staffNavGroup { margin-top: 18px; }
+.staffGroupTitle { margin: 0 10px 8px; color: #bec9dc; font-size: 12px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; }
+.staffNavLink { display: flex; align-items: center; gap: 12px; min-height: 42px; margin: 4px 0; padding: 9px 12px; border-left: 2px solid transparent; color: #eef0f5; font-size: 16px; font-weight: 500; line-height: 1.5; text-decoration: none; transition: background .2s ease, color .2s ease; }
 .staffNavLink:hover { background: #ffffff12; color: white; }
 .staffNavLink[aria-current="page"] { border-left-color: var(--shell-accent); color: var(--shell-accent); background: #ffffff0d; }
+.staffNavToggle { width: 100%; border-top: 0; border-right: 0; border-bottom: 0; background: transparent; text-align: left; cursor: pointer; }
+.staffNavToggle[data-active="true"] { border-left-color: var(--shell-accent); color: var(--shell-accent); }
+.staffNavChevron { flex-shrink: 0; margin-left: auto; transition: transform .2s ease; }
+.staffNavToggle[aria-expanded="true"] .staffNavChevron { transform: rotate(180deg); }
+.staffNavSubmenu { display: grid; gap: 2px; padding: 2px 0 6px 31px; }
+.staffNavSubmenu[hidden] { display: none; }
+.staffNavSubLink { display: block; padding: 5px 10px; border-left: 1px solid #ffffff30; color: #b5bac6; font-size: 13px; line-height: 1.5; text-decoration: none; }
+.staffNavSubLink:hover, .staffNavSubLink[aria-current="page"] { border-left-color: var(--shell-accent); color: var(--shell-accent); }
 .staffCollapseButton { position: absolute; top: 50%; right: -18px; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; transform: translateY(-50%); border: 1px solid #ffffff40; border-radius: 50%; background: var(--shell-navy); color: white; cursor: pointer; transition: background .2s ease, transform .25s ease; }
 .staffCollapseButton:hover { background: #ffffff12; }
 .staffMobileMenu { display: none; }
@@ -92,13 +104,16 @@
 .adminSidebarCollapsed .navLink { justify-content: center; gap: 0; padding-inline: 0; }
 .staffSidebarCollapsed .staffBrand { padding-inline: 8px; }
 .staffSidebarCollapsed .staffNavLink { justify-content: center; gap: 0; padding-inline: 0; }
+.staffSidebarCollapsed .staffNavToggle { justify-content: center; }
+.staffSidebarCollapsed .staffGroupTitle { display: none; }
 .adminShellCollapsed .body { margin-left: 76px; --shell-sidebar-width: 76px; }
 .adminCollapseButton { position: absolute; top: 50%; right: -18px; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; transform: translateY(-50%); border: 1px solid #ffffff40; border-radius: 50%; background: var(--shell-navy); color: white; cursor: pointer; transition: background .2s ease, transform .25s ease; }
 .adminCollapseButton svg { transition: transform .25s ease; }
 .adminSidebarCollapsed .adminCollapseButton svg { transform: rotate(180deg); }
 .adminCollapseButton:hover { background: #ffffff12; }
-.staffBody { min-width: 0; margin-left: 240px; transition: margin-left .25s ease; }
+.staffBody { min-width: 0; margin-left: 300px; transition: margin-left .25s ease; }
 .staffShellCollapsed .staffBody { margin-left: 76px; }
+.staffBody .content > * { width: 100%; max-width: none; margin-inline: 0; }
 .sidebarAccount { position: relative; flex-shrink: 0; padding: 14px 12px; border-bottom: 1px solid #ffffff30; }
 .brand.brandWithAccount { position: relative; flex-direction: column; align-items: stretch; gap: 16px; padding: 24px 0 16px; }
 .brandWithAccount > .mobileClose { position: absolute; top: 12px; right: 8px; }
@@ -132,12 +147,15 @@
   .overlay { display: none; }
 }
 @media (max-width: 1279px) {
-  .pageIntro { padding: 20px 24px 0; }
+  .pageIntro { margin: 18px 24px 0; }
   .shell { --shell-sidebar-width: 280px; }
   .header { padding: 18px 24px; }
   .content { padding: 24px; }
   .actions { gap: 12px; }
   .email { max-width: 180px; }
+  .staffSidebar:not(.staffSidebarCollapsed) { width: 280px; }
+  .staffBody { margin-left: 280px; }
+  .staffShellCollapsed .staffBody { margin-left: 76px; }
 }
 @media (max-width: 1023px) {
   .sidebar { visibility: hidden; transform: translateX(-100%); }
@@ -149,14 +167,14 @@
 @media (max-width: 1023px) {
   .staffSidebar { visibility: hidden; transform: translateX(-100%); }
   .staffSidebarOpen { visibility: visible; transform: translateX(0); }
-  .staffSidebarCollapsed { width: 240px; }
+  .staffSidebarCollapsed { width: 300px; }
   .staffBody, .staffShellCollapsed .staffBody { margin-left: 0; }
   .staffMobileMenu { position: fixed; top: 14px; left: 14px; z-index: 45; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 1px solid var(--shell-border); border-radius: 8px; background: white; color: var(--shell-navy); }
   .adminShellCollapsed .body { margin-left: 0; }
   .adminSidebarCollapsed { width: 300px; }
 }
 @media (max-width: 639px) {
-  .pageIntro { padding: 16px 16px 0; }
+  .pageIntro { margin: 16px 16px 0; }
   .header { flex-wrap: wrap; gap: 16px; padding: 16px; }
   .title { font-size: 23px; }
   .subtitle { font-size: 14px; }
