@@ -1,4 +1,5 @@
 "use client";
+import DateFilter from "@/components/staff-pos/DateFilter";
 
 import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
 
@@ -126,8 +127,8 @@ export default function PosReportsWorkspace() {
       <section className={styles.datePanel} aria-label="Report date range">
         <div className={styles.dateControls}>
           <strong>Date Range</strong>
-          <label>from <input type="date" aria-label="From date" value={from} max={to} onChange={(event) => handleFromChange(event.target.value)} /></label>
-          <label>to <input type="date" aria-label="To date" value={to} min={from} onChange={(event) => handleToChange(event.target.value)} /></label>
+          <DateFilter label="From date" value={from} max={to || undefined} onChange={handleFromChange} />
+          <DateFilter label="To date" value={to} min={from || undefined} onChange={handleToChange} />
           <div className={styles.presets}>
             {(["today", "yesterday", "this-week"] as const).map((option) => (
               <button key={option} type="button" aria-pressed={preset === option} onClick={() => handlePresetChange(option)}>{getPresetLabel(option)}</button>

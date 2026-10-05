@@ -1,0 +1,9 @@
+.panel > div:first-child h2 { font-size:24px; font-weight:700; }
+.panel > div:first-child p { font-size:14px; }
+.panel input.checkbox { width:18px; height:18px; padding:0; flex-shrink:0; border-radius:4px; accent-color:#232d46; }
+.panel label.enabledLabel { display:flex; align-items:center; align-self:end; gap:12px; min-height:44px; margin:0; font-size:14px; font-weight:500; line-height:1.5; cursor:pointer; }
+.panel label.enabledLabel input { margin:0; }
+.panel button.primary { background:#232d46; border-color:#232d46; color:#fff; }
+.panel button.primary:hover:not(:disabled) { background:#34425f; }
+.panel button.danger { border-color:#e5c6cb; color:#963e4b; }
+.panel button.danger:hover:not(:disabled) { background:#fff1f2; }

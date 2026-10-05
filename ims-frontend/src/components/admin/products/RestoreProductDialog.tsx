@@ -1,5 +1,18 @@
 "use client";
-import { X } from "lucide-react";
+import InventoryReportModal from "@/components/admin/inventory/InventoryReportModal";
 import type { ProductDetail } from "@/lib/products";
-type Props={open:boolean;product:ProductDetail|null;submitting:boolean;onClose:()=>void;onConfirm:()=>Promise<void>};
-export default function RestoreProductDialog({open,product,submitting,onClose,onConfirm}:Props){if(!open||!product)return null;return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-[5px] p-4"><div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl"><header className="bg-[var(--modal-header-background)] flex items-start justify-between border-b border-slate-200 px-6 py-4"><div><h2 className="text-lg font-bold text-slate-900">Restore Product</h2><p className="mt-1 text-[13px] text-slate-500">Return this archived product to the active product workspace.</p></div><button onClick={onClose} aria-label="Close" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white p-0 text-slate-600 hover:border-slate-400 hover:bg-slate-50"><X className="h-5 w-5"/></button></header><div className="space-y-4 p-6"><div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">This product will become visible in active product lists again. Existing history and configuration will be preserved.</div><div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-sm"><p><b>Product:</b> {product.name}</p><p><b>Category:</b> {product.category.name}</p><p><b>Current lifecycle:</b> Archived</p><p><b>Variants:</b> {product.variantCount} &nbsp; <b>Ingredients:</b> {product.ingredientCount}</p></div><footer className="flex justify-end gap-3 border-t border-slate-200 pt-4"><button onClick={()=>void onConfirm()} disabled={submitting} className="rounded-md bg-emerald-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">{submitting?"Restoring...":"Restore Product"}</button></footer></div></div></div>}
+import styles from "./ProductActionDialog.module.css";
+type Props = { open: boolean; product: ProductDetail | null; submitting: boolean; onClose: () => void; onConfirm: () => Promise<void> };
+export default function RestoreProductDialog({ open, product, submitting, onClose, onConfirm }: Props) {
+  if (!open || !product) return null;
+  return <InventoryReportModal className={styles.variantDialog} title="Restore Product" description="Return this archived product to the active product workspace." onClose={() => { if (!submitting) onClose(); }}>
+    <div className={styles.body}>
+      <div className={styles.notice}>This product will appear in active product lists again. Existing history and configuration will be preserved.</div>
+      <div className={styles.summary}>
+        <p><b>Product:</b> {product.name}</p><p><b>Category:</b> {product.category.name}</p>
+        <p><b>Current lifecycle:</b> Archived</p><p><b>Variants:</b> {product.variantCount} &nbsp; <b>Ingredients:</b> {product.ingredientCount}</p>
+      </div>
+      <footer className={styles.footer}><button type="button" className={styles.confirm} disabled={submitting} onClick={() => void onConfirm()}>{submitting ? "Restoring..." : "Restore Product"}</button></footer>
+    </div>
+  </InventoryReportModal>;
+}

@@ -52,7 +52,6 @@ export default function PaymentModal({
   return (
     <Modal title="Payment Confirmation" onClose={submitting ? () => {} : onClose} panelClassName={styles.modal} bodyClassName={styles.body} footer={
       <footer className={styles.footer}>
-        <button type="button" onClick={onClose} disabled={submitting} className={styles.cancel}>Cancel</button>
         <button onClick={onConfirm} type="button" disabled={submitting || cartCount === 0 || totalPaid < total} className={styles.confirm}>
           <Check size={18} aria-hidden="true" />{submitting ? "Saving..." : cashCorrection ? "Update Payment" : "Confirm Payment"}
         </button>

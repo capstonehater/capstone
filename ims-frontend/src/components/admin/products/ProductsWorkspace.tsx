@@ -38,6 +38,8 @@ import {
 import { getTodayDateInput } from "@/lib/report-date-range";
 import ArchiveProductDialog from "./ArchiveProductDialog";
 import DeleteProductDialog from "./DeleteProductDialog";
+import DeleteVariantDialog from "./DeleteVariantDialog";
+import DisableVariantDialog from "./DisableVariantDialog";
 import DisableProductDialog from "./DisableProductDialog";
 import ProductDetailPanel from "./ProductDetailPanel";
 import ActionAlert from "@/components/feedback/ActionAlert";
@@ -176,6 +178,10 @@ export default function ProductsWorkspace() {
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
   const [productDialog, setProductDialog] = useState<ProductDialogState | null>(null);
   const [variantDialog, setVariantDialog] = useState<VariantDialogState | null>(null);
+  const [deleteVariantTarget, setDeleteVariantTarget] = useState<ProductVariantDetail | null>(null);
+  const [deleteVariantError, setDeleteVariantError] = useState<string | null>(null);
+  const [disableVariantTarget, setDisableVariantTarget] = useState<ProductVariantDetail | null>(null);
+  const [disableVariantError, setDisableVariantError] = useState<string | null>(null);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [disableDialogOpen, setDisableDialogOpen] = useState(false);
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
@@ -658,6 +664,8 @@ export default function ProductsWorkspace() {
   }
 
   async function handleToggleVariant(variant: ProductVariantDetail) {
+    if (submittingAction) return;
+    setDisableVariantError(null);
     setSubmittingAction("toggle-variant");
     try {
       const updated = await setVariantManualAvailability(
@@ -668,8 +676,10 @@ export default function ProductsWorkspace() {
       setSelectedProduct(updated);
       await refreshCurrentList();
       setNotice("Variant manual availability updated.");
+      setDisableVariantTarget(null);
     } catch (error) {
-      setWorkspaceError(
+      const setError = disableVariantTarget ? setDisableVariantError : setWorkspaceError;
+      setError(
         normalizeProductError(error, "Failed to update variant availability").message,
       );
     } finally {
@@ -678,14 +688,8 @@ export default function ProductsWorkspace() {
   }
 
   async function handleDeleteVariant(variant: ProductVariantDetail) {
-    if (
-      !window.confirm(
-        `Delete variant "${variant.name}" if it has no protected history?`,
-      )
-    ) {
-      return;
-    }
-
+    if (submittingAction) return;
+    setDeleteVariantError(null);
     setSubmittingAction("delete-variant");
     try {
       const updated = await deleteVariant(variant.id);
@@ -696,8 +700,9 @@ export default function ProductsWorkspace() {
         updateQuery({ variantId: updated.variants[0]?.id ?? null }, "push");
       }
       setNotice("Variant deleted.");
+      setDeleteVariantTarget(null);
     } catch (error) {
-      setWorkspaceError(
+      setDeleteVariantError(
         normalizeProductError(error, "Failed to delete variant").message,
       );
     } finally {
@@ -982,8 +987,13 @@ export default function ProductsWorkspace() {
             }
             onAddVariant={() => setVariantDialog({ mode: "create" })}
             onEditVariant={(variant) => setVariantDialog({ mode: "edit", variant })}
-            onToggleVariant={(variant) => void handleToggleVariant(variant)}
-            onDeleteVariant={(variant) => void handleDeleteVariant(variant)}
+            onToggleVariant={(variant) => {
+              if (variant.manualAvailability === "ENABLED") {
+                setDisableVariantError(null);
+                setDisableVariantTarget(variant);
+              } else void handleToggleVariant(variant);
+            }}
+            onDeleteVariant={(variant) => { setDeleteVariantError(null); setDeleteVariantTarget(variant); }}
             onSaveRecipe={handleSaveRecipe}
             onUsageScopeChange={setUsageScope}
             onUsageDateChange={setUsageDate}
@@ -1014,6 +1024,22 @@ export default function ProductsWorkspace() {
             : handleCreateProduct(input)
         }
       /></PermissionAction>
+
+      {deleteVariantTarget && <PermissionAction permission="products.edit"><DeleteVariantDialog
+        variant={deleteVariantTarget}
+        submitting={submittingAction === "delete-variant"}
+        error={deleteVariantError}
+        onClose={() => { if (submittingAction !== "delete-variant") setDeleteVariantTarget(null); }}
+        onConfirm={() => void handleDeleteVariant(deleteVariantTarget)}
+      /></PermissionAction>}
+
+      {disableVariantTarget && <PermissionAction permission="products.edit"><DisableVariantDialog
+        variant={disableVariantTarget}
+        submitting={submittingAction === "toggle-variant"}
+        error={disableVariantError}
+        onClose={() => { if (submittingAction !== "toggle-variant") setDisableVariantTarget(null); }}
+        onConfirm={() => void handleToggleVariant(disableVariantTarget)}
+      /></PermissionAction>}
 
       <PermissionAction permission={"products.edit"}><VariantFormDialog
         mode={variantDialog?.mode ?? "create"}

@@ -3,7 +3,9 @@ import { useAuthStore } from "@/store/authStore";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useMemo, useState, type FormEvent } from "react";
-import { Check, Plus, Search, Trash2, X } from "lucide-react";
+import { Check, Plus, Search, Trash2 } from "lucide-react";
+import InventoryReportModal from "@/components/admin/inventory/InventoryReportModal";
+import dialogStyles from "./SupplierDeleteDialog.module.css";
 import { InventoryField } from "@/components/admin/inventory/InventoryField";
 import SupplierLocationPicker from "@/components/admin/inventory/SupplierLocationPicker";
 import type { Supplier } from "@/lib/inventory";
@@ -122,7 +124,6 @@ export default function SupplierWorkspace({
       setForm(emptyForm);
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : "Unable to delete supplier.");
-      setDeleteTarget(null);
     }
   }
 
@@ -214,6 +215,14 @@ export default function SupplierWorkspace({
                   : <PermissionAction permission={"suppliers.edit"}><button type="button" onClick={() => setEditing(true)} disabled={submitting}
                     className={styles.secondary}>Edit</button></PermissionAction>}
               </> : null}
+              {creating && <button type="button" disabled={submitting} className={styles.secondary}
+                onClick={() => {
+                  setCreating(false);
+                  setEditing(false);
+                  setError(null);
+                  setSelectedId(suppliers[0]?.id ?? null);
+                  setForm(formFor(suppliers[0]));
+                }}>Cancel</button>}
               {(creating || editing) ? <PermissionAction permission={creating ? "suppliers.create" : "suppliers.edit"}><button type="submit" disabled={submitting}
                 className={styles.primary}><Check size={16} />{submitting ? "Saving..." : creating ? "Create Supplier" : "Save Changes"}</button></PermissionAction> : null}
             </div>
@@ -221,18 +230,20 @@ export default function SupplierWorkspace({
         </section>
       </div>
 
-      {deleteTarget ? <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 backdrop-blur-[5px] p-4" onMouseDown={(event) => { if (event.target === event.currentTarget && !submitting) setDeleteTarget(null); }}>
-        <section role="dialog" aria-modal="true" aria-labelledby="delete-supplier-title" className="w-full max-w-md rounded-xl border border-slate-200 bg-white shadow-xl">
-          <header className="bg-[var(--modal-header-background)] flex items-start justify-between gap-4 border-b border-slate-200 p-5">
-            <div><p className="text-xs font-semibold uppercase tracking-wide text-red-700">Warning</p><h2 id="delete-supplier-title" className="mt-1 text-lg font-semibold text-slate-900">Delete Supplier</h2><p className="mt-1 text-sm text-slate-600">Confirm removal of this supplier record.</p></div>
-            <button type="button" onClick={() => setDeleteTarget(null)} disabled={submitting} aria-label="Close confirmation" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white p-0 text-slate-600 hover:border-slate-400 hover:bg-slate-50"><X size={20} /></button>
-          </header>
-          <div className="p-5"><div className="rounded-lg border border-slate-200 bg-slate-50 p-4"><p className="font-semibold text-slate-900">{deleteTarget.name}</p><p className="mt-1 text-sm text-slate-600">{deleteTarget.contactInfo || "No contact information"}</p><p className="mt-1 text-xs text-slate-500">{deleteTarget.address || "No location saved"}</p></div><p className="mt-4 text-sm text-slate-600">The server will enforce existing supplier deletion rules. Deletion may be blocked when the record is in use.</p></div>
-          <footer className="flex justify-end gap-2 border-t border-slate-200 p-4">
-            <PermissionAction permission={"suppliers.delete"}><button type="button" onClick={() => void confirmDelete()} disabled={submitting} className="h-10 rounded-lg bg-red-700 px-4 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50">{submitting ? "Deleting..." : "Delete Supplier"}</button></PermissionAction>
+      {deleteTarget && <InventoryReportModal className={dialogStyles.dialog} title="Delete Supplier" description="Confirm permanent removal of this supplier." onClose={() => { if (!submitting) setDeleteTarget(null); }}>
+        <div className={dialogStyles.content}>
+          <div className={dialogStyles.notice}>Are you sure you want to delete this supplier? This action cannot be undone. Suppliers that are in use cannot be deleted.</div>
+          <div className={dialogStyles.summary}>
+            <p><strong>Supplier:</strong> {deleteTarget.name}</p>
+            <p><strong>Contact:</strong> {deleteTarget.contactInfo || "No contact information"}</p>
+            <p><strong>Address:</strong> {deleteTarget.address || "No location saved"}</p>
+          </div>
+          {error && <p role="alert" className={dialogStyles.error}>{error}</p>}
+          <footer className={dialogStyles.actions}>
+            <PermissionAction permission="suppliers.delete"><button type="button" onClick={() => void confirmDelete()} disabled={submitting}>{submitting ? "Deleting..." : "Delete Supplier"}</button></PermissionAction>
           </footer>
-        </section>
-      </div> : null}
+        </div>
+      </InventoryReportModal>}
     </>
   );
 }

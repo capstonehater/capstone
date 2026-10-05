@@ -17,7 +17,8 @@ foreach ($required in $requiredFiles) {
 
 & $pgCtl status -D $data *> $null
 if ($LASTEXITCODE -ne 0) {
-    & $pgCtl start -D $data -l "$local/postgres.log" -w
+    # Recovery after an interrupted shutdown can exceed pg_ctl's 60-second default.
+    & $pgCtl start -D $data -l "$local/postgres.log" -w -t 180
     if ($LASTEXITCODE -ne 0) { throw 'Database failed to start. See .local/postgres.log.' }
 }
 

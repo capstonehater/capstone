@@ -17,3 +17,14 @@
 .actions .danger { color:#a94612; border-color:#efbb98; background:#fff4eb; }
 .error { background:#fff1f2; color:#9f1239; padding:12px; border-radius:8px; }
 .notice { color:#247445; font-size:13px; }
+.removeDialog { width:min(520px, calc(100vw - 32px)); border-radius:16px; }
+.removeDialog > header { padding:20px 24px; }
+.removeDialog > header h2 { margin:0; font-size:24px; line-height:1.3; }
+.removeDialog > header p { font-size:14px; line-height:1.5; }
+.removeDialog > div { padding:24px; }
+.removeSummary { display:grid; gap:8px; padding:16px; border:1px solid #dce2eb; border-radius:10px; background:#f8fafc; overflow-wrap:anywhere; }
+.removeSummary p { margin:0; font-size:15px; }
+.sessionNotice { margin:18px 0; padding:12px 16px; border:1px solid #dce2eb; border-radius:10px; background:#f8fafc; color:#475569; font-size:14px; line-height:1.6; }
+.removeDialog .actions button { min-height:44px; padding:10px 18px; border-radius:8px; font-size:14px; }
+.removeDialog .actions .danger { background:#923d3d; border-color:#923d3d; color:#fff; }
+.removeDialog .actions .danger:hover:not(:disabled) { background:#7b3030; }

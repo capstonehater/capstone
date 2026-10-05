@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import selectStyles from "@/components/admin/AdminSelect.module.css";
 import styles from "./DateFilter.module.css";
@@ -9,11 +9,11 @@ function dateValue(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-type Props = { label: string; value: string; min?: string; max?: string; onChange: (value: string) => void };
+type Props = { label: string; value: string; min?: string; max?: string; placement?: "auto" | "above"; onChange: (value: string) => void };
 
-export default function DateFilter({ label, value, min, max, onChange }: Props) {
+export default function DateFilter({ label, value, min, max, placement = "auto", onChange }: Props) {
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState({ left: 0, top: 0 });
+  const [position, setPosition] = useState<CSSProperties>({ left: 0, top: 0 });
   const [month, setMonth] = useState(() => new Date());
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -62,7 +62,18 @@ export default function DateFilter({ label, value, min, max, onChange }: Props) 
       onClick={() => {
         if (!open) {
           const rect = trigger.current?.getBoundingClientRect();
-          if (rect) setPosition({ left: Math.max(12, Math.min(rect.left, window.innerWidth - 308)), top: Math.max(12, Math.min(rect.bottom + 8, window.innerHeight - 364)) });
+          if (rect) {
+            const fieldTop = root.current?.getBoundingClientRect().top ?? rect.top;
+            const above = fieldTop - 20;
+            const below = window.innerHeight - rect.bottom - 20;
+            const openAbove = placement === "above" || (below < 360 && above > below);
+            setPosition({
+              left: Math.max(12, Math.min(rect.left, window.innerWidth - 308)),
+              ...(openAbove
+                ? { bottom: window.innerHeight - fieldTop + 8, maxHeight: Math.max(0, above) }
+                : { top: rect.bottom + 8, maxHeight: Math.max(0, below) }),
+            });
+          }
           const initial = value || (min && today < min ? min : max && today > max ? max : today);
           setMonth(new Date(`${initial}T12:00:00`));
         }

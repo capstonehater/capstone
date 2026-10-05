@@ -178,6 +178,11 @@
 .detailTable th, .detailTable td { text-align:left; }
 .detailTable .numeric { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
 .detailTable .identifier { max-width:300px; overflow-wrap:anywhere; }
+.detailModal > header { padding:20px 24px; }
+.detailModal > header h2 { font-size:24px; line-height:1.3; font-weight:700; }
+.detailModal > header p { font-size:15px; line-height:1.5; }
 .modalFooter { display:flex; justify-content:flex-end; margin-top:20px; }
-.workspaceLink { display:inline-flex; align-items:center; min-height:44px; padding:10px 16px; border-radius:10px; background:#232d46; color:#fff; font-size:15px; font-weight:600; }
+.workspaceLink { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:44px; padding:10px 16px; border-radius:10px; background:#232d46; color:#fff; font-size:15px; font-weight:600; text-decoration:none; }
+.workspaceLink svg { flex-shrink:0; width:18px; height:18px; }
+.workspaceLink:focus-visible { outline:2px solid #426da6; outline-offset:3px; }
 .workspaceLink:hover { color:#fff; background:#34445f; }

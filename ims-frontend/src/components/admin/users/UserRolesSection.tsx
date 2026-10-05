@@ -52,14 +52,17 @@ export default function UserRolesSection({ userId, userName, isSelf, onChanged }
       <p className={styles.hint}>Legacy-linked membership changes through Edit User. Assigned permissions do not override inactive account status.</p>
     </>}
     {notice && <p role="status" className={styles.notice}>{notice}</p>}
-    {(assigning || removing) && <RoleDialog title={assigning ? 'Assign Roles' : 'Remove Role'} busy={busy} onClose={close}>
-      <p><strong>User:</strong> {userName}</p>
-      <p className={styles.hint}>{isSelf ? 'Saving will end your current session. Sign in again afterward.' : 'Saving will revoke this user\'s active sessions.'}</p>
+    {(assigning || removing) && <RoleDialog className={removing ? styles.removeDialog : undefined} title={assigning ? 'Assign Roles' : 'Remove Role'} description={removing ? 'Confirm removing this role from the user.' : undefined} busy={busy} onClose={close}>
+      <div className={removing ? styles.removeSummary : undefined}>
+        <p><strong>User:</strong> {userName}</p>
+        {removing && <p><strong>Role:</strong> {removing.name}</p>}
+      </div>
+      <p className={removing ? styles.sessionNotice : styles.hint}>{isSelf ? 'Saving will end your current session. Sign in again afterward.' : 'Saving will revoke this user\'s active sessions.'}</p>
       {dialogError && <p role="alert" className={styles.error}>{dialogError}</p>}
       {assigning ? <div className={styles.options}>{available.length ? available.map((role) => {
         const assigned = data?.roles.some((item) => item.id === role.id) ?? false;
         return <label key={role.id}><input type="checkbox" disabled={busy || assigned} checked={assigned || selection.includes(role.id)} onChange={(event) => setSelection((ids) => event.target.checked ? [...ids, role.id] : ids.filter((id) => id !== role.id))} /><span><strong>{role.name}</strong><small>{assigned ? 'Already assigned' : role.description || 'No description'}</small></span></label>;
-      }) : <p>No roles are available. Create roles in Roles & Permissions first.</p>}</div> : <p>Remove <strong>{removing?.name}</strong> from <strong>{userName}</strong>? The role itself will not be deleted.</p>}
+      }) : <p>No roles are available. Create roles in Roles & Permissions first.</p>}</div> : <p>Are you sure you want to remove <strong>{removing?.name}</strong> from <strong>{userName}</strong>? The role itself will remain available.</p>}
       <footer className={styles.actions}><button className={assigning ? styles.primary : styles.danger} disabled={busy || (assigning && !selection.length)} onClick={() => void save()}>{busy ? 'Saving...' : assigning ? 'Save Roles' : 'Remove Role'}</button></footer>
     </RoleDialog>}
   </section>;

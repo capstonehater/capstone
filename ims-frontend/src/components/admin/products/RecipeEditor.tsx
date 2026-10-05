@@ -3,6 +3,7 @@
 import StyledSelect from "@/components/admin/StyledSelect";
 import { useMemo, useState } from "react";
 import styles from "./VariantsRecipe.module.css";
+import modalStyles from "./VariantEditor.module.css";
 import {
   InventoryField,
   inventoryInputClasses,
@@ -94,6 +95,9 @@ export default function RecipeEditor({
   }
 
   async function handleSave() {
+    if (!isDirty || submitting || loading) {
+      return;
+    }
     if (!validate()) {
       return;
     }
@@ -108,9 +112,11 @@ export default function RecipeEditor({
 
   return (
     <InventoryModal
+      professional
+      panelClassName={modalStyles.panel}
       title={`Edit Recipe${recipe ? ` for ${recipe.variantName}` : ""}`}
       description="Recipe changes affect future sales consumption and availability calculations. Historical ingredient deductions are not rewritten."
-      onClose={() => void handleClose()}
+      onClose={() => { if (!submitting) void handleClose(); }}
       wide
     >
       <div className={styles.editor}>
@@ -204,7 +210,7 @@ export default function RecipeEditor({
                             : current.filter((_, itemIndex) => itemIndex !== index),
                         )
                       }
-                      className={styles.danger}
+                      className={`${styles.danger} ${modalStyles.danger}`}
                     >
                       Remove
                     </button>
@@ -213,24 +219,23 @@ export default function RecipeEditor({
               );
             })}
 
-            <button
-              type="button"
-              onClick={() =>
-                setRows((current) => [...current, { rawMaterialId: "", quantity: "" }])
-              }
-              className={styles.secondary}
-            >
-              Add ingredient
-            </button>
           </div>
         )}
 
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-wrap justify-end gap-3">
           <button
             type="button"
             disabled={submitting || loading}
+            onClick={() => setRows((current) => [...current, { rawMaterialId: "", quantity: "" }])}
+            className={styles.secondary}
+          >
+            Add ingredient
+          </button>
+          <button
+            type="button"
+            disabled={submitting || loading || !isDirty}
             onClick={() => void handleSave()}
-            className={styles.primary}
+            className={`${styles.primary} ${modalStyles.primary}`}
           >
             {submitting ? "Saving..." : "Save Recipe"}
           </button>

@@ -1,0 +1,16 @@
+.dialog { max-width:520px; border-radius:16px; background:#fff; }
+.dialog > header { padding:20px 24px; }
+.dialog > header h2 { font-size:24px; font-weight:700; }
+.dialog > header p { font-size:14px; }
+.dialog > div { padding:24px; }
+.content { display:grid; gap:18px; font-size:14px; line-height:1.6; }
+.notice { padding:14px 16px; border:1px solid #ead3d3; border-radius:10px; background:#fcf5f5; color:#8c3636; }
+.summary { display:grid; gap:10px; padding:16px; border:1px solid #dce2eb; border-radius:10px; background:#f8fafc; overflow-wrap:anywhere; }
+.summary p { margin:0; }
+.summary strong { font-weight:600; }
+.error { margin:0; color:#9f1239; }
+.actions { display:flex; justify-content:flex-end; padding-top:18px; border-top:1px solid #e2e8f0; }
+.actions button { min-height:44px; padding:10px 18px; border:1px solid #923d3d; border-radius:8px; background:#923d3d; color:#fff; font-size:14px; font-weight:600; cursor:pointer; }
+.actions button:hover:not(:disabled) { background:#7b3030; }
+.actions button:disabled { opacity:.5; cursor:not-allowed; }
+.actions button:focus-visible { outline:2px solid #64748b; outline-offset:3px; }

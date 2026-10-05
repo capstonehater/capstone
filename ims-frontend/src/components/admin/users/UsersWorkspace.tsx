@@ -139,7 +139,7 @@ function initialsFor(name: string) {
 
 function roleTone(role: UserManagementRole) {
   if (role === "ADMINISTRATOR") {
-    return "border-orange-200 bg-orange-50 text-orange-700";
+    return "border-purple-200 bg-purple-50 text-purple-700";
   }
   if (role === "MANAGER") {
     return "border-slate-300 bg-slate-100 text-slate-700";
@@ -976,7 +976,7 @@ function UserProfileHeader({
             </ActionButton></PermissionAction>
           ) : null}
           {canReactivate ? (
-            <PermissionAction permission={"users.manage"}><ActionButton icon={<CheckCircle2 className="h-4 w-4" />} onClick={onReactivate}>
+            <PermissionAction permission={"users.manage"}><ActionButton icon={<CheckCircle2 className="h-4 w-4" />} tone="success" onClick={onReactivate}>
               Reactivate
             </ActionButton></PermissionAction>
           ) : null}
@@ -1017,7 +1017,7 @@ function ActionButton({
 }: {
   children: React.ReactNode;
   icon: React.ReactNode;
-  tone?: "neutral" | "danger";
+  tone?: "neutral" | "danger" | "success";
   onClick: () => void;
 }) {
   return (
@@ -1027,6 +1027,8 @@ function ActionButton({
       className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
         tone === "danger"
           ? "border-rose-200 bg-white text-rose-700 hover:bg-rose-50"
+          : tone === "success"
+          ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100"
           : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
       }`}
     >
@@ -1460,25 +1462,23 @@ function ConfirmDialog({
   const copy = getConfirmCopy(dialog);
 
   return (
-    <InventoryModal title={copy.title} description={copy.description} onClose={onClose}>
-      <div className="space-y-5">
+    <InventoryModal professional panelClassName={styles.confirmPanel} bodyClassName={styles.confirmBody} title={copy.title} description={copy.description} onClose={submitting ? () => undefined : onClose}>
+      <div className={styles.confirmContent}>
         {errorMessage ? (
-          <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <div role="alert" className={styles.confirmError}>
             {errorMessage}
           </div>
         ) : null}
-        <div className="rounded-3xl border border-slate-200 bg-white p-4">
+        <div className={styles.confirmSummary}>
           <p className="text-sm font-semibold text-slate-950">{dialog.user.name}</p>
           <p className="mt-1 text-sm text-slate-500">{dialog.user.email}</p>
         </div>
-        <div className="flex justify-end gap-3">
+        <div className={styles.confirmActions}>
           <button
             type="button"
             disabled={submitting}
             onClick={() => void onConfirm(dialog.type)}
-            className={`rounded-full px-5 py-2 text-sm font-semibold text-white disabled:opacity-50 ${
-              copy.danger ? "bg-rose-700 hover:bg-rose-800" : "bg-slate-950 hover:bg-slate-800"
-            }`}
+            className={copy.danger ? styles.confirmDanger : styles.confirmPrimary}
           >
             {submitting ? "Working..." : copy.confirm}
           </button>
@@ -1491,9 +1491,9 @@ function ConfirmDialog({
 function getConfirmCopy(dialog: Exclude<DialogState, { type: "create" } | { type: "edit"; user: UserDetail }>) {
   if (dialog.type === "suspend") {
     return {
-      title: "Suspend User",
-      description: "The account will become Inactive and active sessions will be revoked.",
-      confirm: "Suspend User",
+      title: "Deactivate User",
+      description: "Are you sure you want to deactivate this user? They will be signed out and unable to sign in until reactivated.",
+      confirm: "Deactivate User",
       danger: true,
     };
   }
@@ -1510,8 +1510,8 @@ function getConfirmCopy(dialog: Exclude<DialogState, { type: "create" } | { type
       title: dialog.user.status === "PENDING" ? "Send Account Setup" : "Reset Password",
       description:
         dialog.user.status === "PENDING"
-          ? "A secure setup flow will be initiated without exposing tokens in the UI."
-          : "A secure password reset flow will be initiated without reactivating inactive accounts.",
+          ? "Send this user an account setup email so they can choose their password."
+          : "Send this user a password reset email. Inactive accounts will remain inactive.",
       confirm: dialog.user.status === "PENDING" ? "Send Setup" : "Reset Password",
       danger: false,
     };
@@ -1519,7 +1519,7 @@ function getConfirmCopy(dialog: Exclude<DialogState, { type: "create" } | { type
   if (dialog.type === "delete") {
     return {
       title: "Delete User",
-      description: "Hard delete is only allowed when the backend confirms no protected historical records exist.",
+      description: "Are you sure you want to permanently delete this user? This cannot be undone. Users with protected history cannot be deleted.",
       confirm: "Delete User",
       danger: true,
     };

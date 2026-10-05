@@ -1,4 +1,5 @@
 "use client";
+import DateFilter from "@/components/staff-pos/DateFilter";
 
 import { useEffect, useMemo, useState } from "react";
 import { ChartPie, Trash2, ChartNoAxesColumnIncreasing, Layers, Tag, TriangleAlert, RefreshCw, FileDown } from "lucide-react";
@@ -165,8 +166,8 @@ export default function InventoryReportsWorkspace() {
     <div className={styles.workspace}>
       <section className={styles.toolbar} aria-label="Report date range and exports">
         <strong>Date Range</strong>
-        <label>From <input aria-label="From date" type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></label>
-        <label>To <input aria-label="To date" type="date" value={to} min={from} onChange={(event) => setTo(event.target.value)} /></label>
+        <DateFilter label="From date" value={from} max={to || undefined} onChange={setFrom} />
+        <DateFilter label="To date" value={to} min={from || undefined} onChange={setTo} />
         <div className={styles.toolbarActions}>
           <button type="button" className={styles.refresh} onClick={() => setRefreshToken((current) => current + 1)}><RefreshCw size={15} />Refresh</button>
           <button type="button" disabled={!canExport || exportingFormat !== null} onClick={() => void handleExport("csv")}><FileDown size={15} />{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</button>

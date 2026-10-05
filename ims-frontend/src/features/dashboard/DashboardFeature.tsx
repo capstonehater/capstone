@@ -6,6 +6,7 @@ import { PermissionAction } from "@/components/auth/PermissionGuard";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
+  ArrowRight,
   Bell,
   Clock3,
 } from "lucide-react";
@@ -269,6 +270,7 @@ export default function DashboardFeature() {
       </section></PermissionAction>
 
       {activeModal && <PermissionAction permission="reports.view"><InventoryReportModal
+        className={styles.detailModal}
         title={activeModal === "orders" ? "Recent Orders" : activeModal === "expiry" ? "Near Expiry Watchlist" : "Waste Breakdown"}
         description={activeModal === "orders" ? "Recent orders from the selected sales period." : activeModal === "expiry" ? "Review remaining quantities and expiry dates for the batches returned by the inventory report." : "Waste events and costs grouped by reason for the dashboard reporting period."}
         onClose={() => setActiveModal(null)}>
@@ -284,7 +286,7 @@ export default function DashboardFeature() {
           </table>
         </div>
         <footer className={styles.modalFooter}>
-          <a className={styles.workspaceLink} href={activeModal === "orders" ? "/reports/pos" : activeModal === "expiry" ? "/inventory" : "/reports/inventory"}>Open full workspace â†’</a>
+          <a className={styles.workspaceLink} href={activeModal === "orders" ? "/reports/pos" : activeModal === "expiry" ? "/inventory" : "/reports/inventory"}>Open full workspace <ArrowRight size={18} aria-hidden="true" /></a>
         </footer>
       </InventoryReportModal></PermissionAction>}
       </div>

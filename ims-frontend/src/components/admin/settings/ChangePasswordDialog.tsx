@@ -27,7 +27,7 @@ function PasswordInput(props: InputHTMLAttributes<HTMLInputElement> & { label: s
   const { label, ...inputProps } = props;
   return <div className={passwordStyles.inputWrap}>
     <input {...inputProps} type={visible ? "text" : "password"} />
-    <button type="button" disabled={props.disabled} aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()}`} aria-controls={props.id} aria-pressed={visible} onClick={() => setVisible(current => !current)}>
+    <button className={passwordStyles.passwordToggle} type="button" disabled={props.disabled} aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()}`} aria-controls={props.id} aria-pressed={visible} onClick={() => setVisible(current => !current)}>
       {visible ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
     </button>
   </div>;

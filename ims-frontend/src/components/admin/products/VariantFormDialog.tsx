@@ -6,6 +6,7 @@ import {
   inventoryInputClasses,
 } from "@/components/admin/inventory/InventoryField";
 import InventoryModal from "@/components/admin/inventory/InventoryModal";
+import styles from "./VariantEditor.module.css";
 import type { ProductVariantDetail } from "@/lib/products";
 
 type Props = {
@@ -108,9 +109,11 @@ function VariantFormDialogBody({
 
   return (
     <InventoryModal
+      professional
+      panelClassName={styles.panel}
       title={mode === "create" ? "Add Variant" : `Edit ${variant?.name ?? "Variant"}`}
       description="Manage a product variant without leaving the selected product workspace."
-      onClose={onClose}
+      onClose={() => { if (!submitting) onClose(); }}
     >
       <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
         {clientErrors.length > 0 ? (
@@ -163,13 +166,14 @@ function VariantFormDialogBody({
             placeholder="180.00"
           />
         </InventoryField>
-        <label className="inline-flex items-center gap-3 self-end text-sm font-medium text-slate-700">
+        <label className={styles.enabledLabel}>
           <input
             type="checkbox"
+            className={styles.checkbox}
             checked={isEnabled}
             onChange={(event) => setIsEnabled(event.target.checked)}
           />
-          Variant manually enabled
+          <span>Variant manually enabled</span>
         </label>
         <div className="md:col-span-2 flex justify-end gap-3 pt-2">
           <button

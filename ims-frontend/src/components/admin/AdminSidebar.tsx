@@ -18,6 +18,9 @@ type AdminSidebarProps = { isOpen: boolean; onClose: () => void; collapsed: bool
 export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleCollapse, className = "", inert = false }: AdminSidebarProps) {
   const pathname = usePathname();
   const navigation = getVisibleNavigation(useAuthStore());
+  const activeLink = navigation.flatMap(group => group.items)
+    .filter(item => !item.children && matchesShellRoute(pathname, item.href.split("#")[0]))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
   const [selectedDropdown, setSelectedDropdown] = useState<{ href: string; path: string } | null>(null);
   const dropdownSelection = selectedDropdown?.path === pathname ? selectedDropdown.href : null;
   function navigate() {
@@ -114,7 +117,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
                   >
                     <item.icon size={19} aria-hidden="true" />
                     {!collapsed && <><span>{item.label}</span><ChevronDown size={16} className={styles.navChevron} aria-hidden="true" /></>}
-                  </button> : <Link href={item.href} title={collapsed ? item.label : undefined} onClick={navigateMain} className={styles.navLink} aria-current={!dropdownSelection && matchesShellRoute(pathname, item.href.split("#")[0]) ? "page" : undefined}>
+                  </button> : <Link href={item.href} title={collapsed ? item.label : undefined} onClick={navigateMain} className={styles.navLink} aria-current={!dropdownSelection && activeLink === item.href ? "page" : undefined}>
                     <item.icon size={19} aria-hidden="true" /><span>{collapsed ? null : item.label}</span>
                     {item.href === routeHref("alerts") && <AlertCountBadge collapsed={collapsed} />}
                   </Link>}

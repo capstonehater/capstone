@@ -1,4 +1,5 @@
 "use client";
+import DateFilter from "@/components/staff-pos/DateFilter";
 import AdminSelect from "@/components/admin/AdminSelect";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
@@ -226,34 +227,34 @@ export default function StockRunModals({
                       className={inventoryInputClasses}
                     />
                   </InventoryField>
-                  <InventoryField htmlFor="stock-run-item-expiry" label="Expiration date">
-                    <input
-                      id="stock-run-item-expiry"
-                      type="date"
+                    <DateFilter
+                      label="Expiration date"
                       value={stockRunItemForm.expirationDate}
-                      onChange={(event) =>
+                      onChange={(value) =>
                         onStockRunItemFormChange((current) => ({
                           ...current,
-                          expirationDate: event.target.value,
+                          expirationDate: value,
                         }))
                       }
-                      className={inventoryInputClasses}
                     />
-                  </InventoryField>
-                  <InventoryField htmlFor="stock-run-item-received" label="Received at">
+                  <div className="grid gap-3">
+                    <DateFilter label="Received date" value={stockRunItemForm.receivedAt.split("T")[0]}
+                      onChange={(value) => onStockRunItemFormChange((current) => ({ ...current, receivedAt: value ? `${value}T${current.receivedAt.split("T")[1] || "00:00"}` : "" }))} />
+                  <InventoryField htmlFor="stock-run-item-received" label="Received time">
                     <input
                       id="stock-run-item-received"
-                      type="datetime-local"
-                      value={stockRunItemForm.receivedAt}
+                      type="time"
+                      value={stockRunItemForm.receivedAt.split("T")[1] || ""}
                       onChange={(event) =>
                         onStockRunItemFormChange((current) => ({
                           ...current,
-                          receivedAt: event.target.value,
+                          receivedAt: current.receivedAt.split("T")[0] && event.target.value ? `${current.receivedAt.split("T")[0]}T${event.target.value}` : "",
                         }))
                       }
                       className={inventoryInputClasses}
                     />
                   </InventoryField>
+                  </div>
                   <div className="xl:col-span-2">
                     <InventoryField htmlFor="stock-run-item-note" label="Line note">
                       <textarea

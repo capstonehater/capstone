@@ -1,6 +1,7 @@
 "use client";
 
 import StyledSelect from "@/components/admin/StyledSelect";
+import DateFilter from "@/components/staff-pos/DateFilter";
 import { inventoryInputClasses } from "@/components/admin/inventory/InventoryField";
 import type { ProductIngredientUsage, ProductUsageScope } from "@/lib/products";
 import { formatDateTime, formatPeso } from "./product-ui";
@@ -50,15 +51,12 @@ export default function ProductIngredientUsageTab({
               ))}
             </StyledSelect>
           </label>
-          <label className="space-y-1 text-sm font-medium text-slate-700">
-            <span>{usageScope === "ONE_DAY" ? "Business date" : "Window end date"}</span>
-            <input
-              type="date"
-              value={usageDate}
-              onChange={(event) => onDateChange(event.target.value)}
-              className={inventoryInputClasses}
-            />
-          </label>
+          <DateFilter
+            placement="above"
+            label={usageScope === "ONE_DAY" ? "Business date" : "Window end date"}
+            value={usageDate}
+            onChange={onDateChange}
+          />
         </div>
         <button
           type="button"
