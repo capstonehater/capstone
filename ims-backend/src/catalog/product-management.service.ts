@@ -1,3 +1,4 @@
+import { withHistoricalMaterial } from '../inventory/material-history-snapshot';
 import {
   BadRequestException,
   ConflictException,
@@ -493,71 +494,10 @@ export class ProductManagementService {
       throw new NotFoundException('Product not found');
     }
 
-    const variantIds = product.variants.map((variant) => variant.id);
-
-    const emptyResult = {
+    return {
       eligible: true,
-      blockingReasons: [] as Array<{
-        code: string;
-        message: string;
-        count: number;
-      }>,
+      blockingReasons: [] as Array<{ code: string; message: string; count: number }>,
     };
-
-    if (variantIds.length === 0) {
-      return emptyResult;
-    }
-
-    const [orderItemCount, ledgerLineCount, stockoutCount] = await Promise.all([
-      this.prisma.orderItem.count({
-        where: { productVariantId: { in: variantIds } },
-      }),
-      this.prisma.inventoryTransactionLine.count({
-        where: {
-          productVariantId: { in: variantIds },
-        },
-      }),
-      this.prisma.stockoutEvent.count({
-        where: {
-          productVariantId: { in: variantIds },
-        },
-      }),
-    ]);
-
-    const blockingReasons: Array<{
-      code: string;
-      message: string;
-      count: number;
-    }> = [];
-    if (orderItemCount > 0) {
-      blockingReasons.push({
-        code: 'HAS_ORDER_HISTORY',
-        message: 'Product variants are referenced by historical orders.',
-        count: orderItemCount,
-      });
-    }
-    if (ledgerLineCount > 0) {
-      blockingReasons.push({
-        code: 'HAS_LEDGER_HISTORY',
-        message: 'Product variants are referenced by inventory ledger history.',
-        count: ledgerLineCount,
-      });
-    }
-    if (stockoutCount > 0) {
-      blockingReasons.push({
-        code: 'HAS_STOCKOUT_HISTORY',
-        message:
-          'Product variants are referenced by retained stockout history.',
-        count: stockoutCount,
-      });
-    }
-
-    return blockingReasons.length === 0
-      ? emptyResult
-      : {
-          eligible: false,
-          blockingReasons,
-        };
   }
 
   async deleteProduct(productId: string) {
@@ -1540,7 +1480,8 @@ export class ProductManagementService {
       }
     >();
 
-    for (const line of lines) {
+    for (const record of lines) {
+      const line = withHistoricalMaterial(record);
       const current = materialMap.get(line.rawMaterialId) ?? {
         rawMaterialId: line.rawMaterialId,
         rawMaterialName: line.rawMaterial.name,
@@ -1618,11 +1559,12 @@ export class ProductManagementService {
     matchingOrderItems: Array<{
       quantity: number;
       orderId: string;
-      productVariantId: string;
+      productVariantId: string | null;
     }>,
   ) {
     const orderUnitsByVariantId = new Map<string, number>();
     for (const item of matchingOrderItems) {
+      if (!item.productVariantId) continue;
       orderUnitsByVariantId.set(
         item.productVariantId,
         (orderUnitsByVariantId.get(item.productVariantId) ?? 0) + item.quantity,

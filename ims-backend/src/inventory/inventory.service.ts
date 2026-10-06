@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { toDecimal } from '../common/utils/decimal.util';
 import { PrismaService } from '../prisma/prisma.service';
@@ -88,6 +88,46 @@ export class InventoryService {
         summary: true,
       },
     });
+  }
+
+  async unarchiveRawMaterial(rawMaterialId: string) {
+    await this.ensureRawMaterialExists(rawMaterialId);
+    return this.prisma.rawMaterial.update({
+      where: { id: rawMaterialId },
+      data: { isActive: true },
+      include: { unit: true, summary: true },
+    });
+  }
+
+  async deleteRawMaterial(rawMaterialId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const material = await tx.rawMaterial.findUnique({
+        where: { id: rawMaterialId },
+        include: { unit: true },
+      });
+      if (!material) throw new NotFoundException('Raw material not found');
+      const [recipes, modifiers, drafts] = await Promise.all([
+        tx.variantRecipeItem.count({ where: { rawMaterialId } }),
+        tx.modifierRecipeAdjustment.count({ where: { rawMaterialId } }),
+        tx.stockRunItem.count({ where: { rawMaterialId, stockRun: { status: 'DRAFT' } } }),
+      ]);
+      if (recipes || modifiers || drafts) {
+        throw new BadRequestException('Remove this material from product recipes, modifier recipes, and draft stock runs before deleting it.');
+      }
+      const snapshot = JSON.parse(JSON.stringify(material)) as Prisma.InputJsonObject;
+      const update = { where: { rawMaterialId }, data: { rawMaterialSnapshot: snapshot } };
+      await tx.stockRunItem.updateMany(update);
+      await tx.stockBatch.updateMany(update);
+      await tx.inventoryTransactionLine.updateMany(update);
+      await tx.inventoryDailySnapshot.updateMany(update);
+      await tx.storeAvailabilitySearch.updateMany(update);
+      await tx.alert.updateMany(update);
+      await tx.stockoutEvent.updateMany(update);
+      await tx.alert.updateMany({ where: { rawMaterialId, state: 'ACTIVE' }, data: { state: 'RESOLVED', resolvedAt: new Date() } });
+      await tx.stockoutEvent.updateMany({ where: { rawMaterialId, endedAt: null }, data: { endedAt: new Date() } });
+      await tx.rawMaterial.delete({ where: { id: rawMaterialId } });
+      return { id: material.id, name: material.name };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
 
   async listRawMaterials() {
@@ -188,7 +228,8 @@ export class InventoryService {
 
     const rawMaterials = await this.prisma.rawMaterial.findMany({
       where: {
-        isActive: includeArchived ? undefined : true,
+        isActive:
+          filters.status === 'INACTIVE' ? false : includeArchived ? undefined : true,
         OR: search
           ? [
               {

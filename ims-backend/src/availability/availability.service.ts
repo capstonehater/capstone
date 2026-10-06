@@ -358,7 +358,7 @@ export class AvailabilityService {
     }
 
     for (const batch of batches) {
-      const entry = grouped.get(batch.rawMaterialId);
+      const entry = batch.rawMaterialId ? grouped.get(batch.rawMaterialId) : undefined;
       if (!entry) {
         continue;
       }
@@ -519,7 +519,7 @@ export class AvailabilityService {
       },
     });
 
-    return [...new Set(batches.map((batch) => batch.rawMaterialId))];
+    return [...new Set(batches.map((batch) => batch.rawMaterialId).filter((id): id is string => id !== null))];
   }
 
   private async loadRawMaterialUsableQuantityMap(

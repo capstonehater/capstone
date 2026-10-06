@@ -11,6 +11,7 @@ import type {
   PosMenuProduct,
 } from "@/lib/pos";
 import { decimalToNumber, formatPeso } from "@/lib/pos-utils";
+import { remainingVariantQuantity } from "@/lib/pos-cart-availability";
 import ProductImage from "@/components/ProductImage";
 import Modal from "./Modal";
 import styles from "./ProductConfiguratorModal.module.css";
@@ -21,6 +22,7 @@ type Props = {
   onSubmit: (payload: ConfiguredPosCartItemInput) => void;
   submitLabel: string;
   initialItem?: PosCartItem | null;
+  cart?: PosCartItem[];
 };
 
 function groupHint(group: PosMenuModifierGroup) {
@@ -61,6 +63,7 @@ export default function ProductConfiguratorModal({
   onSubmit,
   submitLabel,
   initialItem,
+  cart = [],
 }: Props) {
   const [closing, setClosing] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -90,7 +93,7 @@ export default function ProductConfiguratorModal({
 
   const defaultVariant =
     product.variants.find((variant) => variant.id === initialItem?.productVariantId) ??
-    product.variants.find((variant) => variant.availability?.isSellable) ??
+    product.variants.find((variant) => remainingVariantQuantity(variant, cart, initialItem?.cartId) >= (initialItem?.quantity ?? 1)) ??
     product.variants[0];
 
   const [selectedVariantId, setSelectedVariantId] = useState(defaultVariant?.id ?? "");
@@ -110,18 +113,22 @@ export default function ProductConfiguratorModal({
     [product.variants, selectedVariantId]
   );
 
+  const requestedQuantity = initialItem?.quantity ?? 1;
+  const selectedRemaining = remainingVariantQuantity(selectedVariant ?? undefined, cart, initialItem?.cartId);
+  const quantityAvailable = selectedRemaining >= requestedQuantity;
+
   const isCoffee = /coffee/i.test(product.category.name);
   const isHotCoffee = isCoffee && /\bhot\b/i.test(selectedVariant?.name ?? "");
-  const isColdCoffee = isCoffee && /\b(cold|iced)\b/i.test(selectedVariant?.name ?? "");
-  const isIceGroup = (group: PosMenuModifierGroup) => /\bice\b/i.test(group.name);
-  const isNoIce = (modifier: PosMenuModifier) => /^no\s+ice$/i.test(modifier.name.trim());
+  const isIcedVariant = /\b(cold|iced)\b/i.test(selectedVariant?.name ?? "");
+  const isNoIce = (modifier: PosMenuModifier) => /^no[\s-]+ice$/i.test(modifier.name.trim());
+  const isIceGroup = (group: PosMenuModifierGroup) => /\bice\b/i.test(group.name) || group.modifiers.some(isNoIce);
 
   const configuredModifierGroups = product.modifierGroups.map((group) => {
     if (!isIceGroup(group)) return group;
     if (isHotCoffee) {
       return { ...group, modifiers: group.modifiers.filter(isNoIce) };
     }
-    if (isColdCoffee) {
+    if (isIcedVariant) {
       return { ...group, modifiers: group.modifiers.filter((modifier) => !isNoIce(modifier)) };
     }
     return group;
@@ -245,6 +252,11 @@ export default function ProductConfiguratorModal({
       return;
     }
 
+    if (!quantityAvailable) {
+      setError("Not enough available orders for this variant. Choose another variant or reduce the cart quantity.");
+      return;
+    }
+
     for (const group of configuredModifierGroups) {
       const count = getGroupSelectionCount(group);
       if (count < group.minSelect || (group.maxSelect > 0 && count > group.maxSelect)) {
@@ -268,11 +280,11 @@ export default function ProductConfiguratorModal({
   };
 
   return (
-    <Modal title={product.name} onClose={requestClose} closeButtonStyle="back" wide panelClassName={closing ? styles.closingPanel : styles.openingPanel} bodyClassName={styles.body} footer={
+    <Modal title={product.name} onClose={requestClose} closeButtonStyle="back" wide panelClassName={`${styles.panel} ${closing ? styles.closingPanel : styles.openingPanel}`} bodyClassName={styles.body} footer={
 <div className={styles.footer}>
         <button
           onClick={handleSubmit}
-          disabled={closing}
+          disabled={closing || !quantityAvailable}
           type="button"
           className="rounded-2xl bg-[#232d46] px-4 py-2 text-sm font-medium text-white hover:bg-[#34445f]"
         >
@@ -284,7 +296,7 @@ export default function ProductConfiguratorModal({
         <div className={styles.productOverview}>
           <div className={styles.productPhoto}><ProductImage src={product.imageUrl} name={product.name} /></div>
           <h3 className={styles.productTitle}>{product.name}</h3>
-          <div className="rounded-2xl bg-slate-50 p-4">
+          <div className={`${styles.priceSummary} rounded-2xl bg-slate-50 p-4`}>
             <p className="text-sm text-slate-500">Category: {product.category.name}</p>
             <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
               Price per item
@@ -306,12 +318,14 @@ export default function ProductConfiguratorModal({
 
         </div>
         <div className="space-y-4">
+          <p className={styles.requiredHint}><span className={styles.requiredMark} aria-hidden="true">*</span> Required selection</p>
           <div>
-            <label className="mb-2 block text-sm font-semibold">Variant</label>
+            <label className="mb-2 block text-sm font-semibold">Variant <span className={styles.requiredMark} aria-hidden="true">*</span><span className="sr-only"> (required)</span></label>
             <div className="grid gap-2">
               {product.variants.map((variant) => {
-                const disabled =
-                  !variant.isEnabled || variant.availability?.isSellable === false;
+                const remaining = remainingVariantQuantity(variant, cart, initialItem?.cartId);
+                const stockUnavailable = !variant.isEnabled || !variant.availability?.isSellable;
+                const disabled = stockUnavailable || remaining < requestedQuantity;
 
                 return (
                   <button
@@ -321,7 +335,7 @@ export default function ProductConfiguratorModal({
                       if (disabled || variant.id === selectedVariantId) return;
                       setSelectedVariantId(variant.id);
                       setError(null);
-                      if (isCoffee) {
+                      if (isCoffee || /\b(hot|cold|iced)\b/i.test(variant.name) || /\b(hot|cold|iced)\b/i.test(selectedVariant?.name ?? "")) {
                         setModifierQuantities((current) => {
                           const next = { ...current };
                           for (const group of product.modifierGroups.filter(isIceGroup)) {
@@ -348,11 +362,11 @@ export default function ProductConfiguratorModal({
                         <div className="font-semibold">{formatPeso(variant.price)}</div>
                         {disabled ? (
                           <div className="mt-1 text-xs text-rose-600">
-                            {availabilityLabel(variant.availability?.blockingReason)}
+                            {stockUnavailable ? availabilityLabel(variant.availability?.blockingReason) : remaining === 0 ? "Available quantity already in cart" : `Only ${remaining} available for this quantity`}
                           </div>
                         ) : variant.availability?.availableBaseQty !== undefined ? (
                           <div className="mt-1 text-xs text-emerald-700">
-                            {variant.availability.availableBaseQty} available
+                            {remaining} available
                           </div>
                         ) : null}
                       </div>
@@ -401,7 +415,7 @@ export default function ProductConfiguratorModal({
                 <section key={group.id} className="rounded-2xl border border-slate-200 p-4">
                   <div className="mb-3 flex items-start justify-between gap-3">
                     <div>
-                      <h4 className="font-semibold text-slate-900">{group.name}</h4>
+                      <h4 className="font-semibold text-slate-900">{group.name}{(group.isRequired || group.minSelect > 0) && <> <span className={styles.requiredMark} aria-hidden="true">*</span><span className="sr-only"> (required)</span></>}</h4>
                       <p className="mt-1 text-xs text-slate-500">{groupHint(group)}</p>
                     </div>
                     <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">

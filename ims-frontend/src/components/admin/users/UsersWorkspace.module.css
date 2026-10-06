@@ -31,6 +31,13 @@
 .nameFields > div { min-width:0; }
 .userDialogForm label { margin-bottom:6px; }
 .userDialogForm input,.userDialogForm select { margin-top:0; }
+.phoneField { display:flex; align-items:center; width:100%; min-width:0; border:1px solid #dce2eb; border-radius:8px; background:#fff; overflow:hidden; }
+.phonePrefix { flex-shrink:0; padding-left:16px; padding-right:10px; color:#52627f; font-size:14px; }
+.userDialogForm .phoneField input { flex:1; min-width:0; width:0; border:0; border-radius:0; padding-left:0; box-shadow:none; outline:none; }
+.phoneField:focus-within { border-color:#64748b; outline:2px solid #64748b; outline-offset:2px; }
+.userDialogForm input.invalidInput, .userDialogForm .invalidPhone { border-color:#dc2626 !important; background:#fef2f2 !important; }
+.userDialogForm input.invalidInput:focus, .invalidPhone:focus-within { outline-color:#dc2626 !important; border-color:#dc2626 !important; }
+.userDialogForm p.fieldError { color:#dc2626 !important; margin:6px 0 0; font-size:13px; }
 .userDialogActions { grid-column:1/-1; display:flex; justify-content:flex-end; gap:12px; margin-top:4px; }
 .userDialogActions button { min-width:112px; }
 @media(max-width:600px) {

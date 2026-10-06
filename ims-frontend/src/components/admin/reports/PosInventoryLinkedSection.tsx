@@ -2,7 +2,7 @@
 
 import { formatUnit } from "@/lib/units";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import SummaryCard from "@/components/dashboard/SummaryCard";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
@@ -60,9 +60,16 @@ export default function PosInventoryLinkedSection({
   const [materialSearch, setMaterialSearch] = useState("");
   const [variantSearch, setVariantSearch] = useState("");
   const [drilldownVariantId, setDrilldownVariantId] = useState("");
+  const drilldownPanel = useRef<HTMLDivElement>(null);
   const [exportingFormat, setExportingFormat] = useState<"csv" | "pdf" | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!drilldownVariantId) return;
+    drilldownPanel.current?.scrollIntoView({ block: "center", behavior: "auto" });
+    drilldownPanel.current?.focus({ preventScroll: true });
+  }, [drilldownVariantId]);
 
   useEffect(() => {
     if (!active) {
@@ -520,6 +527,7 @@ export default function PosInventoryLinkedSection({
                       <div className="text-right">
                         <button
                           type="button"
+                          aria-expanded={drilldownVariantId === row.productVariant.id}
                           onClick={() =>
                             setDrilldownVariantId((current) =>
                               current === row.productVariant.id ? "" : row.productVariant.id,
@@ -539,8 +547,11 @@ export default function PosInventoryLinkedSection({
         </WidgetCard>
 
         <WidgetCard title="Variant to Material Drill-Down" className="report-drilldown">
-          {report?.selectedVariantBreakdown ? (
-            <div className="space-y-4">
+          <div ref={drilldownPanel} tabIndex={-1} role="region" aria-label="Variant material details" aria-busy={loading && !!drilldownVariantId}>
+          {loading && drilldownVariantId ? (
+            <p role="status" className="px-4 py-6 text-sm text-slate-500">Loading variant material details...</p>
+          ) : report?.selectedVariantBreakdown ? (
+            <div className="report-drilldown-content space-y-4">
               <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <div className="text-lg font-semibold text-slate-900">
@@ -560,7 +571,7 @@ export default function PosInventoryLinkedSection({
                 </button>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="report-drilldown-summary grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Quantity Sold
@@ -587,8 +598,8 @@ export default function PosInventoryLinkedSection({
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <div className="min-w-[48rem] overflow-hidden rounded-2xl border border-slate-200">
+              <div className="report-drilldown-table overflow-x-auto">
+                <div className="min-w-[38rem] overflow-hidden rounded-2xl border border-slate-200">
                   <div className="grid grid-cols-[1.2fr_0.8fr_1fr_1fr_0.9fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                     <span>Material</span>
                     <span>SKU</span>
@@ -641,6 +652,7 @@ export default function PosInventoryLinkedSection({
               sales-linked ledger footprint.
             </div>
           )}
+          </div>
         </WidgetCard>
       </section>
     </div>

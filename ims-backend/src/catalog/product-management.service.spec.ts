@@ -186,51 +186,13 @@ describe('ProductManagementService delete policy repair', () => {
     });
   });
 
-  it('blocks product delete eligibility on order history and does not report availability history by itself', async () => {
+  it('allows product deletion eligibility with retained order, ledger and stockout history', async () => {
     const service = createService();
-
     prisma.orderItem.count.mockResolvedValue(3);
-    prisma.variantAvailabilityEvent.count.mockResolvedValue(7);
-
-    await expect(
-      service.getProductDeleteEligibility('product-1'),
-    ).resolves.toEqual({
-      eligible: false,
-      blockingReasons: [
-        {
-          code: 'HAS_ORDER_HISTORY',
-          message: 'Product variants are referenced by historical orders.',
-          count: 3,
-        },
-      ],
-    });
-  });
-
-  it('blocks product delete eligibility on ledger and stockout history together', async () => {
-    const service = createService();
-
     prisma.inventoryTransactionLine.count.mockResolvedValue(2);
-    prisma.variantAvailabilityEvent.count.mockResolvedValue(5);
     prisma.stockoutEvent.count.mockResolvedValue(1);
-
-    await expect(
-      service.getProductDeleteEligibility('product-1'),
-    ).resolves.toEqual({
-      eligible: false,
-      blockingReasons: [
-        {
-          code: 'HAS_LEDGER_HISTORY',
-          message:
-            'Product variants are referenced by inventory ledger history.',
-          count: 2,
-        },
-        {
-          code: 'HAS_STOCKOUT_HISTORY',
-          message:
-            'Product variants are referenced by retained stockout history.',
-          count: 1,
-        },
-      ],
+    await expect(service.getProductDeleteEligibility('product-1')).resolves.toEqual({
+      eligible: true, blockingReasons: [],
     });
   });
 
@@ -342,25 +304,15 @@ describe('ProductManagementService delete policy repair', () => {
     });
   });
 
-  it('blocks product deletion when order history exists', async () => {
+  it('deletes a product even when order, ledger and stockout history exist', async () => {
     const service = createService();
-
     prisma.orderItem.count.mockResolvedValue(1);
-    prisma.variantAvailabilityEvent.count.mockResolvedValue(3);
-
-    await expect(service.deleteProduct('product-1')).rejects.toThrow(
-      new ConflictException('Product is not eligible for permanent delete'),
-    );
-  });
-
-  it('blocks product deletion when ledger history exists', async () => {
-    const service = createService();
-
     prisma.inventoryTransactionLine.count.mockResolvedValue(1);
-    prisma.variantAvailabilityEvent.count.mockResolvedValue(3);
-
-    await expect(service.deleteProduct('product-1')).rejects.toThrow(
-      new ConflictException('Product is not eligible for permanent delete'),
-    );
+    prisma.stockoutEvent.count.mockResolvedValue(1);
+    await expect(service.deleteProduct('product-1')).resolves.toEqual({
+      deleted: true, productId: 'product-1',
+    });
+    expect(tx.productVariant.deleteMany).toHaveBeenCalled();
+    expect(tx.product.delete).toHaveBeenCalled();
   });
 });

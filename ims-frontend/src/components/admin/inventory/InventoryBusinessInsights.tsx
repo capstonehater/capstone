@@ -23,14 +23,14 @@ function Panel({ title, icon, children, className = "", id, onOpen, footerLabel 
       <h3 className="mb-5 flex items-center gap-2 text-xl font-semibold text-[#232d46]">
         <span className="text-[#232d46]">{icon}</span>{title}
       </h3>
-      {children}
+      <div className={styles.panelBody}>{children}</div>
       {onOpen && <button type="button" onClick={onOpen} className={styles.reportFooter}><span>{footerLabel}</span><ArrowRight size={24} aria-hidden="true" /></button>}
     </section>
   );
 }
 
 function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500">{children}</p>;
+  return <p className={`${styles.empty} rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500`}>{children}</p>;
 }
 
 const tableClass = styles.table;

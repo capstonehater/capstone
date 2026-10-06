@@ -98,9 +98,15 @@ const routes = [
     permission: 'inventory.waste',
   },
   {
-    handler: 'deleteTransactionHistory',
+    handler: 'unarchiveRawMaterial',
+    method: 'post',
+    path: '/raw-materials/material-1/unarchive',
+    permission: 'inventory.archive',
+  },
+  {
+    handler: 'deleteRawMaterial',
     method: 'delete',
-    path: '/inventory/transactions/transaction-1',
+    path: '/raw-materials/material-1/permanent',
     permission: 'inventory.archive',
   },
 ] as const;
@@ -167,6 +173,8 @@ describe('Inventory material HTTP authorization', () => {
       'createRawMaterial',
       'updateRawMaterial',
       'archiveRawMaterial',
+      'unarchiveRawMaterial',
+      'deleteRawMaterial',
       'listSuppliers',
       'createSupplier',
       'updateSupplier',
@@ -179,7 +187,6 @@ describe('Inventory material HTTP authorization', () => {
       'listTransactionsForBatch',
       'listTransactions',
       'logWaste',
-      'deleteTransactionHistory',
     ].map((name) => [name, jest.fn().mockResolvedValue({ ok: true })]),
   );
   const stores = {
@@ -290,6 +297,11 @@ describe('Inventory material HTTP authorization', () => {
         .filter((name) => name !== 'constructor')
         .sort(),
     ).toEqual([...routes, ...legacy].map((route) => route.handler).sort());
+  });
+  it('does not expose inventory history deletion', async () => {
+    grants = PERMISSION_CATALOG.map((item) => item.key);
+    await send({ method: 'delete', path: '/inventory/transactions/transaction-1' }).expect(404);
+    expect(calls()).toBe(0);
   });
   it.each(routes)(
     'Administrator with grants can call $method $path',

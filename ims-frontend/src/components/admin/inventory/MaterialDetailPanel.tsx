@@ -3,13 +3,14 @@ import DateFilter from "@/components/staff-pos/DateFilter";
 import selectStyles from "@/components/admin/AdminSelect.module.css";
 import AdminSelect from "@/components/admin/AdminSelect";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
-import DeleteInventoryHistoryModal from "./DeleteInventoryHistoryModal";
 
 import { useState } from "react";
 import styles from "./MaterialDetailPanel.module.css";
 import {
   AlertTriangle,
   Archive,
+  ArchiveRestore,
+  Trash2,
   ClipboardList,
   FlaskConical,
   Loader2,
@@ -54,18 +55,22 @@ function InlineActionButton({
   icon,
   onClick,
   destructive = false,
+  blue = false,
 }: {
   label: string;
   icon: React.ReactNode;
   onClick: () => void;
   destructive?: boolean;
+  blue?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-        destructive
+        blue
+          ? "border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"
+          : destructive
           ? "border-rose-200 text-rose-700 hover:border-rose-300 hover:bg-rose-50"
           : "border-slate-200 text-[#232d46] hover:border-slate-300 hover:bg-slate-50"
       }`}
@@ -93,10 +98,10 @@ type MaterialDetailPanelProps = {
   onHistoryToChange: (value: string) => void;
   onHistorySearchInputChange: (value: string) => void;
   onSelectBatch: (batch: StockBatch) => void;
-  onDeleteHistory: (transactionId: string) => Promise<void>;
   onEdit: () => void;
   onWaste: () => void;
   onArchive: () => void;
+  onDelete: () => void;
   onStoreAvailability: () => void;
   formatQuantity: (value: string) => string;
   formatMoney: (value: string) => string;
@@ -123,10 +128,10 @@ export default function MaterialDetailPanel({
   onHistoryToChange,
   onHistorySearchInputChange,
   onSelectBatch,
-  onDeleteHistory,
   onEdit,
   onWaste,
   onArchive,
+  onDelete,
   onStoreAvailability,
   formatQuantity,
   formatMoney,
@@ -136,7 +141,6 @@ export default function MaterialDetailPanel({
   getTransactionCost,
 }: MaterialDetailPanelProps) {
   const [batchSearch, setBatchSearch] = useState("");
-  const [historyToDelete, setHistoryToDelete] = useState<InventoryTransaction | null>(null);
   const [batchStatus, setBatchStatus] = useState("");
   const [batchSupplier, setBatchSupplier] = useState("");
   const [batchOrder, setBatchOrder] = useState("desc");
@@ -193,12 +197,16 @@ export default function MaterialDetailPanel({
           <PermissionAction permission={"inventory.edit"}><InlineActionButton label="Edit" icon={<ClipboardList size={15} />} onClick={onEdit} /></PermissionAction>
           <PermissionAction permission={"inventory.waste"}><InlineActionButton label="Record Waste" icon={<FlaskConical size={15} />} onClick={onWaste} /></PermissionAction>
           </div>
+          <div className="flex flex-wrap items-center gap-2">
           <PermissionAction permission={"inventory.archive"}><InlineActionButton
-            label="Archive"
-            icon={<Archive size={15} />}
+            label={selectedMaterial?.isActive === false ? "Unarchive" : "Archive"}
+            icon={selectedMaterial?.isActive === false ? <ArchiveRestore size={15} /> : <Archive size={15} />}
             onClick={onArchive}
-            destructive
+            destructive={selectedMaterial?.isActive !== false}
+            blue={selectedMaterial?.isActive === false}
           /></PermissionAction>
+          <PermissionAction permission={"inventory.archive"}><InlineActionButton label="Delete" icon={<Trash2 size={15} />} onClick={onDelete} destructive /></PermissionAction>
+          </div>
         </div>
       </div>
 
@@ -358,13 +366,12 @@ export default function MaterialDetailPanel({
                   <th className="px-4 py-3">Delta</th>
                   <th className="px-4 py-3">Cost</th>
                   <th className="px-4 py-3">Actor</th>
-                  <th className="px-4 py-3 text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {recentTransactions.length === 0 ? (
                   <tr>
-                    <td className="px-4 py-6 text-slate-500" colSpan={7}>
+                    <td className="px-4 py-6 text-slate-500" colSpan={6}>
                       No transactions matched the current filters.
                     </td>
                   </tr>
@@ -401,15 +408,6 @@ export default function MaterialDetailPanel({
                         </td>
                         <td className="px-4 py-3 align-top">{formatMoney(totalCost.toString())}</td>
                         <td className="px-4 py-3 align-top break-words">{actor}</td>
-                        <td className="px-4 py-3 align-top text-right">
-                          <PermissionAction permission="inventory.archive">
-                            <button type="button" onClick={() => setHistoryToDelete(transaction)}
-                              aria-label={`Delete ${transaction.type.replaceAll("_", " ")} history entry from ${formatDateTime(transaction.occurredAt)}`}
-                              className="rounded-full border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50">
-                              Delete
-                            </button>
-                          </PermissionAction>
-                        </td>
                       </tr>
                     );
                   })
@@ -419,13 +417,6 @@ export default function MaterialDetailPanel({
           </div>
         </section>
       </div>
-      {historyToDelete && (
-        <PermissionAction permission="inventory.archive">
-          <DeleteInventoryHistoryModal transaction={historyToDelete}
-            onClose={() => setHistoryToDelete(null)} onDelete={onDeleteHistory}
-            formatDateTime={formatDateTime} />
-        </PermissionAction>
-      )}
     </section>
   );
 }

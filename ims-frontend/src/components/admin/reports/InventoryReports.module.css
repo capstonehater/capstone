@@ -42,8 +42,12 @@
 .workspace :global(.report-risk-metrics) > div > div, .workspace [data-report="consumption-metrics"] > div > div { margin-bottom: 4px; }
 .workspace :global(.report-definition) { font-size: 13px; line-height: 1.4; color: #444; }
 .workspace :global(.report-risk-metrics) > div, .workspace [data-report="consumption-metrics"] > div { padding: 10px; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: none; min-width: 0; }
-.workspace :global(.report-risk-metrics) p, .workspace [data-report="consumption-metrics"] p { font-size: 13px; color: #475569; margin: 0; }
-.workspace :global(.report-risk-metrics) h3, .workspace [data-report="consumption-metrics"] h3 { margin: 6px 0 0; font-size: 18px; }
+.workspace :global(.report-risk-metrics) p { font-size: 13px; color: #475569; margin: 0; }
+.workspace :global(.report-risk-metrics) h3 { margin: 6px 0 0; font-size: 18px; }
+.workspace [data-report="consumption-metrics"] > div { padding:20px; min-height:150px; }
+.workspace [data-report="consumption-metrics"] > div > div { min-height:48px; align-items:flex-start; margin-bottom:12px; }
+.workspace [data-report="consumption-metrics"] p { font-size:16px; font-weight:600; line-height:1.5; color:#475569; margin:0; }
+.workspace [data-report="consumption-metrics"] h3 { margin:0; font-size:28px; line-height:1.25; color:#232d46; overflow-wrap:anywhere; }
 .workspace [data-report="consumption-intro"] > div:first-child { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
 .workspace [data-report="consumption-intro"] p { font-size: 13px; line-height: 1.4; margin-top: 3px; }
 .workspace [data-report="consumption-intro"] > div:last-child { padding: 8px; margin-top: 12px; border-radius: 8px; font-size: 13px; line-height: 1.4; }
@@ -55,12 +59,34 @@
 .workspace :global(.report-badge) { display: inline-block; border: 1px solid #7ad44d; border-radius: 3px; background: #e7fbdc; color: #247412; padding: 2px 8px; font-size: 13px; }
 .workspace :global(.report-empty) { text-align: center; color: #777; padding: 24px 8px; }
 .workspace :global(.report-empty) svg { display: block; margin: 0 auto 8px; padding: 6px; width: 40px; height: 40px; border-radius: 50%; color: #232d46; background: #ededed; }
-.workspace :global(.report-high-usage) > div, .workspace :global(.report-variants) > div { max-height: 390px; overflow: auto; }
+.workspace :global(.report-high-usage) > div, .workspace :global(.report-variants) > div { max-height:none; overflow:visible; }
 .workspace :global(.report-stockout) :global(.grid), .workspace :global(.report-high-usage) :global(.grid), .workspace :global(.report-variants) :global(.grid) { gap: 8px; padding: 10px; font-size: 13px; }
 .workspace :global(.report-stockout) :global(.uppercase), .workspace :global(.report-high-usage) :global(.uppercase), .workspace :global(.report-variants) :global(.uppercase) { font-size: 13px; letter-spacing: 0; background: #f5f5f5; }
 .workspace :global(.report-low-stock) p, .workspace :global(.report-movements) p, .workspace :global(.report-drilldown) > div { font-size: 14px; }
 .workspace :global(.report-drilldown) > div { padding: 0; border: 0; background: white; }
-.workspace :global(.report-low-stock) > div, .workspace :global(.report-movements) > div { max-height: 300px; overflow: auto; }
+.workspace :global(.report-low-stock), .workspace :global(.report-movements), .workspace :global(.report-drilldown) { height:560px; display:flex; flex-direction:column; }
+.workspace :global(.report-low-stock) > h2, .workspace :global(.report-movements) > h2, .workspace :global(.report-drilldown) > h2 { flex-shrink:0; }
+.workspace :global(.report-low-stock) > div, .workspace :global(.report-movements) > div, .workspace :global(.report-drilldown) > div { flex:1; min-height:0; overflow:auto; }
+.workspace :global(.report-drilldown) :global(.overflow-y-auto) { max-height:none; overflow-y:visible; }
+.workspace :global(.report-drilldown) > div { overflow:hidden; outline:none; }
+.workspace :global(.report-drilldown) > div:focus-visible { outline:2px solid #94a3b8; outline-offset:3px; border-radius:10px; }
+.workspace :global(.report-drilldown-content) { height:100%; display:flex; flex-direction:column; gap:14px; }
+.workspace :global(.report-drilldown-content) > * { margin:0; flex-shrink:0; }
+.workspace :global(.report-drilldown-summary) { grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.workspace :global(.report-drilldown-summary) > div { display:flex; flex-direction:column; justify-content:space-between; min-height:104px; padding:14px 10px; border-radius:10px; background:#f8fafc; }
+.workspace :global(.report-drilldown-summary) p:first-child { font-size:12px; line-height:1.4; min-height:34px; color:#64748b; letter-spacing:normal; }
+.workspace :global(.report-drilldown-summary) p:last-child { font-size:16px; line-height:1.3; margin-top:8px; white-space:nowrap; overflow-wrap:normal; font-variant-numeric:tabular-nums; }
+.workspace :global(.report-drilldown) { container-type:inline-size; }
+@container(max-width:360px) {
+  .workspace :global(.report-drilldown-summary) { grid-template-columns:1fr; gap:6px; }
+  .workspace :global(.report-drilldown-summary) > div { flex-direction:row; align-items:center; justify-content:space-between; min-height:0; gap:12px; padding:8px 10px; }
+  .workspace :global(.report-drilldown-summary) p:first-child { min-height:0; }
+  .workspace :global(.report-drilldown-summary) p:last-child { margin-top:0; }
+}
+.workspace :global(.report-drilldown-content) > :global(.report-drilldown-table) { flex:1 1 0; min-height:0; overflow:auto; border:1px solid #dce2eb; border-radius:10px; }
+.workspace :global(.report-drilldown-table) > div { border:0; border-radius:0; }
+.workspace :global(.report-drilldown-table) :global(.uppercase) { position:sticky; top:0; z-index:1; background:#f8fafc; font-size:12px; }
+.workspace :global(.report-drilldown-table) :global(.grid) { padding:12px; gap:10px; border-color:#e2e8f0; }
 @media (max-width: 1100px) {
   .workspace { grid-template-columns: 1fr; }
   .workspace section { grid-column: 1 / -1 !important; grid-row: auto !important; }

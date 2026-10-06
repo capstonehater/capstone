@@ -98,6 +98,18 @@ export class InventoryController {
     };
   }
 
+  @Post('raw-materials/:id/unarchive')
+  @RequirePermission('inventory.archive')
+  async unarchiveRawMaterial(@Param('id') rawMaterialId: string) {
+    return { rawMaterial: await this.inventoryService.unarchiveRawMaterial(rawMaterialId) };
+  }
+
+  @Delete('raw-materials/:id/permanent')
+  @RequirePermission('inventory.archive')
+  async deleteRawMaterial(@Param('id') rawMaterialId: string) {
+    return { deletedMaterial: await this.inventoryService.deleteRawMaterial(rawMaterialId) };
+  }
+
   @Get('raw-materials/:id/batches')
   @RequirePermission('inventory.view')
   async listRawMaterialBatches(@Param('id') rawMaterialId: string) {
@@ -201,15 +213,4 @@ export class InventoryController {
     };
   }
 
-  @Delete('inventory/transactions/:id')
-  @RequirePermission('inventory.archive')
-  async deleteTransactionHistory(
-    @Param('id') transactionId: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return this.inventoryActionsService.deleteTransactionHistory(
-      transactionId,
-      user.id,
-    );
-  }
 }

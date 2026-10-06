@@ -168,7 +168,7 @@ async function computeExpectedAvailabilityMetrics(range: { from: Date; to: Date 
   >();
 
   for (const orderItem of topSellingOrderItems) {
-    if (!orderItem.productVariant) {
+    if (!orderItem.productVariant || !orderItem.productVariantId) {
       continue;
     }
 

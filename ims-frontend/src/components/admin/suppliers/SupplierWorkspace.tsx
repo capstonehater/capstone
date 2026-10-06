@@ -11,6 +11,8 @@ import SupplierLocationPicker from "@/components/admin/inventory/SupplierLocatio
 import type { Supplier } from "@/lib/inventory";
 import SelectableTableRow from "@/components/admin/SelectableTableRow";
 import styles from "./SupplierWorkspace.module.css";
+import AdminSelect from "@/components/admin/AdminSelect";
+import { normalizeSupplierPhone, supplierFieldErrors } from "@/lib/supplier-validation";
 
 type SupplierInput = {
   name: string;
@@ -34,9 +36,10 @@ type SupplierFormState = {
   longitude: string;
   address: string;
   contactInfo: string;
+  contactType: "phone" | "email";
 };
 
-const emptyForm: SupplierFormState = { name: "", latitude: "", longitude: "", address: "", contactInfo: "" };
+const emptyForm: SupplierFormState = { name: "", latitude: "", longitude: "", address: "", contactInfo: "", contactType: "phone" };
 
 function formFor(supplier?: Supplier | null): SupplierFormState {
   return {
@@ -44,7 +47,8 @@ function formFor(supplier?: Supplier | null): SupplierFormState {
     latitude: supplier?.latitude ?? "",
     longitude: supplier?.longitude ?? "",
     address: supplier?.address ?? "",
-    contactInfo: supplier?.contactInfo ?? "",
+    contactInfo: supplier?.contactInfo && !supplier.contactInfo.includes("@") ? normalizeSupplierPhone(supplier.contactInfo) : supplier?.contactInfo ?? "",
+    contactType: supplier?.contactInfo?.includes("@") ? "email" : "phone",
   };
 }
 
@@ -62,6 +66,10 @@ export default function SupplierWorkspace({
   const [editing, setEditing] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Supplier | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [validationAttempted, setValidationAttempted] = useState(false);
+  const [contactInputError, setContactInputError] = useState<string | null>(null);
+  const fieldErrors = validationAttempted && (creating || editing) ? supplierFieldErrors(form) : {};
+  const contactError = (creating || editing) ? contactInputError || fieldErrors.contactInfo : undefined;
 
   const selected = suppliers.find((supplier) => supplier.id === selectedId) ?? null;
   const filteredSuppliers = useMemo(() => {
@@ -73,6 +81,8 @@ export default function SupplierWorkspace({
   }, [query, suppliers]);
 
   function selectSupplier(supplier: Supplier) {
+    setValidationAttempted(false);
+    setContactInputError(null);
     setSelectedId(supplier.id);
     setCreating(false);
     setEditing(false);
@@ -81,6 +91,8 @@ export default function SupplierWorkspace({
   }
 
   function startCreate() {
+    setValidationAttempted(false);
+    setContactInputError(null);
     setSelectedId(null);
     setCreating(true);
     setEditing(true);
@@ -92,12 +104,17 @@ export default function SupplierWorkspace({
     event.preventDefault();
     if (submitting || !useAuthStore.getState().can(creating ? "suppliers.create" : "suppliers.edit")) return;
     setError(null);
+    setValidationAttempted(true);
+    const validationErrors = supplierFieldErrors(form);
+    if (Object.keys(validationErrors).length || contactInputError) {
+      return;
+    }
     const input: SupplierInput = {
       name: form.name.trim(),
       latitude: form.latitude ? Number(form.latitude) : undefined,
       longitude: form.longitude ? Number(form.longitude) : undefined,
       address: form.address.trim() || undefined,
-      contactInfo: form.contactInfo.trim() || undefined,
+      contactInfo: form.contactType === "phone" ? normalizeSupplierPhone(form.contactInfo) : form.contactInfo.trim(),
     };
     try {
       const saved = creating || !selected
@@ -106,6 +123,8 @@ export default function SupplierWorkspace({
       setSelectedId(saved.id);
       setCreating(false);
       setEditing(false);
+      setValidationAttempted(false);
+      setContactInputError(null);
       setForm(formFor(saved));
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Unable to save supplier.");
@@ -182,16 +201,42 @@ export default function SupplierWorkspace({
             {!creating && selected ? <span className={styles.badge}>Saved supplier</span> : null}
           </div>
           {error ? <p role="alert" className="mx-5 mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
-          {creating || selected ? <form onSubmit={(event) => void save(event)} className={styles.form}>
-            <InventoryField htmlFor="supplier-name" label="Supplier Name">
+          {creating || selected ? <form noValidate onSubmit={(event) => void save(event)} className={styles.form}>
+            <InventoryField htmlFor="supplier-name" label="Supplier Name" required>
               <input id="supplier-name" required maxLength={120} value={form.name} disabled={fieldsDisabled}
+                aria-invalid={!!fieldErrors.name} aria-describedby={fieldErrors.name ? "supplier-name-error" : undefined}
                 onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-                placeholder="Supplier name" className={`${styles.input} disabled:bg-slate-50 disabled:text-slate-600`} />
+                placeholder="Ex. Waltermart or Juan Dela Cruz" className={`${styles.input} disabled:bg-slate-50 disabled:text-slate-600`} />
+              {fieldErrors.name && <p id="supplier-name-error" role="alert" className="text-sm text-red-600">{fieldErrors.name}</p>}
             </InventoryField>
-            <InventoryField htmlFor="supplier-contact" label="Contact Information">
-              <input id="supplier-contact" value={form.contactInfo} disabled={fieldsDisabled}
-                onChange={(event) => setForm((current) => ({ ...current, contactInfo: event.target.value }))}
-                placeholder="Phone or email" className={`${styles.input} disabled:bg-slate-50 disabled:text-slate-600`} />
+            <InventoryField htmlFor="supplier-contact" label="Contact Information" required>
+              <div className={styles.contactFields}>
+                <AdminSelect label="Contact type" hideLabel value={form.contactType} disabled={fieldsDisabled}
+                  options={[{ value: "phone", label: "Contact number" }, { value: "email", label: "Email" }]}
+                  onChange={(value) => { setContactInputError(null); setForm((current) => ({ ...current, contactType: value === "email" ? "email" : "phone", contactInfo: "" })); }} />
+                <div className={form.contactType === "phone" ? styles.phoneInput : undefined} data-invalid={!!contactError}>
+                {form.contactType === "phone" && <span className={styles.phonePrefix}>+63</span>}
+                <input id="supplier-contact" required value={form.contactType === "phone" ? form.contactInfo.replace(/^\+63/, "") : form.contactInfo} disabled={fieldsDisabled}
+                  maxLength={form.contactType === "phone" ? 10 : undefined}
+                  aria-invalid={!!contactError} aria-describedby={contactError ? "supplier-contact-error" : undefined}
+                  type={form.contactType === "email" ? "email" : "tel"}
+                  inputMode={form.contactType === "email" ? "email" : "tel"}
+                  autoComplete={form.contactType === "email" ? "email" : "tel"}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (form.contactType === "phone" && /\D/.test(value)) {
+                      setContactInputError("Contact number must contain digits only.");
+                      return;
+                    }
+                    setError(null);
+                    setContactInputError(null);
+                    setForm((current) => ({ ...current, contactInfo: current.contactType === "phone" && value ? `+63${value}` : value }));
+                  }}
+                  placeholder={form.contactType === "email" ? "Ex. supplier@example.com" : "9123456789"}
+                  className={`${styles.input} disabled:bg-slate-50 disabled:text-slate-600`} />
+                </div>
+                {contactError && <p id="supplier-contact-error" role="alert" className="col-span-2 text-sm text-red-600">{contactError}</p>}
+              </div>
             </InventoryField>
             <InventoryField htmlFor="supplier-latitude" label="Latitude">
               <input id="supplier-latitude" value={form.latitude} readOnly disabled placeholder="Select a point on the map"
@@ -204,6 +249,7 @@ export default function SupplierWorkspace({
             <div className="md:col-span-2">
               <SupplierLocationPicker key={creating ? "new" : selectedId ?? "empty"} latitude={form.latitude} longitude={form.longitude} address={form.address}
                 readOnly={fieldsDisabled}
+                error={fieldErrors.location}
                 onChange={(location) => setForm((current) => ({ ...current, ...location }))} />
             </div>
             <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4 md:col-span-2">

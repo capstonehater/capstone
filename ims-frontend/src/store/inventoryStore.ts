@@ -8,6 +8,7 @@ type InventoryPanel =
   | "stock-run-manage"
   | "waste"
   | "archive-material"
+  | "delete-material"
   | "delete-draft";
 
 type InventoryState = {

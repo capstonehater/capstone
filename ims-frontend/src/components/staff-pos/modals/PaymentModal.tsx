@@ -70,7 +70,22 @@ export default function PaymentModal({
             {methods.map(({ key, label, icon: Icon }) => <label key={key} className={styles.field}>
               <span className={styles.label}><Icon size={17} aria-hidden="true" />{label}</span>
               <span className={styles.inputWrap}><span className={styles.currency} aria-hidden="true">PHP</span>
-                <input disabled={submitting || (cashCorrection && key !== "cash")} type="number" min="0" step="0.01" inputMode="decimal" value={payments[key]} onChange={event => setPayments(prev => ({ ...prev, [key]: event.target.value }))} placeholder="0.00" />
+                <input
+                  disabled={submitting || (cashCorrection && key !== "cash")}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]{0,5}"
+                  maxLength={5}
+                  value={payments[key]}
+                  onKeyDown={event => {
+                    if (!event.ctrlKey && !event.metaKey && event.key.length === 1 && !/^[0-9]$/.test(event.key)) event.preventDefault();
+                  }}
+                  onChange={event => {
+                    const amount = event.target.value;
+                    if (/^[0-9]{0,5}$/.test(amount)) setPayments(prev => ({ ...prev, [key]: amount }));
+                  }}
+                  placeholder="0"
+                />
               </span>
             </label>)}
           </div>

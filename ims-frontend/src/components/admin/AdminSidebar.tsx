@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { ChevronDown, LogOut } from "lucide-react";
-import { useLogout } from "@/hooks/useLogout";
+import LogoutButton from "@/components/auth/LogoutButton";
 import { NavigationOverlay, NavigationCloseButton, SidebarCollapseButton } from "@/components/layout/ShellControls";
 import { adminNavigation, getVisibleNavigation, matchesShellRoute } from "@/components/layout/shell-navigation";
 import { routeHref } from "@/lib/routing/routes";
@@ -19,7 +19,6 @@ type AdminSidebarProps = { isOpen: boolean; onClose: () => void; collapsed: bool
 export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleCollapse, className = "", inert = false }: AdminSidebarProps) {
   const pathname = usePathname();
   const navigation = getVisibleNavigation(useAuthStore());
-  const performLogout = useLogout();
   const activeLink = navigation.flatMap(group => group.items)
     .filter(item => !item.children && matchesShellRoute(pathname, item.href.split("#")[0]))
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
@@ -56,6 +55,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
     document.body.style.overflow = "hidden";
     sidebarRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
     const handleKey = (event: KeyboardEvent) => {
+      if (document.querySelector("dialog[open]")) return;
       if (event.key === "Escape") onClose();
       if (event.key !== "Tab") return;
       const nodes = sidebarRef.current?.querySelectorAll<HTMLElement>("a[href], button");
@@ -123,16 +123,15 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleColla
                     <item.icon size={19} aria-hidden="true" /><span>{collapsed ? null : item.label}</span>
                     {item.href === routeHref("alerts") && <AlertCountBadge collapsed={collapsed} />}
                   </Link>}
-                  {item.href === routeHref("settings") && !item.children && <button
+                  {item.href === routeHref("settings") && !item.children && <LogoutButton
                     type="button"
                     title={collapsed ? "Logout" : undefined}
                     aria-label={collapsed ? "Logout" : undefined}
                     className={styles.sidebarLogout}
-                    onClick={() => { void performLogout(); }}
                   >
                     <LogOut size={18} aria-hidden="true" />
                     {!collapsed && <span>Logout</span>}
-                  </button>}
+                  </LogoutButton>}
                   {item.children ? <div id={`sidebar-${item.label.toLowerCase()}`} className={styles.navDropdown} hidden={collapsed || !openSections[item.href]}>
                     {(item.href === "/reports" ? item.children : [{ label: "Overview", href: item.href }, ...item.children]).map(child => <Link key={child.href} href={child.href} onClick={navigate} className={styles.navSubLink} aria-current={pathname === child.href ? "page" : undefined}>{child.label}</Link>)}
                   </div> : null}

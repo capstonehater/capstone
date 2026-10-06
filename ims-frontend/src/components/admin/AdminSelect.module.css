@@ -14,3 +14,8 @@
 .selected { background: #e2e8f0; color: #232d46; font-weight: 700; }
 .trigger:focus-visible, .option:focus-visible { outline: 2px solid #475569; outline-offset: 2px; }
 .option:focus-visible { outline-offset: -2px; }
+
+.searchBar { position: sticky; top: -5px; z-index: 1; padding: 5px 0 8px; background: #fff; }
+.searchInput { width: 100%; min-height: 40px; padding: 8px 11px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #232d46; font: inherit; font-size: 14px; }
+.searchInput:focus-visible { outline: 2px solid #475569; outline-offset: -2px; }
+.empty { margin: 0; padding: 12px; color: #64748b; font-size: 14px; }

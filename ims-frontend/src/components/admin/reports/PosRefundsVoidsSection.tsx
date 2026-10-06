@@ -3,6 +3,8 @@
 import PosReportEmpty from "./PosReportEmpty";
 
 import { useEffect, useState } from "react";
+import { FileSpreadsheet, FileText } from "lucide-react";
+import styles from "./PosReports.module.css";
 import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
@@ -139,8 +141,8 @@ export default function PosRefundsVoidsSection({
       ) : null}
 
       <section className="rounded-2xl bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
+        <div className={styles.peakHeader}>
+          <div className={styles.peakIntro}>
             <h3 className="text-xl font-semibold text-neutral-900">Refunds</h3>
             <p className="mt-2 text-sm text-neutral-600">
               Review refunds and their recorded reasons. Responsible staff is
@@ -149,13 +151,13 @@ export default function PosRefundsVoidsSection({
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className={`${styles.peakControls} ${styles.refundControls}`}>
             <label className="text-sm font-medium text-neutral-700">
               <span className="mb-1 block">Responsible Staff</span>
               <input
                 value={staffSearch}
                 onChange={(event) => setStaffSearch(event.target.value)}
-                placeholder="Filter by order creator name or email"
+                placeholder="Ex. Robert (name of employee)"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
               />
             </label>
@@ -165,7 +167,8 @@ export default function PosRefundsVoidsSection({
               onClick={() => void handleExport("csv")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {exportingFormat === "csv" ? "Exporting..." : "Export CSV"}
+              <FileSpreadsheet size={18} aria-hidden="true" />
+              <span>{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</span>
             </button>
             <button
               type="button"
@@ -173,7 +176,8 @@ export default function PosRefundsVoidsSection({
               onClick={() => void handleExport("pdf")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}
+              <FileText size={18} aria-hidden="true" />
+              <span>{exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}</span>
             </button>
           </div>
         </div>

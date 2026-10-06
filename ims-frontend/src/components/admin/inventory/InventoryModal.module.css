@@ -1,4 +1,5 @@
 .professional { z-index:80; font-family:var(--font-sans); }
+.professional > div.categoryCreateDialog { width:min(100%, 480px); max-width:480px; }
 .professional > div { border:1px solid #dce2eb; border-radius:16px; background:#fff; box-shadow:0 24px 70px #0f172a33; }
 .professional > div > div:first-child { flex-shrink:0; padding:16px 24px; background:var(--modal-header-background); }
 .professional h2 { margin:0; font-size:20px; font-weight:650; line-height:1.3; color:#232d46; }
@@ -89,3 +90,5 @@
 }
 .professional button.archiveAction { background:#be123c; border-color:#be123c; color:#fff; }
 .professional button.archiveAction:hover:not(:disabled) { background:#9f1239; border-color:#9f1239; }
+.professional button.unarchiveAction { background:#2563eb; border-color:#2563eb; color:#fff; }
+.professional button.unarchiveAction:hover:not(:disabled) { background:#1d4ed8; border-color:#1d4ed8; }

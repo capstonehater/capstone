@@ -3,7 +3,7 @@
 import { formatUnit } from "@/lib/units";
 
 import StyledSelect from "@/components/admin/StyledSelect";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./VariantsRecipe.module.css";
 import modalStyles from "./VariantEditor.module.css";
 import {
@@ -20,6 +20,7 @@ type RecipeDraftRow = {
 };
 
 type Props = {
+  draftKey: string;
   open: boolean;
   recipe: ProductRecipe | null;
   materials: InventorySummaryItem[];
@@ -41,6 +42,7 @@ function createDraftFromRecipe(recipe: ProductRecipe | null): RecipeDraftRow[] {
 }
 
 export default function RecipeEditor({
+  draftKey,
   open,
   recipe,
   materials,
@@ -49,7 +51,18 @@ export default function RecipeEditor({
   onClose,
   onSave,
 }: Props) {
-  const [rows, setRows] = useState<RecipeDraftRow[]>(createDraftFromRecipe(recipe));
+  const [rows, setRows] = useState<RecipeDraftRow[]>(() => {
+    try {
+      const saved = sessionStorage.getItem(draftKey);
+      const draft: unknown = saved ? JSON.parse(saved) : null;
+      if (Array.isArray(draft) && draft.every(row => row && typeof row.rawMaterialId === "string" && typeof row.quantity === "string")) return draft;
+    } catch { /* Use the saved recipe when browser storage is unavailable. */ }
+    return createDraftFromRecipe(recipe);
+  });
+  useEffect(() => {
+    if (!open || loading) return;
+    try { sessionStorage.setItem(draftKey, JSON.stringify(rows)); } catch { /* Editing remains available without browser storage. */ }
+  }, [draftKey, rows, open, loading]);
   const [errors, setErrors] = useState<string[]>([]);
 
   const normalizedRecipe = useMemo(() => createDraftFromRecipe(recipe), [recipe]);
@@ -78,8 +91,8 @@ export default function RecipeEditor({
       const quantityValue = Number(row.quantity);
       if (!row.quantity.trim()) {
         nextErrors.push(`Ingredient row ${index + 1}: quantity is required.`);
-      } else if (Number.isNaN(quantityValue)) {
-        nextErrors.push(`Ingredient row ${index + 1}: quantity must be a valid decimal.`);
+      } else if (!/^\d+$/.test(row.quantity) || !Number.isSafeInteger(quantityValue)) {
+        nextErrors.push(`Ingredient row ${index + 1}: quantity must be a valid whole number.`);
       } else if (quantityValue <= 0) {
         nextErrors.push(`Ingredient row ${index + 1}: quantity must be greater than zero.`);
       }
@@ -90,9 +103,6 @@ export default function RecipeEditor({
   }
 
   async function handleClose() {
-    if (isDirty && !window.confirm("Discard unsaved recipe changes?")) {
-      return;
-    }
     onClose();
   }
 
@@ -104,12 +114,14 @@ export default function RecipeEditor({
       return;
     }
 
-    await onSave(
-      rows.map((row) => ({
-        rawMaterialId: row.rawMaterialId,
-        quantity: row.quantity.trim(),
-      })),
-    );
+    try {
+      await onSave(
+        rows.map((row) => ({ rawMaterialId: row.rawMaterialId, quantity: row.quantity.trim() })),
+      );
+      try { sessionStorage.removeItem(draftKey); } catch { /* Storage may be unavailable. */ }
+    } catch (error) {
+      setErrors([error instanceof Error ? error.message : "Failed to save recipe. Your draft is preserved."]);
+    }
   }
 
   return (
@@ -120,8 +132,10 @@ export default function RecipeEditor({
       description="Recipe changes affect future sales consumption and availability calculations. Historical ingredient deductions are not rewritten."
       onClose={() => { if (!submitting) void handleClose(); }}
       wide
+      bodyClassName={styles.recipeBody}
     >
-      <div className={styles.editor}>
+      <div className={`${styles.editor} ${styles.recipeEditor}`}>
+        <div className={styles.recipeScroll}>
         {errors.length > 0 ? (
           <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             <ul className="space-y-1">
@@ -150,8 +164,8 @@ export default function RecipeEditor({
                   key={index}
                   className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-[minmax(0,1fr)_200px_180px_auto]"
                 >
-                  <InventoryField htmlFor={`recipe-material-${index}`} label="Raw material">
-                    <StyledSelect aria-label="Raw material"
+                  <InventoryField htmlFor={`recipe-material-${index}`} label="Raw material" required>
+                    <StyledSelect searchable aria-label="Raw material"
                       id={`recipe-material-${index}`}
                       value={row.rawMaterialId}
                       onValueChange={(value) =>
@@ -184,20 +198,22 @@ export default function RecipeEditor({
                     />
                   </InventoryField>
 
-                  <InventoryField htmlFor={`recipe-qty-${index}`} label="Quantity">
+                  <InventoryField htmlFor={`recipe-qty-${index}`} label="Quantity" required>
                     <input
                       id={`recipe-qty-${index}`}
                       value={row.quantity}
-                      onChange={(event) =>
+                      onChange={(event) => {
+                        const quantity = event.target.value;
+                        if (!/^\d*$/.test(quantity)) return;
                         setRows((current) =>
                           current.map((item, itemIndex) =>
-                            itemIndex === index
-                              ? { ...item, quantity: event.target.value }
-                              : item,
+                            itemIndex === index ? { ...item, quantity } : item,
                           ),
-                        )
-                      }
-                      placeholder="0.0000"
+                        );
+                      }}
+                      inputMode="numeric"
+                      pattern="[0-9]+"
+                      placeholder="0"
                       className={inventoryInputClasses}
                     />
                   </InventoryField>
@@ -212,7 +228,7 @@ export default function RecipeEditor({
                             : current.filter((_, itemIndex) => itemIndex !== index),
                         )
                       }
-                      className={`${styles.danger} ${modalStyles.danger}`}
+                      className={`${styles.danger} ${styles.removeIngredient}`}
                     >
                       Remove
                     </button>
@@ -224,7 +240,8 @@ export default function RecipeEditor({
           </div>
         )}
 
-        <div className="flex flex-wrap justify-end gap-3">
+        </div>
+        <div className={styles.recipeFooter}>
           <button
             type="button"
             disabled={submitting || loading}

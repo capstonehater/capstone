@@ -16,6 +16,17 @@ type Period = ForecastResponse['periods'][number];
 
 function PeriodChart({ run, series, scale }: { run: ForecastRun | null; series?: ForecastSeries; scale: number }) {
   const tooltipId = useId();
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(850);
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.width > 0) setWidth(entry.contentRect.width);
+    });
+    observer.observe(chart);
+    return () => observer.disconnect();
+  }, [run, series]);
   const [hovered, setHovered] = useState<{ key: string; date: string; left: number; top: number } | null>(null);
   useEffect(() => {
     if (!hovered) return;
@@ -40,13 +51,15 @@ function PeriodChart({ run, series, scale }: { run: ForecastRun | null; series?:
     });
   };
   const rangeExceedsScale = points.some((point) => Number(point.upper95) > scale);
-  const leftPadding = Math.max(100, number(scale).length * 9 + 20);
-  const width = Math.max(850, points.length * 80 + leftPadding + 55);
-  const x = (index: number) => points.length === 1 ? width / 2 : leftPadding + index * (width - leftPadding - 55) / (points.length - 1);
+  const leftPadding = Math.min(width * 0.35, Math.max(48, number(scale).length * 9 + 20));
+  const rightPadding = 28;
+  const plotWidth = Math.max(1, width - leftPadding - rightPadding);
+  const labelStep = Math.max(1, Math.ceil((points.length - 1) * 64 / plotWidth));
+  const x = (index: number) => points.length === 1 ? leftPadding + plotWidth / 2 : leftPadding + index * plotWidth / (points.length - 1);
   const position = (value: number, index: number) => `${x(index)},${170 - value / scale * 140}`;
   return <>
-    <div className={styles.liveChart}><svg style={{ width, minWidth: width, maxWidth: 'none' }} viewBox={`0 0 ${width} 215`} role="group" aria-label={`Daily expected usage for ${series.name}, ${dateLabel(run.startDate)} to ${dateLabel(run.endDate)}, in ${formatUnit(series.unit)}. Shaded area shows the possible range.`}>
-      {[0, 0.5, 1].map((fraction) => <g key={fraction}><line x1={leftPadding} x2={width - 55} y1={170-fraction*140} y2={170-fraction*140} stroke="#ddd" /><text x={leftPadding - 12} y={174-fraction*140} textAnchor="end" fontSize="15" fill="#334155">{number(scale*fraction)}</text></g>)}
+    <div ref={chartRef} className={styles.liveChart}><svg viewBox={`0 0 ${width} 215`} role="group" aria-label={`Daily expected usage for ${series.name}, ${dateLabel(run.startDate)} to ${dateLabel(run.endDate)}, in ${formatUnit(series.unit)}. Shaded area shows the possible range.`}>
+      {[0, 0.5, 1].map((fraction) => <g key={fraction}><line x1={leftPadding} x2={width - rightPadding} y1={170-fraction*140} y2={170-fraction*140} stroke="#ddd" /><text x={leftPadding - 12} y={174-fraction*140} textAnchor="end" fontSize="15" fill="#334155">{number(scale*fraction)}</text></g>)}
       <polygon points={[...points.map((point, index) => position(Math.min(Number(point.upper95), scale), index)), ...points.map((point, index) => position(Math.max(0, Number(point.lower95)), index)).reverse()].join(' ')} fill="#17840018" />
       <polyline points={points.map((point, index) => position(Number(point.forecast), index)).join(' ')} fill="none" stroke="#178400" strokeWidth="2" />
       {points.map((point, index) => <g key={point.date}>
@@ -61,7 +74,7 @@ function PeriodChart({ run, series, scale }: { run: ForecastRun | null; series?:
             if (event.key === 'Escape') { event.preventDefault(); setHovered(null); }
             if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); showPoint(event.currentTarget, point.date); }
           }} />
-        <text x={x(index)} y="195" textAnchor="middle" fontSize="15" fill="#334155">{point.date.slice(5, 10)}</text>
+        {index % labelStep === 0 && <text x={x(index)} y="195" textAnchor="middle" fontSize="15" fill="#334155">{point.date.slice(5, 10)}</text>}
       </g>)}
     </svg></div>
     {activePoint && hovered && createPortal(<div id={tooltipId} role="tooltip" className={styles.chartTooltip} style={{ left: hovered.left, top: hovered.top }}>

@@ -4,6 +4,7 @@ import { Children, isValidElement, type ReactNode, type SelectHTMLAttributes } f
 import AdminSelect from "./AdminSelect";
 
 type Props = Omit<SelectHTMLAttributes<HTMLSelectElement>, "onChange" | "value"> & {
+  searchable?: boolean;
   value: string;
   onValueChange: (value: string) => void;
 };
@@ -22,6 +23,6 @@ function collectOptions(children: ReactNode): { value: string; label: string }[]
 }
 
 // Keep existing option lists and form behavior while sharing the application menu UI.
-export default function StyledSelect({ value, onValueChange, children, id, disabled, required, name, "aria-label": label }: Props) {
-  return <AdminSelect label={label ?? "Select option"} hideLabel value={value} onChange={onValueChange} options={collectOptions(children)} id={id} disabled={disabled} required={required} name={name} />;
+export default function StyledSelect({ value, onValueChange, children, searchable, id, disabled, required, name, "aria-label": label }: Props) {
+  return <AdminSelect searchable={searchable} label={label ?? "Select option"} hideLabel value={value} onChange={onValueChange} options={collectOptions(children)} id={id} disabled={disabled} required={required} name={name} />;
 }

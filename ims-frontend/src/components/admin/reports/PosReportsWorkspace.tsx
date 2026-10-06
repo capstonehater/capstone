@@ -133,39 +133,43 @@ export default function PosReportsWorkspace() {
   return (
     <div className={styles.workspace}>
       <AdminSectionHeader title="POS Reports" description="Daily sales, transaction history, and point-of-sale performance." />
-      <section className={styles.datePanel} aria-label="Report date range">
-        <div className={styles.dateControls}>
-          <strong>Date Range</strong>
-          <DateFilter label="From date" value={from} min={dateBounds.min} max={dateBounds.max} required onChange={(value) => handleDateChange("from", value)} />
-          <DateFilter label="To date" value={to} min={dateBounds.min} max={dateBounds.max} required onChange={(value) => handleDateChange("to", value)} />
-          <div className={styles.presets}>
-            {(["today", "yesterday", "this-week", "custom"] as const).map((option) => (
-              <button key={option} type="button" aria-pressed={preset === option} onClick={() => handlePresetChange(option)}>{option === "custom" ? "Custom Date" : getPresetLabel(option)}</button>
-            ))}
-          </div>
-        </div>
-        <button type="button" className={styles.refresh} onClick={() => setRefreshToken((current) => current + 1)}><RefreshCw size={16} />Refresh {getRefreshLabel(activeSection)}</button>
-        <p className={styles.range}><Info size={14} />Active range: {getPresetLabel(preset)} <span>|</span> {from} to {to} <span>|</span> Manila time</p>
-      </section>
-      {dateError && <ActionAlert tone="error" title="Invalid date range" message={dateError} onDismiss={() => setDateError(null)} />}
-      <nav className={styles.navigation} aria-label="POS report sections">
-        <button type="button" className={styles.navArrow} aria-label="Previous report sections" onClick={() => navigation.current?.scrollBy({left: -navigation.current.clientWidth, behavior: "smooth"})}><ChevronLeft size={20} /></button>
-        <div ref={navigation} className={styles.navTrack}>
-          {SECTION_OPTIONS.map((option) => (
-            <button key={option.value} type="button" aria-current={activeSection === option.value ? "page" : undefined} onClick={() => setActiveSection(option.value)}>
-              <strong>{option.label}</strong><span>{option.description}</span>
-            </button>
-          ))}
-        </div>
-        <button type="button" className={styles.navArrow} aria-label="More report sections" onClick={() => navigation.current?.scrollBy({left: navigation.current.clientWidth, behavior: "smooth"})}><ChevronRight size={20} /></button>
-      </nav>
+
       <PosDashboardSection
         active={activeSection === "dashboard"}
         fromIso={manilaRange.from}
         toIso={manilaRange.to}
         preset={preset}
         refreshToken={refreshToken}
-      />
+      >
+        <nav className={styles.navigation} aria-label="POS report sections">
+          <button type="button" className={styles.navArrow} aria-label="Previous report sections" onClick={() => navigation.current?.scrollBy({left: -navigation.current.clientWidth, behavior: "smooth"})}><ChevronLeft size={20} /></button>
+          <div ref={navigation} className={styles.navTrack}>
+            {SECTION_OPTIONS.map((option) => (
+              <button key={option.value} type="button" aria-current={activeSection === option.value ? "page" : undefined} onClick={() => setActiveSection(option.value)}>
+                <strong>{option.label}</strong><span>{option.description}</span>
+              </button>
+            ))}
+          </div>
+          <button type="button" className={styles.navArrow} aria-label="More report sections" onClick={() => navigation.current?.scrollBy({left: navigation.current.clientWidth, behavior: "smooth"})}><ChevronRight size={20} /></button>
+        </nav>
+        {activeSection !== "sales-analytics" && (
+          <section className={styles.datePanel} aria-label="Report date range">
+            <div className={styles.dateControls}>
+              <strong>Date Range</strong>
+              <DateFilter label="From date" value={from} min={dateBounds.min} max={dateBounds.max} required onChange={(value) => handleDateChange("from", value)} />
+              <DateFilter label="To date" value={to} min={dateBounds.min} max={dateBounds.max} required onChange={(value) => handleDateChange("to", value)} />
+              <div className={styles.presets}>
+                {(["today", "yesterday", "this-week", "custom"] as const).map((option) => (
+                  <button key={option} type="button" aria-pressed={preset === option} onClick={() => handlePresetChange(option)}>{option === "custom" ? "Custom Date" : getPresetLabel(option)}</button>
+                ))}
+              </div>
+            </div>
+            <button type="button" className={styles.refresh} onClick={() => setRefreshToken((current) => current + 1)}><RefreshCw size={16} />Refresh {getRefreshLabel(activeSection)}</button>
+            <p className={styles.range}><Info size={14} />Active range: {getPresetLabel(preset)} <span>|</span> {from} to {to} <span>|</span> Manila time</p>
+          </section>
+        )}
+        {activeSection !== "sales-analytics" && dateError && <ActionAlert tone="error" title="Invalid date range" message={dateError} onDismiss={() => setDateError(null)} />}
+      </PosDashboardSection>
 
       <PosTransactionHistorySection
         active={activeSection === "transactions"}

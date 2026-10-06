@@ -4,7 +4,7 @@ import { formatUnit } from "@/lib/units";
 import AdminSelect from "@/components/admin/AdminSelect";
 import modalStyles from "./InventoryModal.module.css";
 
-import type { FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import {
   InventoryField,
   inventoryInputClasses,
@@ -20,6 +20,7 @@ type PanelMode =
   | "stock-run-manage"
   | "waste"
   | "archive-material"
+  | "delete-material"
   | "delete-draft";
 
 type MaterialFormState = {
@@ -57,6 +58,7 @@ type RawMaterialModalsProps = {
   onCreateMaterial: (event: FormEvent<HTMLFormElement>) => void;
   onUpdateMaterial: (event: FormEvent<HTMLFormElement>) => void;
   onArchiveMaterial: () => void;
+  onDeleteMaterial: () => void;
 };
 
 export default function RawMaterialModals({
@@ -71,7 +73,22 @@ export default function RawMaterialModals({
   onCreateMaterial,
   onUpdateMaterial,
   onArchiveMaterial,
+  onDeleteMaterial,
 }: RawMaterialModalsProps) {
+  const [previousPanel, setPreviousPanel] = useState(activePanel);
+  const [validationAttempted, setValidationAttempted] = useState(false);
+  const [reorderInputError, setReorderInputError] = useState<string | null>(null);
+  if (previousPanel !== activePanel) {
+    setPreviousPanel(activePanel);
+    setValidationAttempted(false);
+    setReorderInputError(null);
+  }
+  const nameError = validationAttempted && !materialForm.name.trim() ? "Raw material name is required." : undefined;
+  const unitError = validationAttempted && !units.some((unit) => unit.id === materialForm.unitId) ? "Select a base unit." : undefined;
+  const reorderError = reorderInputError || (validationAttempted
+    ? !materialForm.reorderPoint.trim() ? "Reorder point is required." : !/^[0-9]{1,5}$/.test(materialForm.reorderPoint) ? "Enter a whole number from 0 to 99999." : undefined
+    : undefined);
+  const invalidClasses = " !border-red-600 !bg-red-50 focus:!border-red-600 focus:!ring-red-600/15";
   return (
     <>
       {activePanel === "create-material" ? (
@@ -83,10 +100,18 @@ export default function RawMaterialModals({
           description="Create a new raw material record with clear labels before it enters the inventory flow."
           onClose={onClose}
         >
-          <form className="rawMaterialCreateForm grid gap-4 md:grid-cols-2" onSubmit={onCreateMaterial}>
-            <InventoryField htmlFor="material-name" label="Raw material name">
+          <form noValidate className="rawMaterialCreateForm grid gap-4 md:grid-cols-2" onSubmit={(event) => {
+            event.preventDefault();
+            setValidationAttempted(true);
+            if (!materialForm.name.trim() || !units.some((unit) => unit.id === materialForm.unitId) || !/^[0-9]{1,5}$/.test(materialForm.reorderPoint) || reorderInputError) return;
+            onCreateMaterial(event);
+          }}>
+            <InventoryField htmlFor="material-name" label="Raw material name" required>
               <input
                 id="material-name"
+                required
+                aria-invalid={!!nameError}
+                aria-describedby={nameError ? "material-name-error" : undefined}
                 value={materialForm.name}
                 onChange={(event) =>
                   onMaterialFormChange((current) => ({
@@ -95,9 +120,10 @@ export default function RawMaterialModals({
                     sku: makeMaterialSku(event.target.value, existingSkus),
                   }))
                 }
-                placeholder="Evaporated Milk"
-                className={inventoryInputClasses}
+                placeholder="Ex. Evaporated Milk"
+                className={`${inventoryInputClasses}${nameError ? invalidClasses : ""}`}
               />
+              {nameError && <p id="material-name-error" role="alert" className="text-sm text-red-600">{nameError}</p>}
             </InventoryField>
             <InventoryField htmlFor="material-sku" label="SKU">
               <input
@@ -105,27 +131,38 @@ export default function RawMaterialModals({
                 value={materialForm.sku}
                 onChange={(event) => onMaterialFormChange((current) => ({ ...current, sku: event.target.value }))}
                 readOnly
-                placeholder="RM-EVAP-001"
+                placeholder="Ex. RM-EVAP-001"
                 className={inventoryInputClasses}
               />
             </InventoryField>
-            <AdminSelect label="Base unit" value={materialForm.unitId} onChange={(unitId) => onMaterialFormChange((current) => ({ ...current, unitId }))} options={[{ value: "", label: "Select unit" }, ...units.map((unit) => ({ value: unit.id, label: `${formatUnit(unit.name)} (${formatUnit(unit.code)})` }))]} />
-            <InventoryField htmlFor="material-reorder" label="Reorder point">
+            <div className={unitError ? "rounded-lg border border-red-600 bg-red-50 p-1" : undefined}>
+              <AdminSelect label="Base unit" required describedBy={unitError ? "material-unit-error" : undefined} value={materialForm.unitId} onChange={(unitId) => onMaterialFormChange((current) => ({ ...current, unitId }))} options={[{ value: "", label: "Select unit" }, ...units.map((unit) => ({ value: unit.id, label: `${formatUnit(unit.name)} (${formatUnit(unit.code)})` }))]} />
+              {unitError && <p id="material-unit-error" role="alert" className="mt-2 text-sm text-red-600">{unitError}</p>}
+            </div>
+            <InventoryField htmlFor="material-reorder" label="Reorder point" required>
               <input
                 id="material-reorder"
-                type="number"
-                step="0.0001"
-                min="0"
+                required
+                aria-invalid={!!reorderError}
+                aria-describedby={reorderError ? "material-reorder-error" : undefined}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]{1,5}"
+                maxLength={5}
                 value={materialForm.reorderPoint}
-                onChange={(event) =>
-                  onMaterialFormChange((current) => ({
-                    ...current,
-                    reorderPoint: event.target.value,
-                  }))
-                }
-                placeholder="5"
-                className={inventoryInputClasses}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (!/^[0-9]{0,5}$/.test(value)) {
+                    setReorderInputError("Enter a whole number from 0 to 99999.");
+                    return;
+                  }
+                  setReorderInputError(null);
+                  onMaterialFormChange((current) => ({ ...current, reorderPoint: value }));
+                }}
+                placeholder="Ex. 5"
+                className={`${inventoryInputClasses}${reorderError ? invalidClasses : ""}`}
               />
+              {reorderError && <p id="material-reorder-error" role="alert" className="text-sm text-red-600">{reorderError}</p>}
             </InventoryField>
             <ModalActions>
               <button type="submit" disabled={submitting} className="rawMaterialCreateSubmit rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white">
@@ -196,23 +233,36 @@ export default function RawMaterialModals({
       {activePanel === "archive-material" && selectedMaterial ? (
         <InventoryModal
           professional
-          title="Archive Raw Material"
-          description="This hides the material from the default summary view but keeps all batches and ledger history intact."
+          title={selectedMaterial.isActive ? "Archive Raw Material" : "Unarchive Raw Material"}
+          description={selectedMaterial.isActive ? "This hides the material from the default summary view but keeps all batches and ledger history intact." : "Restore this material to active inventory."}
           onClose={onClose}
         >
           <div className="space-y-5">
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-700">
-              You are archiving <span className="font-semibold">{selectedMaterial.name}</span> (
+            <div className={`rounded-2xl border px-4 py-4 text-sm ${selectedMaterial.isActive ? "border-rose-200 bg-rose-50 text-rose-700" : "border-blue-200 bg-blue-50 text-blue-700"}`}>
+              You are {selectedMaterial.isActive ? "archiving" : "unarchiving"} <span className="font-semibold">{selectedMaterial.name}</span> (
               {selectedMaterial.sku}).
             </div>
             <p className="text-sm text-slate-600">
-              Use this when the raw material should stop appearing in normal admin workflows. This
-              does not delete history or existing batches.
+              {selectedMaterial.isActive ? "Use this when the raw material should stop appearing in normal admin workflows. This does not delete history or existing batches." : "The material will appear in active inventory again, with its existing batches and history."}
             </p>
             <ModalActions>
-              <button type="button" onClick={onArchiveMaterial} disabled={submitting} className={modalStyles.archiveAction}>
-                Archive Material
+              <button type="button" onClick={onArchiveMaterial} disabled={submitting} className={selectedMaterial.isActive ? modalStyles.archiveAction : modalStyles.unarchiveAction}>
+                {selectedMaterial.isActive ? "Archive Material" : "Unarchive Material"}
               </button>
+            </ModalActions>
+          </div>
+        </InventoryModal>
+      ) : null}
+      {activePanel === "delete-material" && selectedMaterial ? (
+        <InventoryModal professional title="Delete Raw Material" description="Permanently remove this raw material while preserving its historical records." onClose={onClose}>
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-700">
+              Delete <span className="font-semibold">{selectedMaterial.name}</span> ({selectedMaterial.sku})? This cannot be undone.
+            </div>
+            <p className="text-sm text-slate-600">Stock runs, batches, transactions, and daily snapshots retain this material’s identity and history. Remove the material from recipes and draft stock runs first.</p>
+            <ModalActions>
+              <button type="button" onClick={onClose} disabled={submitting}>Cancel</button>
+              <button type="button" onClick={onDeleteMaterial} disabled={submitting} className={modalStyles.archiveAction}>Delete Material</button>
             </ModalActions>
           </div>
         </InventoryModal>

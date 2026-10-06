@@ -12,7 +12,7 @@ export default function StockRunDateField({ id, label, value, onChange, type = "
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   if (type === "date") return <DateFilter editable inputId={id} label={label} value={value} onChange={onChange} required={required} />;
-  return <InventoryField htmlFor={id} label={label}>
+  return <InventoryField htmlFor={id} label={label} required={required}>
     <div className={styles.stockRunDateControl}>
       <input ref={inputRef} id={id} type={type} value={value} required={required}
         onChange={event => onChange(event.target.value)} />

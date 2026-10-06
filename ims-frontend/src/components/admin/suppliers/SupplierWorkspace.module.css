@@ -23,6 +23,17 @@
 .input { display: block; width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #334155; font-size: 14px; }
 .input:disabled { background: #f8fafc; color: #475569; opacity: 1; }
 .input:focus { outline: 2px solid #64748b; outline-offset: 2px; }
+.input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; }
+.input[aria-invalid="true"]:focus { outline-color: #dc2626; }
+.contactFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.contactFields > * { min-width: 0; }
+.phoneInput { display: flex; align-items: center; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
+.phonePrefix { padding-left: 12px; color: #334155; font-size: 14px; }
+.phoneInput .input { border: 0; border-radius: 0; min-width: 0; }
+.phoneInput:focus-within { outline: 2px solid #64748b; outline-offset: 2px; }
+.phoneInput .input:focus { outline: none; }
+.phoneInput[data-invalid="true"] { border-color: #dc2626; background: #fef2f2; }
+.phoneInput[data-invalid="true"]:focus-within { outline-color: #dc2626; }
 .primary, .secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px 14px; border: 1px solid #232d46; border-radius: 8px; background: #232d46; color: #fff; font-size: 14px; font-weight: 600; transition: background-color 150ms; }
 .primary { flex-shrink: 0; }
 .primary:hover:not(:disabled) { background: #34425f; }

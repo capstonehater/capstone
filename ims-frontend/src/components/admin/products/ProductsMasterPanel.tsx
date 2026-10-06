@@ -27,6 +27,7 @@ type Props = {
   onEffectiveAvailabilityChange: (value: "" | ProductEffectiveStatus) => void;
   onClearFilters: () => void;
   onAddProduct: () => void;
+  onCreateCategory: () => void;
   productCounts: { active: number; archived: number };
   onSelectProduct: (productId: string) => void;
   onPageChange: (page: number) => void;
@@ -49,6 +50,7 @@ export default function ProductsMasterPanel({
   onEffectiveAvailabilityChange,
   onClearFilters,
   onAddProduct,
+  onCreateCategory,
   productCounts,
   onSelectProduct,
   onPageChange,
@@ -64,6 +66,7 @@ export default function ProductsMasterPanel({
         onSearchChange={onSearchChange}
         onViewChange={onViewChange}
         onAddProduct={onAddProduct}
+        onCreateCategory={onCreateCategory}
         productCounts={productCounts}
       />
 

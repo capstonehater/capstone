@@ -133,8 +133,8 @@
 .chartHeader { display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap; }
 .chartMaterial { display:flex;align-items:center;gap:10px;font-size:16px;margin-bottom:12px; }
 .chartMaterial select { max-width:260px;background:white;border:1px solid #ddd;border-radius:10px;padding:8px;color:#33412b; }
-.liveChart { overflow-x:auto;background:#f6f8f4;border-radius:10px;margin-bottom:10px;padding:4px 8px; }
-.liveChart svg { display:block;width:100%;min-width:550px;max-width:760px;height:250px;margin:0 auto; }
+.liveChart { min-width:0;background:#f6f8f4;border-radius:10px;margin-bottom:10px;padding:4px 8px; }
+.liveChart svg { display:block;width:100%;height:250px;margin:0 auto; }
 
 
 .refreshActions > .suggestionsButton { min-height:48px;margin-top:14px;border-radius:14px;padding:12px 20px;font-size:16px; }
@@ -163,6 +163,7 @@
 .graphGrid { display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin-bottom:14px; }
 .graphCompare { grid-template-columns:repeat(2,minmax(0,1fr)); }
 .graphWeek { min-width:0;padding:12px;border:1px solid #e2e8de;border-radius:12px;background:#fff; }
+.graphWeek > .liveChart { margin-top:16px; }
 .graphCompare .graphWeek + .graphWeek { border-left:3px solid #d5ded1; }
 .graphWeekTitle { display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:38px;margin:0 0 12px;font-size:16px;font-weight:700; }
 .graphSelect { position:relative;display:flex;align-items:center;gap:10px;min-width:0;margin-bottom:12px; }
@@ -177,7 +178,6 @@
 .graphSelectSelected { background:#e2e8f0;color:#232d46;font-weight:700; }
 .graphSelectSelected svg { flex-shrink:0; }
 .graphMaterialSelect .graphSelectTrigger { min-width:220px; }
-.graphCompare .liveChart svg { min-width:400px; }
 .graphTotal { margin:4px 0;color:#354a31;font-size:16px; }
 .graphEmpty { min-height:210px;display:flex;align-items:center;justify-content:center;text-align:center;color:#62685d; }
 .graphHint { margin:0 0 12px;color:#625835;font-size:16px; }

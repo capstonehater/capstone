@@ -374,17 +374,19 @@ model RawMaterial {
 
 model StoreAvailabilitySearch {
   id String @id @default(uuid())
-  rawMaterialId String @map("raw_material_id")
+  rawMaterialId String? @map("raw_material_id")
+  rawMaterialSnapshot Json? @map("raw_material_snapshot")
   productName String @map("product_name")
   status String @default("PENDING")
   error String?
   createdAt DateTime @default(now()) @map("created_at")
   completedAt DateTime? @map("completed_at")
-  rawMaterial RawMaterial @relation(fields: [rawMaterialId], references: [id], onDelete: Cascade)
+  rawMaterial RawMaterial? @relation(fields: [rawMaterialId], references: [id], onDelete: SetNull)
   results StoreAvailabilityResult[]
 
   @@index([rawMaterialId, createdAt])
   @@map("store_availability_searches")
+
 }
 
 model StoreAvailabilityResult {
@@ -468,7 +470,8 @@ model StockRun {
 model StockRunItem {
   id             String    @id @default(uuid())
   stockRunId     String    @map("stock_run_id")
-  rawMaterialId  String    @map("raw_material_id")
+  rawMaterialId  String?    @map("raw_material_id")
+  rawMaterialSnapshot Json? @map("raw_material_snapshot")
   supplierId     String?   @map("supplier_id")
   quantity       Decimal   @db.Decimal(14, 4)
   costPerUnit    Decimal   @map("cost_per_unit") @db.Decimal(18, 8)
@@ -482,18 +485,20 @@ model StockRunItem {
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
   stockRun    StockRun    @relation(fields: [stockRunId], references: [id], onDelete: Cascade)
-  rawMaterial RawMaterial @relation(fields: [rawMaterialId], references: [id], onDelete: Restrict)
+  rawMaterial RawMaterial? @relation(fields: [rawMaterialId], references: [id], onDelete: SetNull)
   supplier    Supplier?   @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   stockBatch  StockBatch?
 
   @@index([stockRunId])
   @@index([rawMaterialId])
   @@map("stock_run_items")
+
 }
 
 model StockBatch {
   id                String    @id @default(uuid())
-  rawMaterialId     String    @map("raw_material_id")
+  rawMaterialId     String?    @map("raw_material_id")
+  rawMaterialSnapshot Json? @map("raw_material_snapshot")
   supplierId        String?   @map("supplier_id")
   stockRunItemId    String?   @unique @map("stock_run_item_id")
   initialQuantity   Decimal   @map("initial_quantity") @db.Decimal(14, 4)
@@ -504,7 +509,7 @@ model StockBatch {
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @updatedAt @map("updated_at")
 
-  rawMaterial      RawMaterial                @relation(fields: [rawMaterialId], references: [id], onDelete: Restrict)
+  rawMaterial      RawMaterial?                @relation(fields: [rawMaterialId], references: [id], onDelete: SetNull)
   supplier         Supplier?                  @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   stockRunItem     StockRunItem?              @relation(fields: [stockRunItemId], references: [id], onDelete: SetNull)
   transactionLines InventoryTransactionLine[]
@@ -513,6 +518,7 @@ model StockBatch {
   @@index([rawMaterialId, expirationDate, receivedAt])
   @@index([remainingQuantity])
   @@map("stock_batches")
+
 }
 
 model InventoryTransaction {
@@ -542,7 +548,8 @@ model InventoryTransaction {
 model InventoryTransactionLine {
   id                     String   @id @default(uuid())
   inventoryTransactionId String   @map("inventory_transaction_id")
-  rawMaterialId          String   @map("raw_material_id")
+  rawMaterialId          String?   @map("raw_material_id")
+  rawMaterialSnapshot Json? @map("raw_material_snapshot")
   stockBatchId           String   @map("stock_batch_id")
   productVariantId       String?  @map("product_variant_id")
   orderItemId            String?  @map("order_item_id")
@@ -552,7 +559,7 @@ model InventoryTransactionLine {
   createdAt              DateTime @default(now()) @map("created_at")
 
   inventoryTransaction InventoryTransaction @relation(fields: [inventoryTransactionId], references: [id], onDelete: Cascade)
-  rawMaterial          RawMaterial          @relation(fields: [rawMaterialId], references: [id], onDelete: Restrict)
+  rawMaterial          RawMaterial?          @relation(fields: [rawMaterialId], references: [id], onDelete: SetNull)
   stockBatch           StockBatch           @relation(fields: [stockBatchId], references: [id], onDelete: Restrict)
   productVariant       ProductVariant?      @relation(fields: [productVariantId], references: [id], onDelete: SetNull)
   orderItem            OrderItem?           @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
@@ -563,6 +570,7 @@ model InventoryTransactionLine {
   @@index([orderItemId])
   @@index([productVariantId])
   @@map("inventory_transaction_lines")
+
 }
 
 model RawMaterialInventorySummary {
@@ -583,6 +591,7 @@ model StockoutEvent {
   entityType       StockoutEntityType @map("entity_type")
   entityId         String             @map("entity_id")
   rawMaterialId    String?            @map("raw_material_id")
+  rawMaterialSnapshot Json? @map("raw_material_snapshot")
   productVariantId String?            @map("product_variant_id")
   startedAt        DateTime           @map("started_at")
   endedAt          DateTime?          @map("ended_at")
@@ -598,6 +607,7 @@ model StockoutEvent {
   @@index([productVariantId, startedAt])
   @@index([endedAt])
   @@map("stockout_events")
+
 }
 
 model VariantAvailabilityEvent {
@@ -621,18 +631,20 @@ model VariantAvailabilityEvent {
 model InventoryDailySnapshot {
   id             String   @id @default(uuid())
   snapshotDate   DateTime @map("snapshot_date") @db.Date
-  rawMaterialId  String   @map("raw_material_id")
+  rawMaterialId  String?   @map("raw_material_id")
+  rawMaterialSnapshot Json? @map("raw_material_snapshot")
   onHandQuantity Decimal  @map("on_hand_quantity") @db.Decimal(14, 4)
   usableQuantity Decimal  @map("usable_quantity") @db.Decimal(14, 4)
   inventoryValue Decimal  @map("inventory_value") @db.Decimal(14, 4)
   createdAt      DateTime @default(now()) @map("created_at")
 
-  rawMaterial RawMaterial @relation(fields: [rawMaterialId], references: [id], onDelete: Cascade)
+  rawMaterial RawMaterial? @relation(fields: [rawMaterialId], references: [id], onDelete: SetNull)
 
   @@unique([snapshotDate, rawMaterialId])
   @@index([snapshotDate])
   @@index([rawMaterialId, snapshotDate])
   @@map("inventory_daily_snapshots")
+
 }
 
 model VariantAvailabilitySummary {
@@ -678,7 +690,7 @@ model Order {
 model OrderItem {
   id                  String   @id @default(uuid())
   orderId             String   @map("order_id")
-  productVariantId    String   @map("product_variant_id")
+  productVariantId    String?  @map("product_variant_id")
   quantity            Int
   unitBasePrice       Decimal  @map("unit_base_price") @db.Decimal(12, 2)
   unitModifierAmount  Decimal  @default(0) @map("unit_modifier_amount") @db.Decimal(12, 2)
@@ -694,7 +706,7 @@ model OrderItem {
   updatedAt           DateTime @updatedAt @map("updated_at")
 
   order          Order                      @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productVariant ProductVariant             @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
+  productVariant ProductVariant?            @relation(fields: [productVariantId], references: [id], onDelete: SetNull)
   modifiers      OrderItemModifier[]
   inventoryLines InventoryTransactionLine[]
 
@@ -768,6 +780,7 @@ model Alert {
   title                String
   message              String
   rawMaterialId        String?       @map("raw_material_id")
+  rawMaterialSnapshot Json? @map("raw_material_snapshot")
   stockBatchId         String?       @map("stock_batch_id")
   supplierId           String?       @map("supplier_id")
   expiryDate           DateTime?     @map("expiry_date") @db.Date
@@ -794,6 +807,7 @@ model Alert {
   @@index([rawMaterialId])
   @@index([stockBatchId])
   @@map("alerts")
+
 }
 
 model OutboxEvent {

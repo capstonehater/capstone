@@ -57,10 +57,8 @@ export class UpdateUserDto {
   @Transform(trimString)
   @IsOptional()
   @IsString()
-  @MinLength(7)
-  @MaxLength(32)
-  @Matches(/^\+?[0-9()\-.\s]+$/, {
-    message: 'phone must be a valid phone number',
+  @Matches(/^\+639[0-9]{9}$/, {
+    message: 'phone must start with +63 followed by 10 digits starting with 9',
   })
   phone?: string;
 

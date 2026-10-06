@@ -1334,31 +1334,34 @@ function UserFormDialogBody({
   const [middleInitial, setMiddleInitial] = useState(user?.middleInitial ?? "");
   const [lastName, setLastName] = useState(user?.lastName ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
-  const [phone, setPhone] = useState(user?.phone ?? "");
+  const [phone, setPhone] = useState((user?.phone ?? "").replace(/^\+63/, "").replace(/^0(?=9)/, ""));
   const [role, setRole] = useState<AssignableUserRole>(
     user?.role === "ADMINISTRATOR" ? "ADMINISTRATOR" : "STAFF",
   );
-  const [clientErrors, setClientErrors] = useState<string[]>([]);
+  const [validationAttempted, setValidationAttempted] = useState(false);
+  const [phoneInputError, setPhoneInputError] = useState<string | null>(null);
   const editingSelf = mode === "edit" && user?.id === currentUserId;
   const editingReservedManager = mode === "edit" && user?.role === "MANAGER";
+  const fieldErrors: Record<string, string | undefined> = {
+    firstName: !firstName.trim() ? "First name is required." : undefined,
+    lastName: !lastName.trim() ? "Last name is required." : undefined,
+    email: !email.trim() ? "Email is required." : !/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(email.trim()) ? "Enter a valid email address." : undefined,
+    phone: !phone.trim() ? "Phone is required." : !/^9[0-9]{9}$/.test(phone) ? "Enter 10 digits starting with 9, excluding +63." : undefined,
+    middleInitial: middleInitial.trim().length > 1 ? "Middle initial must be one character." : undefined,
+    role: !editingReservedManager && !["ADMINISTRATOR", "STAFF"].includes(role) ? "Select a role." : undefined,
+  };
+  const showFieldError = (field: string) => field === "phone" && phoneInputError ? phoneInputError : validationAttempted ? fieldErrors[field] : undefined;
+  const fieldMessage = (field: string) => showFieldError(field) ? <p id={`${mode}-user-${field}-error`} role="alert" className={styles.fieldError}>{showFieldError(field)}</p> : null;
+  const fieldClass = (field: string) => `${inventoryInputClasses} ${showFieldError(field) ? styles.invalidInput : ""}`;
 
   function validate() {
-    const nextErrors: string[] = [];
-    if (!firstName.trim()) nextErrors.push("First name is required.");
-    if (!lastName.trim()) nextErrors.push("Last name is required.");
-    if (!email.trim()) nextErrors.push("Email is required.");
-    if (!phone.trim()) nextErrors.push("Phone is required.");
-    if (middleInitial.trim().length > 1) {
-      nextErrors.push("Middle initial must be one character.");
-    }
-
-    setClientErrors(nextErrors);
-    return nextErrors.length === 0;
+    setValidationAttempted(true);
+    return !Object.values(fieldErrors).some(Boolean) && !phoneInputError;
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
+    if (submitting) return;
     if (!validate()) {
       return;
     }
@@ -1368,7 +1371,7 @@ function UserFormDialogBody({
       middleInitial: middleInitial.trim() || null,
       lastName: lastName.trim(),
       email: email.trim(),
-      phone: phone.trim(),
+      phone: `+63${phone}`,
       role:
         (editingSelf || editingReservedManager) && user
           ? (user.role as AssignableUserRole)
@@ -1377,14 +1380,7 @@ function UserFormDialogBody({
   }
 
   const formContent = (
-      <form className={styles.userDialogForm} onSubmit={handleSubmit}>
-        {clientErrors.length > 0 ? (
-          <div className="md:col-span-2 rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {clientErrors.map((error) => (
-              <p key={error}>{error}</p>
-            ))}
-          </div>
-        ) : null}
+      <form noValidate className={styles.userDialogForm} onSubmit={handleSubmit}>
         {errorMessage ? (
           <div className="md:col-span-2 rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {errorMessage}
@@ -1393,27 +1389,41 @@ function UserFormDialogBody({
 
         <div className={styles.nameFields}>
         <InventoryField htmlFor={`${mode}-user-first-name`} label="First Name" required>
-          <input id={`${mode}-user-first-name`} autoComplete="given-name" required value={firstName} onChange={(event) => setFirstName(event.target.value)} className={inventoryInputClasses} />
+          <input id={`${mode}-user-first-name`} placeholder="Ex. juan" autoComplete="given-name" required aria-invalid={!!showFieldError("firstName")} aria-describedby={showFieldError("firstName") ? `${mode}-user-firstName-error` : undefined} value={firstName} onChange={(event) => setFirstName(event.target.value)} className={fieldClass("firstName")} />
+          {fieldMessage("firstName")}
         </InventoryField>
         <InventoryField htmlFor={`${mode}-user-last-name`} label="Last Name" required>
-          <input id={`${mode}-user-last-name`} autoComplete="family-name" required value={lastName} onChange={(event) => setLastName(event.target.value)} className={inventoryInputClasses} />
+          <input id={`${mode}-user-last-name`} placeholder="Ex. Dela Cruz" autoComplete="family-name" required aria-invalid={!!showFieldError("lastName")} aria-describedby={showFieldError("lastName") ? `${mode}-user-lastName-error` : undefined} value={lastName} onChange={(event) => setLastName(event.target.value)} className={fieldClass("lastName")} />
+          {fieldMessage("lastName")}
         </InventoryField>
         <InventoryField htmlFor={`${mode}-user-middle-initial`} label="Middle Initial">
-          <input id={`${mode}-user-middle-initial`} aria-label="Middle initial (optional)" placeholder="Optional" value={middleInitial} maxLength={1} onChange={(event) => setMiddleInitial(event.target.value.toUpperCase())} className={inventoryInputClasses} />
+          <input id={`${mode}-user-middle-initial`} aria-label="Middle initial (optional)" placeholder="Optional" aria-invalid={!!showFieldError("middleInitial")} aria-describedby={showFieldError("middleInitial") ? `${mode}-user-middleInitial-error` : undefined} value={middleInitial} maxLength={1} onChange={(event) => setMiddleInitial(event.target.value.toUpperCase())} className={fieldClass("middleInitial")} />
+          {fieldMessage("middleInitial")}
         </InventoryField>
         </div>
         <InventoryField htmlFor={`${mode}-user-email`} label="Email" required>
-          <input id={`${mode}-user-email`} type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} className={inventoryInputClasses} placeholder="name@example.com" />
+          <input id={`${mode}-user-email`} type="email" autoComplete="email" required aria-invalid={!!showFieldError("email")} aria-describedby={showFieldError("email") ? `${mode}-user-email-error` : undefined} value={email} onChange={(event) => setEmail(event.target.value)} className={fieldClass("email")} placeholder="name@example.com" />
+          {fieldMessage("email")}
         </InventoryField>
         <InventoryField htmlFor={`${mode}-user-phone`} label="Phone" required>
-          <input id={`${mode}-user-phone`} type="tel" autoComplete="tel" required value={phone} onChange={(event) => setPhone(event.target.value)} className={inventoryInputClasses} placeholder="+639171234567" />
+          <div className={`${styles.phoneField} ${showFieldError("phone") ? styles.invalidPhone : ""}`}>
+            <span className={styles.phonePrefix}>+63</span>
+            <input id={`${mode}-user-phone`} type="tel" inputMode="numeric" autoComplete="tel-national" required minLength={10} maxLength={10} pattern="9[0-9]{9}" title="Enter 10 digits starting with 9, excluding +63." aria-label="Phone number, +63 followed by 10 digits" aria-invalid={!!showFieldError("phone")} aria-describedby={showFieldError("phone") ? `${mode}-user-phone-error` : undefined} value={phone} onChange={(event) => {
+              if (!/^[0-9]*$/.test(event.target.value)) { setPhoneInputError("Phone number must contain digits only."); return; }
+              setPhoneInputError(null);
+              setPhone(event.target.value);
+            }} className={fieldClass("phone")} placeholder="9171234567" />
+          </div>
+          {fieldMessage("phone")}
         </InventoryField>
         <InventoryField
           htmlFor={`${mode}-user-role`}
           label="Role"
-          hint={mode === "create" ? undefined : editingSelf ? "Self role changes are protected." : "Manager is reserved for future implementation."}
+          required
+          hint={mode === "create" ? undefined : editingSelf ? "Self role changes are protected." : editingReservedManager ? "Manager is reserved for future implementation." : undefined}
         >
           <StyledSelect aria-label="Role"
+            required
             id={`${mode}-user-role`}
             value={(editingSelf || editingReservedManager) && user ? user.role : role}
             disabled={editingSelf || editingReservedManager}

@@ -1,3 +1,4 @@
+import { withHistoricalMaterial } from '../inventory/material-history-snapshot';
 import { Injectable } from '@nestjs/common';
 import {
   AlertType,
@@ -24,6 +25,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PosAuditExceptionsDto } from './dto/pos-audit-exceptions.dto';
 import { PosInventoryLinkedDto } from './dto/pos-inventory-linked.dto';
 import { PosPeakHoursDto } from './dto/pos-peak-hours.dto';
+import { CAFE_OPERATING_HOURS, isCafeOperatingHour } from '../common/utils/cafe-operating-hours';
 import { PosProductPerformanceDto } from './dto/pos-product-performance.dto';
 import { PosRefundsVoidsDto } from './dto/pos-refunds-voids.dto';
 import { PosSalesAnalyticsDto } from './dto/pos-sales-analytics.dto';
@@ -101,8 +103,8 @@ export class ReportsService {
       }
 
       for (const item of order.items) {
-        const current = variantMap.get(item.productVariantId) ?? {
-          productVariantId: item.productVariantId,
+        const current = variantMap.get(item.productVariantId ?? `deleted:${item.skuSnapshot}`) ?? {
+          productVariantId: item.productVariantId ?? `deleted:${item.skuSnapshot}`,
           productName: item.productNameSnapshot,
           variantName: item.variantNameSnapshot,
           sku: item.skuSnapshot,
@@ -114,7 +116,7 @@ export class ReportsService {
         current.quantitySold += item.quantity;
         current.revenue = current.revenue.plus(item.lineSubtotal);
         current.cogs = current.cogs.plus(item.lineCogsAmount);
-        variantMap.set(item.productVariantId, current);
+        variantMap.set(item.productVariantId ?? `deleted:${item.skuSnapshot}`, current);
       }
     }
 
@@ -189,8 +191,8 @@ export class ReportsService {
     >();
 
     for (const item of items) {
-      const current = variantMap.get(item.productVariantId) ?? {
-        productVariantId: item.productVariantId,
+      const current = variantMap.get(item.productVariantId ?? `deleted:${item.skuSnapshot}`) ?? {
+        productVariantId: item.productVariantId ?? `deleted:${item.skuSnapshot}`,
         productName: item.productNameSnapshot,
         variantName: item.variantNameSnapshot,
         sku: item.skuSnapshot,
@@ -202,7 +204,7 @@ export class ReportsService {
       current.quantitySold += item.quantity;
       current.revenue = current.revenue.plus(item.lineSubtotal);
       current.cogs = current.cogs.plus(item.lineCogsAmount);
-      variantMap.set(item.productVariantId, current);
+      variantMap.set(item.productVariantId ?? `deleted:${item.skuSnapshot}`, current);
     }
 
     const variants = [...variantMap.values()]
@@ -308,7 +310,8 @@ export class ReportsService {
       currentReason.eventCount += 1;
       reasonMap.set(reasonCode, currentReason);
 
-      for (const line of transaction.lines) {
+      for (const record of transaction.lines) {
+        const line = withHistoricalMaterial(record);
         const material = materialMap.get(line.rawMaterialId) ?? {
           rawMaterialId: line.rawMaterialId,
           name: line.rawMaterial.name,
@@ -463,6 +466,7 @@ export class ReportsService {
 
     const nearExpiryBatches = await this.prisma.stockBatch.findMany({
       where: {
+        rawMaterialId: { not: null },
         remainingQuantity: {
           gt: ZERO,
         },
@@ -751,7 +755,7 @@ export class ReportsService {
     >();
 
     for (const orderItem of topSellingOrderItems) {
-      if (!orderItem.productVariant) {
+      if (!orderItem.productVariant || !orderItem.productVariantId) {
         continue;
       }
 
@@ -2053,7 +2057,8 @@ export class ReportsService {
           : ZERO,
     }));
 
-    const busiestHours = [...hourly]
+    const operatingHourly = hourly.filter((row) => isCafeOperatingHour(row.hour));
+    const busiestHours = [...operatingHourly]
       .sort((left, right) => {
         if (right.transactionCount !== left.transactionCount) {
           return right.transactionCount - left.transactionCount;
@@ -2063,7 +2068,7 @@ export class ReportsService {
       })
       .slice(0, 3);
 
-    const slowestHours = [...hourly]
+    const slowestHours = [...operatingHourly]
       .sort((left, right) => {
         if (left.transactionCount !== right.transactionCount) {
           return left.transactionCount - right.transactionCount;
@@ -2081,6 +2086,7 @@ export class ReportsService {
       filters: {
         dayType,
       },
+      operatingHours: CAFE_OPERATING_HOURS,
       summary: {
         totalTransactions: hourly.reduce(
           (sum, row) => sum + row.transactionCount,
@@ -2107,6 +2113,8 @@ export class ReportsService {
     if (materialSearch) {
       lineConditions.push({
         OR: [
+          { rawMaterialSnapshot: { path: ["name"], string_contains: materialSearch, mode: "insensitive" } },
+          { rawMaterialSnapshot: { path: ["sku"], string_contains: materialSearch, mode: "insensitive" } },
           {
             rawMaterial: {
               name: {
@@ -2184,7 +2192,7 @@ export class ReportsService {
       });
     }
 
-    const lines = await this.prisma.inventoryTransactionLine.findMany({
+    const lines = (await this.prisma.inventoryTransactionLine.findMany({
       where: {
         inventoryTransaction: {
           type: InventoryTransactionType.CHECKOUT,
@@ -2240,7 +2248,7 @@ export class ReportsService {
         },
         { createdAt: 'desc' },
       ],
-    });
+    })).map(withHistoricalMaterial);
 
     const materialIds = [...new Set(lines.map((line) => line.rawMaterialId))];
     const activeLowStockAlerts = materialIds.length
@@ -3226,7 +3234,7 @@ export class ReportsService {
     }>,
   ) {
     const hourlyMap = new Map<number, { netSales: Prisma.Decimal; transactionCount: number }>();
-    for (let hour = 13; hour <= 22; hour += 1) {
+    for (let hour = CAFE_OPERATING_HOURS.openingHour; hour < CAFE_OPERATING_HOURS.closingHour; hour += 1) {
       hourlyMap.set(hour, { netSales: ZERO, transactionCount: 0 });
     }
     for (const order of orders) {

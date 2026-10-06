@@ -269,13 +269,6 @@ export async function fetchStockBatchTransactions(
   return response.transactions;
 }
 
-export async function deleteInventoryHistory(transactionId: string) {
-  return apiJsonFetch<{ id: string; deleted: boolean; stockReversed: boolean }>(
-    `/inventory/transactions/${encodeURIComponent(transactionId)}`,
-    { method: "DELETE" }
-  );
-}
-
 export async function fetchStockRuns(params: {
   status?: string;
   from?: string;
@@ -341,6 +334,17 @@ export async function archiveRawMaterial(rawMaterialId: string) {
   );
 
   return response.rawMaterial;
+}
+
+export async function unarchiveRawMaterial(rawMaterialId: string) {
+  const response = await apiJsonFetch<{ rawMaterial: RawMaterial }>(
+    `/raw-materials/${rawMaterialId}/unarchive`, { method: "POST" }
+  );
+  return response.rawMaterial;
+}
+
+export async function deleteRawMaterial(rawMaterialId: string) {
+  return apiJsonFetch(`/raw-materials/${rawMaterialId}/permanent`, { method: "DELETE" });
 }
 
 export async function createSupplier(input: {

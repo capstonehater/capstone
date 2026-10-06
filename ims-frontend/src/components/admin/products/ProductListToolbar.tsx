@@ -1,6 +1,7 @@
 "use client";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
+import styles from "./ProductListToolbar.module.css";
 import { Plus, Search } from "lucide-react";
 
 type Props = {
@@ -9,6 +10,7 @@ type Props = {
   onSearchChange: (value: string) => void;
   onViewChange: (view: "active" | "archived") => void;
   onAddProduct: () => void;
+  onCreateCategory: () => void;
   productCounts: { active: number; archived: number };
 };
 
@@ -18,11 +20,12 @@ export default function ProductListToolbar({
   onSearchChange,
   onViewChange,
   onAddProduct,
+  onCreateCategory,
   productCounts,
 }: Props) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-3">
+    <div className={styles.toolbar}>
+      <div className={styles.searchRow}>
         <div className="relative min-w-0 flex-1">
         <input
           value={search}
@@ -31,8 +34,12 @@ export default function ProductListToolbar({
           className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-slate-500"
           aria-label="Search products"
         />
-        <Search className="pointer-events-none absolute right-2.5 top-2 h-4 w-4 text-slate-600" />
+        <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
         </div>
+
+      </div>
+
+      <div className={styles.actions}>
         <PermissionAction permission={"products.create"}><button
           type="button"
           onClick={onAddProduct}
@@ -43,7 +50,7 @@ export default function ProductListToolbar({
         </button></PermissionAction>
       </div>
 
-      <div className="flex gap-2">
+      <div className={styles.views}>
         {(["active", "archived"] as const).map((option) => (
           <button
             key={option}
@@ -58,6 +65,7 @@ export default function ProductListToolbar({
             {option === "active" ? `All Products (${productCounts.active})` : `Archived Products (${productCounts.archived})`}
           </button>
         ))}
+        <PermissionAction permission="products.create"><button type="button" onClick={onCreateCategory} className={styles.createCategory}><Plus className="h-4 w-4" /> Create Category</button></PermissionAction>
       </div>
     </div>
   );

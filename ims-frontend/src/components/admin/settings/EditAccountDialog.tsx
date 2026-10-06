@@ -42,7 +42,7 @@ export default function EditAccountDialog({
   );
   const [lastName, setLastName] = useState(account.lastName);
   const [email, setEmail] = useState(account.email);
-  const [phone, setPhone] = useState(account.phone ?? "");
+  const [phone, setPhone] = useState((account.phone ?? "").replace(/^\+63/, "").replace(/^0(?=9)/, ""));
   const [picture, setPicture] = useState<File | null>(null);
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | undefined>(profilePictureSrc(account.profilePictureUrl));
@@ -51,25 +51,30 @@ export default function EditAccountDialog({
   }, [preview]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationAttempted, setValidationAttempted] = useState(false);
+  const [phoneInputError, setPhoneInputError] = useState<string | null>(null);
+  const fieldErrors: Record<string, string | undefined> = {
+    firstName: !firstName.trim() ? "First name is required." : undefined,
+    lastName: !lastName.trim() ? "Last name is required." : undefined,
+    middleInitial: middleInitial.trim().length > 1 ? "Middle initial must be one character." : undefined,
+    email: !email.trim() ? "Email is required." : !/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(email.trim()) ? "Enter a valid email address, such as name@example.com." : undefined,
+    phone: !phone.trim() ? "Phone is required." : !/^9[0-9]{9}$/.test(phone) ? "Enter 10 digits starting with 9, excluding +63." : undefined,
+  };
+  const showError = (field: string) => field === "phone" && phoneInputError ? phoneInputError : validationAttempted ? fieldErrors[field] : undefined;
+  const fieldClass = (field: string) => `${inventoryInputClasses} ${showError(field) ? styles.invalidInput : ""}`;
+  const fieldMessage = (field: string) => showError(field) ? <p id={`settings-${field}-error`} role="alert" className={styles.fieldError}>{showError(field)}</p> : null;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting) return;
+    setValidationAttempted(true);
+    if (Object.values(fieldErrors).some(Boolean) || phoneInputError) return;
 
     const trimmedFirstName = firstName.trim();
     const trimmedMiddleInitial = middleInitial.trim();
     const trimmedLastName = lastName.trim();
     const trimmedEmail = email.trim();
-    const trimmedPhone = phone.trim();
-
-    if (!trimmedFirstName || !trimmedLastName || !trimmedEmail) {
-      setError("First name, last name, and email are required.");
-      return;
-    }
-
-    if (trimmedMiddleInitial.length > 1) {
-      setError("Middle initial must be one character or blank.");
-      return;
-    }
+    const trimmedPhone = `+63${phone.trim()}`;
 
     const payload: UpdateSettingsAccountInput = {};
 
@@ -128,7 +133,7 @@ export default function EditAccountDialog({
       description="Update your profile details. Role, status, and Employee ID are read-only."
       onClose={submitting ? () => undefined : onClose}
     >
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <form noValidate className={styles.form} onSubmit={handleSubmit}>
         {error ? (
           <div role="alert" className={styles.error}>
             {error}
@@ -160,15 +165,36 @@ export default function EditAccountDialog({
         </div>
 
         <div className={styles.nameFields}>
-        <InventoryField htmlFor="settings-first-name" label="First Name">
+        <InventoryField htmlFor="settings-first-name" label="First Name" required>
           <input
             id="settings-first-name"
+            placeholder="Ex. juan"
+            aria-invalid={!!showError("firstName")}
+            aria-describedby={showError("firstName") ? "settings-firstName-error" : undefined}
             value={firstName}
             onChange={(event) => setFirstName(event.target.value)}
-            className={inventoryInputClasses}
+            className={fieldClass("firstName")}
             autoComplete="given-name"
             required
           />
+          {fieldMessage("firstName")}
+        </InventoryField>
+
+
+
+        <InventoryField htmlFor="settings-last-name" label="Last Name" required>
+          <input
+            id="settings-last-name"
+            placeholder="Ex. Dela Cruz"
+            aria-invalid={!!showError("lastName")}
+            aria-describedby={showError("lastName") ? "settings-lastName-error" : undefined}
+            value={lastName}
+            onChange={(event) => setLastName(event.target.value)}
+            className={fieldClass("lastName")}
+            autoComplete="family-name"
+            required
+          />
+          {fieldMessage("lastName")}
         </InventoryField>
 
         <InventoryField
@@ -177,52 +203,61 @@ export default function EditAccountDialog({
         >
           <input
             id="settings-middle-initial"
+            placeholder="Optional"
+            aria-invalid={!!showError("middleInitial")}
             value={middleInitial}
-            onChange={(event) => setMiddleInitial(event.target.value)}
-            className={inventoryInputClasses}
+            onChange={(event) => setMiddleInitial(event.target.value.toUpperCase())}
+            className={fieldClass("middleInitial")}
             autoComplete="additional-name"
-            aria-describedby="settings-middle-initial-hint"
+            aria-describedby={showError("middleInitial") ? "settings-middleInitial-error settings-middle-initial-hint" : "settings-middle-initial-hint"}
             maxLength={1}
           />
+          {fieldMessage("middleInitial")}
           <p id="settings-middle-initial-hint" className="text-xs text-[#232d46]/70">Optional, one character.</p>
-        </InventoryField>
-
-        <InventoryField htmlFor="settings-last-name" label="Last Name">
-          <input
-            id="settings-last-name"
-            value={lastName}
-            onChange={(event) => setLastName(event.target.value)}
-            className={inventoryInputClasses}
-            autoComplete="family-name"
-            required
-          />
         </InventoryField>
 
         </div>
         <div className={styles.contactFields}>
-        <InventoryField htmlFor="settings-email" label="Email">
+        <InventoryField htmlFor="settings-email" label="Email" required>
           <input
             id="settings-email"
+            placeholder="name@example.com"
+            aria-invalid={!!showError("email")}
             type="email"
+            aria-describedby={showError("email") ? "settings-email-error" : undefined}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className={inventoryInputClasses}
+            className={fieldClass("email")}
             autoComplete="email"
             required
           />
+          {fieldMessage("email")}
         </InventoryField>
 
         <div className="min-w-0">
-          <InventoryField htmlFor="settings-phone" label="Phone">
+          <InventoryField htmlFor="settings-phone" label="Phone" required>
+            <div className={`${styles.phoneField} ${showError("phone") ? styles.invalidPhone : ""}`}>
+            <span className={styles.phonePrefix}>+63</span>
             <input
               id="settings-phone"
               type="tel"
               value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              className={inventoryInputClasses}
-              autoComplete="tel"
-              placeholder="+639171234567"
+              required
+              inputMode="numeric"
+              maxLength={10}
+              onChange={(event) => {
+                if (!/^\d*$/.test(event.target.value)) { setPhoneInputError("Phone number must contain digits only."); return; }
+                setPhoneInputError(null);
+                setPhone(event.target.value);
+              }}
+              className={fieldClass("phone")}
+              aria-invalid={!!showError("phone")}
+              aria-describedby={showError("phone") ? "settings-phone-error" : undefined}
+              autoComplete="tel-national"
+              placeholder="9171234567"
             />
+            </div>
+            {fieldMessage("phone")}
           </InventoryField>
         </div>
 

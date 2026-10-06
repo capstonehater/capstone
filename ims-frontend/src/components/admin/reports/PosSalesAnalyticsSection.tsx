@@ -5,6 +5,8 @@ import AdminSelect from "@/components/admin/AdminSelect";
 import PosReportEmpty from "./PosReportEmpty";
 
 import { useEffect, useMemo, useState } from "react";
+import { FileSpreadsheet, FileText, RefreshCw, Info } from "lucide-react";
+import styles from "./PosReports.module.css";
 import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
@@ -172,43 +174,32 @@ export default function PosSalesAnalyticsSection({
         </div>
       ) : null}
 
-      <section className="rounded-2xl bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4">
-          <div>
+      <section className={`${styles.analyticsPanel} rounded-2xl bg-white p-6 shadow-sm`}>
+        <div className={styles.analyticsHeader}>
+          <div className={styles.analyticsIntro}>
             <h3 className="text-xl font-semibold text-neutral-900">Sales Analytics</h3>
             <p className="mt-2 text-sm text-neutral-600">
               Explore grouped sales, discounts, refunds, and changes from the previous period.
             </p>
           </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            Sales Analytics range:{" "}
-            <span className="font-semibold text-slate-900">{getPresetLabel(preset)}</span> |{" "}
-            {range.from} to {range.to} | Asia/Manila business-day boundaries.
+          <div className={styles.analyticsActions}>
+            <div className={styles.presets} role="group" aria-label="Sales analytics period">
+              {PRESET_OPTIONS.map(option => (
+                <button key={option} type="button" aria-pressed={preset === option} onClick={() => setPreset(option)}>
+                  {getPresetLabel(option)}
+                </button>
+              ))}
+            </div>
+            <button type="button" className={styles.analyticsRefresh} disabled={loading} onClick={() => void loadAnalytics()}>
+              <RefreshCw size={16} aria-hidden="true" />Refresh Analytics
+            </button>
           </div>
-
-          <div className="flex flex-wrap gap-2">
-            {PRESET_OPTIONS.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setPreset(option)}
-                className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-                  preset === option
-                    ? "bg-[#f45a1f] text-white"
-                    : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                {getPresetLabel(option)}
-              </button>
-            ))}
-          </div>
-
         </div>
+        <p className={styles.range}><Info size={14} aria-hidden="true" />Active range: {getPresetLabel(preset)} <span>|</span> {range.from} to {range.to} <span>|</span> Manila time</p>
       </section>
       <section className="rounded-2xl bg-white p-6 shadow-sm">
         <div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+          <div className={`${styles.peakControls} ${styles.salesControls}`}>
             <AdminSelect
               label="Grouping"
               value={groupBy}
@@ -217,11 +208,12 @@ export default function PosSalesAnalyticsSection({
                 }
               options={GROUP_OPTIONS}
             />
-            <div className="flex items-end gap-2">
+            <div className={styles.peakViewControls} role="group" aria-label="Sales analytics view">
               {(["table", "line"] as const).map((option) => (
                 <button
                   key={option}
                   type="button"
+                  aria-pressed={view === option}
                   onClick={() => setView(option)}
                   className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                     view === option
@@ -238,7 +230,7 @@ export default function PosSalesAnalyticsSection({
               <input
                 value={staffSearch}
                 onChange={(event) => setStaffSearch(event.target.value)}
-                placeholder="Filter by name or email"
+                placeholder="Ex. Robert (name of employee)"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
               />
             </label>
@@ -254,7 +246,8 @@ export default function PosSalesAnalyticsSection({
               onClick={() => void handleExport("csv")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {exportingFormat === "csv" ? "Exporting..." : "Export CSV"}
+              <FileSpreadsheet size={18} aria-hidden="true" />
+              <span>{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</span>
             </button>
             <button
               type="button"
@@ -262,7 +255,8 @@ export default function PosSalesAnalyticsSection({
               onClick={() => void handleExport("pdf")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}
+              <FileText size={18} aria-hidden="true" />
+              <span>{exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}</span>
             </button>
           </div>
         </div>

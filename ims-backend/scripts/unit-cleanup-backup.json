@@ -1,0 +1,159 @@
+{
+  "units": [
+    {
+      "id": "9fae6015-439d-48cf-b6e9-58b8129353b0",
+      "code": "BOTTLE",
+      "name": "bottle",
+      "dimension": "PACKAGE",
+      "conversionFactor": "1",
+      "createdAt": "2026-03-31T02:03:28.169Z",
+      "updatedAt": "2026-03-31T02:03:28.169Z"
+    },
+    {
+      "id": "inventory_reports_phase1_unit_mass",
+      "code": "IRP1-MASS",
+      "name": "Inventory Reports Phase 1 Mass",
+      "dimension": "MASS",
+      "conversionFactor": "1",
+      "createdAt": "2026-04-04T16:36:01.066Z",
+      "updatedAt": "2026-04-04T16:40:22.832Z"
+    },
+    {
+      "id": "inventory_reports_phase1_unit_volume",
+      "code": "IRP1-VOLUME",
+      "name": "Inventory Reports Phase 1 Volume",
+      "dimension": "VOLUME",
+      "conversionFactor": "1",
+      "createdAt": "2026-04-04T16:36:01.077Z",
+      "updatedAt": "2026-04-04T16:40:22.837Z"
+    },
+    {
+      "id": "inventory_reports_phase1_unit_count",
+      "code": "IRP1-COUNT",
+      "name": "Inventory Reports Phase 1 Count",
+      "dimension": "COUNT",
+      "conversionFactor": "1",
+      "createdAt": "2026-04-04T16:36:01.080Z",
+      "updatedAt": "2026-04-04T16:40:22.840Z"
+    },
+    {
+      "id": "inventory_reports_phase3_unit_mass",
+      "code": "IRP3-MASS",
+      "name": "Inventory Reports Phase 3 Mass",
+      "dimension": "MASS",
+      "conversionFactor": "1",
+      "createdAt": "2026-04-13T01:56:48.614Z",
+      "updatedAt": "2026-04-13T01:56:48.614Z"
+    },
+    {
+      "id": "inventory_reports_phase2_unit_mass",
+      "code": "IRP2-MASS",
+      "name": "Inventory Reports Phase 2 Mass",
+      "dimension": "MASS",
+      "conversionFactor": "1",
+      "createdAt": "2026-04-13T01:56:48.613Z",
+      "updatedAt": "2026-04-13T01:56:48.613Z"
+    },
+    {
+      "id": "inventory_reports_phase2_unit_volume",
+      "code": "IRP2-VOLUME",
+      "name": "Inventory Reports Phase 2 Volume",
+      "dimension": "VOLUME",
+      "conversionFactor": "1",
+      "createdAt": "2026-04-13T01:56:48.620Z",
+      "updatedAt": "2026-04-13T01:56:48.620Z"
+    }
+  ],
+  "materials": [
+    {
+      "id": "4022aeb7-6897-49e3-9805-072efa75a8c5",
+      "unitId": "9fae6015-439d-48cf-b6e9-58b8129353b0",
+      "name": "Bottled Water",
+      "sku": "RM-WATER",
+      "reorderPoint": "0",
+      "isActive": true,
+      "createdAt": "2025-10-01T00:54:00.000Z",
+      "updatedAt": "2026-01-10T02:00:00.000Z"
+    },
+    {
+      "id": "inventory_reports_phase2_material_beans",
+      "unitId": "inventory_reports_phase2_unit_mass",
+      "name": "Inventory Reports Phase 2 Beans",
+      "sku": "IRP2-BEANS",
+      "reorderPoint": "5",
+      "isActive": false,
+      "createdAt": "2026-04-13T01:56:48.677Z",
+      "updatedAt": "2026-10-05T11:51:41.406Z"
+    },
+    {
+      "id": "inventory_reports_phase2_material_milk",
+      "unitId": "inventory_reports_phase2_unit_volume",
+      "name": "Inventory Reports Phase 2 Milk",
+      "sku": "IRP2-MILK",
+      "reorderPoint": "4",
+      "isActive": false,
+      "createdAt": "2026-04-13T01:56:48.681Z",
+      "updatedAt": "2026-10-05T11:51:52.842Z"
+    },
+    {
+      "id": "inventory_reports_phase3_material_flour",
+      "unitId": "inventory_reports_phase3_unit_mass",
+      "name": "Inventory Reports Phase 3 Flour",
+      "sku": "IRP3-FLOUR",
+      "reorderPoint": "10",
+      "isActive": false,
+      "createdAt": "2026-04-13T01:56:48.621Z",
+      "updatedAt": "2026-10-05T11:51:55.650Z"
+    },
+    {
+      "id": "inventory_reports_phase3_material_sugar",
+      "unitId": "inventory_reports_phase3_unit_mass",
+      "name": "Inventory Reports Phase 3 Sugar",
+      "sku": "IRP3-SUGAR",
+      "reorderPoint": "8",
+      "isActive": false,
+      "createdAt": "2026-04-13T01:56:48.646Z",
+      "updatedAt": "2026-10-05T11:51:58.547Z"
+    },
+    {
+      "id": "inventory_reports_phase1_material_beans",
+      "unitId": "inventory_reports_phase1_unit_mass",
+      "name": "Inventory Reports Sample Coffee Beans",
+      "sku": "IRP1-BEANS",
+      "reorderPoint": "5",
+      "isActive": false,
+      "createdAt": "2026-04-04T16:36:01.117Z",
+      "updatedAt": "2026-10-05T11:52:02.076Z"
+    },
+    {
+      "id": "inventory_reports_phase1_material_milk",
+      "unitId": "inventory_reports_phase1_unit_volume",
+      "name": "Inventory Reports Sample Milk",
+      "sku": "IRP1-MILK",
+      "reorderPoint": "4",
+      "isActive": false,
+      "createdAt": "2026-04-04T16:36:01.124Z",
+      "updatedAt": "2026-10-05T11:52:04.498Z"
+    },
+    {
+      "id": "inventory_reports_phase1_material_pastry",
+      "unitId": "inventory_reports_phase1_unit_count",
+      "name": "Inventory Reports Sample Pastry",
+      "sku": "IRP1-PASTRY",
+      "reorderPoint": "2",
+      "isActive": false,
+      "createdAt": "2026-04-04T16:36:01.128Z",
+      "updatedAt": "2026-10-05T11:52:07.629Z"
+    },
+    {
+      "id": "751b3a27-c524-42d2-9a69-0413f0855d21",
+      "unitId": "inventory_reports_phase2_unit_mass",
+      "name": "qwerty",
+      "sku": "RM-EVAP-12",
+      "reorderPoint": "123",
+      "isActive": false,
+      "createdAt": "2026-08-18T04:20:52.517Z",
+      "updatedAt": "2026-10-05T11:52:14.587Z"
+    }
+  ]
+}

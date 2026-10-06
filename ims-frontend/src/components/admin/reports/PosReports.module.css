@@ -12,8 +12,37 @@
 .workspace :global(.pos-history-filters) > label, .workspace :global(.pos-history-select) { flex: 1 1 160px; min-width: 0; }
 .workspace :global(.pos-history-filters) :is(input, select) { height: 44px; padding: 8px 12px; line-height: 1.5; }
 .workspace :global(.pos-history-exports) { display: flex; flex-wrap: wrap; gap: 12px; }
-.workspace :global(.pos-history-exports) > button { min-height: 44px; padding: 8px 16px; white-space: nowrap; }
+.workspace :global(.pos-history-exports) > button { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:44px; padding:8px 16px; white-space:nowrap; text-align:center; }
+.workspace :global(.pos-history-exports) > button > svg { flex-shrink:0; }
 .workspace button { cursor:pointer; }
+.peakHeader { display:flex; flex-wrap:wrap; align-items:flex-end; gap:20px 24px; }
+.peakIntro { flex:1 1 380px; min-width:0; }
+.peakControls { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; max-width:100%; }
+.peakControls > div:first-child { flex:1 1 160px; min-width:160px; }
+.peakViewControls { display:flex; gap:8px; }
+.peakControls > button, .peakViewControls > button { display:inline-flex; align-items:center; justify-content:center; gap:8px; flex:none; height:44px; padding:8px 16px; white-space:nowrap; text-align:center; }
+.peakControls > button > svg { flex-shrink:0; }
+.refundControls { display:grid; grid-template-columns:minmax(260px,1fr) auto auto; width:600px; }
+.refundControls > label { min-width:0; }
+.refundControls > label > input { height:44px; }
+@media(max-width:680px) {
+  .refundControls { grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; }
+  .refundControls > label { grid-column:1/-1; }
+}
+.salesControls > div:not(.peakViewControls), .salesControls > label { flex:1 1 180px; min-width:0; }
+.salesControls > .peakViewControls { flex:none; }
+.salesControls > label > input { height:44px; }
+.analyticsHeader { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px; }
+.analyticsPanel { display:flex; flex-direction:column; gap:16px; }
+.analyticsIntro h3 { margin:0; line-height:1.3; }
+.analyticsIntro p { margin:6px 0 0; line-height:1.5; }
+.analyticsPanel .range { margin:0; min-height:36px; }
+.analyticsPanel .range svg { flex-shrink:0; }
+.analyticsIntro { flex:1 1 360px; min-width:0; }
+.analyticsActions { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:12px; margin-left:auto; }
+.analyticsActions .presets { gap:8px; margin-left:0; }
+.analyticsActions .presets button { min-height:44px; padding:9px 16px; white-space:nowrap; }
+.analyticsRefresh { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:44px; padding:9px 20px; border:1px solid #232d46; border-radius:8px; background:#232d46; color:white; font-size:14px; font-weight:600; white-space:nowrap; }
 .workspace button:disabled { cursor:default; opacity:.5; }
 .workspace :is(button,input,select):focus-visible { outline:2px solid #232d46; outline-offset:3px; }
 .presets { display:flex; flex-wrap:wrap; gap:12px; margin-left:auto; }
@@ -81,3 +110,7 @@
 .metric p { color: #64748b; font-size: 13px; line-height: 1.5; }
 .metric strong { color: #232d46; font-size: 22px; }
 .workspace h2 { font-size: 20px; font-weight: 650; color: #232d46; }
+.workspace [data-report="consumption-metrics"] > div { padding:20px; min-height:150px; }
+.workspace [data-report="consumption-metrics"] > div > div { min-height:48px; align-items:flex-start; margin-bottom:12px; }
+.workspace [data-report="consumption-metrics"] p { font-size:16px; font-weight:600; line-height:1.5; color:#475569; margin:0; }
+.workspace [data-report="consumption-metrics"] h3 { font-size:28px; line-height:1.25; color:#232d46; overflow-wrap:anywhere; }

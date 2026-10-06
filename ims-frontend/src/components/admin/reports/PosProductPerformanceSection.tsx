@@ -5,6 +5,8 @@ import AdminSelect from "@/components/admin/AdminSelect";
 import PosReportEmpty from "./PosReportEmpty";
 
 import { useEffect, useMemo, useState } from "react";
+import { FileSpreadsheet, FileText } from "lucide-react";
+import styles from "./PosReports.module.css";
 import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
@@ -194,8 +196,8 @@ export default function PosProductPerformanceSection({
       ) : null}
 
       <section className="rounded-2xl bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <div>
+        <div className={styles.peakHeader}>
+          <div className={styles.peakIntro}>
             <h3 className="text-xl font-semibold text-neutral-900">Product Performance</h3>
             <p className="mt-2 text-sm text-neutral-600">
               Best sellers, gross margin leaders, slow movers, and top categories using current
@@ -203,7 +205,7 @@ export default function PosProductPerformanceSection({
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-[minmax(0,1.1fr)_repeat(2,minmax(0,0.8fr))]">
+          <div className={styles.peakControls}>
             <AdminSelect
               label="Category"
               value={categoryId}
@@ -216,7 +218,8 @@ export default function PosProductPerformanceSection({
               onClick={() => void handleExport("csv")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {exportingFormat === "csv" ? "Exporting..." : "Export CSV"}
+              <FileSpreadsheet size={18} aria-hidden="true" />
+              <span>{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</span>
             </button>
             <button
               type="button"
@@ -224,7 +227,8 @@ export default function PosProductPerformanceSection({
               onClick={() => void handleExport("pdf")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}
+              <FileText size={18} aria-hidden="true" />
+              <span>{exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}</span>
             </button>
           </div>
         </div>

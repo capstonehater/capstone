@@ -747,6 +747,12 @@ export type PosStaffPerformanceReport = {
 export type PosPeakDayType = "all" | "weekday" | "weekend";
 
 export type PosPeakHoursReport = {
+  operatingHours: {
+    openingHour: number;
+    closingHour: number;
+    timezone: string;
+    label: string;
+  };
   period: {
     from: string;
     to: string;

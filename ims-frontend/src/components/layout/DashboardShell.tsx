@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useLogout } from "@/hooks/useLogout";
+import LogoutButton from "@/components/auth/LogoutButton";
 import { useAuthStore } from "@/store/authStore";
 
 type DashboardShellProps = {
@@ -16,11 +16,6 @@ export default function DashboardShell({
   children,
 }: DashboardShellProps) {
   const user = useAuthStore((state) => state.user);
-  const performLogout = useLogout();
-
-  const handleLogout = async () => {
-    await performLogout();
-  };
 
   return (
     <main className="min-h-screen bg-[#f45a1f] p-6 md:p-10">
@@ -41,12 +36,11 @@ export default function DashboardShell({
             >
               Login
             </Link>
-            <button
-              onClick={handleLogout}
+            <LogoutButton
               className="rounded-xl bg-[#3d3434] px-4 py-2 text-sm text-white"
             >
               Logout
-            </button>
+            </LogoutButton>
           </div>
         </div>
 

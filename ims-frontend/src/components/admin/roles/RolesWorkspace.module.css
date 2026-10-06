@@ -8,6 +8,10 @@
 .search,.fields label { display:grid; gap:8px; font-size:13px; font-weight:600; }
 .search input,.fields input,.fields textarea { width:100%; min-width:0; padding:11px 12px; border:1px solid #cbd5e1; border-radius:8px; background:white; color:#232d46; font:inherit; }
 .fields { display:grid; gap:16px; margin:20px 0; }
+.requiredMark, .fieldError { color:#dc2626; }
+.fieldError { font-size:13px; font-weight:400; }
+.fields input[aria-invalid="true"], .fields textarea[aria-invalid="true"] { border-color:#dc2626; background:#fef2f2; }
+.fields input[aria-invalid="true"]:focus-visible, .fields textarea[aria-invalid="true"]:focus-visible { outline-color:#dc2626; }
 .roleList { display:grid; gap:8px; margin-top:16px; max-height:65vh; overflow:auto; }
 .roleItem { display:grid; gap:6px; text-align:left; padding:14px; border:1px solid transparent; border-radius:8px; background:#f8fafc; color:#232d46; cursor:pointer; overflow-wrap:anywhere; }
 .roleItem span,.roleItem small { font-size:12px; color:#64748b; }
@@ -54,6 +58,19 @@
 .dialogBody > form { display:block; }
 .dialogFooter { display:flex; flex-shrink:0; justify-content:flex-end; align-items:center; gap:12px; padding:16px 20px; border-top:1px solid #dce2eb; background:#fff; opacity:1; box-shadow:0 -8px 16px #fff; }
 .dialog .primary:disabled { opacity:1; border-color:#9299a6; background:#9299a6; color:#fff; }
+.dialog.discardDialog { width:min(500px,calc(100vw - 32px)); }
+.discardDialog > header { padding:18px 22px; }
+.discardDialog h2 { font-size:22px; }
+.discardDialog > header button { width:40px; height:40px; }
+.discardDialog .dialogBody { padding:24px 22px; }
+.discardContent { display:flex; align-items:flex-start; gap:16px; }
+.discardIcon { display:grid; place-items:center; flex-shrink:0; width:48px; height:48px; border:1px solid #fecaca; border-radius:12px; background:#fef2f2; color:#dc2626; }
+.discardContent p { margin:0; font-size:14px; line-height:1.6; color:#64748b; }
+.discardContent p:first-child { margin-bottom:6px; font-size:16px; font-weight:600; color:#232d46; }
+.discardDialog .dialogFooter { padding:16px 22px; flex-wrap:wrap; }
+.discardDialog .dialogFooter button { min-height:42px; padding:9px 16px; font-size:14px; }
+.discardButton { border:1px solid #dc2626; border-radius:8px; background:#dc2626; color:#fff; font-weight:600; cursor:pointer; }
+.discardButton:hover { background:#b91c1c; border-color:#b91c1c; }
 .dialog .fields { margin:0 0 28px; gap:20px; }
 .dialog .fields label { font-size:16px; color:#334155; }
 .dialog .fields input,.dialog .fields textarea { font-size:17px; font-weight:400; line-height:1.5; padding:12px 14px; border-radius:10px; }

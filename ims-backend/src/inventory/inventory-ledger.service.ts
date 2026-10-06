@@ -8,7 +8,8 @@ import {
 type TxClient = Prisma.TransactionClient;
 
 type LedgerLineInput = {
-  rawMaterialId: string;
+  rawMaterialId: string | null;
+  rawMaterialSnapshot?: Prisma.InputJsonValue;
   stockBatchId: string;
   quantityDelta: Prisma.Decimal;
   unitCostSnapshot: Prisma.Decimal;
@@ -50,6 +51,7 @@ export class InventoryLedgerService {
         data: input.lines.map((line) => ({
           inventoryTransactionId: transaction.id,
           rawMaterialId: line.rawMaterialId,
+          rawMaterialSnapshot: line.rawMaterialSnapshot,
           stockBatchId: line.stockBatchId,
           productVariantId: line.productVariantId ?? null,
           orderItemId: line.orderItemId ?? null,

@@ -1,3 +1,4 @@
+import { withHistoricalMaterial } from '../inventory/material-history-snapshot';
 import {
   BadRequestException,
   Injectable,
@@ -143,6 +144,10 @@ export class StockRunsService {
         );
       }
 
+      const items = stockRun.items.map((item) => {
+        if (!item.rawMaterialId) throw new BadRequestException("A material in this draft was deleted. Remove the item before posting.");
+        return { ...item, rawMaterialId: item.rawMaterialId };
+      });
       const postedAt = new Date();
       const totalCost = sumDecimals(
         stockRun.items.map((item) => item.quantity.mul(item.costPerUnit)),
@@ -154,7 +159,7 @@ export class StockRunsService {
         initialQuantity: Prisma.Decimal;
         costPerUnit: Prisma.Decimal;
       }> = [];
-      for (const item of stockRun.items) {
+      for (const item of items) {
         const batch = await tx.stockBatch.create({
           data: {
             rawMaterialId: item.rawMaterialId,
@@ -170,7 +175,7 @@ export class StockRunsService {
 
         createdBatches.push({
           id: batch.id,
-          rawMaterialId: batch.rawMaterialId,
+          rawMaterialId: item.rawMaterialId,
           initialQuantity: batch.initialQuantity,
           costPerUnit: batch.costPerUnit,
         });
@@ -202,7 +207,7 @@ export class StockRunsService {
         },
       });
 
-      const rawMaterialIds = stockRun.items.map((item) => item.rawMaterialId);
+      const rawMaterialIds = items.map((item) => item.rawMaterialId);
       await this.availabilityService.refreshRawMaterialSummaries(
         tx,
         rawMaterialIds,
@@ -296,7 +301,7 @@ export class StockRunsService {
       throw new NotFoundException('Stock run not found');
     }
 
-    return stockRun;
+    return { ...stockRun, items: stockRun.items.map(withHistoricalMaterial) };
   }
 
   private async ensureDraftStockRun(stockRunId: string) {

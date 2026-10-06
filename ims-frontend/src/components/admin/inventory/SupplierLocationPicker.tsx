@@ -8,9 +8,9 @@ import { inventoryInputClasses } from "./InventoryField";
 
 type Location = { latitude: string; longitude: string; address: string };
 type Result = Location & { id: string };
-type Props = Location & { onChange: (location: Location) => void; readOnly?: boolean };
+type Props = Location & { onChange: (location: Location) => void; readOnly?: boolean; error?: string };
 
-export default function SupplierLocationPicker({ latitude, longitude, address, onChange, readOnly = false }: Props) {
+export default function SupplierLocationPicker({ latitude, longitude, address, onChange, readOnly = false, error }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<LeafletMap | null>(null);
   const marker = useRef<Marker | null>(null);
@@ -177,15 +177,17 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
 
   return (
     <div className="space-y-3">
-      <label htmlFor="supplier-location-search" className="text-sm font-semibold text-slate-700">Supplier location</label>
+      <label htmlFor="supplier-location-search" className="text-sm font-semibold text-slate-700">Supplier Location<span className="text-red-600" aria-hidden="true"> *</span></label>
       <div className="flex gap-2">
-        <input id="supplier-location-search" className={inventoryInputClasses} value={query} disabled={readOnly}
-          placeholder="Search an address or place"
+        <input id="supplier-location-search" className={`${inventoryInputClasses} ${error ? "!border-red-600 !bg-red-50 focus:!border-red-600 focus:!ring-red-600/15" : ""}`} value={query} disabled={readOnly}
+          aria-invalid={!!error} aria-describedby={error ? "supplier-location-error" : undefined}
+          placeholder="Ex. Waltermart"
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void search(); } }} />
         <button type="button" onClick={() => void search()} disabled={readOnly || busy || !query.trim()}
           className="rounded-xl border border-slate-300 px-4 text-sm font-semibold disabled:opacity-50">Search</button>
       </div>
+      {error && <p id="supplier-location-error" role="alert" className="text-sm text-red-600">{error}</p>}
       {!readOnly && results.length > 0 && <ul className="max-h-40 overflow-y-auto rounded-xl border border-slate-200">
         {results.map((result) => <li key={result.id}>
           <button type="button" className="w-full px-3 py-2 text-left text-sm hover:bg-orange-50"

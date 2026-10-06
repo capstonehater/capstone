@@ -154,7 +154,7 @@ async function main() {
 
   expect(milkFilteredLines.length === 1, 'Milk material filter should match one checkout line');
   expect(
-    milkFilteredLines[0]?.rawMaterial.name.includes('Milk'),
+    milkFilteredLines[0]?.rawMaterial?.name.includes('Milk') === true,
     'Milk material filter should resolve to the milk sample row',
   );
   expectApprox(

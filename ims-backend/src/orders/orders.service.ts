@@ -718,7 +718,7 @@ export class OrdersService {
       });
 
       const rawMaterialIds = [
-        ...new Set(checkoutTransaction.lines.map((line) => line.rawMaterialId)),
+        ...new Set(checkoutTransaction.lines.map((line) => line.rawMaterialId).filter((id): id is string => id !== null)),
       ];
       const stockLines = historyStockWasReversed(checkoutTransaction.metadata)
         ? [] : checkoutTransaction.lines;
@@ -753,6 +753,7 @@ export class OrdersService {
         occurredAt: new Date(),
         lines: stockLines.map((line) => ({
           rawMaterialId: line.rawMaterialId,
+          rawMaterialSnapshot: (line.rawMaterialSnapshot ?? undefined) as Prisma.InputJsonValue | undefined,
           stockBatchId: line.stockBatchId,
           orderItemId: line.orderItemId ?? undefined,
           productVariantId: line.productVariantId ?? undefined,

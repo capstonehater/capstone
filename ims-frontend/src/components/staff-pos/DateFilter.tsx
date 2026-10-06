@@ -58,7 +58,7 @@ export default function DateFilter({ label, value, min, max, placement = "auto",
   return <div ref={root} className={styles.field} onKeyDown={(event) => {
     if (event.key === "Escape" && open) { event.preventDefault(); setOpen(false); trigger.current?.focus(); }
   }}>
-    <label id={`${id}-label`} htmlFor={editable ? inputId || `${id}-input` : undefined} className={selectStyles.label}>{label}</label>
+    <label id={`${id}-label`} htmlFor={editable ? inputId || `${id}-input` : undefined} className={selectStyles.label}>{label}{required ? <span className="text-red-600" aria-hidden="true"> *</span> : null}</label>
     <div className={editable ? styles.editableControl : undefined}>
     {editable && <input id={inputId || `${id}-input`} type="date" value={value} min={min} max={max} required={required} onChange={event => onChange(event.target.value)} />}
     <button ref={trigger} type="button" className={editable ? styles.calendarTrigger : selectStyles.trigger} aria-labelledby={editable ? undefined : `${id}-label ${id}-value`} aria-label={editable ? `Open ${label.toLowerCase()} calendar` : undefined}

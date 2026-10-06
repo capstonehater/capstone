@@ -342,3 +342,11 @@ export async function getProductIngredientUsage(
 
   return mapUsage(response);
 }
+
+export async function createProductCategory(name: string): Promise<ProductCategory> {
+  const response = await apiJsonFetch<{ category: ProductCategoryDto }>("/categories", {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+  return mapCategory(response.category);
+}

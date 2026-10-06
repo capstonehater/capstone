@@ -43,6 +43,7 @@ import DisableVariantDialog from "./DisableVariantDialog";
 import DisableProductDialog from "./DisableProductDialog";
 import ProductDetailPanel from "./ProductDetailPanel";
 import ActionAlert from "@/components/feedback/ActionAlert";
+import CreateCategoryDialog from "./CreateCategoryDialog";
 import ProductFormDialog from "./ProductFormDialog";
 import ProductsMasterPanel from "./ProductsMasterPanel";
 import RestoreProductDialog from "./RestoreProductDialog";
@@ -156,6 +157,7 @@ export default function ProductsWorkspace() {
   const search = searchParams.get("search") ?? "";
 
   const [searchInput, setSearchInput] = useState(search);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [materials, setMaterials] = useState<InventorySummaryItem[]>([]);
   const [listResponse, setListResponse] = useState<ProductListResponse | null>(null);
@@ -730,6 +732,7 @@ export default function ProductsWorkspace() {
       setWorkspaceError(
         normalizeProductError(error, "Failed to update recipe").message,
       );
+      throw error;
     } finally {
       setSubmittingAction(null);
     }
@@ -916,6 +919,7 @@ export default function ProductsWorkspace() {
               )
             }
             onAddProduct={() => setProductDialog({ mode: "create" })}
+            onCreateCategory={() => setCategoryDialogOpen(true)}
             productCounts={productCounts}
             onSelectProduct={(productId) =>
               updateQuery(
@@ -1001,6 +1005,15 @@ export default function ProductsWorkspace() {
           />
         </div>
       </div>
+
+      {categoryDialogOpen ? <PermissionAction permission="products.create"><CreateCategoryDialog
+        onClose={() => setCategoryDialogOpen(false)}
+        onCreated={category => {
+          setCategories(current => [...current, category].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name)));
+          setCategoryDialogOpen(false);
+          setNotice("Category created.");
+        }}
+      /></PermissionAction> : null}
 
       <PermissionAction permission={productDialog?.mode === "edit" ? "products.edit" : "products.create"}><ProductFormDialog
         mode={productDialog?.mode ?? "create"}

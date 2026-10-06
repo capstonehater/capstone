@@ -1,0 +1,8 @@
+.invalid input, .invalid textarea, .invalid button[aria-haspopup="listbox"] {
+  border-color: #dc2626 !important;
+  background: #fef2f2 !important;
+}
+.invalid input:focus, .invalid textarea:focus, .invalid button[aria-haspopup="listbox"]:focus {
+  outline-color: #dc2626 !important;
+}
+.invalid p[role="alert"] { color: #dc2626 !important; }

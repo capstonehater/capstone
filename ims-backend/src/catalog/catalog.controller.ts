@@ -1,5 +1,6 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { RequirePermission } from '../auth/decorators/require-permission.decorator';
+import { CreateCategoryDto } from './dto/create-category.dto';
 import { CatalogService } from './catalog.service';
 
 @Controller()
@@ -11,6 +12,12 @@ export class CatalogController {
     return {
       categories: await this.catalogService.listCategories(),
     };
+  }
+
+  @Post('categories')
+  @RequirePermission('products.create')
+  async createCategory(@Body() dto: CreateCategoryDto) {
+    return { category: await this.catalogService.createCategory(dto) };
   }
 
   @Get('products')

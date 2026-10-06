@@ -176,7 +176,7 @@ export default function ProductVariantsRecipeTab({
             <PermissionAction permissions={["products.edit", "inventory.view"]}><button
               type="button"
               onClick={() => setRecipeEditorOpen(true)}
-              disabled={submitting}
+              disabled={submitting || recipeLoading || !recipe}
               className={styles.primary}
             >
               Edit Recipe
@@ -226,6 +226,7 @@ export default function ProductVariantsRecipeTab({
 
       <PermissionAction permissions={["products.edit", "inventory.view"]}><RecipeEditor
         key={`${selectedVariant?.id ?? "none"}:${recipeEditorOpen ? "open" : "closed"}`}
+        draftKey={`recipe-draft:${product.id}:${selectedVariant?.id ?? "none"}`}
         open={recipeEditorOpen}
         recipe={recipe}
         materials={materials}

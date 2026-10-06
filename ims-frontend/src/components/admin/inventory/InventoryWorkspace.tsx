@@ -29,12 +29,13 @@ import { currentManilaReceivingDateTime } from "@/lib/stock-run-receiving";
 import {
   addStockRunItem,
   archiveRawMaterial,
+  unarchiveRawMaterial,
+  deleteRawMaterial,
   createInventoryWaste,
   createRawMaterial,
   createStockRun,
   deleteStockRun,
   deleteStockRunItem,
-  deleteInventoryHistory,
   fetchInventorySummary,
   fetchRawMaterial,
   fetchRawMaterialBatches,
@@ -85,6 +86,7 @@ type PanelMode =
   | "stock-run-manage"
   | "waste"
   | "archive-material"
+  | "delete-material"
   | "delete-draft";
 
 type MaterialFormState = {
@@ -135,7 +137,7 @@ function defaultMaterialForm(material?: RawMaterial | null, unitId?: string): Ma
     name: material?.name ?? "",
     sku: material?.sku ?? "",
     unitId: material?.unitId ?? unitId ?? "",
-    reorderPoint: material?.reorderPoint ?? "0",
+    reorderPoint: material?.reorderPoint ?? "",
   };
 }
 
@@ -559,6 +561,8 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
             onSupplierChange={setSupplierId}
             onSelectRawMaterial={setSelectedRawMaterialId}
             onRefresh={() => void refreshEverything(true)}
+            onAddMaterial={() => { setError(null); setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }}
+            creatingDisabled={initialLoading || submitting}
             formatQuantity={formatQuantity}
             formatMoney={formatMoney}
           />
@@ -572,17 +576,6 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
             historyLoading={historyLoading}
             batches={batches}
             transactions={transactions}
-            onDeleteHistory={async (transactionId) => {
-              await deleteInventoryHistory(transactionId);
-              setTransactions(current => current.filter(transaction => transaction.id !== transactionId));
-              setBatchTransactions(current => current.filter(transaction => transaction.id !== transactionId));
-              setMessage("Inventory history entry deleted and its stock movement undone.");
-              try {
-                await refreshEverything();
-              } catch (refreshError) {
-                setError(refreshError instanceof Error ? refreshError.message : "The entry was deleted, but stock totals could not be refreshed. Reload the page.");
-              }
-            }}
             historyType={historyType}
             historyFrom={historyFrom}
             historyTo={historyTo}
@@ -596,6 +589,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
             onWaste={() => { setWasteForm(defaultWasteForm(selectedRawMaterialId)); setActivePanel("waste"); }}
             onStoreAvailability={() => { if (selectedRawMaterialId && selectedSummary) setAvailabilityMaterial({ id: selectedRawMaterialId, name: selectedSummary.name }); }}
             onArchive={() => setActivePanel("archive-material")}
+            onDelete={() => setActivePanel("delete-material")}
             formatQuantity={formatQuantity}
             formatMoney={formatMoney}
             formatDate={formatDate}
@@ -612,6 +606,8 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           loading={initialLoading}
           stockRuns={stockRuns}
           activeDraftCount={stockRuns.filter((run) => run.status === "DRAFT").length}
+          onCreateStockRun={() => { setError(null); setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }}
+          creatingDisabled={initialLoading || submitting}
           onOpenDraft={(stockRunId) => { setActiveStockRunId(stockRunId); setActivePanel("stock-run-manage"); }}
           onDeleteDraft={(stockRun) => {
             setActiveStockRunId(stockRun.id);
@@ -641,6 +637,10 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           onMaterialFormChange={setMaterialForm}
           onCreateMaterial={(event) => {
             event.preventDefault();
+            if (!materialForm.name.trim() || !/^[0-9]{1,5}$/.test(materialForm.reorderPoint)) {
+              setError("Enter a raw material name and a reorder point containing 1 to 5 digits only.");
+              return;
+            }
             void runAction(async () => {
               const material = await createRawMaterial({ name: materialForm.name, sku: materialForm.sku, unitId: materialForm.unitId, reorderPoint: Number(materialForm.reorderPoint) });
               setSelectedRawMaterialId(material.id);
@@ -663,12 +663,25 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           }}
           onArchiveMaterial={() => void runAction(async () => {
             if (!selectedMaterial) return;
-            await archiveRawMaterial(selectedMaterial.id);
+            const restoring = !selectedMaterial.isActive;
+            await (restoring ? unarchiveRawMaterial : archiveRawMaterial)(selectedMaterial.id);
             setActivePanel(null);
-            setMessage(`${selectedMaterial.name} archived.`);
+            setMessage(`${selectedMaterial.name} ${restoring ? "unarchived" : "archived"}.`);
             await refreshEverything();
             await loadBusinessReports();
           }, "Failed to archive material")}
+          onDeleteMaterial={() => void runAction(async () => {
+            if (!selectedMaterial) return;
+            await deleteRawMaterial(selectedMaterial.id);
+            setActivePanel(null);
+            setSelectedMaterial(null);
+            setSelectedRawMaterialId(null);
+            setBatches([]);
+            setTransactions([]);
+            setMessage(`${selectedMaterial.name} deleted. Historical data preserved.`);
+            await refreshEverything();
+            await loadBusinessReports();
+          }, "Failed to delete material")}
         /></PermissionAction>
 
         <PermissionAction permission={activePanel === "stock-run-create" ? "stockRuns.create" : activePanel === "delete-draft" ? "stockRuns.delete" : "stockRuns.view"}><StockRunModals
@@ -688,6 +701,10 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           onStockRunItemFormChange={setStockRunItemForm}
           onCreateStockRun={(event) => {
             event.preventDefault();
+            if (!stockRunForm.name.trim()) {
+              setError("Enter a draft name before creating the draft.");
+              return;
+            }
             void runAction(async () => {
               const stockRun = await createStockRun(stockRunForm);
               setStockRunForm({ name: "", notes: "" });
@@ -700,6 +717,10 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           onAddStockRunItem={(event) => {
             event.preventDefault();
             if (!activeStockRunId) return;
+            if (!stockRunItemForm.rawMaterialId || !stockRunItemForm.supplierId || !stockRunItemForm.costUnitCode || !stockRunItemForm.expirationDate || !stockRunItemForm.receivedAt.split("T")[0] || !stockRunItemForm.receivedAt.split("T")[1] || [stockRunItemForm.quantity, stockRunItemForm.costPerUnit, stockRunItemForm.costQuantity].some(value => !value.trim() || !Number.isFinite(Number(value)) || Number(value) <= 0)) {
+              setError("Complete all required receiving fields before adding the item.");
+              return;
+            }
             void runAction(async () => {
               await addStockRunItem(activeStockRunId, { rawMaterialId: stockRunItemForm.rawMaterialId, supplierId: stockRunItemForm.supplierId || undefined, quantity: Number(stockRunItemForm.quantity), costPerUnit: Number(stockRunItemForm.costPerUnit), costQuantity: Number(stockRunItemForm.costQuantity), costUnitCode: stockRunItemForm.costUnitCode, expirationDate: stockRunItemForm.expirationDate || undefined, receivedAt: stockRunItemForm.receivedAt ? `${stockRunItemForm.receivedAt}:00+08:00` : undefined, note: stockRunItemForm.note || undefined });
               setStockRunItemForm((current) => ({ ...current, supplierId: "", quantity: "", costPerUnit: "", expirationDate: "", receivedAt: currentManilaReceivingDateTime(), note: "" }));
@@ -751,6 +772,10 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           onWasteFormChange={setWasteForm}
           onSubmitWaste={(event) => {
             event.preventDefault();
+            if (!wasteForm.rawMaterialId || !wasteForm.batchId || !wasteForm.reasonCode || !wasteForm.quantity.trim() || !Number.isFinite(Number(wasteForm.quantity)) || Number(wasteForm.quantity) < 0.0001) {
+              setError("Select a raw material, batch, and reason code, and enter a quantity greater than zero.");
+              return;
+            }
             void runAction(async () => {
               await createInventoryWaste({ rawMaterialId: wasteForm.rawMaterialId, batchId: wasteForm.batchId, quantity: Number(wasteForm.quantity), reasonCode: wasteForm.reasonCode, note: wasteForm.note || undefined });
               setWasteForm(defaultWasteForm(selectedRawMaterialId));

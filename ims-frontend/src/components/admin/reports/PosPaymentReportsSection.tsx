@@ -3,6 +3,8 @@
 import PosReportEmpty from "./PosReportEmpty";
 
 import { useEffect, useState } from "react";
+import { FileSpreadsheet, FileText } from "lucide-react";
+import styles from "./PosReports.module.css";
 import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
@@ -127,22 +129,23 @@ export default function PosPaymentReportsSection({
       ) : null}
 
       <section className="rounded-2xl bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
+        <div className={styles.peakHeader}>
+          <div className={styles.peakIntro}>
             <h3 className="text-xl font-semibold text-neutral-900">Payment Reports</h3>
             <p className="mt-2 text-sm text-neutral-600">
               Payment breakdowns for completed POS transactions, including e-wallet totals and
               split-payment activity where supported by the current schema.
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className={styles.peakControls}>
             <button
               type="button"
               disabled={loading || exportingFormat !== null}
               onClick={() => void handleExport("csv")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {exportingFormat === "csv" ? "Exporting..." : "Export CSV"}
+              <FileSpreadsheet size={18} aria-hidden="true" />
+              <span>{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</span>
             </button>
             <button
               type="button"
@@ -150,7 +153,8 @@ export default function PosPaymentReportsSection({
               onClick={() => void handleExport("pdf")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}
+              <FileText size={18} aria-hidden="true" />
+              <span>{exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}</span>
             </button>
           </div>
         </div>

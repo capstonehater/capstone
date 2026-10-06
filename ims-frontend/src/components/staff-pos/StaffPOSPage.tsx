@@ -1,12 +1,12 @@
 "use client";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import {
   ArrowLeft, Search, ShoppingCart, Trash2, Minus, Plus,
   StickyNote, Pencil, Loader2, Maximize2, Minimize2,
-  Coffee, Cookie, Sandwich, Utensils, CupSoda, CakeSlice,
+  Coffee, Cookie, Sandwich, Utensils, CupSoda, CakeSlice, X,
 } from "lucide-react";
 import type {
   ConfiguredPosCartItemInput, PaymentMethod, PosCartItem, PosCheckoutPayload,
@@ -19,6 +19,7 @@ import {
   cacheMenuSnapshot, createOfflineOperationId, getCachedMenuSnapshot,
 } from "@/lib/pos-offline";
 import { calculateIncludedVat, formatPeso } from "@/lib/pos-utils";
+import { remainingVariantQuantity } from "@/lib/pos-cart-availability";
 import ProductImage from "@/components/ProductImage";
 import ProductConfiguratorModal from "./modals/ProductConfiguratorModal";
 import VoidConfirmationModal from "./modals/VoidConfirmationModal";
@@ -89,6 +90,9 @@ export default function StaffPOSPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [choosingCategory, setChoosingCategory] = useState(true);
+  const [mobileCartOpen, setMobileCartOpen] = useState(false);
+  const cartRef = useRef<HTMLElement>(null);
+  const cartToggleRef = useRef<HTMLButtonElement>(null);
   const [cart, setCart] = useState<PosCartItem[]>([]);
   const [menuProducts, setMenuProducts] = useState<PosMenuProduct[]>([]);
   const [menuCategories, setMenuCategories] = useState<PosMenuCategory[]>([]);
@@ -108,6 +112,36 @@ export default function StaffPOSPage() {
   const [reversalState, setReversalState] = useState<ReversalState>(defaultReversalState());
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!mobileCartOpen) return;
+    const media = window.matchMedia("(min-width: 768px)");
+    if (media.matches) return;
+    const toggleButton = cartToggleRef.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    cartRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    const closeOnResize = () => { if (media.matches) setMobileCartOpen(false); };
+    const handleKey = (event: KeyboardEvent) => {
+      if (!cartRef.current?.contains(document.activeElement)) return;
+      if (event.key === "Escape") setMobileCartOpen(false);
+      if (event.key !== "Tab") return;
+      const controls = cartRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input, select, textarea, [tabindex="0"]');
+      if (!controls?.length) return;
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    media.addEventListener("change", closeOnResize);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      media.removeEventListener("change", closeOnResize);
+      document.removeEventListener("keydown", handleKey);
+      if (!media.matches) toggleButton?.focus();
+    };
+  }, [mobileCartOpen]);
 
   const discountConfig = getDiscountConfig(discount);
   // Apply admin enablement and stock availability to both live and cached menus.
@@ -136,7 +170,7 @@ export default function StaffPOSPage() {
 
   const closeConfigurator = () => { setConfiguratorProduct(null); setEditingCartItem(null); };
   const resetTransaction = () => {
-    setCart([]); setTransactionNote(""); setDiscount("none");
+    setMobileCartOpen(false); setCart([]); setTransactionNote(""); setDiscount("none");
     setPayments({ cash: "", gcash: "", maya: "", card: "" }); closeConfigurator(); setVoidTargetItem(null);
   };
 
@@ -164,11 +198,25 @@ export default function StaffPOSPage() {
 
   useEffect(() => { void loadMenu(); }, []);
 
-  const addConfiguredItem = (payload: ConfiguredPosCartItemInput) => { setCart((current) => [...current, buildCartItem(payload)]); closeConfigurator(); };
+  const findVariant = (variantId: string) => availableProducts.flatMap((product) => product.variants).find((variant) => variant.id === variantId);
+  const addConfiguredItem = (payload: ConfiguredPosCartItemInput) => {
+    const variant = findVariant(payload.productVariantId);
+    if (remainingVariantQuantity(variant, cart) < 1) {
+      setError("All available orders of this variant are already in the cart.");
+      return;
+    }
+    setCart((current) => remainingVariantQuantity(variant, current) >= 1 ? [...current, buildCartItem(payload)] : current);
+    closeConfigurator();
+  };
   const updateConfiguredItem = (payload: ConfiguredPosCartItemInput) => {
     if (!editingCartItem) return;
+    const variant = findVariant(payload.productVariantId);
+    if (remainingVariantQuantity(variant, cart, editingCartItem.cartId) < editingCartItem.quantity) {
+      setError("This variant cannot supply the current quantity. Reduce the quantity before changing variants.");
+      return;
+    }
     const updatedItem = buildCartItem(payload, editingCartItem);
-    setCart((current) => current.map((item) => item.cartId === editingCartItem.cartId ? updatedItem : item));
+    setCart((current) => remainingVariantQuantity(variant, current, editingCartItem.cartId) >= updatedItem.quantity ? current.map((item) => item.cartId === editingCartItem.cartId ? updatedItem : item) : current);
     closeConfigurator();
   };
   const openEditItem = (cartItem: PosCartItem) => {
@@ -180,8 +228,13 @@ export default function StaffPOSPage() {
     setEditingCartItem(cartItem); setConfiguratorProduct(product);
   };
   const updateQty = (cartId: string, nextQty: number) => {
-    if (nextQty < 1) return;
-    setCart((current) => current.map((item) => item.cartId === cartId ? { ...item, quantity: nextQty, lineSubtotal: item.unitPrice * nextQty } : item));
+    if (!Number.isInteger(nextQty) || nextQty < 1) return;
+    setCart((current) => {
+      const target = current.find((item) => item.cartId === cartId);
+      if (!target) return current;
+      if (nextQty > target.quantity && nextQty > remainingVariantQuantity(findVariant(target.productVariantId), current, cartId)) return current;
+      return current.map((item) => item.cartId === cartId ? { ...item, quantity: nextQty, lineSubtotal: item.unitPrice * nextQty } : item);
+    });
   };
   const handleCancelTransaction = () => { if (cart.length && window.confirm("Cancel the current transaction?")) resetTransaction(); };
   const buildCheckoutPayload = (idempotencyKey: string): PosCheckoutPayload => ({
@@ -281,14 +334,14 @@ export default function StaffPOSPage() {
         {error ? <ActionAlert tone="error" title="Action failed" message={error} onDismiss={() => setError(null)} /> : null}
 
         <div key={choosingCategory ? "categories" : "products"} className={`${styles.orderArea} ${choosingCategory ? styles.returnToCategories : styles.openCategory}`}>
+        <div className={styles.orderWorkspace} data-choosing-category={choosingCategory ? "true" : undefined}>
         {choosingCategory ? (
-          <section aria-labelledby="pos-categories-title" className={`${styles.categoryPanel} min-h-0 w-full py-4`}>
+          <section aria-labelledby="pos-categories-title" inert={mobileCartOpen} className={`${styles.categoryPanel} min-h-0 w-full py-4`}>
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 id="pos-categories-title" className="text-2xl font-bold text-[#232d46]">Choose a Category</h2>
                 <p className="mt-1 text-sm text-slate-500">Select a category to browse products.</p>
               </div>
-              {cart.length > 0 && <button type="button" onClick={() => setChoosingCategory(false)} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-3 font-semibold text-[#232d46]"><ShoppingCart size={18} />Current Cart ({cart.length}) · {formatPeso(totals.total)}</button>}
             </div>
             {menuLoading ? (
               <p role="status" className="flex items-center gap-2 py-8 text-slate-500"><Loader2 className="h-5 w-5 animate-spin" />Loading categories...</p>
@@ -304,14 +357,14 @@ export default function StaffPOSPage() {
               </div>
             )}
           </section>
-        ) : <div className={`${styles.orderWorkspace} grid gap-4 xl:grid-cols-[minmax(0,2.2fr)_minmax(20rem,0.82fr)]`}>
-          <section className={`${styles.productPanel} rounded-3xl bg-white p-4 shadow-sm md:p-5`}>
-            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="relative w-full md:max-w-xl">
+        ) : (
+          <section inert={mobileCartOpen} className={`${styles.productPanel} rounded-3xl bg-white p-4 shadow-sm md:p-5`}>
+            <div className={styles.productToolbar}>
+              <div className={styles.productSearch}>
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by product, category, or SKU" className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none focus:border-[#232d46]" />
               </div>
-              <button type="button" onClick={() => { setChoosingCategory(true); setSearch(""); }} className="order-first inline-flex shrink-0 items-center gap-2 rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-[#232d46] hover:bg-slate-50"><ArrowLeft size={18} />Back to Categories</button>
+              <button type="button" onClick={() => { setMobileCartOpen(false); setChoosingCategory(true); setSearch(""); }} className="order-first inline-flex shrink-0 items-center gap-2 rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-[#232d46] hover:bg-slate-50"><ArrowLeft size={18} />Back to Categories</button>
             </div>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{category === "All" ? "All Products" : category}</h2>
@@ -349,10 +402,20 @@ export default function StaffPOSPage() {
             )}
           </section>
 
-          <aside className={styles.cart}>
-            <div className="mb-4 flex items-center justify-between"><div className="flex items-center gap-2"><ShoppingCart className="h-5 w-5 text-[#232d46]" /><h2 className="text-lg font-semibold">Current Cart</h2></div><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{cart.length} item{cart.length !== 1 ? "s" : ""}</span></div>
+        )}
+          {!choosingCategory && <>
+          <button ref={cartToggleRef} type="button" className={styles.cartToggle} aria-label={`Open cart, ${cart.length} items`} aria-controls="pos-current-cart" aria-expanded={mobileCartOpen} onClick={() => setMobileCartOpen(true)}>
+            <ShoppingCart size={24} aria-hidden="true" /><span>{cart.length}</span>
+          </button>
+          <button type="button" className={styles.cartBackdrop} data-open={mobileCartOpen} aria-label="Close cart" tabIndex={-1} onClick={() => setMobileCartOpen(false)} />
+          <aside ref={cartRef} id="pos-current-cart" className={styles.cart} data-open={mobileCartOpen} role={mobileCartOpen ? "dialog" : undefined} aria-modal={mobileCartOpen || undefined} aria-label="Current Cart">
+            <div className={`${styles.cartHeader} mb-4 flex items-center justify-between`}>
+              <div className="flex items-center gap-2"><ShoppingCart className="h-5 w-5 text-[#232d46]" /><h2 className="text-lg font-semibold">Current Cart</h2></div>
+              <span className={styles.cartCount}>{cart.length} item{cart.length !== 1 ? "s" : ""}</span>
+              <button type="button" className={styles.cartClose} aria-label="Close cart" onClick={() => setMobileCartOpen(false)}><X size={20} /></button>
+            </div>
             <div className={`${styles.cartItems} mb-4 max-h-[340px] space-y-3 overflow-auto pr-1`}>
-              {cart.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Your cart is empty. Choose a product to start an order.</div> : cart.map((item) => (
+              {cart.length === 0 ? <div className={styles.emptyCart}><ShoppingCart size={28} aria-hidden="true" /><strong>Your cart is empty</strong><p>Choose a product to start an order.</p></div> : cart.map((item) => (
                 <div key={item.cartId} className={styles.cartItem}>
                   <div className={styles.cartItemHeader}>
                     <div>
@@ -368,9 +431,9 @@ export default function StaffPOSPage() {
                   </div>
                   <div className={styles.cartItemBottom}>
                     <div className={styles.quantityControl}>
-                      <button onClick={() => updateQty(item.cartId, item.quantity - 1)} type="button" aria-label={`Decrease quantity of ${item.productName}`} className="px-3 py-2 text-slate-600 hover:bg-slate-50"><Minus className="h-4 w-4" /></button>
+                      <button disabled={item.quantity <= 1} onClick={() => updateQty(item.cartId, item.quantity - 1)} type="button" aria-label={`Decrease quantity of ${item.productName}`} className="px-3 py-2 text-slate-600 hover:bg-slate-50"><Minus className="h-4 w-4" /></button>
                       <span className="min-w-10 text-center text-sm font-semibold">{item.quantity}</span>
-                      <button onClick={() => updateQty(item.cartId, item.quantity + 1)} type="button" aria-label={`Increase quantity of ${item.productName}`} className="px-3 py-2 text-slate-600 hover:bg-slate-50"><Plus className="h-4 w-4" /></button>
+                      <button disabled={remainingVariantQuantity(findVariant(item.productVariantId), cart) < 1} title={remainingVariantQuantity(findVariant(item.productVariantId), cart) < 1 ? "Available quantity reached" : "Increase quantity"} onClick={() => updateQty(item.cartId, item.quantity + 1)} type="button" aria-label={`Increase quantity of ${item.productName}`} className="px-3 py-2 text-slate-600 hover:bg-slate-50"><Plus className="h-4 w-4" /></button>
                     </div>
                     <p className="font-semibold text-slate-900">{formatPeso(item.lineSubtotal)}</p>
                   </div>
@@ -384,7 +447,7 @@ export default function StaffPOSPage() {
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="pos-cart-notes">Transaction Notes</label>
-                <div className="relative"><StickyNote aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><textarea id="pos-cart-notes" value={transactionNote} onChange={(e) => setTransactionNote(e.target.value)} placeholder="Example: less sugar, no straw" rows={3} className="block w-full rounded-2xl border border-slate-200 bg-white px-10 py-3 text-center text-sm outline-none focus:border-[#232d46]" /></div>
+                <div className="relative"><StickyNote aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><textarea id="pos-cart-notes" value={transactionNote} onChange={(e) => setTransactionNote(e.target.value)} placeholder="Example: less sugar, no straw" rows={3} className={`${styles.cartNotes} block w-full rounded-2xl border border-slate-200 bg-white py-3 text-sm outline-none focus:border-[#232d46]`} /></div>
               </div>
               <div className={styles.cartTotals}>
                 <div className="flex justify-between"><span className="text-slate-500">Subtotal (VAT Inclusive)</span><span>{formatPeso(totals.subtotal)}</span></div>
@@ -399,11 +462,12 @@ export default function StaffPOSPage() {
               <PermissionAction permission="pos.checkout"><button onClick={() => setShowPayment(true)} type="button" disabled={cart.length === 0} className="rounded-2xl bg-[#232d46] px-4 py-3 text-sm font-semibold text-white hover:bg-[#34445f] disabled:cursor-not-allowed disabled:bg-slate-300">{checkoutLoading ? "Processing..." : "Process Order"}</button></PermissionAction>
             </div>
           </aside>
-        </div>}
+          </>}
+        </div>
         </div>
       </div>
 
-      {configuratorProduct ? <ProductConfiguratorModal product={configuratorProduct} initialItem={editingCartItem} onClose={closeConfigurator} onSubmit={editingCartItem ? updateConfiguredItem : addConfiguredItem} submitLabel={editingCartItem ? "Save Changes" : "Add to Cart"} /> : null}
+      {configuratorProduct ? <ProductConfiguratorModal product={configuratorProduct} cart={cart} initialItem={editingCartItem} onClose={closeConfigurator} onSubmit={editingCartItem ? updateConfiguredItem : addConfiguredItem} submitLabel={editingCartItem ? "Save Changes" : "Add to Cart"} /> : null}
       {voidTargetItem ? <VoidConfirmationModal item={voidTargetItem} onClose={() => setVoidTargetItem(null)} onConfirm={() => { if (!voidTargetItem) return; setCart((current) => current.filter((item) => item.cartId !== voidTargetItem.cartId)); if (editingCartItem?.cartId === voidTargetItem.cartId) closeConfigurator(); setVoidTargetItem(null); }} /> : null}
       {showPayment ? <PermissionAction permission={"pos.checkout"}><PaymentModal total={cashCorrectionOrder ? Number(cashCorrectionOrder.totalAmount) : totals.total} cartCount={cashCorrectionOrder ? cashCorrectionOrder.items.length : cart.length} payments={payments} setPayments={setPayments} onClose={closePayment} cashCorrection={!!cashCorrectionOrder} submitting={checkoutLoading} error={error} onConfirm={() => void handleConfirmPayment()} /></PermissionAction> : null}
       {showReceipt && latestReceipt ? <ReceiptModal receipt={latestReceipt} onBackToPayment={latestReceipt.createdBy.id === useAuthStore.getState().user?.id && latestReceipt.payments.filter(payment => payment.method === "CASH").length === 1 ? returnToPayment : undefined} reversalSubmitting={reversalSubmitting} onRefund={(order) => openReversalModal(order, "REFUND")} onClose={() => setShowReceipt(false)} /> : null}

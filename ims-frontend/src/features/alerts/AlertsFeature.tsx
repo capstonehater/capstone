@@ -139,7 +139,7 @@ export default function AlertsFeature() {
                     type="search"
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Material, supplier, alert title..."
+                    placeholder="Ex. Milk, supplier name, low stock..."
                     className={styles.searchInput}
                   />
                 </span>

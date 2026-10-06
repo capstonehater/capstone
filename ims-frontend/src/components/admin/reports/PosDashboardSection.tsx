@@ -2,7 +2,7 @@
 
 import PosReportEmpty from "./PosReportEmpty";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
@@ -25,6 +25,7 @@ type Props = {
   toIso: string;
   preset: QuickDatePreset;
   refreshToken: number;
+  children?: ReactNode;
 };
 
 function describePresetValue(preset: QuickDatePreset) {
@@ -62,6 +63,7 @@ export default function PosDashboardSection({
   toIso,
   preset,
   refreshToken,
+  children,
 }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -115,7 +117,7 @@ export default function PosDashboardSection({
   }, [active, fromIso, toIso]);
 
   if (!active) {
-    return null;
+    return <>{children}</>;
   }
 
   return (
@@ -156,6 +158,8 @@ export default function PosDashboardSection({
           }
         />
       </section>
+
+      {children}
 
         <WidgetCard title="Daily Sales Snapshot">
           <div className="grid gap-4 sm:grid-cols-3">

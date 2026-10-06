@@ -5,6 +5,7 @@ import AdminSelect from "@/components/admin/AdminSelect";
 import PosReportEmpty from "./PosReportEmpty";
 
 import { useEffect, useState } from "react";
+import { FileSpreadsheet, FileText } from "lucide-react";
 import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
@@ -18,6 +19,7 @@ import {
 } from "@/lib/reports";
 import { formatPeso } from "@/lib/pos-utils";
 import ReportLineChart from "./ReportLineChart";
+import styles from "./PosReports.module.css";
 
 type Props = {
   active: boolean;
@@ -156,26 +158,30 @@ export default function PosPeakHoursSection({
       ) : null}
 
       <section className="rounded-2xl bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <div>
+        <div className={styles.peakHeader}>
+          <div className={styles.peakIntro}>
             <h3 className="text-xl font-semibold text-neutral-900">Peak Hours</h3>
             <p className="mt-2 text-sm text-neutral-600">
               Hourly POS sales and transaction density using completed-order timestamps grouped by
               Asia/Manila local hour. Weekday and weekend splits are derived from timestamps alone.
             </p>
+            <p className="mt-2 text-sm text-neutral-600">
+              Café operating hours: {report?.operatingHours?.label ?? "1:00 PM–9:00 PM"} (Asia/Manila).
+            </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_repeat(2,minmax(0,0.8fr))]">
+          <div className={styles.peakControls}>
             <AdminSelect
               label="Day Type"
               value={dayType}
               onChange={(value) => setDayType(value as PosPeakDayType)}
               options={DAY_TYPE_OPTIONS}
             />
-            <div className="flex items-end gap-2">
+            <div className={styles.peakViewControls} role="group" aria-label="Peak hours view">
               {(["table", "line"] as const).map((option) => (
                 <button
                   key={option}
                   type="button"
+                  aria-pressed={view === option}
                   onClick={() => setView(option)}
                   className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                     view === option
@@ -193,7 +199,8 @@ export default function PosPeakHoursSection({
               onClick={() => void handleExport("csv")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {exportingFormat === "csv" ? "Exporting..." : "Export CSV"}
+              <FileSpreadsheet size={18} aria-hidden="true" />
+              <span>{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</span>
             </button>
             <button
               type="button"
@@ -201,7 +208,8 @@ export default function PosPeakHoursSection({
               onClick={() => void handleExport("pdf")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}
+              <FileText size={18} aria-hidden="true" />
+              <span>{exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}</span>
             </button>
           </div>
         </div>
@@ -280,7 +288,7 @@ export default function PosPeakHoursSection({
         <WidgetCard title={view === "table" ? "Hourly Sales Table" : "Hourly Net Sales Line Graph"}>
           {view === "line" ? (
             <ReportLineChart
-              points={(report?.hourly ?? []).filter((row) => row.hour >= 13 && row.hour <= 22).map((row) => ({
+              points={(report?.hourly ?? []).filter((row) => row.hour >= (report?.operatingHours?.openingHour ?? 13) && row.hour < (report?.operatingHours?.closingHour ?? 21)).map((row) => ({
                 key: String(row.hour),
                 label: row.label,
                 value: Number(row.netSales),
