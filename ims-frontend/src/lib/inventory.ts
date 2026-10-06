@@ -155,6 +155,9 @@ export type StockRun = {
     supplierId: string | null;
     quantity: DecimalString;
     costPerUnit: DecimalString;
+    purchaseCost?: DecimalString | null;
+    priceQuantity?: DecimalString | null;
+    priceUnitCode?: string | null;
     expirationDate: string | null;
     receivedAt: string | null;
     note: string | null;
@@ -264,6 +267,13 @@ export async function fetchStockBatchTransactions(
   );
 
   return response.transactions;
+}
+
+export async function deleteInventoryHistory(transactionId: string) {
+  return apiJsonFetch<{ id: string; deleted: boolean; stockReversed: boolean }>(
+    `/inventory/transactions/${encodeURIComponent(transactionId)}`,
+    { method: "DELETE" }
+  );
 }
 
 export async function fetchStockRuns(params: {
@@ -411,6 +421,8 @@ export async function addStockRunItem(
     supplierId?: string;
     quantity: number;
     costPerUnit: number;
+    costQuantity?: number;
+    costUnitCode?: string;
     expirationDate?: string;
     receivedAt?: string;
     note?: string;

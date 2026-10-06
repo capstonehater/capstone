@@ -1,5 +1,7 @@
 "use client";
 
+import { formatUnit } from "@/lib/units";
+
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CircleAlert, PanelTop, PanelsLeftRight } from 'lucide-react';
@@ -43,14 +45,14 @@ function PeriodChart({ run, series, scale }: { run: ForecastRun | null; series?:
   const x = (index: number) => points.length === 1 ? width / 2 : leftPadding + index * (width - leftPadding - 55) / (points.length - 1);
   const position = (value: number, index: number) => `${x(index)},${170 - value / scale * 140}`;
   return <>
-    <div className={styles.liveChart}><svg style={{ width, minWidth: width, maxWidth: 'none' }} viewBox={`0 0 ${width} 215`} role="group" aria-label={`Daily expected usage for ${series.name}, ${dateLabel(run.startDate)} to ${dateLabel(run.endDate)}, in ${series.unit}. Shaded area shows the possible range.`}>
+    <div className={styles.liveChart}><svg style={{ width, minWidth: width, maxWidth: 'none' }} viewBox={`0 0 ${width} 215`} role="group" aria-label={`Daily expected usage for ${series.name}, ${dateLabel(run.startDate)} to ${dateLabel(run.endDate)}, in ${formatUnit(series.unit)}. Shaded area shows the possible range.`}>
       {[0, 0.5, 1].map((fraction) => <g key={fraction}><line x1={leftPadding} x2={width - 55} y1={170-fraction*140} y2={170-fraction*140} stroke="#ddd" /><text x={leftPadding - 12} y={174-fraction*140} textAnchor="end" fontSize="15" fill="#334155">{number(scale*fraction)}</text></g>)}
       <polygon points={[...points.map((point, index) => position(Math.min(Number(point.upper95), scale), index)), ...points.map((point, index) => position(Math.max(0, Number(point.lower95)), index)).reverse()].join(' ')} fill="#17840018" />
       <polyline points={points.map((point, index) => position(Number(point.forecast), index)).join(' ')} fill="none" stroke="#178400" strokeWidth="2" />
       {points.map((point, index) => <g key={point.date}>
         <circle cx={x(index)} cy={170-Number(point.forecast)/scale*140} r={activePoint?.date === point.date ? 6 : 4} fill="#178400" stroke={activePoint?.date === point.date ? '#fff' : 'none'} strokeWidth="2" pointerEvents="none" />
         <circle className={styles.chartPointTarget} cx={x(index)} cy={170-Number(point.forecast)/scale*140} r="13" fill="transparent" tabIndex={0} role="button"
-          aria-label={`${dateLabel(point.date)}: expected usage ${number(Number(point.forecast))} ${series.unit}; possible range ${number(Number(point.lower95))} to ${number(Number(point.upper95))} ${series.unit}`}
+          aria-label={`${dateLabel(point.date)}: expected usage ${number(Number(point.forecast))} ${formatUnit(series.unit)}; possible range ${number(Number(point.lower95))} to ${number(Number(point.upper95))} ${formatUnit(series.unit)}`}
           aria-describedby={activePoint?.date === point.date ? tooltipId : undefined}
           onPointerEnter={(event) => showPoint(event.currentTarget, point.date)} onPointerLeave={() => setHovered(null)}
           onFocus={(event) => showPoint(event.currentTarget, point.date)} onBlur={() => setHovered(null)}
@@ -65,11 +67,11 @@ function PeriodChart({ run, series, scale }: { run: ForecastRun | null; series?:
     {activePoint && hovered && createPortal(<div id={tooltipId} role="tooltip" className={styles.chartTooltip} style={{ left: hovered.left, top: hovered.top }}>
       <strong>{dateLabel(activePoint.date)}</strong>
       <span>Expected usage</span>
-      <b>{number(Number(activePoint.forecast))} {series.unit}</b>
-      <small>95% range: {number(Number(activePoint.lower95))} ? {number(Number(activePoint.upper95))} {series.unit}</small>
+      <b>{number(Number(activePoint.forecast))} {formatUnit(series.unit)}</b>
+      <small>95% range: {number(Number(activePoint.lower95))} ? {number(Number(activePoint.upper95))} {formatUnit(series.unit)}</small>
     </div>, document.body)}
     {rangeExceedsScale && <p className={styles.graphRangeNote}>The possible range extends above the chart. Its full values remain in the saved forecast.</p>}
-    <p className={styles.graphTotal}>{forecastPeriodDays(run)}-day expected usage: <strong>{number(forecastTotal(series))} {series.unit}</strong></p>
+    <p className={styles.graphTotal}>{forecastPeriodDays(run)}-day expected usage: <strong>{number(forecastTotal(series))} {formatUnit(series.unit)}</strong></p>
   </>;
 }
 
@@ -127,7 +129,7 @@ export default function ForecastGraph({ periods, currentRun, productId, material
   // The comparison should show expected usage even if one interval has a very large outlier.
   const scale = Math.max(1, ...shown.flatMap((series) => series?.points.map((point) => Number(point.forecast) * 1.2) ?? []));
   const weekOptions = periods.map((period) => ({ value: period.id, label: `${dateLabel(period.startDate)} – ${dateLabel(period.endDate)}` }));
-  const materialOptions = materials.map((row) => ({ value: row.materialId, label: `${row.name} (${row.unit})` }));
+  const materialOptions = materials.map((row) => ({ value: row.materialId, label: `${row.name} (${formatUnit(row.unit)})` }));
   return <section className={styles.panel}>
     <div className={styles.graphHeader}>
       <div className={styles.viewControls} role="group" aria-label="Graph view">
@@ -164,7 +166,7 @@ export default function ForecastGraph({ periods, currentRun, productId, material
     {mode === 'single' && singleRun && singleRun.id !== currentRun.id && <ForecastNotes key={singleRun.id} run={singleRun} />}
     {mode === 'compare' && leftRun && <ForecastNotes key={`left-${leftRun.id}`} run={leftRun} />}
     {mode === 'compare' && rightRun && rightRun.id !== leftRun?.id && <ForecastNotes key={`right-${rightRun.id}`} run={rightRun} />}
-    <p className={styles.message}>The green line shows expected usage in {selected.unit}. The shaded area shows a possible range; wider means less certain.{mode === 'compare' ? ' Both graphs use the same scale.' : ''}</p>
+    <p className={styles.message}>The green line shows expected usage in {formatUnit(selected.unit)}. The shaded area shows a possible range; wider means less certain.{mode === 'compare' ? ' Both graphs use the same scale.' : ''}</p>
     <details className={styles.dataNotes}><summary>Technical accuracy details</summary><p>Shading represents the model’s 95% forecast interval.{mode === 'single' && singleSeries ? ` Historical validation error (MAPE): ${singleSeries.metadata.metrics.mape == null ? 'N/A' : `${number(singleSeries.metadata.metrics.mape)}%`}.` : ''} This measures past prediction error, not guaranteed future accuracy.</p></details>
   </section>;
 }

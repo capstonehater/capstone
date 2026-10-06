@@ -54,7 +54,20 @@ export class StockRunsService {
 
   async addStockRunItem(stockRunId: string, dto: CreateStockRunItemDto) {
     await this.ensureDraftStockRun(stockRunId);
-    await this.ensureRawMaterialExists(dto.rawMaterialId);
+    const rawMaterial = await this.ensureRawMaterialExists(dto.rawMaterialId);
+    const unitCode = rawMaterial.unit.code.trim().toUpperCase();
+    const costUnitCode = dto.costUnitCode?.trim().toUpperCase() ?? unitCode;
+    if (dto.costUnitCode !== undefined && dto.costQuantity === undefined) {
+      throw new BadRequestException('Price quantity is required when a price unit is selected');
+    }
+    const priceQuantity = dto.costQuantity ?? (unitCode === 'G' || unitCode === 'ML' ? 1000 : 1);
+    let conversionFactor = 1;
+    if (costUnitCode !== unitCode) {
+      if (unitCode === 'G' && costUnitCode === 'KG' || unitCode === 'ML' && costUnitCode === 'L') conversionFactor = 1000;
+      else if (unitCode === 'KG' && costUnitCode === 'G' || unitCode === 'L' && costUnitCode === 'ML') conversionFactor = 0.001;
+      else throw new BadRequestException('Price unit must match the material unit or its kg/g or L/ml equivalent');
+    }
+    const costQuantity = toDecimal(priceQuantity).mul(conversionFactor);
 
     if (dto.supplierId) {
       await this.ensureSupplierExists(dto.supplierId);
@@ -66,7 +79,10 @@ export class StockRunsService {
         rawMaterialId: dto.rawMaterialId,
         supplierId: dto.supplierId ?? null,
         quantity: toDecimal(dto.quantity),
-        costPerUnit: toDecimal(dto.costPerUnit),
+        costPerUnit: toDecimal(dto.costPerUnit).div(costQuantity).toDecimalPlaces(8),
+        purchaseCost: toDecimal(dto.costPerUnit),
+        priceQuantity: toDecimal(priceQuantity),
+        priceUnitCode: costUnitCode,
         expirationDate: dto.expirationDate
           ? new Date(dto.expirationDate)
           : null,
@@ -302,12 +318,13 @@ export class StockRunsService {
   private async ensureRawMaterialExists(rawMaterialId: string) {
     const rawMaterial = await this.prisma.rawMaterial.findUnique({
       where: { id: rawMaterialId },
-      select: { id: true },
+      select: { id: true, unit: { select: { code: true } } },
     });
 
     if (!rawMaterial) {
       throw new NotFoundException('Raw material not found');
     }
+    return rawMaterial;
   }
 
   private async ensureSupplierExists(supplierId: string) {

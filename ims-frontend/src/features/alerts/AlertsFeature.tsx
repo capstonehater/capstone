@@ -20,13 +20,14 @@ function formatDateTime(value: string | null | undefined) {
 }
 
 function tone(alert: AlertRecord) {
+  if (alert.state === "RESOLVED") return styles.resolved;
   if (alert.severity === "CRITICAL") return styles.critical;
   if (alert.severity === "WARNING") return styles.warning;
   return styles.info;
 }
 
 const STATE_OPTIONS: Array<{ value: AlertState | ""; label: string }> = [
-  { value: "", label: "All states" },
+  { value: "", label: "All status" },
   { value: "ACTIVE", label: "Active" },
   { value: "ACKNOWLEDGED", label: "Read" },
   { value: "DISMISSED", label: "Dismissed" },
@@ -172,15 +173,19 @@ export default function AlertsFeature() {
                   <div className={`${styles.alertContent} space-y-3`}>
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-lg font-semibold text-neutral-900">{alert.title}</h2>
-                      <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
-                        {alert.type.replaceAll("_", " ")}
-                      </span>
+                      {alert.state !== "RESOLVED" ? (
+                        <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
+                          {alert.type.replaceAll("_", " ")}
+                        </span>
+                      ) : null}
                       <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
                         {formatAlertState(alert.state)}
                       </span>
-                      <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
-                        {alert.severity}
-                      </span>
+                      {alert.state !== "RESOLVED" ? (
+                        <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
+                          {alert.severity}
+                        </span>
+                      ) : null}
                     </div>
                     <p className="text-sm text-neutral-700">{alert.message}</p>
                     {alert.acknowledgedAt ? (

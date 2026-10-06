@@ -24,6 +24,8 @@ import WasteModal from "@/components/admin/inventory/WasteModal";
 import InventoryReportModal from "./InventoryReportModal";
 import ActionAlert from "@/components/feedback/ActionAlert";
 import { getDefaultWasteReasonCode } from "@/lib/inventory-reason-options";
+import { defaultStockRunPriceBasis } from "@/lib/stock-run-pricing";
+import { currentManilaReceivingDateTime } from "@/lib/stock-run-receiving";
 import {
   addStockRunItem,
   archiveRawMaterial,
@@ -32,6 +34,7 @@ import {
   createStockRun,
   deleteStockRun,
   deleteStockRunItem,
+  deleteInventoryHistory,
   fetchInventorySummary,
   fetchRawMaterial,
   fetchRawMaterialBatches,
@@ -109,6 +112,8 @@ type StockRunItemFormState = {
   supplierId: string;
   quantity: string;
   costPerUnit: string;
+  costQuantity: string;
+  costUnitCode: string;
   expirationDate: string;
   receivedAt: string;
   note: string;
@@ -278,6 +283,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
     supplierId: "",
     quantity: "",
     costPerUnit: "",
+    ...defaultStockRunPriceBasis(),
     expirationDate: "",
     receivedAt: "",
     note: "",
@@ -469,8 +475,18 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
 
   useEffect(() => {
     setWasteForm((current) => ({ ...current, rawMaterialId: selectedRawMaterialId || "", batchId: current.rawMaterialId === selectedRawMaterialId ? current.batchId : "" }));
-    setStockRunItemForm((current) => ({ ...current, rawMaterialId: selectedRawMaterialId || "" }));
   }, [selectedRawMaterialId]);
+
+  useEffect(() => {
+    const unitCode = summaries.find((item) => item.rawMaterialId === selectedRawMaterialId)?.unit.code;
+    if (selectedRawMaterialId && !unitCode) return;
+    setStockRunItemForm((current) => current.rawMaterialId === selectedRawMaterialId ? current : ({
+      ...current,
+      rawMaterialId: selectedRawMaterialId || "",
+      costPerUnit: "",
+      ...defaultStockRunPriceBasis(unitCode),
+    }));
+  }, [selectedRawMaterialId, summaries]);
 
   const runAction = async (action: () => Promise<void>, fallbackMessage: string) => {
     setSubmitting(true);
@@ -556,6 +572,17 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
             historyLoading={historyLoading}
             batches={batches}
             transactions={transactions}
+            onDeleteHistory={async (transactionId) => {
+              await deleteInventoryHistory(transactionId);
+              setTransactions(current => current.filter(transaction => transaction.id !== transactionId));
+              setBatchTransactions(current => current.filter(transaction => transaction.id !== transactionId));
+              setMessage("Inventory history entry deleted and its stock movement undone.");
+              try {
+                await refreshEverything();
+              } catch (refreshError) {
+                setError(refreshError instanceof Error ? refreshError.message : "The entry was deleted, but stock totals could not be refreshed. Reload the page.");
+              }
+            }}
             historyType={historyType}
             historyFrom={historyFrom}
             historyTo={historyTo}
@@ -608,6 +635,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           submitting={submitting}
           units={units}
           selectedMaterial={selectedMaterial}
+          existingSkus={summaries.map((item) => item.sku)}
           materialForm={materialForm}
           onClose={() => setActivePanel(null)}
           onMaterialFormChange={setMaterialForm}
@@ -673,8 +701,8 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
             event.preventDefault();
             if (!activeStockRunId) return;
             void runAction(async () => {
-              await addStockRunItem(activeStockRunId, { rawMaterialId: stockRunItemForm.rawMaterialId, supplierId: stockRunItemForm.supplierId || undefined, quantity: Number(stockRunItemForm.quantity), costPerUnit: Number(stockRunItemForm.costPerUnit), expirationDate: stockRunItemForm.expirationDate || undefined, receivedAt: stockRunItemForm.receivedAt || undefined, note: stockRunItemForm.note || undefined });
-              setStockRunItemForm({ rawMaterialId: selectedRawMaterialId || "", supplierId: "", quantity: "", costPerUnit: "", expirationDate: "", receivedAt: "", note: "" });
+              await addStockRunItem(activeStockRunId, { rawMaterialId: stockRunItemForm.rawMaterialId, supplierId: stockRunItemForm.supplierId || undefined, quantity: Number(stockRunItemForm.quantity), costPerUnit: Number(stockRunItemForm.costPerUnit), costQuantity: Number(stockRunItemForm.costQuantity), costUnitCode: stockRunItemForm.costUnitCode, expirationDate: stockRunItemForm.expirationDate || undefined, receivedAt: stockRunItemForm.receivedAt ? `${stockRunItemForm.receivedAt}:00+08:00` : undefined, note: stockRunItemForm.note || undefined });
+              setStockRunItemForm((current) => ({ ...current, supplierId: "", quantity: "", costPerUnit: "", expirationDate: "", receivedAt: currentManilaReceivingDateTime(), note: "" }));
               setMessage("Added stock run item.");
               await refreshEverything(true);
               await loadBusinessReports();

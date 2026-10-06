@@ -1,3 +1,4 @@
+import { formatUnit } from "./units";
 import { formatDateTime, formatPeso } from "./pos-utils";
 import type { PosOrder } from "./pos";
 import type {
@@ -276,6 +277,7 @@ function renderInventoryKpiSummaryHtml(report: InventoryKpiSummaryReport) {
     { label: "COGS", value: formatPeso(report.totals.cogs) },
     { label: "Checkout Cost", value: formatPeso(report.totals.checkoutCost) },
     { label: "Waste Cost", value: formatPeso(report.totals.wasteCost) },
+    { label: "Total Inventory Used Cost", value: formatPeso(report.totals.totalInventoryUsedCost) },
     {
       label: "Average Inventory",
       value: report.totals.averageInventory
@@ -325,7 +327,7 @@ function appendInventoryAvailabilityRiskCsvSections(
     report.stockoutMaterials.map((row) => [
       row.rawMaterial.name,
       row.rawMaterial.sku,
-      row.rawMaterial.unit.code,
+      formatUnit(row.rawMaterial.unit.code),
       formatHourExport(row.stockoutDurationHours),
       formatPercentExport(row.stockoutRatePercentage),
       row.overlappingStockoutEventCount,
@@ -358,6 +360,7 @@ function renderInventoryAvailabilityRiskHtml(report: InventoryAvailabilityRiskRe
     ${renderHtmlSummary("Availability & Stock Risk Summary", [
       { label: "Stockout Rate", value: formatPercentExport(report.summary.stockoutRatePercentage) },
       { label: "Materials With Stockout", value: `${report.summary.materialsWithStockoutCount} / ${report.summary.trackedMaterialCount}` },
+      { label: "Overlapping Stockout Events", value: String(report.summary.overlappingStockoutEventCount) },
       { label: "Menu Item Availability", value: formatPercentExport(report.summary.menuItemAvailabilityRate) },
       { label: "Tracked Variants", value: `${report.summary.trackedVariantCount} tracked / ${report.summary.untrackedVariantCount} untracked` },
       { label: "Top-Selling Availability", value: formatPercentExport(report.summary.topSellingItemAvailabilityPercentage) },
@@ -380,7 +383,7 @@ function renderInventoryAvailabilityRiskHtml(report: InventoryAvailabilityRiskRe
       report.stockoutMaterials.map((row) => [
         row.rawMaterial.name,
         row.rawMaterial.sku,
-        row.rawMaterial.unit.code,
+        formatUnit(row.rawMaterial.unit.code),
         formatHourExport(row.stockoutDurationHours),
         formatPercentExport(row.stockoutRatePercentage),
         String(row.overlappingStockoutEventCount),
@@ -440,7 +443,7 @@ function appendPosInventoryLinkedCsvSections(
     snapshot.report.materials.map((row) => [
       row.rawMaterial.name,
       row.rawMaterial.sku,
-      row.rawMaterial.unit.code,
+      formatUnit(row.rawMaterial.unit.code),
       row.consumedQuantity,
       row.consumptionCost,
       row.orderCount,
@@ -537,7 +540,7 @@ function appendPosInventoryLinkedCsvSections(
       snapshot.report.selectedVariantBreakdown.materials.map((row) => [
         row.rawMaterial.name,
         row.rawMaterial.sku,
-        row.rawMaterial.unit.code,
+        formatUnit(row.rawMaterial.unit.code),
         row.consumedQuantity,
         row.consumptionCost,
         row.currentUsableQuantity,
@@ -560,18 +563,20 @@ function renderPosInventoryLinkedHtmlSections(snapshot: PosInventoryLinkedExport
 
     ${renderHtmlTable(
       "High-Usage Ingredients",
-      ["Material", "SKU", "Unit", "Consumed Qty", "Consumption Cost", "Orders", "Variants", "Usable Qty", "Reorder Point", "Low Stock"],
+      ["Material", "SKU", "Unit", "Consumed Qty", "Consumption Cost", "Orders", "Variants", "On Hand Qty", "Usable Qty", "Reorder Point", "Low Stock", "Active Alert"],
       snapshot.report.materials.map((row) => [
         row.rawMaterial.name,
         row.rawMaterial.sku,
-        row.rawMaterial.unit.code,
+        formatUnit(row.rawMaterial.unit.code),
         String(row.consumedQuantity),
         formatPeso(row.consumptionCost),
         String(row.orderCount),
         String(row.variantCount),
+        String(row.currentOnHandQuantity),
         String(row.currentUsableQuantity),
         String(row.rawMaterial.reorderPoint),
         row.isLowStock ? "Yes" : "No",
+        row.activeLowStockAlert ? `${row.activeLowStockAlert.severity}: ${row.activeLowStockAlert.title} - ${row.activeLowStockAlert.message}` : "None",
       ]),
     )}
 
@@ -594,10 +599,11 @@ function renderPosInventoryLinkedHtmlSections(snapshot: PosInventoryLinkedExport
 
     ${renderHtmlTable(
       "Low-Stock or Reorder-Oriented Materials",
-      ["Material", "SKU", "Consumed Qty", "Consumption Cost", "Usable Qty", "Reorder Point", "Alert"],
+      ["Material", "SKU", "Unit", "Consumed Qty", "Consumption Cost", "Usable Qty", "Reorder Point", "Alert"],
       snapshot.report.lowStockMaterials.map((row) => [
         row.rawMaterial.name,
         row.rawMaterial.sku,
+        formatUnit(row.rawMaterial.unit.code),
         String(row.consumedQuantity),
         formatPeso(row.consumptionCost),
         String(row.currentUsableQuantity),
@@ -623,13 +629,21 @@ function renderPosInventoryLinkedHtmlSections(snapshot: PosInventoryLinkedExport
 
     ${
       snapshot.report.selectedVariantBreakdown
-        ? renderHtmlTable(
+        ? renderHtmlSummary("Selected Variant Summary", [
+            { label: "Variant", value: `${snapshot.report.selectedVariantBreakdown.productVariant.product.name} - ${snapshot.report.selectedVariantBreakdown.productVariant.name}` },
+            { label: "Quantity Sold", value: String(snapshot.report.selectedVariantBreakdown.summary.quantitySold) },
+            { label: "Revenue", value: formatPeso(snapshot.report.selectedVariantBreakdown.summary.revenue) },
+            { label: "COGS", value: formatPeso(snapshot.report.selectedVariantBreakdown.summary.cogs) },
+            { label: "Gross Margin", value: formatPeso(snapshot.report.selectedVariantBreakdown.summary.grossMargin) },
+            { label: "Material Consumption Qty", value: snapshot.report.selectedVariantBreakdown.summary.materialConsumptionQuantity },
+            { label: "Material Consumption Cost", value: formatPeso(snapshot.report.selectedVariantBreakdown.summary.materialConsumptionCost) },
+          ]) + renderHtmlTable(
             "Selected Variant Material Breakdown",
             ["Material", "SKU", "Unit", "Consumed Qty", "Consumption Cost", "Usable Qty", "Low Stock"],
             snapshot.report.selectedVariantBreakdown.materials.map((row) => [
               row.rawMaterial.name,
               row.rawMaterial.sku,
-              row.rawMaterial.unit.code,
+              formatUnit(row.rawMaterial.unit.code),
               String(row.consumedQuantity),
               formatPeso(row.consumptionCost),
               String(row.currentUsableQuantity),
@@ -788,27 +802,15 @@ export function exportInventoryReportsCsv(snapshot: InventoryReportsExportSnapsh
   return filename;
 }
 
-export function exportInventoryReportsPdf(snapshot: InventoryReportsExportSnapshot) {
+export async function exportInventoryReportsPdf(snapshot: InventoryReportsExportSnapshot) {
   if (typeof window === "undefined") {
     throw new Error("PDF exports are only available in the browser.");
   }
 
   const filename = `${buildRangeBaseName("inventory-reports", snapshot.filters.from, snapshot.filters.to)}.pdf`;
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
-
-  if (!printWindow) {
-    throw new Error("Unable to open a printable report window. Please allow pop-ups and try again.");
-  }
-
-  const html = buildInventoryReportsPdfHtml(snapshot, filename);
-
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  window.setTimeout(() => {
-    printWindow.print();
-  }, 250);
+  const { readReportPdfContent, buildReportPdfDocument } = await import("./report-pdf");
+  const content = readReportPdfContent(buildInventoryReportsPdfHtml(snapshot, filename));
+  await buildReportPdfDocument(content).save(filename, { returnPromise: true });
 
   return filename;
 }

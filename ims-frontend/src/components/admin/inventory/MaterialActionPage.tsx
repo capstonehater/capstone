@@ -1,5 +1,7 @@
 "use client";
 
+import { formatUnit } from "@/lib/units";
+
 import StyledSelect from "@/components/admin/StyledSelect";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -109,13 +111,13 @@ export default function MaterialActionPage({ action }: { action: Action }) {
               {action !== "waste" && <label className={action === "stock-run" ? styles.full : undefined}>{action === "add" ? "Raw material name" : "Draft name"}<input required value={name} onChange={e => setName(e.target.value)} placeholder={action === "add" ? "e.g. Evaporated Milk" : "e.g. Monday Produce Run"} /></label>}
               {action === "add" && <>
                 <label>SKU<input required value={sku} onChange={e => setSku(e.target.value)} placeholder="e.g. RM-EVAP-001" /><small>Use a unique code for this material.</small></label>
-                <label>Base unit<StyledSelect aria-label="Base unit" required value={unitId} onValueChange={value => setUnitId(value)}><option value="">Select a unit</option>{units.map(unit => <option key={unit.id} value={unit.id}>{unit.name} ({unit.code})</option>)}</StyledSelect></label>
+                <label>Base unit<StyledSelect aria-label="Base unit" required value={unitId} onValueChange={value => setUnitId(value)}><option value="">Select a unit</option>{units.map(unit => <option key={unit.id} value={unit.id}>{formatUnit(unit.name)} ({formatUnit(unit.code)})</option>)}</StyledSelect></label>
                 <label>Reorder point<input required type="number" min="0" step="0.0001" value={reorderPoint} onChange={e => setReorderPoint(e.target.value)} /><small>Measured in the selected base unit.</small></label>
               </>}
               {action === "waste" && <>
-                <label>Raw material<StyledSelect aria-label="Raw material" required value={materialId} onValueChange={value => { setMaterialId(value); setBatchId(""); setBatches([]); }}><option value="">Select a material</option>{materials.map(row => <option key={row.rawMaterialId} value={row.rawMaterialId}>{row.name} ({row.unit.code})</option>)}</StyledSelect></label>
+                <label>Raw material<StyledSelect aria-label="Raw material" required value={materialId} onValueChange={value => { setMaterialId(value); setBatchId(""); setBatches([]); }}><option value="">Select a material</option>{materials.map(row => <option key={row.rawMaterialId} value={row.rawMaterialId}>{row.name} ({formatUnit(row.unit.code)})</option>)}</StyledSelect></label>
                 <label>Batch<StyledSelect aria-label="Batch" required disabled={!materialId || batchLoading} value={batchId} onValueChange={value => setBatchId(value)}><option value="">{batchLoading ? "Loading batches..." : "Select a batch"}</option>{batches.map(row => <option key={row.id} value={row.id}>{row.id.slice(0, 8)} - {Number(row.remainingQuantity).toLocaleString()} remaining</option>)}</StyledSelect>{materialId && !batchLoading && !batches.length && <small>No batches with remaining stock. Choose another material.</small>}</label>
-                <label>Quantity{material && ` (${material.unit.code})`}<input required type="number" min="0.0001" step="0.0001" max={batch ? Number(batch.remainingQuantity) : undefined} value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="Enter waste quantity" />{batch && <small>Available: {Number(batch.remainingQuantity).toLocaleString()} {material?.unit.code}</small>}</label>
+                <label>Quantity{material && ` (${formatUnit(material.unit.code)})`}<input required type="number" min="0.0001" step="0.0001" max={batch ? Number(batch.remainingQuantity) : undefined} value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="Enter waste quantity" />{batch && <small>Available: {Number(batch.remainingQuantity).toLocaleString()} {material && formatUnit(material.unit.code)}</small>}</label>
                 <label>Reason<StyledSelect aria-label="Reason" required value={reason} onValueChange={value => setReason(value)}>{INVENTORY_WASTE_REASON_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</StyledSelect></label>
               </>}
               {action !== "add" && <label className={styles.full}>Notes <span className={styles.optional}>Optional</span><textarea rows={4} value={note} onChange={e => setNote(e.target.value)} placeholder={action === "waste" ? "Add context for this waste entry." : "Describe the delivery or items you plan to receive."} /></label>}

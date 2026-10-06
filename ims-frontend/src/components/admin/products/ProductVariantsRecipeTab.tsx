@@ -1,4 +1,6 @@
 "use client";
+
+import { formatUnit } from "@/lib/units";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useState } from "react";
@@ -208,7 +210,7 @@ export default function ProductVariantsRecipeTab({
                         {item.rawMaterialName}
                       </td>
                       <td className="px-4 py-3 text-slate-700">{item.quantity}</td>
-                      <td className="px-4 py-3 text-slate-700">{item.unit.code}</td>
+                      <td className="px-4 py-3 text-slate-700">{formatUnit(item.unit.code)}</td>
                     </tr>
                   ))}
                 </tbody>

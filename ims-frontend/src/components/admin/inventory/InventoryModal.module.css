@@ -19,5 +19,73 @@
 .professional form > div:last-child { padding-top:18px; border-top:1px solid #e2e8f0; }
 
 .header { background:var(--modal-header-background); }
+.professional > div.rawMaterialCreateDialog { width:min(100%, 768px); max-width:768px; border-radius:16px; }
+.professional > div.rawMaterialCreateDialog > div:first-child { min-height:96px; padding:24px; }
+.professional > div.rawMaterialCreateDialog > div:first-child button { min-width:40px; width:40px; height:40px; padding:8px; }
+.rawMaterialCreateBody { flex:1; overflow-y:auto; padding:24px; }
+.professional form.rawMaterialCreateForm { column-gap:24px; row-gap:24px; }
+.professional form.rawMaterialCreateForm > div:last-child { grid-column:1 / -1; margin-top:0; padding-top:8px; }
+.professional form.rawMaterialCreateForm > div:last-child button.rawMaterialCreateSubmit { width:196px; min-height:40px; }
+.professional > div.stockRunManageDialog { width:min(100%, 1120px); max-width:1120px; max-height:min(88vh, 860px); border-radius:20px; background:#f8fafc; }
+.professional > div.stockRunManageDialog > .stockRunManageDialogHeader { min-height:88px; padding:20px 24px; background:#e2e8f0; }
+.stockRunManageDialogHeader h2 { font-size:22px; }
+.stockRunManageBody { flex:1; min-height:0; overflow:auto; padding:20px 24px 24px; background:#f8fafc; }
+.stockRunManageLayout { display:grid; min-height:0; gap:20px; grid-template-columns:minmax(0, 1fr); }
+.stockRunManageContainer { display:grid; gap:20px; min-width:0; padding:22px; border:1px solid #dce2eb; border-radius:18px; background:#fff; }
+.stockRunManageContainer > .stockRunSummary { border:0; border-bottom:1px solid #e2e8f0; border-radius:0; padding:0 0 18px; }
+.stockRunManageContainer > .stockRunItemForm { border:0; border-radius:0; padding:0 0 20px; border-bottom:1px solid #e2e8f0; }
+.stockRunManageDialog .stockRunSummary,.stockRunManageDialog .stockRunItemForm,.stockRunManageDialog .stockRunDraftItems { border-radius:14px; }
+.stockRunManageDialog .stockRunSummary { padding:18px; }
+.stockRunManageDialog .stockRunSummary h3 { font-size:18px; line-height:1.3; }
+.stockRunManageDialog .stockRunItemForm { grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-flow:row; align-items:start; column-gap:16px; row-gap:14px; padding:18px; }
+.stockRunManageDialog .stockRunItemForm > * { min-width:0; align-self:start; }
+.stockRunManageDialog .stockRunItemForm > *:nth-child(1),.stockRunManageDialog .stockRunItemForm > *:nth-child(2) { grid-row:1; }
+.stockRunManageDialog .stockRunItemForm > *:nth-child(3),.stockRunManageDialog .stockRunItemForm > *:nth-child(4) { grid-row:2; }
+.stockRunManageDialog .stockRunItemForm > .stockRunExpirationFields { grid-column:1; grid-row:4; display:flex; flex-direction:column; gap:14px; min-width:0; }
+.stockRunManageDialog .stockRunItemForm > .stockRunReceivedFields { display:contents; }
+.stockRunReceivedFields > .stockRunTimeField { grid-column:2; grid-row:3; min-width:0; }
+.stockRunReceivedFields > div:last-child { grid-column:2; grid-row:4; min-width:0; }
+.priceCoverageRow { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); align-items:center; gap:12px; }
+.stockRunCostPreview { min-width:0; padding-top:0; font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
+.stockRunManageDialog .stockRunItemForm > .stockRunNoteField { grid-column:1 / -1; grid-row:5; }
+.stockRunDateControl { display:flex; align-items:center; border:1px solid #cbd5e1; border-radius:8px; background:#fff; }
+.stockRunDateControl:focus-within { outline:2px solid #64748b; outline-offset:2px; border-color:#64748b; }
+.professional .stockRunDateControl input { flex:1; min-width:0; border:0; border-radius:8px 0 0 8px; }
+.professional .stockRunDateControl input:focus { outline:none; box-shadow:none; }
+.stockRunDateControl input::-webkit-calendar-picker-indicator { display:none; }
+.professional .stockRunDateControl button { flex:0 0 44px; height:44px; min-height:44px; padding:0; border:0; border-left:1px solid #e2e8f0; border-radius:0 8px 8px 0; color:#64748b; }
+.professional .stockRunDateControl button:focus-visible { outline-offset:-3px; }
+.priceCoverageControl { display:grid; width:100%; max-width:320px; grid-template-columns:repeat(2,minmax(0,1fr)); border:1px solid #cbd5e1; border-radius:8px; background:#fff; }
+.priceCoverageControl:focus-within { outline:2px solid #64748b; outline-offset:2px; border-color:#64748b; }
+.professional .priceCoverageControl input { height:38px; min-width:0; border:0; border-radius:8px 0 0 8px; }
+.professional .priceCoverageControl button[aria-haspopup="listbox"] { height:38px; min-height:38px; border:0; border-left:1px solid #cbd5e1; border-radius:0 8px 8px 0; font-size:14px; box-shadow:none; }
+.professional .priceCoverageControl input:focus,.professional .priceCoverageControl button:focus-visible { outline:none; box-shadow:none; }
+.stockRunManageDialog .stockRunItemForm > div:nth-child(-n+2) { min-width:0; }
+.stockRunManageDialog .stockRunItemForm .stockRunReceivedFields { align-content:start; gap:10px; }
+.stockRunManageDialog .stockRunItemForm > div:last-child { grid-column:1 / -1; padding-top:0; }
+.stockRunManageDialog .stockRunItemForm textarea { min-height:72px; }
+.stockRunManageDialog .stockRunItemForm button[type="submit"] { background:#232d46; border-color:#232d46; }
+.stockRunManageDialog .stockRunDraftItems { min-height:220px; border:0; border-radius:0; }
+.stockRunManageDialog .stockRunDraftItems > div:first-child { align-items:center; padding:16px 20px; }
+.stockRunManageDialog .stockRunDraftItems th,.stockRunManageDialog .stockRunDraftItems td { padding:12px 14px; }
+.professional button.stockRunPostButton { flex-shrink:0; min-width:120px; min-height:42px; padding:10px 20px; border-color:#232d46; border-radius:10px; background:#232d46; color:#fff; font-weight:650; box-shadow:0 3px 8px #232d4626; transition:background .15s ease, border-color .15s ease, box-shadow .15s ease; }
+.professional button.stockRunPostButton:hover:not(:disabled) { background:#34425f; border-color:#34425f; box-shadow:0 4px 12px #232d4633; }
+.professional button.stockRunPostButton:focus-visible { outline-color:#232d46; }
+.professional button.stockRunPostButton:disabled { background:#e2e8f0; border-color:#cbd5e1; color:#64748b; box-shadow:none; opacity:1; cursor:not-allowed; }
+@media (max-width: 900px) {
+  .stockRunManageLayout { grid-template-columns:minmax(0,1fr); }
+  .stockRunManageDialog .stockRunDraftItems { min-height:320px; }
+}
+@media (max-width: 560px) {
+  .stockRunManageBody { padding:14px; }
+  .professional > div.stockRunManageDialog > .stockRunManageDialogHeader { padding:16px; }
+  .stockRunManageDialog .stockRunItemForm { grid-template-columns:minmax(0,1fr); row-gap:16px; }
+  .stockRunManageContainer { gap:16px; padding:16px; }
+  .stockRunManageDialog .stockRunItemForm > * { grid-row:auto !important; }
+  .stockRunReceivedFields > .stockRunTimeField,.stockRunReceivedFields > div:last-child { grid-column:1; grid-row:auto; }
+  .stockRunManageDialog .stockRunItemForm > .stockRunCostPreview { grid-column:1; padding-top:0; }
+  .stockRunManageDialog .stockRunItemForm > .stockRunExpirationFields,.stockRunManageDialog .stockRunItemForm > .stockRunReceivedFields { grid-column:1; }
+  .stockRunManageDialog .stockRunItemForm .stockRunNoteField,.stockRunManageDialog .stockRunItemForm > div:last-child { grid-column:1; }
+}
 .professional button.archiveAction { background:#be123c; border-color:#be123c; color:#fff; }
 .professional button.archiveAction:hover:not(:disabled) { background:#9f1239; border-color:#9f1239; }

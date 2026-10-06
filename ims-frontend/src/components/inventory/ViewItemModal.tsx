@@ -1,4 +1,6 @@
 "use client";
+
+import { formatUnit } from "@/lib/units";
 import ModalCloseButton from "@/components/ModalCloseButton";
 
 
@@ -45,7 +47,7 @@ export default function ViewItemModal({ isOpen, onClose, item }: Props) {
 
           <div className="rounded-xl bg-[#f9f7f2] p-4">
             <p className="text-sm text-neutral-500">Unit</p>
-            <p className="text-lg font-semibold">{item.unit}</p>
+            <p className="text-lg font-semibold">{formatUnit(item.unit)}</p>
           </div>
 
           <div className="rounded-xl bg-[#f9f7f2] p-4">

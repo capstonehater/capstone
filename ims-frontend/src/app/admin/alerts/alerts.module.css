@@ -22,12 +22,14 @@
 .alert { padding:24px; background:#fff; border:1px solid #dce2eb; border-left:4px solid #94a3b8; border-radius:12px; }
 .critical { background:#fff1f2; border-color:#efc5ca; border-left-color:#a34c54; }
 .warning { background:#fff8df; border-color:#ead393; border-left-color:#b08b45; }
+.resolved { background:#f0fdf4; border-color:#bbf7d0; border-left-color:#16a34a; }
 .info { border-left-color:#475569; }
 .alert h2 { margin:0; color:#232d46; font-size:20px; font-weight:650; }
 .alert p { margin:0; }
 .alert h2 ~ span { padding:4px 9px; border:1px solid #e2e8f0; border-radius:999px; background:#f8fafc; color:#475569; font-size:14px; letter-spacing:.025em; }
 .critical h2 ~ span:last-child { background:#faf0f1; border-color:#ead1d4; color:#8e3f48; }
 .warning h2 ~ span:last-child { background:#ffedb5; border-color:#dfbd70; color:#785517; }
+.resolved h2 ~ span { background:#dcfce7; border-color:#86efac; color:#166534; }
 .primary,.secondary { min-height:44px; padding:9px 15px; border:1px solid #232d46; border-radius:8px; background:#232d46; color:white; font-size:16px; font-weight:600; transition:background-color 150ms; }
 .primary:hover:not(:disabled) { background:#34425f; }
 .secondary { background:white; border-color:#cbd5e1; color:#475569; }

@@ -1,5 +1,7 @@
 "use client";
 
+import { formatUnit } from "@/lib/units";
+
 import { useEffect, useMemo, useState } from "react";
 import SummaryCard from "@/components/dashboard/SummaryCard";
 import WidgetCard from "@/components/dashboard/WidgetCard";
@@ -353,12 +355,12 @@ export default function PosInventoryLinkedSection({
                       <div>
                         <div className="font-semibold text-slate-900">{row.rawMaterial.name}</div>
                         <div className="mt-1 text-xs text-slate-500">
-                          {row.rawMaterial.unit.name} ({row.rawMaterial.unit.code})
+                          {formatUnit(row.rawMaterial.unit.name)} ({formatUnit(row.rawMaterial.unit.code)})
                         </div>
                       </div>
                       <div>{row.rawMaterial.sku}</div>
                       <div>
-                        {formatQuantity(row.consumedQuantity, row.rawMaterial.unit.code)}
+                        {formatQuantity(row.consumedQuantity, formatUnit(row.rawMaterial.unit.code))}
                       </div>
                       <div className="font-semibold text-slate-900">
                         {formatPeso(row.consumptionCost)}
@@ -366,10 +368,10 @@ export default function PosInventoryLinkedSection({
                       <div>{row.orderCount}</div>
                       <div>{row.variantCount}</div>
                       <div>
-                        {formatQuantity(row.currentUsableQuantity, row.rawMaterial.unit.code)}
+                        {formatQuantity(row.currentUsableQuantity, formatUnit(row.rawMaterial.unit.code))}
                       </div>
                       <div>
-                        {formatQuantity(row.rawMaterial.reorderPoint, row.rawMaterial.unit.code)}
+                        {formatQuantity(row.rawMaterial.reorderPoint, formatUnit(row.rawMaterial.unit.code))}
                       </div>
                       <div>
                         {row.activeLowStockAlert ? (
@@ -430,10 +432,10 @@ export default function PosInventoryLinkedSection({
                     </div>
                     <div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
                       <div>
-                        Used {formatQuantity(row.consumedQuantity, row.rawMaterial.unit.code)}
+                        Used {formatQuantity(row.consumedQuantity, formatUnit(row.rawMaterial.unit.code))}
                       </div>
                       <div>
-                        Usable {formatQuantity(row.currentUsableQuantity, row.rawMaterial.unit.code)}
+                        Usable {formatQuantity(row.currentUsableQuantity, formatUnit(row.rawMaterial.unit.code))}
                       </div>
                     </div>
                   </div>
@@ -609,11 +611,11 @@ export default function PosInventoryLinkedSection({
                           <div className="font-semibold text-slate-900">{row.rawMaterial.name}</div>
                           <div>{row.rawMaterial.sku}</div>
                           <div>
-                            {formatQuantity(row.consumedQuantity, row.rawMaterial.unit.code)}
+                            {formatQuantity(row.consumedQuantity, formatUnit(row.rawMaterial.unit.code))}
                           </div>
                           <div>{formatPeso(row.consumptionCost)}</div>
                           <div>
-                            {formatQuantity(row.currentUsableQuantity, row.rawMaterial.unit.code)}
+                            {formatQuantity(row.currentUsableQuantity, formatUnit(row.rawMaterial.unit.code))}
                           </div>
                           <div>
                             {row.isLowStock ? (

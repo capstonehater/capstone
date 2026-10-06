@@ -200,4 +200,16 @@ export class InventoryController {
       transaction: await this.inventoryActionsService.logWaste(dto, user.id),
     };
   }
+
+  @Delete('inventory/transactions/:id')
+  @RequirePermission('inventory.archive')
+  async deleteTransactionHistory(
+    @Param('id') transactionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.inventoryActionsService.deleteTransactionHistory(
+      transactionId,
+      user.id,
+    );
+  }
 }

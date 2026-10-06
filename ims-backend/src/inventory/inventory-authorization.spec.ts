@@ -97,6 +97,12 @@ const routes = [
     path: '/inventory/waste',
     permission: 'inventory.waste',
   },
+  {
+    handler: 'deleteTransactionHistory',
+    method: 'delete',
+    path: '/inventory/transactions/transaction-1',
+    permission: 'inventory.archive',
+  },
 ] as const;
 const legacy = [
   {
@@ -173,6 +179,7 @@ describe('Inventory material HTTP authorization', () => {
       'listTransactionsForBatch',
       'listTransactions',
       'logWaste',
+      'deleteTransactionHistory',
     ].map((name) => [name, jest.fn().mockResolvedValue({ ok: true })]),
   );
   const stores = {

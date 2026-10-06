@@ -80,7 +80,8 @@ Set `FORECAST_TRAINING_DAYS` on the backend to an integer of at least 60 to expl
 limit the recent training window; `0` uses the full history. Model selection uses average
 absolute validation error (MAE), which remains meaningful when validation days have zero usage.
 MAPE is still reported when defined; it is not a future-accuracy guarantee.
-The worker compares eight SARIMA choices with and without first differencing, enforces
+The worker compares 12 SARIMA choices (p = 0, 1, or 2; d and q = 0 or 1;
+seasonal order fixed at (1, 0, 0, 7)) with and without first differencing, enforces
 stationary/invertible AR/MA components, and validates across the full prediction distance
 (history gap plus requested forecast days). Actual validation windows appear in run notes.
 Candidates are tried in validation-error order after fitting to the full history. Non-finite,

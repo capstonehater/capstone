@@ -1,4 +1,3 @@
-import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 import type { Metadata } from "next";
 import AuthBootstrap from "@/components/auth/AuthBootstrap";
@@ -8,9 +7,9 @@ export const metadata: Metadata = {
   description: "Smart Inventory Management",
   icons: {
     icon: {
-      url: "/assets/slvcn-icon.svg",
-      type: "image/svg+xml",
-      sizes: "any",
+      url: "/assets/slvcn-icon-64.png",
+      type: "image/png",
+      sizes: "64x64",
     },
   },
 };

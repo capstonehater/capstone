@@ -1,5 +1,7 @@
 "use client";
 
+import { formatUnit } from "@/lib/units";
+
 import { useEffect, useState } from "react";
 import { RefreshCcw } from "lucide-react";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
@@ -28,7 +30,7 @@ async function loadRows(kind: Kind): Promise<Row[]> {
     return report.bySupplier.map((row) => ({ id: row.supplierId ?? "unassigned", name: row.supplierName, quantity: row.lineCount, amount: Number(row.totalSpend) }));
   }
   const materials = await fetchInventorySummary({ includeArchived: false });
-  return materials.map((row) => ({ id: row.rawMaterialId, name: row.name, detail: row.sku, unit: row.unit.code, quantity: Number(row.summary.usableQuantity), amount: Number(row.inventoryValue) }));
+  return materials.map((row) => ({ id: row.rawMaterialId, name: row.name, detail: row.sku, unit: formatUnit(row.unit.code), quantity: Number(row.summary.usableQuantity), amount: Number(row.inventoryValue) }));
 }
 
 export default function InventoryInsightPage({ kind, embedded = false }: { kind: Kind; embedded?: boolean }) {

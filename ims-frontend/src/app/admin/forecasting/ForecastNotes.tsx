@@ -1,3 +1,5 @@
+
+import { formatUnit } from "@/lib/units";
 import { ChevronDown, FileText } from 'lucide-react';
 import styles from './forecasting.module.css';
 import { forecastPeriodDays, type ForecastRun, type ForecastSeries } from '@/lib/forecasting';
@@ -9,7 +11,7 @@ function IngredientNotes({ ingredient }: { ingredient: Pick<ForecastSeries, 'nam
   const m = ingredient.metadata;
   const audit = m.audit?.version === 1 ? m.audit : undefined;
   return <details className={styles.ingredientNotes}>
-    <summary>{ingredient.name} <span>({ingredient.unit}) · {number(m.trainingDays)} training days</span></summary>
+    <summary>{ingredient.name} <span>({formatUnit(ingredient.unit)}) · {number(m.trainingDays)} training days</span></summary>
     <div className={styles.notesExplanation}>
       {audit ? <>
         <p>I learned from {number(m.trainingDays)} daily amounts, from {dateLabel(audit.trainingStart)} to {dateLabel(audit.trainingEnd)}.</p>
@@ -18,11 +20,11 @@ function IngredientNotes({ ingredient }: { ingredient: Pick<ForecastSeries, 'nam
         <p>{audit.weekdaysOnly ? 'I used weekdays only and set weekend forecasts to zero.' : 'I included weekdays and weekends.'} I estimated across {number(audit.bridgeCalendarDays)} calendar days after this ingredient&apos;s history before reaching the forecast period.</p>
         <p>I tried {number(m.candidateCount)} model choices; {number(audit.successfulCandidates)} finished their checks. The chosen model was checked against {number(m.validationFolds)} past time windows{audit.validationMethod ? ` using ${audit.validationMethod}` : ' (check method not recorded)'}.</p>
         {audit.selectionMetric === 'mae' && <p>I ranked models by how close their guesses were to past amounts on average. This check also works on days with no usage.</p>}
-        {audit.rangeCeiling != null && <p>I then checked the estimates and their possible ranges. I skipped {audit.rangeRejections?.length ?? 0} model choices that failed those checks and used the first passing choice. The upper limit was {number(audit.rangeCeiling)} {ingredient.unit}, based on 100 times the biggest training-day amount (or the storage limit). Passing this check does not guarantee accuracy.</p>}
+        {audit.rangeCeiling != null && <p>I then checked the estimates and their possible ranges. I skipped {audit.rangeRejections?.length ?? 0} model choices that failed those checks and used the first passing choice. The upper limit was {number(audit.rangeCeiling)} {formatUnit(ingredient.unit)}, based on 100 times the biggest training-day amount (or the storage limit). Passing this check does not guarantee accuracy.</p>}
       </> : <p>This older run did not record detailed training dates, source counts, filled dates, or actual model-check counts. Those details cannot be reconstructed reliably. Available saved results are shown below.</p>}
       {m.seasonalOrder?.[3] != null && <p>The saved model looked for a pattern repeating every {m.seasonalOrder[3]} observations{audit?.weekdaysOnly ? ' (weekdays)' : ''}.</p>}
       {m.transformation === 'log1p (Box-Cox lambda 0)' && <p>I adjusted the numbers while doing the math so zero-use days could be included, then changed the estimates back to ingredient amounts.</p>}
-      <p>When checked against past data, the model&apos;s average absolute error was {number(m.metrics?.mae)}{m.metrics?.mae != null ? ` ${ingredient.unit}` : ''}. This tells you how far its guesses were from past amounts, on average. It does not guarantee future accuracy.</p>
+      <p>When checked against past data, the model&apos;s average absolute error was {number(m.metrics?.mae)}{m.metrics?.mae != null ? ` ${formatUnit(ingredient.unit)}` : ''}. This tells you how far its guesses were from past amounts, on average. It does not guarantee future accuracy.</p>
       <dl className={styles.auditFacts}>
         <div><dt>Model</dt><dd>{m.model ?? 'Not recorded'}</dd></div>
         <div><dt>Model settings</dt><dd>{m.order?.join(', ') ?? 'Not recorded'}</dd></div>
@@ -30,7 +32,7 @@ function IngredientNotes({ ingredient }: { ingredient: Pick<ForecastSeries, 'nam
         <div><dt>Number adjustment</dt><dd>{m.transformation ?? 'Not recorded'}</dd></div>
         <div><dt>Past percentage error (MAPE)</dt><dd>{number(m.metrics?.mape)}{m.metrics?.mape != null ? '%' : ''}</dd></div>
       </dl>
-      {audit && audit.validationWindows.length > 0 && <ul>{audit.validationWindows.map((window, index) => <li key={index}>Past check: {dateLabel(window.start)} – {dateLabel(window.end)} ({window.days} days); average error {number(window.mae)} {ingredient.unit}.</li>)}</ul>}
+      {audit && audit.validationWindows.length > 0 && <ul>{audit.validationWindows.map((window, index) => <li key={index}>Past check: {dateLabel(window.start)} – {dateLabel(window.end)} ({window.days} days); average error {number(window.mae)} {formatUnit(ingredient.unit)}.</li>)}</ul>}
     </div>
   </details>;
 }

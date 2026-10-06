@@ -71,6 +71,10 @@
 .overlay { position: fixed; inset: 0; z-index: 55; border: 0; background: #11182780; }
 .header a:focus-visible, .header button:focus-visible { outline: 2px solid #1682b2; outline-offset: 3px; }
 .navItemWrap { position: relative; }
+.sidebarLogout { display:flex; align-items:center; gap:12px; width:100%; min-height:42px; margin:4px 0; padding:9px 12px; border:0; border-left:2px solid transparent; border-radius:0; background:transparent; color:#f87171; font:inherit; font-size:16px; font-weight:500; line-height:1.5; text-align:left; cursor:pointer; transition:background .2s ease,color .2s ease; }
+.sidebarLogout:hover { color:#fca5a5; background:#ffffff0d; }
+.sidebarLogout:focus-visible { outline:2px solid var(--shell-accent); outline-offset:3px; }
+.adminSidebarCollapsed .sidebarLogout { justify-content:center; gap:0; padding-inline:0; }
 .navSubmenu { display: none; padding: 0 0 6px 30px; }
 .navSubmenuOpen { display: block; }
 .navSubLink { display: flex; align-items: center; gap: 8px; padding: 8px 10px; color: #e8edf7; font-size: 14px; line-height: 1.5; text-decoration: none; }

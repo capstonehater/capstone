@@ -1,5 +1,7 @@
 "use client";
 
+import { formatUnit } from "@/lib/units";
+
 import StyledSelect from "@/components/admin/StyledSelect";
 import DateFilter from "@/components/staff-pos/DateFilter";
 import { inventoryInputClasses } from "@/components/admin/inventory/InventoryField";
@@ -135,7 +137,7 @@ export default function ProductIngredientUsageTab({
                       <td className="px-4 py-3 font-semibold text-slate-900">
                         {ingredient.rawMaterialName}
                       </td>
-                      <td className="px-4 py-3 text-slate-700">{ingredient.unit.code}</td>
+                      <td className="px-4 py-3 text-slate-700">{formatUnit(ingredient.unit.code)}</td>
                       <td className="px-4 py-3 text-slate-700">
                         {ingredient.grossQuantity} · {formatPeso(ingredient.grossCost)}
                       </td>

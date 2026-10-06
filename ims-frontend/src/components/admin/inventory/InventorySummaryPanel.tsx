@@ -1,4 +1,6 @@
 "use client";
+
+import { formatUnit } from "@/lib/units";
 import AdminSelect from "@/components/admin/AdminSelect";
 
 import { RefreshCcw } from "lucide-react";
@@ -131,7 +133,7 @@ export default function InventorySummaryPanel({
                     <td className="px-3 py-2.5">
                       <div className="font-semibold text-slate-900">{item.name}</div>
                       <div className="mt-1 text-xs text-slate-500">
-                        {item.sku} · {item.unit.name}
+                        {item.sku} · {formatUnit(item.unit.name)}
                       </div>
                     </td>
                     <td className="px-3 py-2.5">

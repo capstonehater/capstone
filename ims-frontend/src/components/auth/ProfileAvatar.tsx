@@ -14,7 +14,7 @@ export default function ProfileAvatar() {
   return (
     <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e9e1d6] text-[#3d3434]">
       {src && src !== failedSrc ? (
-        <Image key={src} src={src} alt={`${user?.name ?? "Account"} profile picture`} width={40} height={40} unoptimized className="h-10 w-10 object-cover" onError={() => setFailedSrc(src)} />
+        <Image key={src} src={src} alt={`${user?.name ?? "Account"} profile picture`} width={40} height={40} sizes="40px" className="h-10 w-10 object-cover" onError={() => setFailedSrc(src)} />
       ) : <CircleUserRound size={24} aria-hidden="true" />}
     </div>
   );

@@ -384,7 +384,7 @@ export default function StaffPOSPage() {
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="pos-cart-notes">Transaction Notes</label>
-                <div className="relative"><StickyNote aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><textarea id="pos-cart-notes" value={transactionNote} onChange={(e) => setTransactionNote(e.target.value)} placeholder="Example: less sugar, no straw" rows={3} className="block w-full rounded-2xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-[#232d46]" /></div>
+                <div className="relative"><StickyNote aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><textarea id="pos-cart-notes" value={transactionNote} onChange={(e) => setTransactionNote(e.target.value)} placeholder="Example: less sugar, no straw" rows={3} className="block w-full rounded-2xl border border-slate-200 bg-white px-10 py-3 text-center text-sm outline-none focus:border-[#232d46]" /></div>
               </div>
               <div className={styles.cartTotals}>
                 <div className="flex justify-between"><span className="text-slate-500">Subtotal (VAT Inclusive)</span><span>{formatPeso(totals.subtotal)}</span></div>

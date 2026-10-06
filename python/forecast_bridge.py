@@ -98,8 +98,8 @@ def generate(request):
     business_days_only = False
     date_range = pd.bdate_range if business_days_only else pd.date_range
     dates = forecast_calendar_days(start, forecast_days)
-    # Compare differenced and undifferenced models instead of forcing a random walk.
-    SARIMA.CONFIG.update(FORECAST_DAYS=forecast_days, P=[0, 1], D=[0, 1], Q=[0, 1], SP=[1], SD=[0], SQ=[0], CV_FOLDS=3, BOXCOX_LAMBDA=0, BUSINESS_DAYS_ONLY=business_days_only, SEASON_LENGTH=7)
+    # Compare 12 candidates, including up to two autoregressive terms and both differencing choices.
+    SARIMA.CONFIG.update(FORECAST_DAYS=forecast_days, P=[0, 1, 2], D=[0, 1], Q=[0, 1], SP=[1], SD=[0], SQ=[0], CV_FOLDS=3, BOXCOX_LAMBDA=0, BUSINESS_DAYS_ONLY=business_days_only, SEASON_LENGTH=7)
     warnings = ['Training source: completed POS ingredient consumption with CSV history on uncovered dates; stock source: live inventory snapshot.',
                 'Store operates daily, 1 PM–10 PM (Asia/Manila): SARIMA uses daily totals and seven-day seasonality, not hourly forecasts.',
                 'Product filters show store-wide ingredient demand, not predicted product sales.']

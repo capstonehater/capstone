@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-:root {
+/* Keep application defaults above Bootstrap regardless of route CSS order. */
+:root:root {
   --modal-header-background: #e2e8f0;
   --background: #f5f5f5;
   --foreground: #1f1f1f;
@@ -12,8 +13,8 @@
 /* Prevent layout shifts when modal scroll locking hides the scrollbar. */
 html { scrollbar-gutter:stable; }
 
-html,
-body {
+html:root,
+:root body {
   background: var(--background);
   color: var(--foreground);
   min-height: 100%;
@@ -37,12 +38,7 @@ textarea::placeholder {
 
 /* Bootstrap's unlayered button reset overrides Tailwind radius utilities.
    Give actions a shared radius here and retain pill/circular controls. */
-button,
-input[type="button"],
-input[type="submit"],
-input[type="reset"],
-a.btn,
-a[role="button"] {
+:root :where(button, input[type="button"], input[type="submit"], input[type="reset"], a.btn, a[role="button"]) {
   border-radius: 10px;
 }
 
@@ -71,10 +67,10 @@ a.btn.rounded-full {
   font-weight: 700;
 }
 
-a,
-a:hover,
-a:focus,
-a:active {
+:root a,
+:root a:hover,
+:root a:focus,
+:root a:active {
   text-decoration: none;
 }
 
@@ -87,7 +83,7 @@ a:active {
 }
 .text-xs { font-size: 0.875rem; line-height: 1.5; }
 .text-sm { font-size: 0.9375rem; line-height: 1.6; }
-small { font-size: 0.875rem; line-height: 1.5; }
+:root small { font-size: 0.875rem; line-height: 1.5; }
 :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select, textarea) { font-size: 1rem; line-height: 1.5; }
 :where(th, td) { line-height: 1.5; }
 :where(th) { font-weight: 600; }

@@ -110,20 +110,46 @@ export default function ProductConfiguratorModal({
     [product.variants, selectedVariantId]
   );
 
-  const selectedModifiers = useMemo<PosCartModifierSelection[]>(() => {
-    return product.modifierGroups.flatMap((group) =>
+  const isCoffee = /coffee/i.test(product.category.name);
+  const isHotCoffee = isCoffee && /\bhot\b/i.test(selectedVariant?.name ?? "");
+  const isColdCoffee = isCoffee && /\b(cold|iced)\b/i.test(selectedVariant?.name ?? "");
+  const isIceGroup = (group: PosMenuModifierGroup) => /\bice\b/i.test(group.name);
+  const isNoIce = (modifier: PosMenuModifier) => /^no\s+ice$/i.test(modifier.name.trim());
+
+  const configuredModifierGroups = product.modifierGroups.map((group) => {
+    if (!isIceGroup(group)) return group;
+    if (isHotCoffee) {
+      return { ...group, modifiers: group.modifiers.filter(isNoIce) };
+    }
+    if (isColdCoffee) {
+      return { ...group, modifiers: group.modifiers.filter((modifier) => !isNoIce(modifier)) };
+    }
+    return group;
+  });
+  const visibleModifierGroups = configuredModifierGroups.filter(
+    (group) => !(isHotCoffee && isIceGroup(group))
+  );
+  const effectiveModifierQuantities = { ...modifierQuantities };
+  if (isHotCoffee) {
+    for (const group of configuredModifierGroups.filter(isIceGroup)) {
+      for (const modifier of group.modifiers) {
+        effectiveModifierQuantities[modifier.id] = 1;
+      }
+    }
+  }
+
+  const selectedModifiers: PosCartModifierSelection[] = configuredModifierGroups.flatMap((group) =>
       group.modifiers
-        .filter((modifier) => (modifierQuantities[modifier.id] ?? 0) > 0)
+        .filter((modifier) => (effectiveModifierQuantities[modifier.id] ?? 0) > 0)
         .map((modifier) => ({
           modifierGroupId: group.modifierGroupId,
           modifierGroupName: group.name,
           modifierId: modifier.id,
           name: modifier.name,
-          quantity: modifierQuantities[modifier.id] ?? 0,
+          quantity: effectiveModifierQuantities[modifier.id] ?? 0,
           unitPriceAdjustment: decimalToNumber(modifier.priceAdjustment),
         }))
     );
-  }, [modifierQuantities, product.modifierGroups]);
 
   const unitModifierTotal = selectedModifiers.reduce(
     (sum, modifier) => sum + modifier.unitPriceAdjustment * modifier.quantity,
@@ -133,7 +159,7 @@ export default function ProductConfiguratorModal({
   const liveUnitPrice = basePrice + unitModifierTotal;
 
   const getGroupSelectionCount = (group: PosMenuModifierGroup) =>
-    group.modifiers.filter((modifier) => (modifierQuantities[modifier.id] ?? 0) > 0).length;
+    group.modifiers.filter((modifier) => (effectiveModifierQuantities[modifier.id] ?? 0) > 0).length;
 
   const setGroupSingleSelection = (group: PosMenuModifierGroup, modifierId: string, quantity: number) => {
     setModifierQuantities((current) => {
@@ -219,7 +245,7 @@ export default function ProductConfiguratorModal({
       return;
     }
 
-    for (const group of product.modifierGroups) {
+    for (const group of configuredModifierGroups) {
       const count = getGroupSelectionCount(group);
       if (count < group.minSelect || (group.maxSelect > 0 && count > group.maxSelect)) {
         setError(`${group.name}: ${groupHint(group)}.`);
@@ -292,7 +318,18 @@ export default function ProductConfiguratorModal({
                     key={variant.id}
                     type="button"
                     onClick={() => {
-                      if (!disabled) setSelectedVariantId(variant.id);
+                      if (disabled || variant.id === selectedVariantId) return;
+                      setSelectedVariantId(variant.id);
+                      setError(null);
+                      if (isCoffee) {
+                        setModifierQuantities((current) => {
+                          const next = { ...current };
+                          for (const group of product.modifierGroups.filter(isIceGroup)) {
+                            for (const modifier of group.modifiers) delete next[modifier.id];
+                          }
+                          return next;
+                        });
+                      }
                     }}
                     disabled={disabled}
                     aria-pressed={selectedVariantId === variant.id}
@@ -337,7 +374,7 @@ export default function ProductConfiguratorModal({
             />
           </div>
 
-        <div className={product.modifierGroups.length > 0 ? "space-y-4" : styles.noModifiers}>
+        <div className={visibleModifierGroups.length > 0 ? "space-y-4" : styles.noModifiers}>
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-slate-900">Customize your item</h3>
@@ -352,12 +389,12 @@ export default function ProductConfiguratorModal({
             ) : null}
           </div>
 
-          {product.modifierGroups.length === 0 ? (
+          {visibleModifierGroups.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
               This product has no modifier groups.
             </div>
           ) : (
-            product.modifierGroups.map((group) => {
+            visibleModifierGroups.map((group) => {
               const selectedCount = getGroupSelectionCount(group);
 
               return (

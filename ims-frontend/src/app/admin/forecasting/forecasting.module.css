@@ -42,7 +42,7 @@
 .convertButton:hover,.convertButton[aria-pressed="true"] { background:#dcefd5;border-color:#6da85b; }
 .tableScroll { overflow-x:auto }
 .tableScroll table { border-collapse:collapse;width:100%;text-align:left;white-space:nowrap }
-.tableScroll thead th { color:#666;font-size:16px;font-weight:400;text-transform:uppercase;padding:6px 10px 7px 0;border-bottom:1px solid #ccc }
+.tableScroll thead th { color:#666;font-size:16px;font-weight:400;text-transform:none;padding:6px 10px 7px 0;border-bottom:1px solid #ccc }
 .tableScroll td { font-size:16px;padding:8px 10px 8px 0;border-bottom:1px solid #eee }
 .tableScroll tr:last-child td { border-bottom:0 }
 .trend { display:inline-flex;align-items:center;gap:3px }

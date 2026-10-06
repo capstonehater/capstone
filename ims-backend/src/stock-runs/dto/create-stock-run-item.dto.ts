@@ -23,6 +23,17 @@ export class CreateStockRunItemDto {
   @IsPositive()
   costPerUnit!: number;
 
+  // Quantity covered by the entered price, independent of quantity received.
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  costQuantity?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  costUnitCode?: string;
+
   @IsOptional()
   @IsDateString()
   expirationDate?: string;

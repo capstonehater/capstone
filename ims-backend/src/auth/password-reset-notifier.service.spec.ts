@@ -1,4 +1,4 @@
-import { ServiceUnavailableException } from '@nestjs/common';
+import { Logger, ServiceUnavailableException } from '@nestjs/common';
 import { createTransport } from 'nodemailer';
 import { env } from '../config/env.validation';
 import { PasswordResetNotifierService } from './password-reset-notifier.service';
@@ -31,6 +31,9 @@ describe('PasswordResetNotifierService SMTP delivery', () => {
     jest.clearAllMocks();
     Object.assign(env, {
       NODE_ENV: 'development',
+      SMTP_HOST: 'smtp-relay.brevo.com',
+      SMTP_USER: 'smtp-login',
+      SMTP_PASSWORD: 'test-only',
       SMTP_FROM_EMAIL: 'sender@example.com',
     });
     (createTransport as jest.Mock).mockReturnValue({ sendMail, close });
@@ -90,6 +93,44 @@ describe('PasswordResetNotifierService SMTP delivery', () => {
   it('never sends real email in automated test mode', async () => {
     Object.assign(env, { NODE_ENV: 'test' });
     await service.sendResetLink(options);
+    expect(createTransport).not.toHaveBeenCalled();
+  });
+
+  it('logs safe SMTP diagnostics without exposing the provider response', async () => {
+    const log = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    try {
+      sendMail.mockRejectedValueOnce(
+        Object.assign(new Error('private details'), {
+          code: 'EENVELOPE',
+          command: 'MAIL FROM',
+          responseCode: 550,
+          response: 'private sender and credentials',
+        }),
+      );
+      await expect(service.sendResetLink(options)).rejects.toBeInstanceOf(
+        ServiceUnavailableException,
+      );
+      expect(log).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'code=EENVELOPE, command=MAIL FROM, responseCode=550',
+        ),
+      );
+      expect(JSON.stringify(log.mock.calls)).not.toContain('private');
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it('rejects missing SMTP configuration in development', async () => {
+    Object.assign(env, {
+      SMTP_HOST: undefined,
+      SMTP_USER: undefined,
+      SMTP_PASSWORD: undefined,
+      SMTP_FROM_EMAIL: undefined,
+    });
+    await expect(service.sendResetLink(options)).rejects.toThrow(
+      'Email delivery is not configured.',
+    );
     expect(createTransport).not.toHaveBeenCalled();
   });
 });

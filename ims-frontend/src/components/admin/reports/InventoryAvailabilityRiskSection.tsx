@@ -1,5 +1,7 @@
 "use client";
 
+import { formatUnit } from "@/lib/units";
+
 import { Inbox } from "lucide-react";
 import SummaryCard from "@/components/dashboard/SummaryCard";
 import WidgetCard from "@/components/dashboard/WidgetCard";
@@ -131,7 +133,7 @@ export default function InventoryAvailabilityRiskSection({
                       <div>
                         <div className="font-semibold text-slate-900">{row.rawMaterial.name}</div>
                         <div className="mt-1 text-xs text-slate-500">
-                          {row.rawMaterial.unit.name} ({row.rawMaterial.unit.code})
+                          {formatUnit(row.rawMaterial.unit.name)} ({formatUnit(row.rawMaterial.unit.code)})
                         </div>
                       </div>
                       <div>{row.rawMaterial.sku}</div>

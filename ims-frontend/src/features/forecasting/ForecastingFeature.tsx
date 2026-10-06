@@ -1,5 +1,7 @@
 "use client";
 
+import { formatUnit, formatUnitText } from "@/lib/units";
+
 import headerStyles from "@/components/admin/AdminSectionHeader.module.css";
 import { useEffect, useRef, useState } from 'react';
 import { Check, CircleAlert, LoaderCircle, RefreshCw } from 'lucide-react';
@@ -183,11 +185,11 @@ export default function ForecastingFeature() {
         <ForecastGraph periods={data?.periods ?? []} currentRun={run} productId={productId} materialId={selected.materialId} onMaterialChange={setMaterialId} materials={rows} />
         <div className={styles.columns}>
           <section className={`${styles.panel} ${styles.insights}`}><h2>What this means</h2><ul className={styles.insightList}>
-            <li>{selected.name}: {number(forecastTotal(selected))} {selected.unit} expected over {periodDays} {periodDays === 1 ? 'day' : 'days'}.</li>
-            <li>Average daily usage: {number(selected.recommendation?.data.DailyDemand)} {selected.unit}.</li>
-            <li>{selected.recommendation?.data.Recommendation ?? 'No inventory recommendation available.'}</li>
+            <li>{selected.name}: {number(forecastTotal(selected))} {formatUnit(selected.unit)} expected over {periodDays} {periodDays === 1 ? 'day' : 'days'}.</li>
+            <li>Average daily usage: {number(selected.recommendation?.data.DailyDemand)} {formatUnit(selected.unit)}.</li>
+            <li>{formatUnitText(selected.recommendation?.data.Recommendation ?? 'No inventory recommendation available.')}</li>
           </ul><button className={styles.suggestionsButton} aria-expanded={suggestions} onClick={() => setSuggestions(!suggestions)}>{suggestions ? 'Hide' : 'View'} Reorder Suggestions</button>
-            {suggestions && <div className={styles.suggestions} tabIndex={0} role="region" aria-label="Reorder suggestions">{restocks.length ? restocks.map((row) => <p key={row.id}><strong>{row.name}:</strong> {row.recommendation?.data.Recommendation}</p>) : <p>No purchases are recommended for the available stock records.</p>}</div>}
+            {suggestions && <div className={styles.suggestions} tabIndex={0} role="region" aria-label="Reorder suggestions">{restocks.length ? restocks.map((row) => <p key={row.id}><strong>{row.name}:</strong> {formatUnitText(row.recommendation?.data.Recommendation ?? "")}</p>) : <p>No purchases are recommended for the available stock records.</p>}</div>}
           </section>
           <section className={`${styles.panel} ${styles.breakdown}`}>
             <div className={styles.summaryHeader}>
@@ -201,9 +203,9 @@ export default function ForecastingFeature() {
                   const status = materialStatus(row.recommendation?.data);
                   return <tr key={row.id}>
                     <th scope="row">{row.name}</th>
-                    <td><span className={`${styles.statusBadge} ${status.tone}`} title={row.recommendation?.data.Recommendation}>{status.label}</span></td>
-                    <td>{summaryQuantity(forecastTotal(row), row.unit, convertSummary)}</td>
-                    <td>{summaryQuantity(row.recommendation?.data.DailyDemand, row.unit, convertSummary)}</td>
+                    <td><span className={`${styles.statusBadge} ${status.tone}`} title={formatUnitText(row.recommendation?.data.Recommendation ?? "")}>{status.label}</span></td>
+                    <td>{summaryQuantity(forecastTotal(row), formatUnit(row.unit), convertSummary)}</td>
+                    <td>{summaryQuantity(row.recommendation?.data.DailyDemand, formatUnit(row.unit), convertSummary)}</td>
                     <td>{row.metadata.changePercent == null ? 'N/A' : `${row.metadata.changePercent > 0 ? '+' : ''}${number(row.metadata.changePercent)}%`}</td>
                     <td>{row.recommendation?.data.HasInventoryData ? (row.recommendation.data.DaysRemaining == null ? 'N/A' : `${number(row.recommendation.data.DaysRemaining)} days`) : 'No stock data'}</td>
                   </tr>;
@@ -212,7 +214,7 @@ export default function ForecastingFeature() {
             </div>
           </section>
         </div>
-        <section className={styles.panel} style={{ marginTop: 16 }}><h2>{selected.name}: Daily Forecast</h2><div className={styles.tableScroll}><table><thead><tr><th>Date</th><th>Expected usage ({selected.unit})</th><th>Lower estimate ({selected.unit})</th><th>Upper estimate ({selected.unit})</th></tr></thead><tbody>{chartPoints.map((point) => <tr key={point.date}><td>{dateLabel(point.date)}</td><td>{number(Number(point.forecast))}</td><td>{number(Number(point.lower95))}</td><td>{number(Number(point.upper95))}</td></tr>)}</tbody></table></div></section>
+        <section className={styles.panel} style={{ marginTop: 16 }}><h2>{selected.name}: Daily Forecast</h2><div className={styles.tableScroll}><table><thead><tr><th>Date</th><th>Expected usage ({formatUnit(selected.unit)})</th><th>Lower estimate ({formatUnit(selected.unit)})</th><th>Upper estimate ({formatUnit(selected.unit)})</th></tr></thead><tbody>{chartPoints.map((point) => <tr key={point.date}><td>{dateLabel(point.date)}</td><td>{number(Number(point.forecast))}</td><td>{number(Number(point.lower95))}</td><td>{number(Number(point.upper95))}</td></tr>)}</tbody></table></div></section>
       </>}
     </>}
   </div></AdminDashboardLayout>;

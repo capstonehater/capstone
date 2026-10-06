@@ -6,10 +6,11 @@ import { useAuthStore } from "@/store/authStore";
 import styles from "./AlertCountBadge.module.css";
 
 export default function AlertCountBadge({ collapsed = false }: { collapsed?: boolean }) {
-  const user = useAuthStore(state => state.user);
+  const userId = useAuthStore(state => state.user?.id);
+  const canViewAlerts = useAuthStore(state => state.can("alerts.view"));
   const [count, setCount] = useState(0);
   useEffect(() => {
-    if (!user) return;
+    if (!userId || !canViewAlerts) return;
     let active = true;
     let pending = false;
     async function refresh() {
@@ -31,7 +32,7 @@ export default function AlertCountBadge({ collapsed = false }: { collapsed?: boo
       window.removeEventListener("focus", refresh);
       window.removeEventListener("alerts-updated", refresh);
     };
-  }, [user]);
-  if (!user || count < 1) return null;
+  }, [userId, canViewAlerts]);
+  if (!userId || !canViewAlerts || count < 1) return null;
   return <span className={`${styles.badge} ${collapsed ? styles.collapsed : ""}`} aria-label={`${count} unread notifications`} title={`${count} unread notifications`}>{count > 99 ? "99+" : count}</span>;
 }

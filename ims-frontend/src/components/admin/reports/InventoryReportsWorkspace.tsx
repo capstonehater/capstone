@@ -123,10 +123,16 @@ export default function InventoryReportsWorkspace() {
     !availabilityError &&
     kpiReport !== null &&
     availabilityReport !== null &&
-    inventoryLinkedSnapshot !== null;
+    inventoryLinkedSnapshot !== null &&
+    inventoryLinkedSnapshot.filters.from === from &&
+    inventoryLinkedSnapshot.filters.to === to &&
+    Date.parse(kpiReport.period.from) === Date.parse(inventoryLinkedRange.from) &&
+    Date.parse(kpiReport.period.to) === Date.parse(inventoryLinkedRange.to) &&
+    Date.parse(availabilityReport.period.from) === Date.parse(inventoryLinkedRange.from) &&
+    Date.parse(availabilityReport.period.to) === Date.parse(inventoryLinkedRange.to);
 
   const handleExport = async (format: "csv" | "pdf") => {
-    if (!kpiReport || !availabilityReport || !inventoryLinkedSnapshot) {
+    if (!canExport || exportingFormat || !kpiReport || !availabilityReport || !inventoryLinkedSnapshot) {
       return;
     }
 
@@ -146,9 +152,9 @@ export default function InventoryReportsWorkspace() {
         const filename = exportInventoryReportsCsv(snapshot);
         setExportNotice(`CSV export downloaded as ${filename}.`);
       } else {
-        const filename = exportInventoryReportsPdf(snapshot);
+        const filename = await exportInventoryReportsPdf(snapshot);
         setExportNotice(
-          `Printable inventory report opened as ${filename}. Use your browser's Save as PDF option to finish the export.`,
+          `PDF export downloaded as ${filename}.`,
         );
       }
     } catch (nextError) {

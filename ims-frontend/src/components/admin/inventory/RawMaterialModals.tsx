@@ -1,4 +1,6 @@
 "use client";
+
+import { formatUnit } from "@/lib/units";
 import AdminSelect from "@/components/admin/AdminSelect";
 import modalStyles from "./InventoryModal.module.css";
 
@@ -27,6 +29,18 @@ type MaterialFormState = {
   reorderPoint: string;
 };
 
+function makeMaterialSku(name: string, existingSkus: string[]) {
+  const words = name.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toUpperCase().match(/[A-Z0-9]+/g) ?? [];
+  const stem = words.length > 1
+    ? words.map((word) => word[0]).join("")
+    : (words[0] ?? "MAT").slice(0, 4);
+  const prefix = `RM-${stem || "MAT"}-`;
+  const used = new Set(existingSkus.map((sku) => sku.toUpperCase()));
+  let sequence = 1;
+  while (used.has(`${prefix}${String(sequence).padStart(3, "0")}`)) sequence += 1;
+  return `${prefix}${String(sequence).padStart(3, "0")}`;
+}
+
 function ModalActions({ children }: { children: React.ReactNode }) {
   return <div className="md:col-span-2 flex justify-end gap-3 pt-2">{children}</div>;
 }
@@ -36,6 +50,7 @@ type RawMaterialModalsProps = {
   submitting: boolean;
   units: InventoryUnit[];
   selectedMaterial: RawMaterial | null;
+  existingSkus: string[];
   materialForm: MaterialFormState;
   onClose: () => void;
   onMaterialFormChange: (next: MaterialFormState | ((current: MaterialFormState) => MaterialFormState)) => void;
@@ -49,6 +64,7 @@ export default function RawMaterialModals({
   submitting,
   units,
   selectedMaterial,
+  existingSkus,
   materialForm,
   onClose,
   onMaterialFormChange,
@@ -61,17 +77,23 @@ export default function RawMaterialModals({
       {activePanel === "create-material" ? (
         <InventoryModal
           professional
+          panelClassName="rawMaterialCreateDialog"
+          bodyClassName="rawMaterialCreateBody"
           title="Add Raw Material"
           description="Create a new raw material record with clear labels before it enters the inventory flow."
           onClose={onClose}
         >
-          <form className="grid gap-4 md:grid-cols-2" onSubmit={onCreateMaterial}>
+          <form className="rawMaterialCreateForm grid gap-4 md:grid-cols-2" onSubmit={onCreateMaterial}>
             <InventoryField htmlFor="material-name" label="Raw material name">
               <input
                 id="material-name"
                 value={materialForm.name}
                 onChange={(event) =>
-                  onMaterialFormChange((current) => ({ ...current, name: event.target.value }))
+                  onMaterialFormChange((current) => ({
+                    ...current,
+                    name: event.target.value,
+                    sku: makeMaterialSku(event.target.value, existingSkus),
+                  }))
                 }
                 placeholder="Evaporated Milk"
                 className={inventoryInputClasses}
@@ -81,14 +103,13 @@ export default function RawMaterialModals({
               <input
                 id="material-sku"
                 value={materialForm.sku}
-                onChange={(event) =>
-                  onMaterialFormChange((current) => ({ ...current, sku: event.target.value }))
-                }
+                onChange={(event) => onMaterialFormChange((current) => ({ ...current, sku: event.target.value }))}
+                readOnly
                 placeholder="RM-EVAP-001"
                 className={inventoryInputClasses}
               />
             </InventoryField>
-            <AdminSelect label="Base unit" value={materialForm.unitId} onChange={(unitId) => onMaterialFormChange((current) => ({ ...current, unitId }))} options={[{ value: "", label: "Select unit" }, ...units.map((unit) => ({ value: unit.id, label: `${unit.name} (${unit.code})` }))]} />
+            <AdminSelect label="Base unit" value={materialForm.unitId} onChange={(unitId) => onMaterialFormChange((current) => ({ ...current, unitId }))} options={[{ value: "", label: "Select unit" }, ...units.map((unit) => ({ value: unit.id, label: `${formatUnit(unit.name)} (${formatUnit(unit.code)})` }))]} />
             <InventoryField htmlFor="material-reorder" label="Reorder point">
               <input
                 id="material-reorder"
@@ -107,7 +128,7 @@ export default function RawMaterialModals({
               />
             </InventoryField>
             <ModalActions>
-              <button type="submit" disabled={submitting} className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white">
+              <button type="submit" disabled={submitting} className="rawMaterialCreateSubmit rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white">
                 Create Material
               </button>
             </ModalActions>
@@ -145,7 +166,7 @@ export default function RawMaterialModals({
                 className={inventoryInputClasses}
               />
             </InventoryField>
-            <AdminSelect label="Base unit" value={materialForm.unitId} onChange={(unitId) => onMaterialFormChange((current) => ({ ...current, unitId }))} options={[{ value: "", label: "Select unit" }, ...units.map((unit) => ({ value: unit.id, label: `${unit.name} (${unit.code})` }))]} />
+            <AdminSelect label="Base unit" value={materialForm.unitId} onChange={(unitId) => onMaterialFormChange((current) => ({ ...current, unitId }))} options={[{ value: "", label: "Select unit" }, ...units.map((unit) => ({ value: unit.id, label: `${formatUnit(unit.name)} (${formatUnit(unit.code)})` }))]} />
             <InventoryField htmlFor="edit-material-reorder" label="Reorder point">
               <input
                 id="edit-material-reorder"

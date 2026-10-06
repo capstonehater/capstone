@@ -1,5 +1,7 @@
 "use client";
 
+import { formatUnit } from "@/lib/units";
+
 import StyledSelect from "@/components/admin/StyledSelect";
 import { useMemo, useState } from "react";
 import styles from "./VariantsRecipe.module.css";
@@ -166,7 +168,7 @@ export default function RecipeEditor({
                       <option value="">Select raw material</option>
                       {materials.map((material) => (
                         <option key={material.rawMaterialId} value={material.rawMaterialId}>
-                          {material.name} ({material.unit.code})
+                          {material.name} ({formatUnit(material.unit.code)})
                         </option>
                       ))}
                     </StyledSelect>
@@ -175,7 +177,7 @@ export default function RecipeEditor({
                   <InventoryField htmlFor={`recipe-unit-${index}`} label="Native unit">
                     <input
                       id={`recipe-unit-${index}`}
-                      value={selectedMaterial ? selectedMaterial.unit.code : ""}
+                      value={selectedMaterial ? formatUnit(selectedMaterial.unit.code) : ""}
                       readOnly
                       className={`${inventoryInputClasses} bg-slate-50 text-slate-500`}
                       placeholder="Unit"

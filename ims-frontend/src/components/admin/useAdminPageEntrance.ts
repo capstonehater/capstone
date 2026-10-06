@@ -49,7 +49,7 @@ export function useAdminPageEntrance() {
             { opacity: 1, transform: "none" },
           ],
           {
-            duration: 700,
+            duration: 240,
             delay: Math.min(index, 6) * 45,
             easing: "cubic-bezier(0.16, 1, 0.3, 1)",
             fill: "backwards",

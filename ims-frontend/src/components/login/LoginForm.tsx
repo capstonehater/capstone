@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -13,10 +13,14 @@ import { getDefaultLandingRoute } from "@/lib/routing/landing";
 import styles from "./Login.module.css";
 import ActionAlert from "@/components/feedback/ActionAlert";
 
+function ResetPasswordNotice({ hidden, onDismiss }: { hidden: boolean; onDismiss: () => void }) {
+  const searchParams = useSearchParams();
+  if (hidden || searchParams.get("reset") !== "success") return null;
+  return <ActionAlert tone="success" title="Password updated" message="Password updated successfully. Sign in with your new password." onDismiss={onDismiss} />;
+}
 
 export default function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const setAuthenticated = useAuthStore((state) => state.setAuthenticated);
   const status = useAuthStore((state) => state.status);
   const user = useAuthStore((state) => state.user);
@@ -26,7 +30,6 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const resetSuccess = searchParams.get("reset") === "success";
   const [resetNoticeDismissed, setResetNoticeDismissed] = useState(false);
 
   const redirectPath = useMemo(() => {
@@ -45,11 +48,11 @@ export default function LoginForm() {
 
   const handleLoginSuccess = (authenticatedUser: AuthUser) => {
     setAuthenticated(authenticatedUser);
-    router.push(getDefaultLandingRoute(useAuthStore.getState()));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (status !== "unauthenticated" || loading) return;
     setError("");
     setLoading(true);
 
@@ -67,15 +70,13 @@ export default function LoginForm() {
     }
   };
 
-  if (status === "loading") return <p role="status" className={styles.subtitle}>Loading sign in...</p>;
-
   return (
     <div className={styles.formContent}>
       <span className={styles.formMark} aria-hidden="true">✳</span>
       <h2 className={styles.formTitle}>Sign in</h2>
       <p className={styles.subtitle}>Enter your credentials to open the dashboard.</p>
       <form onSubmit={handleSubmit} className={styles.form}>
-        {resetSuccess && !resetNoticeDismissed && !error && <ActionAlert key="reset-success" tone="success" title="Password updated" message="Password updated successfully. Sign in with your new password." onDismiss={() => setResetNoticeDismissed(true)} />}
+        <Suspense fallback={null}><ResetPasswordNotice hidden={resetNoticeDismissed || Boolean(error)} onDismiss={() => setResetNoticeDismissed(true)} /></Suspense>
         <label className={styles.field} htmlFor="email">
           Email address
           <input id="email" type="email" autoComplete="username" placeholder="admin@cafesalvacion.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
@@ -99,7 +100,7 @@ export default function LoginForm() {
           <Link href="/forgot-password">Forgot password?</Link>
         </div>
         {error && <ActionAlert key={error} tone="error" title="Unable to sign in" message={error} onDismiss={() => setError("")} />}
-        <button className={styles.submit} type="submit" disabled={loading}>{loading ? "Signing in..." : "Sign in"}</button>
+        <button className={styles.submit} type="submit" disabled={loading || status !== "unauthenticated"}>{loading ? "Signing in..." : "Sign in"}</button>
       </form>
       <p className={styles.accessNote}>Access is limited to authorized Café Salvacion staff.</p>
     </div>

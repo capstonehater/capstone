@@ -1,5 +1,7 @@
 "use client";
 
+import { formatUnit } from "@/lib/units";
+
 import { useEffect, useState } from "react";
 import { RefreshCcw } from "lucide-react";
 import AdminSelect from "@/components/admin/AdminSelect";
@@ -38,7 +40,7 @@ export default function NearExpiryPanel({ embedded = false }: { embedded?: boole
           if (!active) return;
           const groups = await Promise.all(materials.slice(index, index + 6).map(async (material) => {
             const entries = await fetchRawMaterialBatches(material.rawMaterialId);
-            return entries.map((batch) => ({ ...batch, materialName: material.name, sku: material.sku, unit: material.unit.code }));
+            return entries.map((batch) => ({ ...batch, materialName: material.name, sku: material.sku, unit: formatUnit(material.unit.code) }));
           }));
           collected.push(...groups.flat());
         }

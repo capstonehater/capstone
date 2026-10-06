@@ -16,6 +16,7 @@ describe('Refund-only completed-order reversals', () => {
     const updateStock = jest.fn();
     const createReversal = jest.fn();
     const tx = {
+      $queryRaw: jest.fn().mockResolvedValue([]),
       order: { findUnique: jest.fn().mockResolvedValue({ id: 'old-void', status: OrderStatus.REFUNDED, reversal: { type: 'REFUND' } }) },
       stockBatch: { update: updateStock },
       orderReversal: { create: createReversal },

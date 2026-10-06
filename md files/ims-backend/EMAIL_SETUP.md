@@ -29,6 +29,7 @@ logs for delivery, bounces, or queued messages.
 If sending fails after creating an account, the pending account remains saved.
 After correcting email configuration, use Send Setup on that existing account.
 
-Automated tests do not send email. Development without any SMTP configuration
-retains the terminal-link behavior. Partial SMTP configuration and missing
-production configuration return errors instead of claiming an email was sent.
+Automated tests do not send email. Missing or partial SMTP configuration returns
+an error in both development and production instead of claiming an email was sent.
+Copy the settings from `ims-backend/.env.email.example` into `ims-backend/.env`,
+fill in the provider credentials and verified sender, and restart the backend.

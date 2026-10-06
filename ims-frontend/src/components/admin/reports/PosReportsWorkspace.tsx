@@ -1,5 +1,6 @@
 "use client";
 import DateFilter from "@/components/staff-pos/DateFilter";
+import { getPosReportDateBounds, validatePosReportDateChange } from "@/lib/pos-report-date-range";
 
 import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
 
@@ -17,6 +18,7 @@ import PosProductPerformanceSection from "./PosProductPerformanceSection";
 import PosRefundsVoidsSection from "./PosRefundsVoidsSection";
 import PosSalesAnalyticsSection from "./PosSalesAnalyticsSection";
 import PosTransactionHistorySection from "./PosTransactionHistorySection";
+import ActionAlert from "@/components/feedback/ActionAlert";
 
 import { RefreshCw, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import styles from "./PosReports.module.css";
@@ -99,26 +101,33 @@ export default function PosReportsWorkspace() {
   const [from, setFrom] = useState(initialPreset.from);
   const [to, setTo] = useState(initialPreset.to);
   const [refreshToken, setRefreshToken] = useState(0);
+  const [dateError, setDateError] = useState<string | null>(null);
+  const dateBounds = getPosReportDateBounds(preset);
 
   const manilaRange = useMemo(() => toManilaRangeIso({ from, to }), [from, to]);
 
   const handlePresetChange = (
-    nextPreset: Exclude<QuickDatePreset, "custom">,
+    nextPreset: QuickDatePreset,
   ) => {
+    setDateError(null);
+    if (nextPreset === "custom") {
+      setPreset(nextPreset);
+      return;
+    }
     const range = getPresetDateRange(nextPreset);
     setPreset(nextPreset);
     setFrom(range.from);
     setTo(range.to);
   };
 
-  const handleFromChange = (value: string) => {
-    setPreset("custom");
-    setFrom(value);
-  };
-
-  const handleToChange = (value: string) => {
-    setPreset("custom");
-    setTo(value);
+  const handleDateChange = (field: "from" | "to", value: string) => {
+    const error = validatePosReportDateChange(preset, field, value, { from, to });
+    setDateError(error);
+    if (error) {
+      return;
+    }
+    if (field === "from") setFrom(value);
+    else setTo(value);
   };
 
   return (
@@ -127,17 +136,18 @@ export default function PosReportsWorkspace() {
       <section className={styles.datePanel} aria-label="Report date range">
         <div className={styles.dateControls}>
           <strong>Date Range</strong>
-          <DateFilter label="From date" value={from} max={to || undefined} onChange={handleFromChange} />
-          <DateFilter label="To date" value={to} min={from || undefined} onChange={handleToChange} />
+          <DateFilter label="From date" value={from} min={dateBounds.min} max={dateBounds.max} required onChange={(value) => handleDateChange("from", value)} />
+          <DateFilter label="To date" value={to} min={dateBounds.min} max={dateBounds.max} required onChange={(value) => handleDateChange("to", value)} />
           <div className={styles.presets}>
-            {(["today", "yesterday", "this-week"] as const).map((option) => (
-              <button key={option} type="button" aria-pressed={preset === option} onClick={() => handlePresetChange(option)}>{getPresetLabel(option)}</button>
+            {(["today", "yesterday", "this-week", "custom"] as const).map((option) => (
+              <button key={option} type="button" aria-pressed={preset === option} onClick={() => handlePresetChange(option)}>{option === "custom" ? "Custom Date" : getPresetLabel(option)}</button>
             ))}
           </div>
         </div>
         <button type="button" className={styles.refresh} onClick={() => setRefreshToken((current) => current + 1)}><RefreshCw size={16} />Refresh {getRefreshLabel(activeSection)}</button>
         <p className={styles.range}><Info size={14} />Active range: {getPresetLabel(preset)} <span>|</span> {from} to {to} <span>|</span> Manila time</p>
       </section>
+      {dateError && <ActionAlert tone="error" title="Invalid date range" message={dateError} onDismiss={() => setDateError(null)} />}
       <nav className={styles.navigation} aria-label="POS report sections">
         <button type="button" className={styles.navArrow} aria-label="Previous report sections" onClick={() => navigation.current?.scrollBy({left: -navigation.current.clientWidth, behavior: "smooth"})}><ChevronLeft size={20} /></button>
         <div ref={navigation} className={styles.navTrack}>

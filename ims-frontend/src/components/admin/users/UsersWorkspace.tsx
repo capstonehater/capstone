@@ -621,7 +621,6 @@ export default function UsersWorkspace() {
 
       <section className={styles.topPanel}>
         <header><h1>USERS</h1><p>Manage staff accounts, roles, permissions, and account status.</p></header>
-        <PermissionAction permission="users.manage"><button type="button" onClick={() => { resetDialogFeedback(); setDialog({ type: "create" }); }} style={{ borderRadius: 12 }} className="mt-4 rounded-lg bg-[#232d46] px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">+ Add User</button></PermissionAction>
       </section>
       <div className={styles.panels}>
         <section className={`${styles.directory} ${selectedUserId ? styles.hideListOnMobile : ""}`}>
@@ -632,7 +631,7 @@ export default function UsersWorkspace() {
               </p>
               <h2 className="text-lg font-semibold text-slate-950">User List</h2>
             </div>
-
+            <PermissionAction permission="users.manage"><button type="button" onClick={() => { resetDialogFeedback(); setDialog({ type: "create" }); }} style={{ borderRadius: 12 }} className="rounded-lg bg-[#232d46] px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">+ Add User</button></PermissionAction>
           </div>
 
           <div className={styles.filters}>
@@ -940,13 +939,13 @@ function UserProfileHeader({
   const canDelete = !isSelf;
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-5">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex min-w-0 items-start gap-4">
+    <div className={styles.profileCard}>
+      <div className={styles.profileHeader}>
+        <div className={styles.profileIdentity}>
           <Avatar name={user.name} />
           <div className="min-w-0">
-            <h2 className="break-words text-xl font-bold text-slate-950">{user.name}</h2>
-            <p className="break-words text-sm text-slate-500">{user.email}</p>
+            <h2 className={styles.profileName}>{user.name}</h2>
+            <p className={styles.profileEmail}>{user.email}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${roleTone(user.role)}`}>
                 {roleLabels[user.role]}
@@ -963,7 +962,7 @@ function UserProfileHeader({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className={styles.profileActions}>
           <PermissionAction permission={"users.manage"}><ActionButton icon={<UserCog className="h-4 w-4" />} onClick={onEdit}>
             Edit
           </ActionButton></PermissionAction>
@@ -988,7 +987,7 @@ function UserProfileHeader({
         </div>
       </div>
 
-      <dl className="mt-5 grid gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))]">
+      <dl className={styles.profileDetails}>
         <ProfileItem label="Employee ID" value={user.id} />
         <ProfileItem label="Phone" value={user.phone ?? "Not provided"} />
         <ProfileItem label="Last Login" value={formatDateTime(user.lastLoginAt)} />
@@ -1000,11 +999,11 @@ function UserProfileHeader({
 
 function ProfileItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+    <div className={styles.profileItem}>
+      <dt>
         {label}
       </dt>
-      <dd className="mt-1 break-words text-sm font-semibold text-slate-900">{value}</dd>
+      <dd>{value}</dd>
     </div>
   );
 }

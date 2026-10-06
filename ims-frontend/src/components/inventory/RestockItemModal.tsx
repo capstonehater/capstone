@@ -1,4 +1,6 @@
 "use client";
+
+import { formatUnit } from "@/lib/units";
 import ModalCloseButton from "@/components/ModalCloseButton";
 
 
@@ -81,7 +83,7 @@ export default function RestockItemModal({
             Category: {item.category}
           </p>
           <p className="mt-1 text-sm text-neutral-500">
-            Type: {item.type} • Unit: {item.unit}
+            Type: {item.type} • Unit: {formatUnit(item.unit)}
           </p>
           <p className="mt-1 text-sm text-neutral-500">SKU: {item.sku}</p>
         </div>

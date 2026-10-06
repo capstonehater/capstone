@@ -1,5 +1,7 @@
 "use client";
 
+import { formatUnit } from "@/lib/units";
+
 import { useEffect, useRef, useState } from "react";
 import { MoreVertical, Package } from "lucide-react";
 import type { InventoryItem } from "../../types/inventory";
@@ -119,7 +121,7 @@ export default function InventoryTable({
                 </td>
 
                 <td className="py-3 pr-4 align-middle">{item.type}</td>
-                <td className="py-3 pr-4 align-middle">{item.unit}</td>
+                <td className="py-3 pr-4 align-middle">{formatUnit(item.unit)}</td>
                 <td className="py-3 pr-4 align-middle">{item.expirationDate}</td>
                 <td className="py-3 pr-4 align-middle">{item.sku}</td>
 

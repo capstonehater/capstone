@@ -1,5 +1,7 @@
 "use client";
 
+import { formatUnit } from "@/lib/units";
+
 import { useEffect, useRef, useState } from "react";
 import { MoreVertical, Sparkles, Package, Boxes } from "lucide-react";
 import type { InventoryItem } from "../../types/inventory";
@@ -81,7 +83,7 @@ export default function InventoryGrid({
                     {item.name}
                   </p>
                   <p className="text-xs text-neutral-700">
-                    {item.type} • {item.unit}
+                    {item.type} • {formatUnit(item.unit)}
                   </p>
                 </div>
               </div>

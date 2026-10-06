@@ -1,26 +1,12 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef } from "react";
 import { LogOut } from "lucide-react";
-import { useLogout } from "@/hooks/useLogout";
 import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
 import styles from "./MyAccountHeader.module.css";
 
 export default function MyAccountHeader() {
-  const logout = useLogout();
-  const [loggingOut, setLoggingOut] = useState(false);
-  const [confirming, setConfirming] = useState(false);
-  async function confirmLogout() {
-      if (loggingOut) return;
-      setLoggingOut(true);
-      try { await logout(); } catch { /* useLogout clears the session and redirects even if the request fails. */ }
-  }
-  return <>
-    <AdminSectionHeader title="My Account" description="Manage your account information and security." className={styles.header}>
-      <button type="button" disabled={loggingOut} onClick={() => setConfirming(true)}><LogOut size={18} aria-hidden="true" />Logout</button>
-    </AdminSectionHeader>
-    {confirming && <LogoutConfirmation busy={loggingOut} onCancel={() => setConfirming(false)} onConfirm={() => void confirmLogout()} />}
-  </>;
+  return <AdminSectionHeader title="My Account" description="Manage your account information and security." className={styles.header} />;
 }
 
 function LogoutConfirmation({ busy, onCancel, onConfirm }: { busy: boolean; onCancel: () => void; onConfirm: () => void }) {

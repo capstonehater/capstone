@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Check, Circle, Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -36,6 +37,16 @@ export default function ResetPasswordForm() {
     };
   }, []);
 
+  const passwordChecks = [
+    { label: "10-72 characters", met: newPassword.length >= 10 && newPassword.length <= 72 },
+    { label: "Uppercase letter", met: /[A-Z]/.test(newPassword) },
+    { label: "Lowercase letter", met: /[a-z]/.test(newPassword) },
+    { label: "Number", met: /\d/.test(newPassword) },
+  ];
+  const metCount = passwordChecks.filter((check) => check.met).length;
+  const passwordStrong = passwordChecks.every((check) => check.met) && PASSWORD_RULE.test(newPassword);
+  const strengthLabel = !newPassword ? "Enter a password" : passwordStrong ? "Strong password" : "Needs improvement";
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setNoticeDismissed(false);
@@ -50,11 +61,7 @@ export default function ResetPasswordForm() {
       return;
     }
 
-    if (
-      newPassword.length < 10 ||
-      newPassword.length > 72 ||
-      !PASSWORD_RULE.test(newPassword)
-    ) {
+    if (!passwordStrong) {
       setError(PASSWORD_REQUIREMENTS_MESSAGE);
       return;
     }
@@ -107,46 +114,63 @@ export default function ResetPasswordForm() {
       <p className={styles.subtitle}>Choose a strong password to secure your account.</p>
 
       <form onSubmit={handleSubmit} className={styles.form} aria-busy={loading}>
-        <label className={styles.field} htmlFor="new-password">
-          New password
-          <input
-            id="new-password"
-            type={showNewPassword ? "text" : "password"}
-            autoComplete="new-password"
-            placeholder="Enter your new password"
-            value={newPassword}
-            onChange={(event) => setNewPassword(event.target.value)}
-            aria-describedby="password-requirements"
-            minLength={10}
-            maxLength={72}
-            required
-          />
-        </label>
-        <div className={styles.passwordHelp}>
-          <p id="password-requirements" className={styles.subtitle}>{PASSWORD_REQUIREMENTS_MESSAGE}</p>
-          <div className={styles.formLinks}>
-            <button type="button" aria-controls="new-password" aria-pressed={showNewPassword} onClick={() => setShowNewPassword((previous) => !previous)}>
-              {showNewPassword ? "Hide password" : "Show password"}
+        <div className={styles.field}>
+          <label htmlFor="new-password">New password</label>
+          <div className={styles.passwordField}>
+            <input
+              id="new-password"
+              type={showNewPassword ? "text" : "password"}
+              autoComplete="new-password"
+              placeholder="Enter your new password"
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              aria-describedby="password-strength password-requirements"
+              minLength={10}
+              maxLength={72}
+              required
+            />
+            <button className={styles.passwordToggle} type="button" aria-label={showNewPassword ? "Hide password" : "Show password"} aria-controls="new-password" aria-pressed={showNewPassword} onClick={() => setShowNewPassword((previous) => !previous)}>
+              {showNewPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
             </button>
           </div>
         </div>
+        <div className={styles.passwordHelp}>
+          <div id="password-strength" className={styles.strengthHeading} aria-live="polite" aria-atomic="true">
+            <span>Password strength</span>
+            <strong className={passwordStrong ? styles.requirementMet : undefined}>{strengthLabel}</strong>
+          </div>
+          <div className={styles.strengthMeter} aria-hidden="true">
+            {passwordChecks.map((check, index) => <span key={check.label} className={newPassword && index < metCount ? (passwordStrong ? styles.strengthStrong : styles.strengthPartial) : undefined} />)}
+          </div>
+          <ul id="password-requirements" className={styles.passwordRequirements} aria-label="Password requirements">
+            {passwordChecks.map((check) => (
+              <li key={check.label} className={check.met ? styles.requirementMet : undefined}>
+                {check.met ? <Check size={14} aria-hidden="true" /> : <Circle size={14} aria-hidden="true" />}
+                <span>{check.label}<span className={styles.visuallyHidden}>{check.met ? ": met" : ": not met"}</span></span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-        <label className={styles.field} htmlFor="confirm-password">
-          Confirm password
-          <input
-            id="confirm-password"
-            type={showConfirmPassword ? "text" : "password"}
-            autoComplete="new-password"
-            placeholder="Re-enter your new password"
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            required
-          />
-        </label>
-        <div className={styles.formLinks}>
-          <button type="button" aria-controls="confirm-password" aria-pressed={showConfirmPassword} onClick={() => setShowConfirmPassword((previous) => !previous)}>
-            {showConfirmPassword ? "Hide password" : "Show password"}
-          </button>
+        <div className={styles.field}>
+          <label htmlFor="confirm-password">Confirm password</label>
+          <div className={styles.passwordField}>
+            <input
+              id="confirm-password"
+              type={showConfirmPassword ? "text" : "password"}
+              autoComplete="new-password"
+              placeholder="Re-enter your new password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              aria-describedby={confirmPassword ? "password-match" : undefined}
+              aria-invalid={confirmPassword ? newPassword !== confirmPassword : undefined}
+              required
+            />
+            <button className={styles.passwordToggle} type="button" aria-label={showConfirmPassword ? "Hide password" : "Show password"} aria-controls="confirm-password" aria-pressed={showConfirmPassword} onClick={() => setShowConfirmPassword((previous) => !previous)}>
+              {showConfirmPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+            </button>
+          </div>
+          {confirmPassword && <p id="password-match" className={newPassword === confirmPassword ? styles.passwordMatch : styles.passwordMismatch} aria-live="polite">{newPassword === confirmPassword ? "Passwords match" : "Passwords do not match yet"}</p>}
         </div>
 
         {successMessage && !noticeDismissed && <ActionAlert key="password-updated" tone="success" title="Password updated" message={`${successMessage} Redirecting you to sign in...`} onDismiss={() => setNoticeDismissed(true)} />}

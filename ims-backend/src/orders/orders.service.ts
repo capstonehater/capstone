@@ -23,6 +23,7 @@ import {
   MaterialRequirement,
 } from '../inventory/fefo-allocator.service';
 import { InventoryLedgerService } from '../inventory/inventory-ledger.service';
+import { historyStockWasReversed } from '../inventory/inventory-history';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   ModifierValidationService,
@@ -644,6 +645,7 @@ export class OrdersService {
     });
 
     return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw(Prisma.sql`SELECT id FROM orders WHERE id = ${orderId} FOR UPDATE`);
       const order = await tx.order.findUnique({
         where: { id: orderId },
         include: {
@@ -718,8 +720,10 @@ export class OrdersService {
       const rawMaterialIds = [
         ...new Set(checkoutTransaction.lines.map((line) => line.rawMaterialId)),
       ];
+      const stockLines = historyStockWasReversed(checkoutTransaction.metadata)
+        ? [] : checkoutTransaction.lines;
 
-      for (const line of checkoutTransaction.lines) {
+      for (const line of stockLines) {
         await tx.stockBatch.update({
           where: { id: line.stockBatchId },
           data: {
@@ -747,7 +751,7 @@ export class OrdersService {
           dto.note ??
           `Refund processed for order ${order.id}`,
         occurredAt: new Date(),
-        lines: checkoutTransaction.lines.map((line) => ({
+        lines: stockLines.map((line) => ({
           rawMaterialId: line.rawMaterialId,
           stockBatchId: line.stockBatchId,
           orderItemId: line.orderItemId ?? undefined,

@@ -471,7 +471,10 @@ model StockRunItem {
   rawMaterialId  String    @map("raw_material_id")
   supplierId     String?   @map("supplier_id")
   quantity       Decimal   @db.Decimal(14, 4)
-  costPerUnit    Decimal   @map("cost_per_unit") @db.Decimal(14, 4)
+  costPerUnit    Decimal   @map("cost_per_unit") @db.Decimal(18, 8)
+  purchaseCost   Decimal?  @map("purchase_cost") @db.Decimal(18, 4)
+  priceQuantity  Decimal?  @map("price_quantity") @db.Decimal(18, 4)
+  priceUnitCode  String?   @map("price_unit_code")
   expirationDate DateTime? @map("expiration_date") @db.Date
   receivedAt     DateTime? @map("received_at")
   note           String?
@@ -495,7 +498,7 @@ model StockBatch {
   stockRunItemId    String?   @unique @map("stock_run_item_id")
   initialQuantity   Decimal   @map("initial_quantity") @db.Decimal(14, 4)
   remainingQuantity Decimal   @map("remaining_quantity") @db.Decimal(14, 4)
-  costPerUnit       Decimal   @map("cost_per_unit") @db.Decimal(14, 4)
+  costPerUnit       Decimal   @map("cost_per_unit") @db.Decimal(18, 8)
   expirationDate    DateTime? @map("expiration_date") @db.Date
   receivedAt        DateTime  @map("received_at")
   createdAt         DateTime  @default(now()) @map("created_at")
@@ -513,6 +516,8 @@ model StockBatch {
 }
 
 model InventoryTransaction {
+  historyDeletedAt       DateTime? @map("history_deleted_at")
+  historyDeletedByUserId String?   @map("history_deleted_by_user_id")
   id          String                   @id @default(uuid())
   type        InventoryTransactionType
   sourceType  InventorySourceType      @map("source_type")
@@ -542,7 +547,7 @@ model InventoryTransactionLine {
   productVariantId       String?  @map("product_variant_id")
   orderItemId            String?  @map("order_item_id")
   quantityDelta          Decimal  @map("quantity_delta") @db.Decimal(14, 4)
-  unitCostSnapshot       Decimal  @map("unit_cost_snapshot") @db.Decimal(14, 4)
+  unitCostSnapshot       Decimal  @map("unit_cost_snapshot") @db.Decimal(18, 8)
   totalCostDelta         Decimal  @map("total_cost_delta") @db.Decimal(14, 4)
   createdAt              DateTime @default(now()) @map("created_at")
 

@@ -26,18 +26,6 @@ export class PasswordResetNotifierService {
 
     const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM_EMAIL } =
       env;
-    if (
-      !SMTP_HOST &&
-      !SMTP_USER &&
-      !SMTP_PASSWORD &&
-      !SMTP_FROM_EMAIL &&
-      env.NODE_ENV !== 'production'
-    ) {
-      this.logger.log(
-        `Password reset link for ${options.email}: ${options.resetUrl}`,
-      );
-      return;
-    }
     if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD || !SMTP_FROM_EMAIL) {
       throw new ServiceUnavailableException(
         'Email delivery is not configured. Contact your administrator.',
@@ -80,10 +68,43 @@ export class PasswordResetNotifierService {
       });
       if (result.accepted.length === 0)
         throw new Error('Recipient not accepted');
-    } catch {
+    } catch (error: unknown) {
       // SMTP errors may contain credentials or message content; do not expose them.
+      const details =
+        error && typeof error === 'object'
+          ? (error as Record<string, unknown>)
+          : {};
+      const code = [
+        'EAUTH',
+        'EENVELOPE',
+        'EMESSAGE',
+        'ECONNECTION',
+        'ETIMEDOUT',
+        'EDNS',
+        'ESOCKET',
+      ].includes(String(details.code))
+        ? String(details.code)
+        : 'UNKNOWN';
+      const command = [
+        'CONN',
+        'AUTH',
+        'AUTH LOGIN',
+        'AUTH PLAIN',
+        'MAIL FROM',
+        'RCPT TO',
+        'DATA',
+      ].includes(String(details.command))
+        ? String(details.command)
+        : 'UNKNOWN';
+      const responseCode =
+        typeof details.responseCode === 'number' &&
+        Number.isInteger(details.responseCode) &&
+        details.responseCode >= 400 &&
+        details.responseCode <= 599
+          ? details.responseCode
+          : 'UNKNOWN';
       this.logger.error(
-        'SMTP did not accept the account email. Check SMTP settings and provider logs.',
+        `SMTP did not accept the account email (code=${code}, command=${command}, responseCode=${responseCode}). Check SMTP settings and provider logs.`,
       );
       throw new ServiceUnavailableException(
         'Unable to send the account email. Please try again later or contact your administrator.',

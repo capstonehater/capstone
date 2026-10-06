@@ -62,6 +62,9 @@ export default function DashboardFeature() {
   const [salesPeriod, setSalesPeriod] = useState("Last 30 Days");
   const [activeModal, setActiveModal] = useState<"orders" | "expiry" | "waste" | null>(null);
   const [activeAlerts, setActiveAlerts] = useState<AlertRecord[]>([]);
+  const range = useMemo(() => defaultReportRange(
+    salesPeriod === "Last 7 Days" ? 7 : salesPeriod === "Last 90 Days" ? 90 : 30,
+  ), [salesPeriod]);
 
   async function updateAlert(alertId: string, action: "acknowledge" | "dismiss") {
     try {
@@ -75,21 +78,22 @@ export default function DashboardFeature() {
   }
 
   useEffect(() => {
-    const range = defaultReportRange(salesPeriod === "Last 7 Days" ? 7 : salesPeriod === "Last 90 Days" ? 90 : 30);
+    let active = true;
 
     void (async () => {
       setLoading(true);
       try {
-        const [nextSalesOverview, nextInventoryHealth, nextStockRunSpend, nextWasteSummary, suppliers] =
+        const [nextSalesOverview, nextInventoryHealth, nextStockRunSpend, nextWasteSummary, suppliers, nextAlerts] =
           await Promise.all([
             loadIfAllowed("reports.view", () => fetchSalesOverview({ ...range, limit: 5 }), null),
             loadIfAllowed("reports.view", () => fetchInventoryHealth({ limit: 5 }), null),
             loadIfAllowed("reports.view", () => fetchStockRunSpend({ ...range, limit: 5 }), null),
             loadIfAllowed("reports.view", () => fetchWasteSummary({ ...range, limit: 5 }), null),
             loadIfAllowed("suppliers.view", () => fetchSuppliers(), []),
+            loadIfAllowed("alerts.view", () => fetchAlerts({ state: "ACTIVE", limit: 5 }), []),
           ]);
-        const nextAlerts = await loadIfAllowed("alerts.view", () => fetchAlerts({ state: "ACTIVE", limit: 5 }), []);
 
+        if (!active) return;
         setSalesOverview(nextSalesOverview);
         setInventoryHealth(nextInventoryHealth);
         setStockRunSpend(nextStockRunSpend);
@@ -98,12 +102,14 @@ export default function DashboardFeature() {
         setActiveAlerts(nextAlerts);
         setError(null);
       } catch (nextError) {
+        if (!active) return;
         setError(nextError instanceof Error ? nextError.message : "Failed to load dashboard");
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     })();
-  }, [salesPeriod]);
+    return () => { active = false; };
+  }, [range]);
 
   const wasteGradient = useMemo(() => {
     const rows = wasteSummary?.byReason ?? [];
@@ -148,9 +154,9 @@ export default function DashboardFeature() {
       </section></PermissionAction>
 
       <PermissionAction permission="reports.view"><section className={styles.row}>
-        <div className={styles.panel}>
+        <div className={`${styles.panel} ${styles.topSellingPanel}`}>
           <div className={styles.panelHeader}><h2 className={styles.panelTitle}>Top-Selling Variants</h2><AdminSelect label="Date range" value={salesPeriod} onChange={setSalesPeriod} options={[{ value: "Last 7 Days", label: "Last 7 Days" }, { value: "Last 30 Days", label: "Last 30 Days" }, { value: "Last 90 Days", label: "Last 90 Days" }]} /></div>
-          <div className={styles.panelBody}><div className={styles.list}>
+          <div className={`${styles.panelBody} ${styles.topSellingScroll}`} tabIndex={0} role="region" aria-label="Top-selling variants"><div className={styles.list}>
             {(salesOverview?.topVariants ?? []).map((variant) => (
               <div
                 key={variant.productVariantId}
@@ -225,7 +231,7 @@ export default function DashboardFeature() {
             ))}
           </div></div></div>
 
-        <div className={styles.panel}><div className={styles.panelHeader}><h2 className={styles.panelTitle}>Waste Reason</h2><button className={styles.viewAll} type="button" onClick={() => setActiveModal("waste")}>View All</button></div><div className={styles.panelBody}><div className={styles.donutWrap}><div className={styles.donut} style={{ background: wasteGradient }} aria-label="Waste reason breakdown" /><div className={styles.legend}>{!wasteSummary?.byReason.length && <p className={styles.muted}>{loading ? "Loading waste records..." : "No waste records in this period."}</p>}
+        <div className={styles.panel}><div className={styles.panelHeader}><h2 className={styles.panelTitle}>Waste Reason</h2><button className={styles.viewAll} type="button" onClick={() => setActiveModal("waste")}>View All</button></div><div className={styles.panelBody}><div className={styles.donutWrap}><div className={styles.donut} role="img" style={{ background: wasteGradient }} aria-label="Waste reason breakdown" /><div className={styles.legend}>{!wasteSummary?.byReason.length && <p className={styles.muted}>{loading ? "Loading waste records..." : "No waste records in this period."}</p>}
             {(wasteSummary?.byReason ?? []).map((reason, index, rows) => { const total = rows.reduce((sum, item) => sum + Number(item.cost), 0); const percentage = total ? (Number(reason.cost) / total) * 100 : 0; return <div key={reason.reasonCode} className={styles.legendRow}><span><i className={styles.legendDot} style={{ backgroundColor: WASTE_COLORS[index % WASTE_COLORS.length] }} />{reason.reasonCode.replaceAll("_", " ")}</span><strong>{percentage.toFixed(0)}% Â· {formatPeso(reason.cost)}</strong></div>; })}
           </div></div><p className={styles.totalWaste}>Total Waste Cost <strong>{formatPeso(wasteSummary?.totals.cost ?? "0")}</strong></p></div></div>
 

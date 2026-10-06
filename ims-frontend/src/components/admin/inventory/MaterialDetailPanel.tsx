@@ -3,6 +3,7 @@ import DateFilter from "@/components/staff-pos/DateFilter";
 import selectStyles from "@/components/admin/AdminSelect.module.css";
 import AdminSelect from "@/components/admin/AdminSelect";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
+import DeleteInventoryHistoryModal from "./DeleteInventoryHistoryModal";
 
 import { useState } from "react";
 import styles from "./MaterialDetailPanel.module.css";
@@ -92,6 +93,7 @@ type MaterialDetailPanelProps = {
   onHistoryToChange: (value: string) => void;
   onHistorySearchInputChange: (value: string) => void;
   onSelectBatch: (batch: StockBatch) => void;
+  onDeleteHistory: (transactionId: string) => Promise<void>;
   onEdit: () => void;
   onWaste: () => void;
   onArchive: () => void;
@@ -121,6 +123,7 @@ export default function MaterialDetailPanel({
   onHistoryToChange,
   onHistorySearchInputChange,
   onSelectBatch,
+  onDeleteHistory,
   onEdit,
   onWaste,
   onArchive,
@@ -133,6 +136,7 @@ export default function MaterialDetailPanel({
   getTransactionCost,
 }: MaterialDetailPanelProps) {
   const [batchSearch, setBatchSearch] = useState("");
+  const [historyToDelete, setHistoryToDelete] = useState<InventoryTransaction | null>(null);
   const [batchStatus, setBatchStatus] = useState("");
   const [batchSupplier, setBatchSupplier] = useState("");
   const [batchOrder, setBatchOrder] = useState("desc");
@@ -354,12 +358,13 @@ export default function MaterialDetailPanel({
                   <th className="px-4 py-3">Delta</th>
                   <th className="px-4 py-3">Cost</th>
                   <th className="px-4 py-3">Actor</th>
+                  <th className="px-4 py-3 text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {recentTransactions.length === 0 ? (
                   <tr>
-                    <td className="px-4 py-6 text-slate-500" colSpan={6}>
+                    <td className="px-4 py-6 text-slate-500" colSpan={7}>
                       No transactions matched the current filters.
                     </td>
                   </tr>
@@ -396,6 +401,15 @@ export default function MaterialDetailPanel({
                         </td>
                         <td className="px-4 py-3 align-top">{formatMoney(totalCost.toString())}</td>
                         <td className="px-4 py-3 align-top break-words">{actor}</td>
+                        <td className="px-4 py-3 align-top text-right">
+                          <PermissionAction permission="inventory.archive">
+                            <button type="button" onClick={() => setHistoryToDelete(transaction)}
+                              aria-label={`Delete ${transaction.type.replaceAll("_", " ")} history entry from ${formatDateTime(transaction.occurredAt)}`}
+                              className="rounded-full border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-50">
+                              Delete
+                            </button>
+                          </PermissionAction>
+                        </td>
                       </tr>
                     );
                   })
@@ -405,6 +419,13 @@ export default function MaterialDetailPanel({
           </div>
         </section>
       </div>
+      {historyToDelete && (
+        <PermissionAction permission="inventory.archive">
+          <DeleteInventoryHistoryModal transaction={historyToDelete}
+            onClose={() => setHistoryToDelete(null)} onDelete={onDeleteHistory}
+            formatDateTime={formatDateTime} />
+        </PermissionAction>
+      )}
     </section>
   );
 }
