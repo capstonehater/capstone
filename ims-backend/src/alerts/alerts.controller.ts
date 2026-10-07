@@ -4,6 +4,7 @@ import { RequirePermission } from '../auth/decorators/require-permission.decorat
 import type { AuthenticatedUser } from '../common/types/authenticated-user.type';
 import { AlertsService } from './alerts.service';
 import { ListAlertsDto } from './dto/list-alerts.dto';
+import { DeleteResolvedAlertsDto } from './dto/delete-resolved-alerts.dto';
 import { UpdateAlertStateDto } from './dto/update-alert-state.dto';
 
 @Controller('alerts')
@@ -22,6 +23,12 @@ export class AlertsController {
   @RequirePermission('alerts.view')
   async getUnreadCount() {
     return this.alertsService.getUnreadCount();
+  }
+
+  @Post('resolved/delete')
+  @RequirePermission('alerts.dismiss')
+  async deleteResolvedAlerts(@Body() dto: DeleteResolvedAlertsDto) {
+    return this.alertsService.deleteResolvedAlerts(dto.ids);
   }
 
   @Post(':id/acknowledge')

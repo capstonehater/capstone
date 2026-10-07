@@ -1,5 +1,6 @@
 "use client";
 
+import SearchInput from "@/components/ui/SearchInput";
 import { formatUnit } from "@/lib/units";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -255,7 +256,7 @@ export default function PosInventoryLinkedSection({
           >
             <label className="text-sm font-medium text-neutral-700">
               <span className="mb-1 block">Product / Variant</span>
-              <input
+              <SearchInput
                 value={variantSearch}
                 onChange={(event) => setVariantSearch(event.target.value)}
                 placeholder="Ex.Lasagna, Family Variant"
@@ -264,7 +265,7 @@ export default function PosInventoryLinkedSection({
             </label>
             <label className="text-sm font-medium text-neutral-700">
               <span className="mb-1 block">Material</span>
-              <input
+              <SearchInput
                 value={materialSearch}
                 onChange={(event) => setMaterialSearch(event.target.value)}
                 placeholder="Ex. Cheddar Cheese"

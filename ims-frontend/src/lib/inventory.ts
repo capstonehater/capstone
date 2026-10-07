@@ -56,6 +56,7 @@ export type InventorySummaryItem = {
 };
 
 export type StockBatch = {
+  reference: string | null;
   id: string;
   rawMaterialId: string;
   supplierId: string | null;
@@ -72,6 +73,7 @@ export type StockBatch = {
     id: string;
     stockRun: {
       id: string;
+      reference: string;
       name: string;
       status: string;
       postedAt: string | null;
@@ -124,6 +126,7 @@ export type InventoryTransaction = {
     };
     stockBatch: {
       id: string;
+      reference: string | null;
       expirationDate: string | null;
       receivedAt: string;
     };
@@ -136,6 +139,7 @@ export type InventoryTransaction = {
 };
 
 export type StockRun = {
+  reference: string;
   id: string;
   name: string;
   status: "DRAFT" | "POSTED" | "CANCELLED";
@@ -170,6 +174,7 @@ export type StockRun = {
     supplier?: Supplier | null;
     stockBatch?: {
       id: string;
+      reference: string | null;
       remainingQuantity: DecimalString;
     } | null;
   }>;

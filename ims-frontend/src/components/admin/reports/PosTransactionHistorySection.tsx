@@ -1,5 +1,6 @@
 "use client";
 
+import SearchInput from "@/components/ui/SearchInput";
 import PosReportEmpty from "./PosReportEmpty";
 import AdminSelect from "@/components/admin/AdminSelect";
 
@@ -213,7 +214,7 @@ export default function PosTransactionHistorySection({
           <div className="pos-history-filters">
             <label className="text-sm font-medium text-neutral-700">
               <span className="mb-1 block">Order Number / UUID</span>
-              <input
+              <SearchInput
                 value={search}
                 onChange={(event) => {
                   setSearch(event.target.value);
@@ -225,7 +226,7 @@ export default function PosTransactionHistorySection({
             </label>
             <label className="text-sm font-medium text-neutral-700">
               <span className="mb-1 block">Cashier / Staff</span>
-              <input
+              <SearchInput
                 value={staffSearch}
                 onChange={(event) => {
                   setStaffSearch(event.target.value);

@@ -76,6 +76,16 @@ export class CheckoutDto {
   discountCode?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  discountCustomerName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  discountIdNumber?: string;
+
+  @IsOptional()
   @IsNumber()
   @Min(0)
   @Max(1)

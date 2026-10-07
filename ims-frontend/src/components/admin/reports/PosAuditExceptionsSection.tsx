@@ -1,5 +1,6 @@
 "use client";
 
+import SearchInput from "@/components/ui/SearchInput";
 import AdminSelect from "@/components/admin/AdminSelect";
 
 import { useEffect, useState } from "react";
@@ -236,7 +237,7 @@ export default function PosAuditExceptionsSection({
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
             <label className="text-sm font-medium text-neutral-700">
               <span className="mb-1 block">Staff / User</span>
-              <input
+              <SearchInput
                 value={staffSearch}
                 onChange={(event) => {
                   setStaffSearch(event.target.value);
@@ -248,13 +249,13 @@ export default function PosAuditExceptionsSection({
             </label>
             <label className="text-sm font-medium text-neutral-700">
               <span className="mb-1 block">Reason / Discount</span>
-              <input
+              <SearchInput
                 value={reasonSearch}
                 onChange={(event) => {
                   setReasonSearch(event.target.value);
                   setPage(1);
                 }}
-                placeholder="Reason code, note, discount code"
+                placeholder="Reason, discount, customer name or ID"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
               />
             </label>
@@ -331,13 +332,15 @@ export default function PosAuditExceptionsSection({
 
       <WidgetCard title="Stored Exception Events">
         <div className="overflow-x-auto">
-          <div className="min-w-[106rem] overflow-hidden rounded-2xl border border-slate-200">
-            <div className="grid grid-cols-[1fr_0.8fr_1fr_0.8fr_1fr_0.8fr_1fr_1fr_1fr_0.9fr_1fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <div className="min-w-[125rem] overflow-hidden rounded-2xl border border-slate-200">
+            <div className="grid grid-cols-[1fr_0.8fr_1fr_0.8fr_1fr_1fr_1fr_0.8fr_1fr_1fr_1fr_0.9fr_1fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Occurred At</span>
               <span>Type</span>
               <span>Order</span>
               <span>Status</span>
               <span>Reason / Discount</span>
+              <span>Discount Customer</span>
+              <span>Discount ID No.</span>
               <span>Amount</span>
               <span>Responsible User</span>
               <span>Requested By</span>
@@ -359,7 +362,7 @@ export default function PosAuditExceptionsSection({
                 rows.map((row) => (
                   <div
                     key={row.id}
-                    className="grid grid-cols-[1fr_0.8fr_1fr_0.8fr_1fr_0.8fr_1fr_1fr_1fr_0.9fr_1fr] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
+                    className="grid grid-cols-[1fr_0.8fr_1fr_0.8fr_1fr_1fr_1fr_0.8fr_1fr_1fr_1fr_0.9fr_1fr] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
                   >
                     <div>{formatDateTime(row.occurredAt)}</div>
                     <div>
@@ -390,6 +393,8 @@ export default function PosAuditExceptionsSection({
                         </div>
                       ) : null}
                     </div>
+                    <div className="break-words text-sm text-slate-700">{row.discountDetails?.discountCustomerName || (row.discountDetails ? "Not recorded" : "N/A")}</div>
+                    <div className="break-words text-sm text-slate-700">{row.discountDetails?.discountIdNumber || (row.discountDetails ? "Not recorded" : "N/A")}</div>
                     <div className="font-semibold text-slate-900">
                       {formatPeso(row.amount)}
                     </div>

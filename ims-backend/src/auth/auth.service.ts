@@ -123,6 +123,7 @@ export class AuthService {
     dto: LoginDto,
     requestMeta: { ipAddress?: string | null; userAgent?: string | null },
   ) {
+    this.authThrottleService.consumeLoginAttempt(requestMeta.ipAddress);
     const user = await this.usersService.findByEmailForAuth(dto.email);
 
     if (!user) {
@@ -283,12 +284,53 @@ export class AuthService {
     });
   }
 
+  async redeemPasswordResetLink(
+    token: string,
+    requestMeta: { ipAddress?: string | null },
+  ) {
+    this.authThrottleService.consumeResetPasswordAttempt(requestMeta.ipAddress);
+    const tokenHash = this.tokenService.hashPasswordResetToken(token);
+    const formToken = this.tokenService.generateOpaqueToken();
+    return this.prisma.$transaction(async (tx) => {
+      const now = new Date();
+      const link = await tx.passwordResetToken.findUnique({
+        where: { tokenHash },
+      });
+      if (!link || link.usedAt || link.expiresAt <= now) {
+        throw new BadRequestException(
+          'This link has expired or has already been opened. Request a new link.',
+        );
+      }
+      const claimed = await tx.passwordResetToken.updateMany({
+        where: { id: link.id, usedAt: null, expiresAt: { gt: now } },
+        data: { usedAt: now },
+      });
+      if (claimed.count !== 1) {
+        throw new BadRequestException(
+          'This link has expired or has already been opened. Request a new link.',
+        );
+      }
+      await tx.passwordResetToken.create({
+        data: {
+          userId: link.userId,
+          tokenHash: this.tokenService.hashPasswordResetToken(
+            `form:${formToken}`,
+          ),
+          expiresAt: link.expiresAt,
+        },
+      });
+      return { token: formToken, expiresAt: link.expiresAt };
+    });
+  }
+
   async resetPassword(
     dto: ResetPasswordDto,
     requestMeta: { ipAddress?: string | null },
   ): Promise<{ message: string }> {
     this.authThrottleService.consumeResetPasswordAttempt(requestMeta.ipAddress);
-    const tokenHash = this.tokenService.hashPasswordResetToken(dto.token);
+    const tokenHash = this.tokenService.hashPasswordResetToken(
+      `form:${dto.token}`,
+    );
     const now = new Date();
 
     const passwordResetToken = await this.prisma.passwordResetToken.findUnique({
@@ -322,51 +364,39 @@ export class AuthService {
       dto.newPassword,
     );
 
-    await this.prisma.$transaction([
-      this.prisma.user.update({
+    await this.prisma.$transaction(async (tx) => {
+      const usedAt = new Date();
+      const claimed = await tx.passwordResetToken.updateMany({
         where: {
-          id: passwordResetToken.userId,
+          id: passwordResetToken.id,
+          usedAt: null,
+          expiresAt: { gt: usedAt },
         },
+        data: { usedAt },
+      });
+      if (claimed.count !== 1) {
+        throw new BadRequestException('Invalid or expired reset token');
+      }
+      await tx.user.update({
+        where: { id: passwordResetToken.userId },
         data: {
           passwordHash,
           accountStatus: nextStatus,
           isActive: nextStatus === AccountStatus.ACTIVE,
-          passwordChangedAt: now,
+          passwordChangedAt: usedAt,
           failedLoginAttempts: 0,
           lockedUntil: null,
         },
-      }),
-      this.prisma.passwordResetToken.update({
-        where: {
-          id: passwordResetToken.id,
-        },
-        data: {
-          usedAt: now,
-        },
-      }),
-      this.prisma.passwordResetToken.updateMany({
-        where: {
-          userId: passwordResetToken.userId,
-          usedAt: null,
-          id: {
-            not: passwordResetToken.id,
-          },
-        },
-        data: {
-          usedAt: now,
-        },
-      }),
-      this.prisma.authSession.updateMany({
-        where: {
-          userId: passwordResetToken.userId,
-          revokedAt: null,
-        },
-        data: {
-          revokedAt: now,
-          revokeReason: 'password_reset',
-        },
-      }),
-    ]);
+      });
+      await tx.passwordResetToken.updateMany({
+        where: { userId: passwordResetToken.userId, usedAt: null },
+        data: { usedAt },
+      });
+      await tx.authSession.updateMany({
+        where: { userId: passwordResetToken.userId, revokedAt: null },
+        data: { revokedAt: usedAt, revokeReason: 'password_reset' },
+      });
+    });
 
     return { message: RESET_PASSWORD_SUCCESS_MESSAGE };
   }

@@ -170,7 +170,7 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }: Props) {
                   <input
                     value={form.unit}
                     onChange={(e) => updateField("unit", e.target.value)}
-                    placeholder="e.g. pcs, 16oz, 22oz"
+                    placeholder="e.g. count, 16oz, 22oz"
                     className="w-full rounded-lg bg-[#d9d9d9] px-3 py-2 text-sm outline-none"
                   />
                 </div>

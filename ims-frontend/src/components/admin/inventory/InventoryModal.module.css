@@ -102,9 +102,10 @@
 .stockRunManageDialog .stockRunItemForm > *:nth-child(3),.stockRunManageDialog .stockRunItemForm > *:nth-child(4) { grid-row:2; }
 .stockRunManageDialog .stockRunItemForm > .stockRunExpirationFields { grid-column:1; grid-row:4; display:flex; flex-direction:column; gap:14px; min-width:0; }
 .stockRunManageDialog .stockRunItemForm > .stockRunReceivedFields { display:contents; }
-.stockRunReceivedFields > .stockRunTimeField { grid-column:2; grid-row:3; min-width:0; }
+.stockRunManageDialog .stockRunItemForm > .stockRunTimeField { grid-column:1; grid-row:3; min-width:0; }
+.stockRunManageDialog .stockRunItemForm > .stockRunPriceFields { grid-column:2; grid-row:3; min-width:0; }
 .stockRunReceivedFields > div:last-child { grid-column:2; grid-row:4; min-width:0; }
-.priceCoverageRow { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); align-items:center; gap:12px; }
+.priceCoverageRow { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); align-items:start; gap:12px; }
 .stockRunCostPreview { min-width:0; padding-top:0; font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
 .stockRunManageDialog .stockRunItemForm > .stockRunNoteField { grid-column:1 / -1; grid-row:5; }
 .stockRunDateControl { display:flex; align-items:center; border:1px solid #cbd5e1; border-radius:8px; background:#fff; }
@@ -116,8 +117,8 @@
 .professional .stockRunDateControl button:focus-visible { outline-offset:-3px; }
 .priceCoverageControl { display:grid; width:100%; max-width:320px; grid-template-columns:repeat(2,minmax(0,1fr)); border:1px solid #cbd5e1; border-radius:8px; background:#fff; }
 .priceCoverageControl:focus-within { outline:2px solid #64748b; outline-offset:2px; border-color:#64748b; }
-.professional .priceCoverageControl input { height:38px; min-width:0; border:0; border-radius:8px 0 0 8px; }
-.professional .priceCoverageControl button[aria-haspopup="listbox"] { height:38px; min-height:38px; border:0; border-left:1px solid #cbd5e1; border-radius:0 8px 8px 0; font-size:14px; box-shadow:none; }
+.professional .priceCoverageControl input { height:44px; min-width:0; border:0; border-radius:8px 0 0 8px; }
+.professional .priceCoverageControl button[aria-haspopup="listbox"] { height:44px; min-height:44px; border:0; border-left:1px solid #cbd5e1; border-radius:0 8px 8px 0; font-size:14px; box-shadow:none; }
 .professional .priceCoverageControl input:focus,.professional .priceCoverageControl button:focus-visible { outline:none; box-shadow:none; }
 .stockRunManageDialog .stockRunItemForm > div:nth-child(-n+2) { min-width:0; }
 .stockRunManageDialog .stockRunItemForm .stockRunReceivedFields { align-content:start; gap:10px; }
@@ -141,7 +142,7 @@
   .stockRunManageDialog .stockRunItemForm { grid-template-columns:minmax(0,1fr); row-gap:16px; }
   .stockRunManageContainer { gap:16px; padding:16px; }
   .stockRunManageDialog .stockRunItemForm > * { grid-row:auto !important; }
-  .stockRunReceivedFields > .stockRunTimeField,.stockRunReceivedFields > div:last-child { grid-column:1; grid-row:auto; }
+  .stockRunManageDialog .stockRunItemForm > .stockRunTimeField,.stockRunManageDialog .stockRunItemForm > .stockRunPriceFields,.stockRunReceivedFields > div:last-child { grid-column:1; grid-row:auto; }
   .stockRunManageDialog .stockRunItemForm > .stockRunCostPreview { grid-column:1; padding-top:0; }
   .stockRunManageDialog .stockRunItemForm > .stockRunExpirationFields,.stockRunManageDialog .stockRunItemForm > .stockRunReceivedFields { grid-column:1; }
   .stockRunManageDialog .stockRunItemForm .stockRunNoteField,.stockRunManageDialog .stockRunItemForm > div:last-child { grid-column:1; }

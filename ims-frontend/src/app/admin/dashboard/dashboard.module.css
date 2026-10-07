@@ -52,7 +52,7 @@
 .alertActions button { border: 1px solid #c7c7c7; border-radius: 999px; background: #fff; padding: 7px 12px; color: #17233c; font-size: 16px; font-weight: 700; cursor: pointer; }
 .alertActions button:last-child { border-color: #fda4af; color: #be123c; }
 .alertActions button:hover { background: #f3f4f6; }
-.alertRow time { grid-column: 3; color: #4b5563; font-size: 16px; white-space: nowrap; }
+.alertRow time { grid-column: 3; justify-self: end; text-align: right; color: #4b5563; font-size: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .panel { min-width: 0; border: 1px solid #dce3ed; border-radius: 12px; background: #fff; box-shadow: 0 3px 12px #17243c05; }
 .panelHeader { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 22px 12px; }
 .panelTitle { margin: 0; font-size: 22px; font-weight: 650; }

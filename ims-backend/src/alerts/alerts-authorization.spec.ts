@@ -65,6 +65,7 @@ const routes = [
     path: '/alerts/alert-1/dismiss',
     permission: 'alerts.dismiss',
   },
+  { handler: 'deleteResolvedAlerts', method: 'post', path: '/alerts/resolved/delete', permission: 'alerts.dismiss' },
 ] as const;
 
 const permissionCases: { label: string; grants: PermissionKey[] }[] = [
@@ -118,6 +119,7 @@ describe('Alerts HTTP authorization', () => {
     getUnreadCount: jest.fn().mockResolvedValue({ count: 3 }),
     acknowledgeAlert: jest.fn().mockResolvedValue({ id: 'alert-1' }),
     dismissAlert: jest.fn().mockResolvedValue({ id: 'alert-1' }),
+    deleteResolvedAlerts: jest.fn().mockResolvedValue({ deletedCount: 1 }),
   };
   const calls = () =>
     Object.values(alertService).reduce(
@@ -127,7 +129,7 @@ describe('Alerts HTTP authorization', () => {
   const send = (
     route: { method: 'get' | 'post'; path: string },
     token: string | null = 'valid',
-    body: object = {},
+    body: object = route.path === '/alerts/resolved/delete' ? { ids: ['alert-1'] } : {},
   ) => {
     const req = request(app.getHttpServer() as Server)[route.method](
       route.path,
@@ -341,7 +343,7 @@ describe('Alerts HTTP authorization', () => {
     expect(alertService.getUnreadCount).toHaveBeenCalledWith();
   });
 
-  it.each(routes.filter((route) => route.method === 'post'))(
+  it.each(routes.filter((route) => route.method === 'post' && route.handler !== 'deleteResolvedAlerts'))(
     '$path keeps the authenticated actor, optional note and response envelope',
     async (route) => {
       grants = [route.permission];
@@ -361,6 +363,18 @@ describe('Alerts HTTP authorization', () => {
       );
     },
   );
+
+  it('deletes a specified resolved selection with its response count', async () => {
+    grants = ['alerts.dismiss'];
+    await send(routes[4], 'valid', { ids: ['one', 'two'] }).expect(201, { deletedCount: 1 });
+    expect(alertService.deleteResolvedAlerts).toHaveBeenCalledWith(['one', 'two']);
+  });
+
+  it.each([{}, { ids: [] }, { ids: ['one', 'one'] }, { ids: [123] }, { ids: Array.from({ length: 201 }, (_, i) => String(i)) }, { ids: ['one'], state: 'ACTIVE' }])('rejects invalid deletion payload %j', async (body) => {
+    grants = ['alerts.dismiss'];
+    await send(routes[4], 'valid', body).expect(400);
+    expect(alertService.deleteResolvedAlerts).not.toHaveBeenCalled();
+  });
 
   it.each(['/alerts?state=INVALID', '/alerts?limit=201'])(
     'preserves filter validation on %s',

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatUnit } from "@/lib/units";
 import styles from "./InventoryBusinessInsights.module.css";
 import { ArrowRight, Boxes, ChartNoAxesCombined, Clock3, PackageSearch, Truck } from "lucide-react";
 import type { InventoryHealthReport, StockRunSpendReport, WasteSummaryReport } from "@/lib/reports";
@@ -107,9 +108,9 @@ export default function InventoryBusinessInsights({
               <div>
                 <div className={styles.scroll}>
                   <table className={tableClass}>
-                    <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Material</th><th className={`${headCellClass} text-right`}>Usable</th><th className={`${headCellClass} text-right`}>Value</th></tr></thead>
+                    <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Material</th><th className={`${headCellClass} text-right`}>Usable</th><th className={headCellClass}>Unit</th><th className={`${headCellClass} text-right`}>Value</th></tr></thead>
                     <tbody>{inventoryHealth.highValueMaterials.map((item) => (
-                    <tr key={item.rawMaterialId}><td className={cellClass}><span className="block truncate font-medium">{item.name}</span></td><td className={`${cellClass} text-right`}>{formatQuantity(item.summary.usableQuantity)}</td><td className={`${cellClass} text-right font-semibold text-[#232d46]`}>{formatMoney(item.inventoryValue)}</td></tr>
+                    <tr key={item.rawMaterialId}><td className={cellClass}><span className="block truncate font-medium">{item.name}</span></td><td className={`${cellClass} text-right`}>{formatQuantity(item.summary.usableQuantity)}</td><td className={cellClass}>{formatUnit(item.unit.code)}</td><td className={`${cellClass} text-right font-semibold text-[#232d46]`}>{formatMoney(item.inventoryValue)}</td></tr>
                     ))}</tbody>
                   </table>
                 </div>

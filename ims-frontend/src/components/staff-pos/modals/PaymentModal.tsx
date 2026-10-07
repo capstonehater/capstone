@@ -75,14 +75,23 @@ export default function PaymentModal({
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]{0,5}"
+                  autoComplete="off"
                   maxLength={5}
                   value={payments[key]}
                   onKeyDown={event => {
-                    if (!event.ctrlKey && !event.metaKey && event.key.length === 1 && !/^[0-9]$/.test(event.key)) event.preventDefault();
+                    if (!event.ctrlKey && !event.metaKey && Array.from(event.key).length === 1 && !/^[0-9]$/.test(event.key)) event.preventDefault();
+                  }}
+                  onBeforeInput={event => {
+                    const data = (event.nativeEvent as InputEvent).data;
+                    if (data && !/^[0-9]+$/.test(data)) event.preventDefault();
                   }}
                   onChange={event => {
                     const amount = event.target.value;
-                    if (/^[0-9]{0,5}$/.test(amount)) setPayments(prev => ({ ...prev, [key]: amount }));
+                    if (/^[0-9]{0,5}$/.test(amount)) {
+                      setPayments(prev => ({ ...prev, [key]: amount }));
+                    } else {
+                      event.target.value = payments[key];
+                    }
                   }}
                   placeholder="0"
                 />

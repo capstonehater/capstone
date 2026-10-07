@@ -1,4 +1,5 @@
 "use client";
+import SearchInput from "@/components/ui/SearchInput";
 import DateFilter from "@/components/staff-pos/DateFilter";
 import selectStyles from "@/components/admin/AdminSelect.module.css";
 import AdminSelect from "@/components/admin/AdminSelect";
@@ -148,7 +149,7 @@ export default function MaterialDetailPanel({
   const activeBatches = batches.filter((batch) => Number(batch.remainingQuantity) > 0);
   const batchSuppliers = [...new Map(batches.filter((batch) => batch.supplier).map((batch) => [batch.supplier!.id, batch.supplier!])).values()];
   const matchingBatches = batches.filter((batch) => {
-    const matchesSearch = `${batch.id} ${batch.supplier?.name ?? ""} ${batch.stockRunItem?.stockRun.name ?? ""}`.toLowerCase().includes(batchSearch.trim().toLowerCase());
+    const matchesSearch = `${batch.reference ?? ""} ${batch.id} ${batch.stockRunItem?.stockRun.reference ?? ""} ${batch.supplier?.name ?? ""} ${batch.stockRunItem?.stockRun.name ?? ""}`.toLowerCase().includes(batchSearch.trim().toLowerCase());
     const remaining = Number(batch.remainingQuantity);
     return matchesSearch
       && (!batchStatus || (batchStatus === "active" ? remaining > 0 : remaining <= 0))
@@ -264,7 +265,7 @@ export default function MaterialDetailPanel({
           <div className={`${styles.historyFilters} grid gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 sm:grid-cols-2 xl:grid-cols-4`}>
             <div>
                   <label htmlFor="batch-search" className={selectStyles.label}>Search batches</label>
-              <input id="batch-search" value={batchSearch} onChange={(event) => setBatchSearch(event.target.value)} placeholder="Batch ID, supplier, or stock run" className={inventoryInputClasses} />
+              <SearchInput id="batch-search" value={batchSearch} onChange={(event) => setBatchSearch(event.target.value)} placeholder="Batch reference, supplier, or stock run" className={inventoryInputClasses} />
             </div>
             <AdminSelect label="Status" value={batchStatus} onChange={setBatchStatus} options={[{ value: "", label: "All statuses" }, { value: "active", label: "Remaining stock" }, { value: "depleted", label: "Depleted" }]} />
             <AdminSelect label="Supplier" value={batchSupplier} onChange={setBatchSupplier} options={[{ value: "", label: "All suppliers" }, { value: "none", label: "No supplier" }, ...batchSuppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))]} />
@@ -292,7 +293,7 @@ export default function MaterialDetailPanel({
                 ) : (
                   recentBatches.map((batch) => (
                     <tr key={batch.id} className="border-t border-slate-100">
-                      <td className="px-3 py-2 font-medium text-slate-900">{batch.id.slice(0, 8)}</td>
+                      <td className="px-3 py-2 font-medium text-slate-900">{(batch.reference ?? batch.id.slice(0, 8))}</td>
                       <td className="px-3 py-2">{formatQuantity(batch.remainingQuantity)}</td>
                       <td className="px-3 py-2">{formatMoney(batch.costPerUnit)}</td>
                       <td className="px-3 py-2">{formatDate(batch.expirationDate)}</td>
@@ -338,7 +339,7 @@ export default function MaterialDetailPanel({
                 <DateFilter label="To date" value={historyTo} onChange={onHistoryToChange} />
                 <div>
                   <label htmlFor="history-search" className={selectStyles.label}>Search</label>
-                  <input
+                  <SearchInput
                     id="history-search"
                     title={historySearchInput || "Type, reason code, note, or actor"}
                     value={historySearchInput}

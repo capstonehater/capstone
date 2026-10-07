@@ -1,4 +1,5 @@
 "use client";
+import SearchInput from "@/components/ui/SearchInput";
 import StyledSelect from "@/components/admin/StyledSelect";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
@@ -639,7 +640,7 @@ export default function UsersWorkspace() {
             <label className="relative block">
               <span className="sr-only">Search users</span>
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
+              <SearchInput
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 className="w-full rounded-full border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#f45a1f] focus:ring-2 focus:ring-[#f45a1f]/15"

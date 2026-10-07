@@ -82,6 +82,9 @@ const sessionTokenSecret = requireString('SESSION_TOKEN_SECRET');
 
 export const env = Object.freeze({
   NODE_ENV: nodeEnv,
+  // Comma-separated proxy IPs/CIDRs; empty means direct connections only.
+  TRUST_PROXY: process.env.TRUST_PROXY?.trim() || '',
+  LOGIN_IP_MAX_ATTEMPTS: parsePositiveInt('LOGIN_IP_MAX_ATTEMPTS', 30),
   SMTP_HOST: process.env.SMTP_HOST?.trim() || undefined,
   SMTP_PORT: parsePositiveInt('SMTP_PORT', 587),
   SMTP_USER: process.env.SMTP_USER?.trim() || undefined,

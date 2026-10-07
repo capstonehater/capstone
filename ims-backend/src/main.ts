@@ -1,6 +1,12 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { static as serveStatic, type Express } from 'express';
+import {
+  static as serveStatic,
+  type Express,
+  type Request,
+  type Response,
+  type NextFunction,
+} from 'express';
 import { PROFILE_PICTURE_DIRECTORY } from './settings/profile-picture';
 import { PRODUCT_IMAGE_DIRECTORY } from './catalog/product-image';
 import { env } from './config/env.validation';
@@ -11,7 +17,20 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const expressApp = app.getHttpAdapter().getInstance() as Express;
 
-  expressApp.set('trust proxy', 1);
+  expressApp.set(
+    'trust proxy',
+    env.TRUST_PROXY
+      ? env.TRUST_PROXY.split(',').map((address) => address.trim())
+      : false,
+  );
+  expressApp.disable('x-powered-by');
+  app.use((_request: Request, response: Response, next: NextFunction) => {
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('X-Frame-Options', 'DENY');
+    response.setHeader('Referrer-Policy', 'no-referrer');
+    response.setHeader('Cache-Control', 'no-store');
+    next();
+  });
 
   app.enableCors({
     origin: env.FRONTEND_ORIGIN,

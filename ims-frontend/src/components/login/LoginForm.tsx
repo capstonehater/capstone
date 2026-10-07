@@ -72,7 +72,6 @@ export default function LoginForm() {
 
   return (
     <div className={styles.formContent}>
-      <span className={styles.formMark} aria-hidden="true">✳</span>
       <h2 className={styles.formTitle}>Sign in</h2>
       <p className={styles.subtitle}>Enter your credentials to open the dashboard.</p>
       <form onSubmit={handleSubmit} className={styles.form}>

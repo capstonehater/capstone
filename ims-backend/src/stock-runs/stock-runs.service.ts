@@ -1,6 +1,7 @@
 import { withHistoricalMaterial } from '../inventory/material-history-snapshot';
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -32,12 +33,23 @@ export class StockRunsService {
   ) {}
 
   async createStockRun(dto: CreateStockRunDto, userId: string) {
-    return this.prisma.stockRun.create({
-      data: {
-        name: dto.name,
-        notes: dto.notes ?? null,
-        createdByUserId: userId,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      // Serialize creation system-wide so simultaneous requests cannot create two drafts.
+      await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtext('stock-run-draft-limit'))`;
+      const unfinishedDraft = await tx.stockRun.findFirst({
+        where: { status: StockRunStatus.DRAFT },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+        select: { id: true, name: true, reference: true },
+      });
+      if (unfinishedDraft) {
+        throw new ConflictException({
+          message: `Complete the first draft "${unfinishedDraft.name}" (${unfinishedDraft.reference ?? unfinishedDraft.id}) before creating another stock run. Post the draft to complete it, or delete it if it is no longer needed.`,
+          draftId: unfinishedDraft.id,
+        });
+      }
+      return tx.stockRun.create({
+        data: { name: dto.name, notes: dto.notes ?? null, createdByUserId: userId },
+      });
     });
   }
 
@@ -126,7 +138,7 @@ export class StockRunsService {
       const stockRun = await tx.stockRun.findUnique({
         where: { id: stockRunId },
         include: {
-          items: true,
+          items: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
         },
       });
 
@@ -165,6 +177,7 @@ export class StockRunsService {
             rawMaterialId: item.rawMaterialId,
             supplierId: item.supplierId ?? null,
             stockRunItemId: item.id,
+            reference: `${stockRun.reference}-B${String(createdBatches.length + 1).padStart(2, '0')}`,
             initialQuantity: item.quantity,
             remainingQuantity: item.quantity,
             costPerUnit: item.costPerUnit,
@@ -249,11 +262,10 @@ export class StockRunsService {
                 lte: filters.to ? new Date(filters.to) : undefined,
               }
             : undefined,
-        name: filters.search?.trim()
-          ? {
-              contains: filters.search.trim(),
-              mode: 'insensitive',
-            }
+        OR: filters.search?.trim()
+          ? ['name', 'reference'].map((field) => ({
+              [field]: { contains: filters.search!.trim(), mode: 'insensitive' as const },
+            }))
           : undefined,
       },
       orderBy: { createdAt: 'desc' },

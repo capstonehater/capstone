@@ -12,7 +12,7 @@ export const PASSWORD_RESET_RATE_LIMIT_MESSAGE =
   'Too many password reset attempts. Please try again later.';
 export const SESSION_TTL_MS = env.SESSION_TTL_HOURS * 60 * 60 * 1000;
 export const SESSION_IDLE_TTL_MS = env.SESSION_IDLE_TTL_HOURS * 60 * 60 * 1000;
-export const PASSWORD_RESET_TTL_MS = env.PASSWORD_RESET_TTL_MINUTES * 60 * 1000;
+export const PASSWORD_RESET_TTL_MS = 30 * 60 * 1000;
 export const PASSWORD_RESET_RATE_LIMIT_WINDOW_MS =
   env.PASSWORD_RESET_RATE_LIMIT_WINDOW_MINUTES * 60 * 1000;
 export const MIN_PASSWORD_LENGTH = 10;

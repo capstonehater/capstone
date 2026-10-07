@@ -89,3 +89,15 @@ a.btn.rounded-full {
 :where(th) { font-weight: 600; }
 :where(td) { font-variant-numeric: tabular-nums; }
 :where(button, a, input, select, textarea):focus-visible { outline: 2px solid #426da6; outline-offset: 3px; }
+
+/* Keep inventory backgrounds still for both native report dialogs and form modals. */
+html:has([data-inventory-modal], dialog[data-inventory-report-modal][open]),
+body:has([data-inventory-modal], dialog[data-inventory-report-modal][open]) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+[data-inventory-modal] { overscroll-behavior: contain; }
+[data-inventory-modal] :where(.overflow-auto, .overflow-y-auto, .overflow-y-scroll) {
+  overscroll-behavior: contain;
+}

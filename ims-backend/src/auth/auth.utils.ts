@@ -11,15 +11,22 @@ export function readCookieValue(
 
   const cookies = cookieHeader.split(';');
 
+  let found: string | null = null;
   for (const cookie of cookies) {
     const [key, ...valueParts] = cookie.trim().split('=');
 
     if (key === cookieName) {
-      return decodeURIComponent(valueParts.join('='));
+      // Ambiguous or malformed credentials must fail authentication.
+      if (found !== null) return null;
+      try {
+        found = decodeURIComponent(valueParts.join('='));
+      } catch {
+        return null;
+      }
     }
   }
 
-  return null;
+  return found;
 }
 
 export function readSessionTokenFromRequest(request: Request): string | null {
@@ -27,17 +34,8 @@ export function readSessionTokenFromRequest(request: Request): string | null {
 }
 
 export function getClientIp(request: Request): string | null {
-  const forwardedFor = request.headers['x-forwarded-for'];
-
-  if (typeof forwardedFor === 'string' && forwardedFor.length > 0) {
-    return forwardedFor.split(',')[0].trim();
-  }
-
-  if (Array.isArray(forwardedFor) && forwardedFor.length > 0) {
-    return forwardedFor[0]?.split(',')[0].trim() ?? null;
-  }
-
-  return request.ip ?? null;
+  // Express resolves this using the configured trusted proxy addresses.
+  return request.ip ?? request.socket?.remoteAddress ?? null;
 }
 
 export function getUserAgent(request: Request): string | null {

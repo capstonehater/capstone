@@ -2028,6 +2028,8 @@ export function exportPosAuditExceptionsCsv(
       "Order ID",
       "Status",
       "Reason / Discount",
+      "Discount Customer",
+      "Discount ID No.",
       "Amount",
       "Responsible User",
       "Requested By",
@@ -2043,6 +2045,8 @@ export function exportPosAuditExceptionsCsv(
       row.kind === "DISCOUNT"
         ? row.discountDetails?.discountCode ?? "ORDER_LEVEL_DISCOUNT"
         : row.reasonCode ?? "",
+      row.discountDetails?.discountCustomerName ?? "",
+      row.discountDetails?.discountIdNumber ?? "",
       row.amount,
       `${row.responsibleUser.firstName} ${row.responsibleUser.lastName}`,
       row.relatedUser
@@ -2079,7 +2083,7 @@ export function exportPosAuditExceptionsPdf(
         <meta charset="utf-8" />
         <title>${escapeHtml(filename)}</title>
         <style>
-          @page { size: A4; margin: 16mm; }
+          @page { size: A4 landscape; margin: 12mm; }
           body { margin: 0; color: #1f2937; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.45; background: #ffffff; }
           .page { padding: 12px 0 24px; }
           h1 { margin: 0 0 8px; color: #0f172a; font-size: 24px; }
@@ -2091,7 +2095,7 @@ export function exportPosAuditExceptionsPdf(
           .summary-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
           .summary-value { margin-top: 6px; color: #0f172a; font-size: 18px; font-weight: 700; }
           table { width: 100%; border-collapse: collapse; border: 1px solid #dbe3ee; border-radius: 10px; overflow: hidden; }
-          th, td { border-bottom: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
+          th, td { border-bottom: 1px solid #e2e8f0; padding: 6px 5px; text-align: left; vertical-align: top; overflow-wrap: anywhere; font-size: 9px; }
           th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
           td.empty { color: #64748b; font-style: italic; }
         </style>
@@ -2119,7 +2123,7 @@ export function exportPosAuditExceptionsPdf(
 
           ${renderHtmlTable(
             "Audit & Exceptions",
-            ["Occurred At", "Type", "Order ID", "Status", "Reason / Discount", "Amount", "Responsible User", "Requested By", "Approved By", "Payment Reference", "Note"],
+            ["Occurred At", "Type", "Order ID", "Status", "Reason / Discount", "Discount Customer", "Discount ID No.", "Amount", "Responsible User", "Requested By", "Approved By", "Payment Reference", "Note"],
             snapshot.report.rows.map((row) => [
               formatDateTime(row.occurredAt),
               row.kind,
@@ -2128,6 +2132,8 @@ export function exportPosAuditExceptionsPdf(
               row.kind === "DISCOUNT"
                 ? row.discountDetails?.discountCode ?? "ORDER_LEVEL_DISCOUNT"
                 : row.reasonCode ?? "N/A",
+              row.discountDetails?.discountCustomerName ?? (row.discountDetails ? "Not recorded" : "N/A"),
+              row.discountDetails?.discountIdNumber ?? (row.discountDetails ? "Not recorded" : "N/A"),
               formatPeso(row.amount),
               `${row.responsibleUser.firstName} ${row.responsibleUser.lastName}`,
               row.relatedUser

@@ -99,7 +99,7 @@ export default function WasteModal({
         <AdminSelect searchable required label="Raw material" value={wasteForm.rawMaterialId} onChange={(rawMaterialId) => { onWasteFormChange((current) => ({ ...current, rawMaterialId, batchId: "" })); onSelectRawMaterial(rawMaterialId); }} options={[{ value: "", label: "Select raw material" }, ...summaries.map((summary) => ({ value: summary.rawMaterialId, label: summary.name }))]} />
         </InventoryValidationField>
         <InventoryValidationField error={validationAttempted ? errors.batch : undefined}>
-        <AdminSelect searchable required label="Batch" value={wasteForm.batchId} onChange={(batchId) => onWasteFormChange((current) => ({ ...current, batchId }))} options={[{ value: "", label: "Select batch" }, ...batches.map((batch) => ({ value: batch.id, label: `${batch.id.slice(0, 8)} · remaining ${formatQuantity(batch.remainingQuantity)}` }))]} />
+        <AdminSelect searchable required label="Batch" value={wasteForm.batchId} onChange={(batchId) => onWasteFormChange((current) => ({ ...current, batchId }))} options={[{ value: "", label: "Select batch" }, ...batches.map((batch) => ({ value: batch.id, label: `${(batch.reference ?? batch.id.slice(0, 8))} · remaining ${formatQuantity(batch.remainingQuantity)}` }))]} />
         </InventoryValidationField>
         <InventoryValidationField error={validationAttempted ? errors.quantity : undefined}>
         <InventoryField htmlFor="waste-quantity" label="Quantity" required>

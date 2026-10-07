@@ -47,6 +47,7 @@ export class AlertsService {
         stockBatch: {
           select: {
             id: true,
+            reference: true,
             expirationDate: true,
             remainingQuantity: true,
             costPerUnit: true,
@@ -80,6 +81,21 @@ export class AlertsService {
     return alerts
       .sort((left, right) => this.compareAlerts(left, right))
       .slice(0, limit);
+  }
+
+  async deleteResolvedAlerts(ids: string[]) {
+    if (!ids.length || ids.length > 200 || new Set(ids).size !== ids.length) {
+      throw new BadRequestException('Select between 1 and 200 distinct resolved alerts.');
+    }
+    return this.prisma.$transaction(async (tx) => {
+      const result = await tx.alert.deleteMany({
+        where: { id: { in: ids }, state: AlertState.RESOLVED },
+      });
+      if (result.count !== ids.length) {
+        throw new BadRequestException('Some selected alerts are missing or no longer resolved. Refresh and try again.');
+      }
+      return { deletedCount: result.count };
+    });
   }
 
   async getUnreadCount() {
@@ -269,8 +285,8 @@ export class AlertsService {
             ? `${material.name} batch has expired`
             : `${material.name} batch is nearing expiry`,
           message: isExpired
-            ? `Batch ${batch.id.slice(0, 8)} expired on ${batch.expirationDate.toISOString().slice(0, 10)} with ${batch.remainingQuantity.toString()} remaining.`
-            : `Batch ${batch.id.slice(0, 8)} expires on ${batch.expirationDate.toISOString().slice(0, 10)} with ${batch.remainingQuantity.toString()} remaining.`,
+            ? `Batch ${(batch.reference ?? batch.id.slice(0, 8))} expired on ${batch.expirationDate.toISOString().slice(0, 10)} with ${batch.remainingQuantity.toString()} remaining.`
+            : `Batch ${(batch.reference ?? batch.id.slice(0, 8))} expires on ${batch.expirationDate.toISOString().slice(0, 10)} with ${batch.remainingQuantity.toString()} remaining.`,
           rawMaterialId: material.id,
           stockBatchId: batch.id,
           supplierId: batch.supplierId ?? null,

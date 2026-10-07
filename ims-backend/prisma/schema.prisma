@@ -449,6 +449,7 @@ model ModifierRecipeAdjustment {
 }
 
 model StockRun {
+  reference       String         @unique @default(dbgenerated("next_stock_run_reference()"))
   id              String         @id @default(uuid())
   name            String
   status          StockRunStatus @default(DRAFT)
@@ -496,6 +497,7 @@ model StockRunItem {
 }
 
 model StockBatch {
+  reference         String?   @unique
   id                String    @id @default(uuid())
   rawMaterialId     String?    @map("raw_material_id")
   rawMaterialSnapshot Json? @map("raw_material_snapshot")
@@ -667,6 +669,8 @@ model Order {
   idempotencyKey  String      @unique @map("idempotency_key")
   subtotalAmount  Decimal     @map("subtotal_amount") @db.Decimal(12, 2)
   discountCode    String?     @map("discount_code")
+  discountCustomerName String? @map("discount_customer_name") @db.VarChar(120)
+  discountIdNumber String? @map("discount_id_number") @db.VarChar(120)
   discountRate    Decimal     @default(0) @map("discount_rate") @db.Decimal(8, 4)
   discountAmount  Decimal     @default(0) @map("discount_amount") @db.Decimal(12, 2)
   taxAmount       Decimal     @default(0) @map("tax_amount") @db.Decimal(12, 2)
@@ -960,4 +964,11 @@ model AuthorizationAuditEvent {
   @@index([targetUserId, createdAt])
   @@index([targetRoleId, createdAt])
   @@map("authorization_audit_events")
+}
+
+model StockRunReferenceCounter {
+  runDate DateTime @id @map("run_date") @db.Date
+  lastNumber BigInt @map("last_number")
+
+  @@map("stock_run_reference_counters")
 }

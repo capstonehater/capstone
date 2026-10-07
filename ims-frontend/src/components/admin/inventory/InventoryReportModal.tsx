@@ -23,6 +23,7 @@ export default function InventoryReportModal({ title, description, onClose, chil
   return (
     <dialog
       ref={dialogRef}
+      data-inventory-report-modal
       className={`${styles.dialog} ${motion.panel} ${className}`}
       aria-labelledby="inventory-report-title"
       onCancel={(event) => {

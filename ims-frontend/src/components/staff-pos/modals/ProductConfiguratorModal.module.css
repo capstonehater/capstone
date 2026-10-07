@@ -82,3 +82,7 @@
 
 .requiredMark { color: #be123c; font-weight: 700; }
 .body .requiredHint { margin: 0; font-size: 12px; line-height: 1.5; color: #64748b; }
+
+.modifierGroup.missingSelection { border-color: #e11d48; background: #fff1f2; }
+.missingSelection .groupTitle, .body .missingSelection .groupHint { color: #be123c; }
+.missingSelection .selectionCount { background: #ffe4e6; color: #be123c; }

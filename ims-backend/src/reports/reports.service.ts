@@ -2775,6 +2775,8 @@ export class ReportsService {
                     },
                   },
                   discountCode: true,
+                  discountCustomerName: true,
+                  discountIdNumber: true,
                   discountRate: true,
                   discountAmount: true,
                 },
@@ -2791,6 +2793,8 @@ export class ReportsService {
               status: true,
               completedAt: true,
               discountCode: true,
+              discountCustomerName: true,
+              discountIdNumber: true,
               discountRate: true,
               discountAmount: true,
               totalAmount: true,
@@ -2875,6 +2879,8 @@ export class ReportsService {
           discountDetails: reversal.order.discountAmount.greaterThan(ZERO)
             ? {
                 discountCode: reversal.order.discountCode,
+                discountCustomerName: reversal.order.discountCustomerName,
+                discountIdNumber: reversal.order.discountIdNumber,
                 discountRate: reversal.order.discountRate,
                 discountAmount: reversal.order.discountAmount,
               }
@@ -2901,6 +2907,8 @@ export class ReportsService {
         paymentReference: null,
         discountDetails: {
           discountCode: order.discountCode,
+          discountCustomerName: order.discountCustomerName,
+          discountIdNumber: order.discountIdNumber,
           discountRate: order.discountRate,
           discountAmount: order.discountAmount,
         },
@@ -2930,6 +2938,8 @@ export class ReportsService {
             row.reasonCode ?? '',
             row.note ?? '',
             row.discountDetails?.discountCode ?? '',
+            row.discountDetails?.discountCustomerName ?? '',
+            row.discountDetails?.discountIdNumber ?? '',
           ]
             .join(' ')
             .toLowerCase();

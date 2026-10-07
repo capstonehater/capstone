@@ -1,4 +1,5 @@
 "use client";
+import SearchInput from "@/components/ui/SearchInput";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -25,6 +26,7 @@ import ProductConfiguratorModal from "./modals/ProductConfiguratorModal";
 import VoidConfirmationModal from "./modals/VoidConfirmationModal";
 import CancelTransactionModal from "./modals/CancelTransactionModal";
 import PaymentModal, { type PaymentState } from "./modals/PaymentModal";
+import DiscountDetailsModal, { type DiscountDetails } from "./modals/DiscountDetailsModal";
 import ReceiptModal from "./modals/ReceiptModal";
 import ActionAlert from "@/components/feedback/ActionAlert";
 import OrderReversalModal from "./modals/OrderReversalModal";
@@ -48,7 +50,6 @@ const DISCOUNT_OPTIONS: DiscountOption[] = [
   { value: "none", label: "No Discount", rate: 0 },
   { value: "senior", label: "Senior Citizen (20%)", rate: 0.2 },
   { value: "pwd", label: "PWD (20%)", rate: 0.2 },
-  { value: "staff-meal", label: "Staff Meal (10%)", rate: 0.1 },
 ];
 
 function buildCartItem(payload: ConfiguredPosCartItemInput, existing?: PosCartItem | null): PosCartItem {
@@ -104,6 +105,8 @@ export default function StaffPOSPage() {
   const [editingCartItem, setEditingCartItem] = useState<PosCartItem | null>(null);
   const [transactionNote, setTransactionNote] = useState("");
   const [discount, setDiscount] = useState("none");
+  const [discountDetails, setDiscountDetails] = useState<DiscountDetails | null>(null);
+  const [pendingDiscount, setPendingDiscount] = useState<"senior" | "pwd" | null>(null);
   const [payments, setPayments] = useState<PaymentState>({ cash: "", gcash: "", maya: "", card: "" });
   const [latestReceipt, setLatestReceipt] = useState<PosOrder | null>(null);
   const [cashCorrectionOrder, setCashCorrectionOrder] = useState<PosOrder | null>(null);
@@ -170,10 +173,21 @@ export default function StaffPOSPage() {
     return { subtotal, discountAmount, total, tax: calculateIncludedVat(total) };
   }, [cart, discountConfig.rate]);
 
+  const selectDiscount = (value: string) => {
+    if (value === "senior" || value === "pwd") setPendingDiscount(value);
+    else { setDiscount("none"); setDiscountDetails(null); }
+  };
+  const openPayment = () => {
+    if ((discount === "senior" || discount === "pwd") && (!discountDetails?.name.trim() || !discountDetails.idNumber.trim())) {
+      setPendingDiscount(discount);
+      return;
+    }
+    setShowPayment(true);
+  };
   const closeConfigurator = () => { setConfiguratorProduct(null); setEditingCartItem(null); };
   const resetTransaction = () => {
     setShowCancelTransaction(false);
-    setMobileCartOpen(false); setCart([]); setTransactionNote(""); setDiscount("none");
+    setMobileCartOpen(false); setCart([]); setTransactionNote(""); setDiscount("none"); setDiscountDetails(null); setPendingDiscount(null);
     setPayments({ cash: "", gcash: "", maya: "", card: "" }); closeConfigurator(); setVoidTargetItem(null);
   };
 
@@ -253,6 +267,8 @@ export default function StaffPOSPage() {
       .filter((payment) => payment.amount > 0),
     discountCode: discountConfig.value !== "none" ? discountConfig.label : undefined,
     discountRate: discountConfig.rate,
+    discountCustomerName: discount !== "none" ? discountDetails?.name : undefined,
+    discountIdNumber: discount !== "none" ? discountDetails?.idNumber : undefined,
     notes: transactionNote || undefined,
   });
   const returnToPayment = () => {
@@ -284,6 +300,11 @@ export default function StaffPOSPage() {
       return;
     }
     if (!cart.length) return setError("No transaction to process.");
+    if (discount !== "none" && (!discountDetails?.name.trim() || !discountDetails.idNumber.trim())) {
+      setShowPayment(false);
+      selectDiscount(discount);
+      return;
+    }
     const totalPaid = ([payments.cash, payments.gcash, payments.maya, payments.card]).reduce((sum, value) => sum + Number(value || 0), 0);
     if (totalPaid < totals.total) return setError("Incomplete payment. Please settle the full amount before checkout.");
     const operationId = createOfflineOperationId("checkout");
@@ -365,7 +386,7 @@ export default function StaffPOSPage() {
             <div className={styles.productToolbar}>
               <div className={styles.productSearch}>
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by product, category, or SKU" className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none focus:border-[#232d46]" />
+                <SearchInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by product, category, or SKU" className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none focus:border-[#232d46]" />
               </div>
               <button type="button" onClick={() => { setMobileCartOpen(false); setChoosingCategory(true); setSearch(""); }} className="order-first inline-flex shrink-0 items-center gap-2 rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-[#232d46] hover:bg-slate-50"><ArrowLeft size={18} />Back to Categories</button>
             </div>
@@ -446,7 +467,8 @@ export default function StaffPOSPage() {
 
             <div className={styles.cartSummary}>
               <div>
-                <AdminSelect label="Discount" value={discount} onChange={setDiscount} options={DISCOUNT_OPTIONS} />
+                <AdminSelect label="Discount" value={discount} onChange={selectDiscount} options={DISCOUNT_OPTIONS} />
+                {discountDetails && discount !== "none" && <div className="mt-2 text-sm text-slate-600"><p className="break-words">{discountDetails.name} · {discountDetails.idNumber}</p><button type="button" onClick={() => selectDiscount(discount)} className="underline">Edit ID details</button></div>}
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="pos-cart-notes">Transaction Notes</label>
@@ -462,7 +484,7 @@ export default function StaffPOSPage() {
 
             <div className={styles.cartActions}>
               <button onClick={handleCancelTransaction} type="button" disabled={cart.length === 0 || checkoutLoading} className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50">Cancel Transaction</button>
-              <PermissionAction permission="pos.checkout"><button onClick={() => setShowPayment(true)} type="button" disabled={cart.length === 0} className="rounded-2xl bg-[#232d46] px-4 py-3 text-sm font-semibold text-white hover:bg-[#34445f] disabled:cursor-not-allowed disabled:bg-slate-300">{checkoutLoading ? "Processing..." : "Process Order"}</button></PermissionAction>
+              <PermissionAction permission="pos.checkout"><button onClick={openPayment} type="button" disabled={cart.length === 0} className="rounded-2xl bg-[#232d46] px-4 py-3 text-sm font-semibold text-white hover:bg-[#34445f] disabled:cursor-not-allowed disabled:bg-slate-300">{checkoutLoading ? "Processing..." : "Process Order"}</button></PermissionAction>
             </div>
           </aside>
           </>}
@@ -470,6 +492,7 @@ export default function StaffPOSPage() {
         </div>
       </div>
 
+      {pendingDiscount && <DiscountDetailsModal discount={pendingDiscount} initialDetails={pendingDiscount === discount ? discountDetails : null} onClose={() => setPendingDiscount(null)} onSubmit={details => { setDiscount(pendingDiscount); setDiscountDetails(details); setPendingDiscount(null); }} />}
       {showCancelTransaction ? <CancelTransactionModal items={cart} total={totals.total} onClose={() => setShowCancelTransaction(false)} onConfirm={() => { resetTransaction(); setError(null); setNotice("Transaction cancelled. You can start a new order."); }} /> : null}
       {configuratorProduct ? <ProductConfiguratorModal product={configuratorProduct} cart={cart} initialItem={editingCartItem} onClose={closeConfigurator} onSubmit={editingCartItem ? updateConfiguredItem : addConfiguredItem} submitLabel={editingCartItem ? "Save Changes" : "Add to Cart"} /> : null}
       {voidTargetItem ? <VoidConfirmationModal item={voidTargetItem} onClose={() => setVoidTargetItem(null)} onConfirm={() => { if (!voidTargetItem) return; setCart((current) => current.filter((item) => item.cartId !== voidTargetItem.cartId)); if (editingCartItem?.cartId === voidTargetItem.cartId) closeConfigurator(); setVoidTargetItem(null); }} /> : null}

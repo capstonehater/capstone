@@ -5,7 +5,7 @@ const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 function firstHeaderValue(value: string | string[] | undefined): string | null {
   if (Array.isArray(value)) {
-    return value[0] ?? null;
+    return null;
   }
 
   return value ?? null;
@@ -53,5 +53,5 @@ export function csrfOriginMiddleware(
     return;
   }
 
-  next();
+  response.status(403).json({ message: 'Request origin required' });
 }

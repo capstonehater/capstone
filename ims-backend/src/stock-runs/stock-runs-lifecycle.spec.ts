@@ -20,6 +20,7 @@ describe('Stock Run lifecycle protections retained during authorization migratio
   };
   const run = {
     id: 'run-1',
+    reference: 'ST-RUN-20261006-001',
     name: 'Delivery',
     status: StockRunStatus.DRAFT as StockRunStatus,
     items: [item],
@@ -181,6 +182,14 @@ describe('Stock Run lifecycle protections retained during authorization migratio
     });
     const errors = await validate(dto);
     expect(errors.some((error) => error.property === 'costQuantity')).toBe(true);
+  });
+  it('numbers batches within the run while preserving their UUID links', async () => {
+    run.items = [item, { ...item, id: 'item-2' }];
+    await service.postStockRun(run.id, 'actor');
+    expect(stockBatch.create.mock.calls.map(([input]) => input.data.reference)).toEqual([
+      'ST-RUN-20261006-001-B01', 'ST-RUN-20261006-001-B02',
+    ]);
+    expect(stockBatch.create.mock.calls.map(([input]) => input.data.stockRunItemId)).toEqual(['item-1', 'item-2']);
   });
   it('only drafts can be deleted', async () => {
     run.status = StockRunStatus.POSTED;

@@ -33,7 +33,7 @@ const routes = [
   {
     method: 'post',
     path: '/settings/change-password',
-    body: { currentPassword: 'Current1234', newPassword: 'Changed1234' },
+    body: { currentPassword: 'Current1234', newPassword: 'Changed123!' },
   },
 ] as const;
 describe('Settings self-service authorization and account protections', () => {
@@ -208,7 +208,7 @@ describe('Settings self-service authorization and account protections', () => {
   });
   it('password change hashes and revokes only own sessions and clears cookie', async () => {
     const response = await send(routes[2]).expect(201);
-    expect(passwords.hashPassword).toHaveBeenCalledWith('Changed1234');
+    expect(passwords.hashPassword).toHaveBeenCalledWith('Changed123!');
     expect(user.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'self' },

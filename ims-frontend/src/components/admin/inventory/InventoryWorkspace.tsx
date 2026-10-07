@@ -1,6 +1,7 @@
 "use client";
 import { loadIfAllowed } from "@/lib/permission-loading";
 import { useAuthStore } from "@/store/authStore";
+import { findUnfinishedStockRun, unfinishedStockRunMessage } from "@/lib/stock-run-draft-limit";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
@@ -187,7 +188,7 @@ function getTransactionCost(transaction: InventoryTransaction) {
   return transaction.lines.reduce((sum, line) => sum + Number(line.totalCostDelta), 0);
 }
 
-export default function InventoryWorkspace({ initialView = "overview", initialDraftId, initialAction }: { initialView?: InventoryView; initialDraftId?: string; initialAction?: "create-material" | "stock-run-create" | "waste" }) {
+export default function InventoryWorkspace({ initialView = "overview", initialDraftId, initialAction, initialMaterialId, initialBatchId }: { initialView?: InventoryView; initialDraftId?: string; initialAction?: "create-material" | "stock-run-create" | "waste"; initialMaterialId?: string; initialBatchId?: string }) {
   const canViewReports = useAuthStore(state => state.can("reports.view"));
   const canViewStockRuns = useAuthStore(state => state.can("stockRuns.view"));
   const sectionNavRef = useRef<HTMLElement>(null);
@@ -258,6 +259,10 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   const [batches, setBatches] = useState<StockBatch[]>([]);
   const [transactions, setTransactions] = useState<InventoryTransaction[]>([]);
   const [stockRuns, setStockRuns] = useState<StockRun[]>([]);
+  const [unfinishedDraft, setUnfinishedDraft] = useState<StockRun | null>(null);
+  const [draftWarning, setDraftWarning] = useState(false);
+  const [checkingDraft, setCheckingDraft] = useState(false);
+  const checkingDraftRef = useRef(false);
   const [activeStockRunId, setActiveStockRunId] = useState<string | null>(initialDraftId ?? null);
   const [activeStockRun, setActiveStockRun] = useState<StockRun | null>(null);
   const [inventoryHealth, setInventoryHealth] = useState<InventoryHealthReport | null>(null);
@@ -293,9 +298,10 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
 
   const hydratedRef = useRef(false);
   useEffect(() => {
+    if (initialMaterialId) setSelectedRawMaterialId(initialMaterialId);
     if (initialDraftId) setActivePanel("stock-run-manage");
-    else if (initialAction) setActivePanel(initialAction);
-  }, [initialDraftId, initialAction, setActivePanel]);
+    else if (initialAction && initialAction !== "stock-run-create") setActivePanel(initialAction);
+  }, [initialDraftId, initialAction, initialMaterialId, setSelectedRawMaterialId, setActivePanel]);
 
   const selectedSummary =
     summaries.find((item) => item.rawMaterialId === selectedRawMaterialId) ?? null;
@@ -307,6 +313,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
       supplierId: supplierFilter || undefined,
     });
     setSummaries(nextSummaries);
+    if (initialMaterialId && !hydratedRef.current) { setSelectedRawMaterialId(initialMaterialId); return; }
     if (!selectedRawMaterialId && nextSummaries[0]) setSelectedRawMaterialId(nextSummaries[0].rawMaterialId);
     if (selectedRawMaterialId && !nextSummaries.some((item) => item.rawMaterialId === selectedRawMaterialId)) {
       setSelectedRawMaterialId(nextSummaries[0]?.rawMaterialId ?? null);
@@ -478,8 +485,8 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   }, [activeStockRunId]);
 
   useEffect(() => {
-    setWasteForm((current) => ({ ...current, rawMaterialId: selectedRawMaterialId || "", batchId: current.rawMaterialId === selectedRawMaterialId ? current.batchId : "" }));
-  }, [selectedRawMaterialId]);
+    setWasteForm((current) => ({ ...current, rawMaterialId: selectedRawMaterialId || "", batchId: current.rawMaterialId === selectedRawMaterialId ? current.batchId : (selectedRawMaterialId === initialMaterialId && initialAction === "waste" ? initialBatchId || "" : ""), reasonCode: selectedRawMaterialId === initialMaterialId && initialAction === "waste" ? "EXPIRED" : current.reasonCode }));
+  }, [selectedRawMaterialId, initialMaterialId, initialBatchId, initialAction]);
 
   useEffect(() => {
     const unitCode = summaries.find((item) => item.rawMaterialId === selectedRawMaterialId)?.unit.code;
@@ -491,6 +498,15 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
       ...defaultStockRunPriceBasis(unitCode),
     }));
   }, [selectedRawMaterialId, summaries]);
+
+  const initialBatchOpened = useRef(false);
+  useEffect(() => {
+    if (!initialBatchId || initialAction === "waste" || initialLoading || detailLoading || selectedMaterial?.id !== initialMaterialId || initialBatchOpened.current) return;
+    const batch = batches.find(item => item.id === initialBatchId);
+    if (!batch) return;
+    initialBatchOpened.current = true;
+    void openBatchDrilldown(batch);
+  }, [initialBatchId, initialMaterialId, initialAction, initialLoading, detailLoading, selectedMaterial, batches]);
 
   const runAction = async (action: () => Promise<void>, fallbackMessage: string) => {
     setSubmitting(true);
@@ -505,6 +521,38 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
     }
   };
 
+  const showUnfinishedDraft = (draft: StockRun) => {
+    setUnfinishedDraft(draft);
+    setDraftWarning(true);
+    setActivePanel(null);
+  };
+  const openStockRunCreate = async () => {
+    if (!useAuthStore.getState().can("stockRuns.create")) return;
+    if (checkingDraftRef.current || submitting) return;
+    checkingDraftRef.current = true;
+    setCheckingDraft(true);
+    setError(null);
+    try {
+      const drafts = await fetchStockRuns({ status: "DRAFT" });
+      const unfinished = findUnfinishedStockRun(drafts);
+      if (unfinished) { showUnfinishedDraft(unfinished); return; }
+      setUnfinishedDraft(null); setDraftWarning(false);
+      setStockRunForm({ name: "", notes: "" });
+      setActivePanel("stock-run-create");
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Unable to check unfinished stock runs. Please try again.");
+    } finally {
+      checkingDraftRef.current = false;
+      setCheckingDraft(false);
+    }
+  };
+  const initialCreateChecked = useRef(false);
+  useEffect(() => {
+    if (initialAction !== "stock-run-create" || initialLoading || initialCreateChecked.current) return;
+    initialCreateChecked.current = true;
+    void openStockRunCreate();
+  });
+
   return (
     <AdminDashboardLayout showHeader={false}>
       <div className={`flex min-w-0 w-full flex-col gap-5 bg-[#f5f5f5] text-[#232d46] `}>
@@ -514,9 +562,12 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
         </nav>
         <div className={styles.materialActions} aria-label="Material actions">
           <PermissionAction permission={"inventory.create"}><button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }}><Plus size={16} />Add Raw Material</button></PermissionAction>
-          <PermissionAction permission={"stockRuns.create"}><button type="button" disabled={initialLoading || submitting} onClick={() => { setError(null); setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }}><Plus size={16} />Create Stock-Run Draft</button></PermissionAction>
+          <PermissionAction permission={"stockRuns.create"}><button type="button" disabled={initialLoading || submitting || checkingDraft} onClick={() => void openStockRunCreate()}><Plus size={16} />Create Stock-Run Draft</button></PermissionAction>
           <PermissionAction permission={"inventory.waste"}><button type="button" style={{ marginLeft: 8 }} disabled={initialLoading || submitting} onClick={() => { setError(null); setWasteForm(defaultWasteForm(selectedRawMaterialId)); setActivePanel("waste"); }}>Record Waste</button></PermissionAction>
         </div>
+
+        {draftWarning && unfinishedDraft && <ActionAlert tone="warning" title="Complete the first draft" message={unfinishedStockRunMessage(unfinishedDraft)} onDismiss={() => setDraftWarning(false)} />}
+        {unfinishedDraft && <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4"><div><p className="font-semibold">Unfinished stock run: {unfinishedDraft.name}</p><p className="text-sm text-slate-600">{unfinishedDraft.reference}. Finish this draft before creating another stock run.</p></div><PermissionAction permission="stockRuns.view"><button type="button" className="rounded-lg bg-[#232d46] px-4 py-2 font-semibold text-white" onClick={() => { setActiveStockRunId(unfinishedDraft.id); setActivePanel("stock-run-manage"); setDraftWarning(false); setUnfinishedDraft(null); }}>Continue draft</button></PermissionAction></div>}
 
         <section id="overview" style={{ scrollMarginTop: 90 }} aria-label="Overview" className={styles.overview}>
           {!canViewReports && <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm">Your available materials and stock actions are below. Report summaries require reporting access.</p>}
@@ -608,7 +659,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           loading={initialLoading}
           stockRuns={stockRuns}
           activeDraftCount={stockRuns.filter((run) => run.status === "DRAFT").length}
-          onCreateStockRun={() => { setError(null); setStockRunForm({ name: "", notes: "" }); setActivePanel("stock-run-create"); }}
+          onCreateStockRun={() => void openStockRunCreate()}
           creatingDisabled={initialLoading || submitting}
           onOpenDraft={(stockRunId) => { setActiveStockRunId(stockRunId); setActivePanel("stock-run-manage"); }}
           onDeleteDraft={(stockRun) => {
@@ -708,17 +759,24 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
               return;
             }
             void runAction(async () => {
+              const drafts = await fetchStockRuns({ status: "DRAFT" });
+              const unfinished = findUnfinishedStockRun(drafts);
+              if (unfinished) { showUnfinishedDraft(unfinished); return; }
               const stockRun = await createStockRun(stockRunForm);
               setStockRunForm({ name: "", notes: "" });
               setActiveStockRunId(stockRun.id);
               setActivePanel("stock-run-manage");
-              setMessage(`Created stock run draft: ${stockRun.name}.`);
+              setMessage(`Created stock run draft: ${stockRun.reference ?? stockRun.name}.`);
               await refreshEverything(true);
             }, "Failed to create stock run");
           }}
           onAddStockRunItem={(event) => {
             event.preventDefault();
             if (!activeStockRunId) return;
+            if (!stockRunItemForm.supplierId.trim()) {
+              setError("Select a supplier before adding this item.");
+              return;
+            }
             if (!stockRunItemForm.rawMaterialId || !stockRunItemForm.supplierId || !stockRunItemForm.costUnitCode || !stockRunItemForm.expirationDate || !stockRunItemForm.receivedAt.split("T")[0] || !stockRunItemForm.receivedAt.split("T")[1] || [stockRunItemForm.quantity, stockRunItemForm.costPerUnit, stockRunItemForm.costQuantity].some(value => !value.trim() || !Number.isFinite(Number(value)) || Number(value) <= 0)) {
               setError("Complete all required receiving fields before adding the item.");
               return;

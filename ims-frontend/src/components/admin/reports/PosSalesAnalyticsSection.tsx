@@ -1,5 +1,6 @@
 "use client";
 
+import SearchInput from "@/components/ui/SearchInput";
 import AdminSelect from "@/components/admin/AdminSelect";
 
 import PosReportEmpty from "./PosReportEmpty";
@@ -227,7 +228,7 @@ export default function PosSalesAnalyticsSection({
             </div>
             <label className="text-sm font-medium text-neutral-700">
               <span className="mb-1 block">Cashier / Staff</span>
-              <input
+              <SearchInput
                 value={staffSearch}
                 onChange={(event) => setStaffSearch(event.target.value)}
                 placeholder="Ex. Robert (name of employee)"

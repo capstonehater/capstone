@@ -141,13 +141,13 @@ export default function DashboardFeature() {
           ].map(({ label, value, detail }) => (
             <div key={label} className={styles.inventoryCard}>
               <dt className={styles.cardLabel}><span>{label}</span></dt>
-              <dd className={styles.cardValue}>{loading ? <span className={styles.skeleton} aria-label="Loading" /> : value == null ? "â€”" : value.toLocaleString("en-PH")}</dd>
+              <dd className={styles.cardValue}>{loading ? <span className={styles.skeleton} aria-label="Loading" /> : value == null ? "\u2014" : value.toLocaleString("en-PH")}</dd>
               <dd className={styles.cardDetail}>{detail}</dd>
             </div>
           ))}
           <div className={`${styles.inventoryCard} ${styles.valueCard}`}>
             <dt className={styles.cardLabel}><span>Inventory value</span></dt>
-            <dd className={styles.cardValue}>{loading ? <span className={styles.skeleton} aria-label="Loading" /> : inventoryHealth ? formatPeso(inventoryHealth.summary.totalInventoryValue) : "â€”"}</dd>
+            <dd className={styles.cardValue}>{loading ? <span className={styles.skeleton} aria-label="Loading" /> : inventoryHealth ? formatPeso(inventoryHealth.summary.totalInventoryValue) : "\u2014"}</dd>
             <dd className={styles.cardDetail}>Total value of stock on hand</dd>
           </div>
         </dl>
@@ -165,7 +165,7 @@ export default function DashboardFeature() {
                 <div className={styles.itemMain}>
                   <div>
                     <p className={styles.itemName}>
-                      {variant.productName} â€¢ {variant.variantName}
+                      {variant.productName} &bull; {variant.variantName}
                     </p>
                     <p className={styles.muted}>{variant.sku}</p>
                   </div>
@@ -174,7 +174,7 @@ export default function DashboardFeature() {
                       {formatPeso(variant.revenue)}
                     </p>
                     <p className={styles.itemMeta}>
-                      {variant.quantitySold} sold â€¢{" "}
+                      {variant.quantitySold} sold &bull;{" "}
                       {(variant.marginRate * 100).toFixed(1)}% margin
                     </p>
                   </div>
@@ -232,7 +232,7 @@ export default function DashboardFeature() {
           </div></div></div>
 
         <div className={styles.panel}><div className={styles.panelHeader}><h2 className={styles.panelTitle}>Waste Reason</h2><button className={styles.viewAll} type="button" onClick={() => setActiveModal("waste")}>View All</button></div><div className={styles.panelBody}><div className={styles.donutWrap}><div className={styles.donut} role="img" style={{ background: wasteGradient }} aria-label="Waste reason breakdown" /><div className={styles.legend}>{!wasteSummary?.byReason.length && <p className={styles.muted}>{loading ? "Loading waste records..." : "No waste records in this period."}</p>}
-            {(wasteSummary?.byReason ?? []).map((reason, index, rows) => { const total = rows.reduce((sum, item) => sum + Number(item.cost), 0); const percentage = total ? (Number(reason.cost) / total) * 100 : 0; return <div key={reason.reasonCode} className={styles.legendRow}><span><i className={styles.legendDot} style={{ backgroundColor: WASTE_COLORS[index % WASTE_COLORS.length] }} />{reason.reasonCode.replaceAll("_", " ")}</span><strong>{percentage.toFixed(0)}% Â· {formatPeso(reason.cost)}</strong></div>; })}
+            {(wasteSummary?.byReason ?? []).map((reason, index, rows) => { const total = rows.reduce((sum, item) => sum + Number(item.cost), 0); const percentage = total ? (Number(reason.cost) / total) * 100 : 0; return <div key={reason.reasonCode} className={styles.legendRow}><span><i className={styles.legendDot} style={{ backgroundColor: WASTE_COLORS[index % WASTE_COLORS.length] }} />{reason.reasonCode.replaceAll("_", " ")}</span><strong>{percentage.toFixed(0)}% &middot; {formatPeso(reason.cost)}</strong></div>; })}
           </div></div><p className={styles.totalWaste}>Total Waste Cost <strong>{formatPeso(wasteSummary?.totals.cost ?? "0")}</strong></p></div></div>
 
         <div className={styles.panel}><div className={styles.panelHeader}><h2 className={styles.panelTitle}>Recent Orders</h2><button className={styles.viewAll} type="button" onClick={() => setActiveModal("orders")}>View All</button></div><div className={styles.panelBody}><div className={styles.orderTable}><div className={styles.orderHead}><span>Order / staff</span><span>Date / status</span><span>Amount</span></div>
@@ -258,7 +258,7 @@ export default function DashboardFeature() {
               <div className={styles.alertContent}>
                 <strong>{alert.title}</strong>
                 <span>{alert.message}</span>
-                <small>Material: {alert.rawMaterial?.name ?? "N/A"} Â· Batch: {alert.stockBatch?.id.slice(0, 8) ?? "N/A"} Â· Expiry: {formatDate(alert.expiryDate)}</small>
+                <small>Material: {alert.rawMaterial?.name ?? "N/A"} &middot; Batch: {alert.stockBatch?.reference ?? alert.stockBatch?.id.slice(0, 8) ?? "N/A"} &middot; Expiry: {formatDate(alert.expiryDate)}</small>
               </div>
               <div className={styles.alertTags}>
                 <span className={styles.alertTagWarning}>{alert.type.replaceAll("_", " ")}</span>

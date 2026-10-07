@@ -1,5 +1,6 @@
 "use client";
 
+import SearchInput from "@/components/ui/SearchInput";
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown } from "lucide-react";
@@ -91,7 +92,7 @@ export default function AdminSelect({ label, value, options, onChange, disabled 
     </button>
     {position && createPortal(<div ref={menu} role="presentation"
       aria-labelledby={`${id}-label`} className={styles.menu} style={position}>
-      {searchable ? <div className={styles.searchBar}><input ref={searchInput} className={styles.searchInput} value={query} onChange={event => setQuery(event.target.value)} placeholder={`Search ${label.toLowerCase()}...`} aria-label={`Search ${label.toLowerCase()}`} aria-controls={`${id}-options`} onKeyDown={event => {
+      {searchable ? <div className={styles.searchBar}><SearchInput ref={searchInput} className={styles.searchInput} value={query} onChange={event => setQuery(event.target.value)} placeholder={`Search ${label.toLowerCase()}...`} aria-label={`Search ${label.toLowerCase()}`} aria-controls={`${id}-options`} onKeyDown={event => {
         if (event.key === "ArrowDown" && filteredOptions.length) { event.preventDefault(); items.current[0]?.focus(); }
         if (event.key === "Escape") { event.preventDefault(); setPosition(null); trigger.current?.focus(); }
         if (event.key === "Tab") setPosition(null);

@@ -1,0 +1,7 @@
+Verification on 8 October 2026
+
+17 Python tests passed.
+22 backend tests passed across output validation, scheduling, and POS history.
+14 HTTP authorization tests could not connect to localhost: EACCES under the current sandbox. They are not reported as passing or as proven implementation defects.
+No complete model-fitting run or live database evaluation was performed.
+Dataset counts were recalculated directly from the supplied CSV.

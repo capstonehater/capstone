@@ -1,5 +1,6 @@
 "use client";
 
+import SearchInput from "@/components/ui/SearchInput";
 import { formatUnit } from "@/lib/units";
 import AdminSelect from "@/components/admin/AdminSelect";
 
@@ -91,7 +92,7 @@ export default function InventorySummaryPanel({
       <div className={styles.filters}>
         <div className="min-w-0">
         <InventoryField htmlFor="summary-search" label="Search">
-          <input
+          <SearchInput
             id="summary-search"
             value={summarySearchInput}
             onChange={(event) => onSearchInputChange(event.target.value)}

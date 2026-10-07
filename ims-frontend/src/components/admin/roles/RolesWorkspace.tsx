@@ -1,4 +1,5 @@
 "use client";
+import SearchInput from "@/components/ui/SearchInput";
 import { useEffect, useState } from 'react';
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import AdminSectionHeader from '@/components/admin/AdminSectionHeader';
@@ -107,7 +108,7 @@ export default function RolesWorkspace() {
     {loading ? <p className={styles.empty} role="status">Loading roles and permission catalog...</p> : <div className={styles.layout}>
       <aside className={styles.panel} aria-label="Roles">
         <div className={styles.listHeader}><h2>Roles <small>{roles.length}</small></h2><button disabled={busy || !!error} className={styles.primary} onClick={() => { if (!discard()) return; setEditing(false); setNewDraft(blank()); setCreateValidationAttempted(false); setDialogError(null); setModal('create'); }}>+ Create Role</button></div>
-        <label className={styles.search}>Search roles<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search roles..." /></label>
+        <label className={styles.search}>Search roles<SearchInput value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search roles..." /></label>
         <div className={styles.roleList}>{visible.length ? visible.map((role) => <button type="button" className={styles.roleItem} aria-pressed={selectedId === role.id} disabled={busy} key={role.id} onClick={() => choose(role)}><strong>{role.name}</strong><span>{role.description || 'No description'}</span><small>{role.memberCount} {role.memberCount === 1 ? 'member' : 'members'}{role.isProtected ? ' · Protected' : ''}</small></button>) : <p className={styles.empty}>{roles.length ? 'No roles match your search.' : 'No roles yet. Create one to get started.'}</p>}</div>
       </aside>
       <section className={styles.panel} aria-label="Selected role details">

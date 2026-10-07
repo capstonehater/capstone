@@ -30,6 +30,7 @@ export type AlertRecord = {
     sku: string;
   } | null;
   stockBatch: {
+    reference: string | null;
     id: string;
     expirationDate: string | null;
     remainingQuantity: DecimalString;
@@ -114,4 +115,13 @@ export async function dismissAlert(alertId: string, note?: string) {
   );
   if (typeof window !== "undefined") window.dispatchEvent(new Event("alerts-updated"));
   return response.alert;
+}
+
+export async function deleteResolvedAlerts(ids: string[]) {
+  const response = await apiJsonFetch<{ deletedCount: number }>("/alerts/resolved/delete", {
+    method: "POST",
+    body: JSON.stringify({ ids }),
+  });
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("alerts-updated"));
+  return response;
 }

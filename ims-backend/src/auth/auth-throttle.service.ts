@@ -14,6 +14,14 @@ type RateLimitBucket = {
 export class AuthThrottleService {
   private readonly buckets = new Map<string, RateLimitBucket>();
 
+  consumeLoginAttempt(ipAddress?: string | null): void {
+    this.consume({
+      key: `login:${ipAddress ?? 'unknown'}`,
+      maxAttempts: env.LOGIN_IP_MAX_ATTEMPTS,
+      message: 'Too many login attempts. Please try again later.',
+    });
+  }
+
   consumeForgotPasswordAttempt(ipAddress?: string | null): void {
     this.consume({
       key: `forgot-password:${ipAddress ?? 'unknown'}`,
@@ -28,7 +36,11 @@ export class AuthThrottleService {
     });
   }
 
-  private consume(options: { key: string; maxAttempts: number }): void {
+  private consume(options: {
+    key: string;
+    maxAttempts: number;
+    message?: string;
+  }): void {
     const now = Date.now();
     const current = this.buckets.get(options.key);
 
@@ -43,7 +55,7 @@ export class AuthThrottleService {
 
     if (current.count >= options.maxAttempts) {
       throw new HttpException(
-        PASSWORD_RESET_RATE_LIMIT_MESSAGE,
+        options.message ?? PASSWORD_RESET_RATE_LIMIT_MESSAGE,
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }

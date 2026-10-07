@@ -1,4 +1,5 @@
 "use client";
+import SearchInput from "@/components/ui/SearchInput";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useCallback, useEffect, useState } from "react";
@@ -85,7 +86,7 @@ export default function TransactionHistoryPage() {
   return <section className="space-y-5 text-[#232d46]">
     <header className={styles.pageHeader}><div><h1>TRANSACTION HISTORY</h1><p>Review your transactions and receipts.</p></div><button type="button" disabled={loading} onClick={() => void loadHistory()}>{loading ? "Refreshing..." : "Refresh"}</button></header>
     <div className={styles.filters}>
-      <label className={styles.searchLabel}>Search<input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search transactions" className={styles.searchInput} /></label>
+      <label className={styles.searchLabel}>Search<SearchInput type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search transactions" className={styles.searchInput} /></label>
       <AdminSelect label="Status" value={status} onChange={setStatus} options={[{ value: "", label: "All statuses" }, { value: "COMPLETED", label: "Completed" }, { value: "REFUNDED", label: "Refunded" }]} />
       <AdminSelect label="Payment method" value={payment} onChange={setPayment} options={[{ value: "", label: "All methods" }, ...["CASH", "GCASH", "MAYA", "CARD", "OTHER"].map((method) => ({ value: method, label: ({ CASH: "Cash", GCASH: "GCash", MAYA: "Maya", CARD: "Card", OTHER: "Other" } as Record<string, string>)[method] }))]} />
       <DateFilter label="From date" value={from} max={to || undefined} onChange={setFrom} />

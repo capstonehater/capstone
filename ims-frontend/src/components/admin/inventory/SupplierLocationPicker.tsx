@@ -1,5 +1,6 @@
 "use client";
 
+import SearchInput from "@/components/ui/SearchInput";
 import { useEffect, useRef, useState } from "react";
 import { Copy, ExternalLink, Navigation } from "lucide-react";
 import type { Map as LeafletMap, Marker } from "leaflet";
@@ -179,7 +180,7 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
     <div className="space-y-3">
       <label htmlFor="supplier-location-search" className="text-sm font-semibold text-slate-700">Supplier Location<span className="text-red-600" aria-hidden="true"> *</span></label>
       <div className="flex gap-2">
-        <input id="supplier-location-search" className={`${inventoryInputClasses} ${error ? "!border-red-600 !bg-red-50 focus:!border-red-600 focus:!ring-red-600/15" : ""}`} value={query} disabled={readOnly}
+        <SearchInput id="supplier-location-search" className={`${inventoryInputClasses} ${error ? "!border-red-600 !bg-red-50 focus:!border-red-600 focus:!ring-red-600/15" : ""}`} value={query} disabled={readOnly}
           aria-invalid={!!error} aria-describedby={error ? "supplier-location-error" : undefined}
           placeholder="Ex. Waltermart"
           onChange={(event) => setQuery(event.target.value)}

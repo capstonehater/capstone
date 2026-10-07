@@ -5,6 +5,14 @@ import { Test } from '@nestjs/testing';
 import { AccountStatus, Role } from '@prisma/client';
 import type { Server } from 'node:http';
 import request from 'supertest';
+import { saveProductImage } from './product-image';
+
+// Guard tests stop before image processing or filesystem writes.
+jest.mock('./product-image', () => ({
+  MAX_PRODUCT_IMAGE_SIZE: 5 * 1024 * 1024,
+  saveProductImage: jest.fn().mockResolvedValue({ ok: true }),
+}));
+
 import { AdminProductsController } from './admin-products.controller';
 import { CatalogController } from './catalog.controller';
 import { CatalogService } from './catalog.service';
@@ -164,6 +172,20 @@ const routes = [
     path: '/products/product-1/variants',
     permission: 'products.view',
   },
+  {
+    controller: AdminProductsController,
+    handler: 'uploadNewProductImage',
+    method: 'post',
+    path: '/admin/product-images',
+    permission: 'products.create',
+  },
+  {
+    controller: AdminProductsController,
+    handler: 'uploadReplacementProductImage',
+    method: 'post',
+    path: '/admin/product-images/replacement',
+    permission: 'products.edit',
+  },
 ] as const;
 const serviceMethods = [
   'listAdminProducts',
@@ -208,6 +230,7 @@ describe('Product endpoint authorization (real HTTP guards and resolver)', () =>
   };
   const allCalls = () =>
     [
+      jest.mocked(saveProductImage),
       ...Object.values(productService),
       ...Object.values(catalogService),
       ...Object.values(availabilityService),

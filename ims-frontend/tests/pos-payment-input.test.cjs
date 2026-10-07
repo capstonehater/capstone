@@ -39,7 +39,7 @@ test('all four payment inputs accept five digits and reject invalid pasted value
     const key = ['cash', 'gcash', 'maya', 'card'][index];
     input.onChange({ target: { value: '99999' } });
     assert.equal(value()[key], '99999');
-    for (const invalid of ['100000', '12abc', '1e3', '-100', '+100', '1.25', ' 12 ']) {
+    for (const invalid of ['100000', '12abc', '1e3', '-100', '+100', '1.25', ' 12 ', '😀', '12😀', '💵100', '１２']) {
       input.onChange({ target: { value: invalid } });
       assert.equal(value()[key], '99999');
     }
@@ -49,7 +49,7 @@ test('all four payment inputs accept five digits and reject invalid pasted value
 });
 test('typing rejects letters and punctuation while retaining editing and shortcuts', () => {
   const { inputs } = setup();
-  for (const key of ['e', 'a', '-', '+', '.', ' ']) {
+  for (const key of ['e', 'a', '-', '+', '.', ' ', '😀', '💵']) {
     let prevented = false;
     inputs[0].onKeyDown({ key, preventDefault() { prevented = true; } });
     assert.equal(prevented, true);
@@ -58,5 +58,22 @@ test('typing rejects letters and punctuation while retaining editing and shortcu
     let prevented = false;
     inputs[0].onKeyDown({ ...event, preventDefault() { prevented = true; } });
     assert.equal(prevented, false);
+  }
+});
+
+test('mobile input blocks negative signs and emojis before insertion', () => {
+  const { inputs } = setup();
+  for (const input of inputs) {
+    for (const data of ['-', '-100', '😀', '12😀', '💵']) {
+      let prevented = false;
+      input.onBeforeInput({ nativeEvent: { data }, preventDefault() { prevented = true; } });
+      assert.equal(prevented, true);
+    }
+    for (const data of ['1', '123', null]) {
+      input.onBeforeInput({ nativeEvent: { data }, preventDefault() { assert.fail('Valid input blocked'); } });
+    }
+    const target = { value: '😀' };
+    input.onChange({ target });
+    assert.equal(target.value, '');
   }
 });

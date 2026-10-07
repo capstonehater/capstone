@@ -13,6 +13,7 @@ import { CurrentUser } from './decorators/current-user.decorator';
 import { Public } from './decorators/public.decorator';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
+import { RedeemPasswordResetDto } from './dto/redeem-password-reset.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
@@ -74,6 +75,17 @@ export class AuthController {
   @Post('forgot-password')
   forgotPassword(@Body() dto: ForgotPasswordDto, @Req() request: Request) {
     return this.authService.forgotPassword(dto, {
+      ipAddress: getClientIp(request),
+    });
+  }
+
+  @Public()
+  @Post('redeem-password-reset')
+  redeemPasswordReset(
+    @Body() dto: RedeemPasswordResetDto,
+    @Req() request: Request,
+  ) {
+    return this.authService.redeemPasswordResetLink(dto.token, {
       ipAddress: getClientIp(request),
     });
   }

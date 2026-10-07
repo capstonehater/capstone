@@ -63,8 +63,8 @@ export class PasswordResetNotifierService {
         from: { name: env.SMTP_FROM_NAME, address: SMTP_FROM_EMAIL },
         to: options.email,
         subject: `Cafe Salvacion - ${action}`,
-        text: `${action}\n\nOpen this link to choose your password:\n${options.resetUrl}\n\nThis link expires in ${env.PASSWORD_RESET_TTL_MINUTES} minutes and can only be used once. If you did not expect this email, you can ignore it.`,
-        html: `<h1>${action}</h1><p>Open the link below to choose your Cafe Salvacion password.</p><p><a href="${safeUrl}">${action}</a></p><p>This link expires in ${env.PASSWORD_RESET_TTL_MINUTES} minutes and can only be used once.</p><p>If you did not expect this email, you can ignore it.</p>`,
+        text: `${action}\n\nOpen this link to choose your password:\n${options.resetUrl}\n\nThis link expires in 30 minutes and can only be opened once. Complete your password change in the first tab you open. If you did not expect this email, you can ignore it.`,
+        html: `<h1>${action}</h1><p>Open the link below to choose your Cafe Salvacion password.</p><p><a href="${safeUrl}">${action}</a></p><p>This link expires in 30 minutes and can only be opened once. Complete your password change in the first tab you open.</p><p>If you did not expect this email, you can ignore it.</p>`,
       });
       if (result.accepted.length === 0)
         throw new Error('Recipient not accepted');

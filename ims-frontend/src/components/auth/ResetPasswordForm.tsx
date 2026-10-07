@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   PASSWORD_REQUIREMENTS_MESSAGE,
   resetPassword,
+  redeemPasswordResetLink,
 } from "@/lib/auth";
 import styles from "@/components/login/Login.module.css";
 import ActionAlert from "@/components/feedback/ActionAlert";
@@ -20,6 +21,9 @@ export default function ResetPasswordForm() {
   const token = searchParams.get("token")?.trim() ?? "";
   const tokenMissing = token.length < 32;
 
+  const redemptionRef = useRef<{ link: string; promise: Promise<{ token: string; expiresAt: string }> } | null>(null);
+  const [formToken, setFormToken] = useState("");
+  const [linkError, setLinkError] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -37,6 +41,30 @@ export default function ResetPasswordForm() {
     };
   }, []);
 
+  useEffect(() => {
+    if (tokenMissing) return;
+    let active = true;
+    setFormToken("");
+    setLinkError("");
+    if (redemptionRef.current?.link !== token) {
+      redemptionRef.current = { link: token, promise: redeemPasswordResetLink(token) };
+    }
+    let expiryTimer: ReturnType<typeof setTimeout> | undefined;
+    redemptionRef.current.promise.then((result) => {
+      if (!active) return;
+      const remaining = new Date(result.expiresAt).getTime() - Date.now();
+      if (remaining <= 0) { setLinkError("This link has expired. Request a new link."); return; }
+      setFormToken(result.token);
+      expiryTimer = setTimeout(() => {
+        setFormToken("");
+        setLinkError("This link has expired. Request a new link.");
+      }, remaining);
+    }).catch((err: unknown) => {
+      if (active) setLinkError(err instanceof Error ? err.message : "Unable to open this link. Request a new link.");
+    });
+    return () => { active = false; if (expiryTimer) clearTimeout(expiryTimer); };
+  }, [token, tokenMissing]);
+
   const passwordChecks = [
     { label: "10-72 characters", met: newPassword.length >= 10 && newPassword.length <= 72 },
     { label: "Uppercase letter", met: /[A-Z]/.test(newPassword) },
@@ -51,7 +79,7 @@ export default function ResetPasswordForm() {
     event.preventDefault();
     setNoticeDismissed(false);
 
-    if (tokenMissing) {
+    if (tokenMissing || !formToken) {
       setError("This reset link is missing or invalid.");
       return;
     }
@@ -72,7 +100,7 @@ export default function ResetPasswordForm() {
 
     try {
       const message = await resetPassword({
-        token,
+        token: formToken,
         newPassword,
       });
 
@@ -91,13 +119,12 @@ export default function ResetPasswordForm() {
     }
   };
 
-  if (tokenMissing) {
+  if (tokenMissing || linkError) {
     return (
       <div className={styles.formContent}>
-        <span className={styles.formMark} aria-hidden="true">✳</span>
         <h2 className={styles.formTitle}>Invalid reset link</h2>
         <p className={styles.subtitle}>
-          This password link is missing information. Request a new link, or ask your administrator to resend your account setup email.
+          {linkError || "This password link is missing information. Request a new link, or ask your administrator to resend your account setup email."}
         </p>
         <div className={styles.recoveryLinks}>
           <Link href="/forgot-password" className={styles.submit}>Request a new reset link</Link>
@@ -107,9 +134,10 @@ export default function ResetPasswordForm() {
     );
   }
 
+  if (!formToken) return <div className={styles.formContent}><p role="status">Checking your password link...</p></div>;
+
   return (
     <div className={styles.formContent}>
-      <span className={styles.formMark} aria-hidden="true">✳</span>
       <h2 className={styles.formTitle}>Create a new password</h2>
       <p className={styles.subtitle}>Choose a strong password to secure your account.</p>
 

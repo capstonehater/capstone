@@ -162,6 +162,8 @@ export type PosOrder = {
   idempotencyKey: string;
   subtotalAmount: DecimalString;
   discountCode: string | null;
+  discountCustomerName?: string | null;
+  discountIdNumber?: string | null;
   discountRate: DecimalString;
   discountAmount: DecimalString;
   taxAmount: DecimalString;
@@ -220,6 +222,8 @@ export type PosCheckoutPayload = {
     reference?: string;
   }>;
   discountCode?: string;
+  discountCustomerName?: string;
+  discountIdNumber?: string;
   discountRate?: number;
   notes?: string;
 };

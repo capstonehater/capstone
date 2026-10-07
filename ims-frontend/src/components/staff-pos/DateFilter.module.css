@@ -2,17 +2,17 @@
 .placeholder { color: #64748b; font-weight: 400; }
 .calendar { position: fixed; z-index: 40; width: 296px; max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); overflow-y: auto; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; background: #fff; color: #232d46; box-shadow: 0 12px 30px #0f172a24; }
 .header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; font-size: 14px; }
-.field .calendar button { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; border: 0; border-radius: 8px; background: transparent; color: #232d46; font: inherit; font-size: 14px; cursor: pointer; }
+.calendar button { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; border: 0; border-radius: 8px; background: transparent; color: #232d46; font: inherit; font-size: 14px; cursor: pointer; }
 .header button { width: 44px; min-width:44px; height:44px; padding:0; }
 .header button svg { width:22px; height:22px; stroke-width:2.25; }
 .days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
 .weekday { padding: 6px 0; color: #64748b; font-size: 12px; font-weight: 600; text-align: center; }
-.field .calendar button:hover:not(:disabled) { background: #edf2f8; }
-.field .calendar button[data-today="true"] { box-shadow: inset 0 0 0 1px #94a3b8; }
-.field .calendar button[aria-pressed="true"] { background: #232d46; color: #fff; font-weight: 700; }
-.field .calendar button[aria-pressed="true"]:hover { background: #34445f; }
-.field .calendar button:disabled { color: #94a3b8; cursor: not-allowed; }
-.field .calendar button:focus-visible { outline: 2px solid #426da6; outline-offset: 1px; }
+.calendar button:hover:not(:disabled) { background: #edf2f8; }
+.calendar button[data-today="true"] { box-shadow: inset 0 0 0 1px #94a3b8; }
+.calendar button[aria-pressed="true"] { background: #232d46; color: #fff; font-weight: 700; }
+.calendar button[aria-pressed="true"]:hover { background: #34445f; }
+.calendar button:disabled { color: #94a3b8; cursor: not-allowed; }
+.calendar button:focus-visible { outline: 2px solid #426da6; outline-offset: 1px; }
 .footer { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 8px; border-top: 1px solid #dce2eb; }
 .footer button { padding: 0 12px; font-weight: 600; }
 .editableControl { display:flex; align-items:center; border:1px solid #cbd5e1; border-radius:8px; background:#fff; }
@@ -25,13 +25,13 @@
 .field .editableControl .calendarTrigger:focus-visible { outline-offset:-3px; }
 .stockCalendar { z-index:1000; padding:16px; border-color:#dce2eb; border-radius:16px; box-shadow:0 16px 48px #0f172a29; }
 .stockCalendar .header { padding-bottom:10px; border-bottom:1px solid #e2e8f0; margin-bottom:10px; }
-.field .stockCalendar .header button { width:34px; min-width:34px; height:34px; min-height:34px; padding:0; background:#f1f5f9; }
+.stockCalendar .header button { width:34px; min-width:34px; height:34px; min-height:34px; padding:0; background:#f1f5f9; }
 .stockCalendar .header strong { font-size:15px; font-weight:700; }
 .stockCalendar .weekday { color:#94a3b8; font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
 .stockCalendar .days { gap:4px; }
-.field .stockCalendar .days button { height:34px; min-height:34px; min-width:0; padding:0; border-radius:9px; font-size:13px; }
-.field .stockCalendar .days button[data-today="true"] { box-shadow:inset 0 0 0 1px #f45a1f; }
-.field .stockCalendar .days button[aria-pressed="true"] { background:#f45a1f; color:#fff; box-shadow:0 3px 8px #f45a1f30; }
-.field .stockCalendar .days button[aria-pressed="true"]:hover { background:#db4b16; }
-.field .stockCalendar .footer { justify-content:flex-end; gap:8px; margin-top:14px; padding-top:12px; }
-.field .stockCalendar .footer button { min-height:32px; padding:0 12px; background:#f1f5f9; font-size:12px; font-weight:600; }
+.stockCalendar .days button { height:34px; min-height:34px; min-width:0; padding:0; border-radius:9px; font-size:13px; }
+.stockCalendar .days button[data-today="true"] { box-shadow:inset 0 0 0 1px #232d46; }
+.stockCalendar .days button[aria-pressed="true"] { background:#232d46; color:#fff; box-shadow:0 3px 8px #232d4630; }
+.stockCalendar .days button[aria-pressed="true"]:hover { background:#34445f; }
+.stockCalendar .footer { justify-content:flex-end; gap:8px; margin-top:14px; padding-top:12px; }
+.stockCalendar .footer button { min-height:32px; padding:0 12px; background:#f1f5f9; font-size:12px; font-weight:600; }

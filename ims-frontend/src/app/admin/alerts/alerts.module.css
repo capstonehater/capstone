@@ -43,3 +43,36 @@
 .alertContent { min-width:0; flex:1; }
 .alertActions { flex-shrink:0; align-items:flex-start; }
 .alertDetails { display:grid; gap:6px; margin-top:12px; }
+
+.clickable { cursor:pointer; }
+.lift { transition:transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; }
+.lift:hover, .lift:focus-within, .lift.selected { transform:translateY(-4px); border-color:#64748b; box-shadow:0 10px 24px #232d4626; }
+@media (prefers-reduced-motion:reduce) {
+  .lift { transition:none; }
+  .lift:hover, .lift:focus-within, .lift.selected { transform:none; }
+}
+.alertLink { padding:0; border:0; background:transparent; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+
+
+.lift.selected { border-color:#16a34a; box-shadow:0 10px 24px #16653426; }
+.selectionToolbar { justify-self:start; width:fit-content; max-width:100%; display:flex; flex-wrap:nowrap; align-items:center; gap:0; padding:16px 20px; background:#fff; border:1px solid #dce2eb; border-radius:12px; }
+.selectionToolbar p { flex-basis:100%; margin:0; font-size:14px; color:#64748b; }
+.selectionLabel { display:inline-flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; }
+.selectionLabel input { width:20px; height:20px; accent-color:#16a34a; cursor:pointer; }
+.deleteButton { flex:0 0 auto; width:auto; min-height:44px; padding:9px 15px; border:1px solid #b91c1c; border-radius:8px; background:#b91c1c; color:#fff; font-weight:600; }
+.deleteButton:hover:not(:disabled) { background:#991b1b; }
+
+.selectionControls { flex:0 1 auto; width:0; height:44px; min-width:0; opacity:0; overflow:hidden; transition:width 420ms cubic-bezier(.22,1,.36,1), height 420ms cubic-bezier(.22,1,.36,1), opacity 180ms ease; }
+.selectionToolbarActive .selectionControls { width:var(--controls-width); height:var(--controls-height); opacity:1; transition:width 420ms cubic-bezier(.22,1,.36,1), height 420ms cubic-bezier(.22,1,.36,1), opacity 240ms ease 80ms; }
+.selectionControlsInner { display:flex; align-items:center; gap:16px; width:max-content; padding:3px 3px 3px 16px; white-space:nowrap; }
+.selectionHint { margin:0; font-size:14px; color:#64748b; }
+.cardCheckbox { animation:revealCheckbox 320ms cubic-bezier(.22,1,.36,1) both; }
+@keyframes revealCheckbox { from { opacity:0; transform:translateX(-6px); } to { opacity:1; transform:translateX(0); } }
+@media (max-width:600px) {
+  .selectionToolbar { padding:12px; }
+  .selectionControlsInner { flex-direction:column; align-items:flex-start; gap:8px; white-space:normal; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .selectionControls, .selectionToolbarActive .selectionControls { transition:none; }
+  .cardCheckbox { animation:none; }
+}

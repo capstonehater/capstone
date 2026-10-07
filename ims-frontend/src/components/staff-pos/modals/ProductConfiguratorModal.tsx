@@ -410,15 +410,16 @@ export default function ProductConfiguratorModal({
           ) : (
             visibleModifierGroups.map((group) => {
               const selectedCount = getGroupSelectionCount(group);
+              const missingSelection = selectedCount < Math.max(group.minSelect, group.isRequired ? 1 : 0);
 
               return (
-                <section key={group.id} className="rounded-2xl border border-slate-200 p-4">
+                <section key={group.id} data-missing-selection={missingSelection} className={`${styles.modifierGroup} ${missingSelection ? styles.missingSelection : ""} rounded-2xl border border-slate-200 p-4`}>
                   <div className="mb-3 flex items-start justify-between gap-3">
                     <div>
-                      <h4 className="font-semibold text-slate-900">{group.name}{(group.isRequired || group.minSelect > 0) && <> <span className={styles.requiredMark} aria-hidden="true">*</span><span className="sr-only"> (required)</span></>}</h4>
-                      <p className="mt-1 text-xs text-slate-500">{groupHint(group)}</p>
+                      <h4 className={`${styles.groupTitle} font-semibold text-slate-900`}>{group.name}{(group.isRequired || group.minSelect > 0) && <> <span className={styles.requiredMark} aria-hidden="true">*</span><span className="sr-only"> (required)</span></>}</h4>
+                      <p className={`${styles.groupHint} mt-1 text-xs text-slate-500`}>{groupHint(group)}</p>
                     </div>
-                    <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                    <div className={`${styles.selectionCount} rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600`}>
                       {selectedCount} selected
                     </div>
                   </div>

@@ -1014,6 +1014,8 @@ export type PosAuditExceptionsReport = {
     paymentReference: string | null;
     discountDetails: {
       discountCode: string | null;
+      discountCustomerName?: string | null;
+      discountIdNumber?: string | null;
       discountRate: DecimalString;
       discountAmount: DecimalString;
     } | null;

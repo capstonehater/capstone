@@ -1,5 +1,6 @@
 "use client";
 
+import SearchInput from "@/components/ui/SearchInput";
 import PosReportEmpty from "./PosReportEmpty";
 
 import { useEffect, useState } from "react";
@@ -154,7 +155,7 @@ export default function PosRefundsVoidsSection({
           <div className={`${styles.peakControls} ${styles.refundControls}`}>
             <label className="text-sm font-medium text-neutral-700">
               <span className="mb-1 block">Responsible Staff</span>
-              <input
+              <SearchInput
                 value={staffSearch}
                 onChange={(event) => setStaffSearch(event.target.value)}
                 placeholder="Ex. Robert (name of employee)"

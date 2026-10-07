@@ -26,10 +26,26 @@ export default tseslint.config(
   },
   {
     rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "MemberExpression[property.name='$queryRawUnsafe']",
+          message: 'Use parameterized Prisma queries.',
+        },
+        {
+          selector: "MemberExpression[property.name='$executeRawUnsafe']",
+          message: 'Use parameterized Prisma queries.',
+        },
+        {
+          selector:
+            "MemberExpression[object.name='Prisma'][property.name='raw']",
+          message: 'Use Prisma.sql and bound values instead of raw fragments.',
+        },
+      ],
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
-      "prettier/prettier": ["error", { endOfLine: "auto" }],
+      'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
   },
 );

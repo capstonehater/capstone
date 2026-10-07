@@ -36,7 +36,6 @@ export default function ForgotPasswordForm() {
 
   return (
     <div className={styles.formContent}>
-      <span className={styles.formMark} aria-hidden="true">✳</span>
         <h2 className={styles.formTitle}>
           Reset password
         </h2>

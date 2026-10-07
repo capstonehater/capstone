@@ -74,7 +74,8 @@ export default function StockRunsPanel({
                 stockRuns.map((stockRun) => (
                   <tr key={stockRun.id} className="border-t border-slate-100">
                     <td className="px-4 py-3">
-                      <div className="font-semibold text-slate-900">{stockRun.name}</div>
+                      <div className="font-semibold text-slate-900">{stockRun.reference ?? stockRun.name}</div>
+                      <div className="mt-1 text-sm text-slate-600">{stockRun.name}</div>
                       <div className="mt-1 text-xs text-slate-500">
                         {stockRun.notes || "No notes"}
                       </div>

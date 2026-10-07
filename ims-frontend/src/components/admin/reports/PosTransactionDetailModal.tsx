@@ -158,6 +158,12 @@ export default function PosTransactionDetailModal({
                           .join(" + ")}
                       </p>
                     </div>
+                    {order.discountCode && <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <h4 className="font-semibold text-slate-900">Discount Details</h4>
+                      <p className="mt-2">Type: {order.discountCode}</p>
+                      <p className="break-words">Name: {order.discountCustomerName || "Not recorded"}</p>
+                      <p className="break-words">{/senior/i.test(order.discountCode) ? "Senior Citizen ID No." : "ID No."}: {order.discountIdNumber || "Not recorded"}</p>
+                    </div>}
                     {order.notes ? (
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">

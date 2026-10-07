@@ -34,6 +34,7 @@ import { RecipeResolverService } from '../recipes/recipe-resolver.service';
 import { CheckoutDto, CheckoutItemDto } from './dto/checkout.dto';
 import { ReverseOrderDto } from './dto/reverse-order.dto';
 import { PricingService } from './pricing.service';
+import { validateDiscountDetails } from './discount-details';
 import { UpdateCashPaymentDto } from './dto/update-cash-payment.dto';
 import { ListOrdersDto } from './dto/list-orders.dto';
 
@@ -81,6 +82,7 @@ export class OrdersService {
       };
     }
 
+    const discountDetails = validateDiscountDetails(dto);
     return this.prisma.$transaction(async (tx) => {
       const preparedItems = await Promise.all(
         dto.items.map((item) => this.prepareCheckoutItem(tx, item)),
@@ -118,6 +120,7 @@ export class OrdersService {
           idempotencyKey: dto.idempotencyKey,
           subtotalAmount,
           discountCode: dto.discountCode ?? null,
+          ...discountDetails,
           discountRate: toDecimal(dto.discountRate ?? 0),
           discountAmount,
           taxAmount,

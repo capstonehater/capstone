@@ -1,4 +1,5 @@
 "use client";
+import SearchInput from "@/components/ui/SearchInput";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import styles from "./ProductListToolbar.module.css";
@@ -27,7 +28,7 @@ export default function ProductListToolbar({
     <div className={styles.toolbar}>
       <div className={styles.searchRow}>
         <div className="relative min-w-0 flex-1">
-        <input
+        <SearchInput
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
           placeholder="Search products..."

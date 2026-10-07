@@ -1,6 +1,7 @@
 "use client";
 
-import InventoryModal from "@/components/admin/inventory/InventoryModal";
+import InventoryReportModal from "./InventoryReportModal";
+import styles from "./BatchTransactionModal.module.css";
 import type { InventoryTransaction, StockBatch } from "@/lib/inventory";
 
 type BatchTransactionModalProps = {
@@ -27,105 +28,76 @@ export default function BatchTransactionModal({
   if (!batch) return null;
 
   return (
-    <InventoryModal
-      title={`Batch ${batch.id.slice(0, 8)} Drill-Down`}
+    <InventoryReportModal
+      title={`Batch ${(batch.reference ?? batch.id.slice(0, 8))} Drill-Down`}
       description="Review every stock movement tied to this batch, including quantity delta, cost delta, actor, and source."
       onClose={onClose}
-      wide
     >
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl bg-slate-50 p-4">
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+      <div className={styles.summary}>
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryLabel}>
             Remaining
           </div>
-          <div className="mt-3 font-semibold text-slate-900">
+          <div className={styles.summaryValue}>
             {formatQuantity(batch.remainingQuantity)}
           </div>
         </div>
-        <div className="rounded-2xl bg-slate-50 p-4">
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryLabel}>
             Cost Per Unit
           </div>
-          <div className="mt-3 font-semibold text-slate-900">
+          <div className={styles.summaryValue}>
             {formatMoney(batch.costPerUnit)}
           </div>
         </div>
-        <div className="rounded-2xl bg-slate-50 p-4">
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryLabel}>
             Expiry
           </div>
-          <div className="mt-3 font-semibold text-slate-900">
+          <div className={styles.summaryValue}>
             {formatDate(batch.expirationDate)}
           </div>
         </div>
-        <div className="rounded-2xl bg-slate-50 p-4">
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryLabel}>
             Supplier
           </div>
-          <div className="mt-3 font-semibold text-slate-900">
+          <div className={styles.summaryValue}>
             {batch.supplier?.name ?? "N/A"}
           </div>
         </div>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200">
-        <div className="grid grid-cols-[1.15fr_0.8fr_1fr_0.8fr_0.9fr_1fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-          <span>Occurred</span>
-          <span>Type</span>
-          <span>Reason</span>
-          <span>Delta</span>
-          <span>Cost</span>
-          <span>Actor</span>
-        </div>
-
-        <div className="max-h-[28rem] overflow-y-auto">
-          {loading ? (
-            <div className="p-6 text-sm text-slate-500">Loading batch transactions...</div>
-          ) : transactions.length === 0 ? (
-            <div className="p-6 text-sm text-slate-500">
-              No transactions were found for this batch.
-            </div>
-          ) : (
-            transactions.map((transaction) => {
-              const line = transaction.lines.find((candidate) => candidate.stockBatchId === batch.id);
-              const actor = transaction.actorUser
-                ? `${transaction.actorUser.firstName} ${transaction.actorUser.lastName}`
-                : "System";
-
-              return (
-                <div
-                  key={transaction.id}
-                  className="grid grid-cols-[1.15fr_0.8fr_1fr_0.8fr_0.9fr_1fr] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
-                >
-                  <div>{formatDateTime(transaction.occurredAt)}</div>
-                  <div>
-                    <div className="font-semibold text-slate-900">{transaction.type}</div>
-                    <div className="mt-1 text-xs text-slate-500">{transaction.sourceType}</div>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-slate-900">
-                      {transaction.reasonCode || "N/A"}
-                    </div>
-                    <div className="mt-1 text-xs text-slate-500">
-                      {transaction.note || "No note"}
-                    </div>
-                  </div>
-                  <div
-                    className={`font-semibold ${
-                      Number(line?.quantityDelta ?? 0) >= 0 ? "text-emerald-700" : "text-rose-700"
-                    }`}
-                  >
-                    {Number(line?.quantityDelta ?? 0) >= 0 ? "+" : ""}
-                    {formatQuantity(line?.quantityDelta ?? "0")}
-                  </div>
-                  <div>{formatMoney(line?.totalCostDelta ?? "0")}</div>
-                  <div>{actor}</div>
-                </div>
-              );
-            })
-          )}
+      <div className={styles.tableFrame}>
+        <div className={styles.tableScroll} aria-busy={loading}>
+          <table aria-label="Batch stock movements">
+            <thead>
+              <tr><th>Occurred</th><th>Type</th><th>Reason</th><th className="text-right">Delta</th><th className="text-right">Cost</th><th>Actor</th></tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} className={styles.empty}>Loading batch transactions...</td></tr>
+              ) : transactions.length === 0 ? (
+                <tr><td colSpan={6} className={styles.empty}>No transactions were found for this batch.</td></tr>
+              ) : transactions.map((transaction) => {
+                const line = transaction.lines.find((candidate) => candidate.stockBatchId === batch.id);
+                const actor = transaction.actorUser
+                  ? `${transaction.actorUser.firstName} ${transaction.actorUser.lastName}`
+                  : "System";
+                const delta = Number(line?.quantityDelta ?? 0);
+                return <tr key={transaction.id}>
+                  <td>{formatDateTime(transaction.occurredAt)}</td>
+                  <td><strong>{transaction.type}</strong><div className={styles.secondary}>{transaction.sourceType}</div></td>
+                  <td className={styles.reason}><strong>{transaction.reasonCode || "N/A"}</strong><div className={styles.secondary}>{transaction.note || "No note"}</div></td>
+                  <td className={`text-right ${delta >= 0 ? styles.increase : styles.decrease}`}>{delta >= 0 ? "+" : ""}{formatQuantity(line?.quantityDelta ?? "0")}</td>
+                  <td className="text-right">{formatMoney(line?.totalCostDelta ?? "0")}</td>
+                  <td>{actor}</td>
+                </tr>;
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
-    </InventoryModal>
+    </InventoryReportModal>
   );
 }

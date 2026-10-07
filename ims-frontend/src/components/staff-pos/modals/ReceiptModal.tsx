@@ -152,6 +152,11 @@ export default function ReceiptModal({
             <span className="font-medium">Date & Time:</span>{" "}
             {formatDateTime(receipt.completedAt)}
           </p>
+          {receipt.discountCode && <div className="mt-2 rounded-xl border border-slate-200 bg-white px-3 py-3">
+            <p className="font-medium">Discount: {receipt.discountCode}</p>
+            <p className="break-words">Name: {receipt.discountCustomerName || "Not recorded"}</p>
+            <p className="break-words">{/senior/i.test(receipt.discountCode) ? "Senior Citizen ID No." : "ID No."}: {receipt.discountIdNumber || "Not recorded"}</p>
+          </div>}
           {receipt.notes ? (
             <p>
               <span className="font-medium">Notes:</span> {receipt.notes}

@@ -91,3 +91,9 @@ export async function resetPassword(input: {
 
   return response.message;
 }
+
+export async function redeemPasswordResetLink(token: string): Promise<{ token: string; expiresAt: string }> {
+  return apiJsonFetch("/auth/redeem-password-reset", {
+    method: "POST", body: JSON.stringify({ token }),
+  });
+}

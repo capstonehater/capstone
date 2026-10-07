@@ -1,0 +1,12 @@
+.panel { max-width: 480px; }
+.form { display: grid; gap: 8px; }
+.form > p:first-child { margin: 0 0 12px; color: #475569; font-size: 14px; }
+.form label { margin-top: 8px; color: #232d46; font-weight: 600; }
+.form input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 10px; color: #232d46; }
+.form input:focus { outline: 2px solid #475569; outline-offset: 2px; }
+.form input[aria-invalid="true"] { border-color: #e11d48; background: #fff1f2; outline-color: #e11d48; }
+.required, .form .error { color: #be123c; }
+.form .error { margin: 0; font-size: 13px; }
+.footer { display: flex; justify-content: flex-end; gap: 12px; padding: 16px 24px; border-top: 1px solid #e2e8f0; }
+.footer button { min-height: 44px; padding: 10px 16px; border: 1px solid #cbd5e1; border-radius: 10px; font-weight: 600; }
+.footer button:last-child { background: #232d46; border-color: #232d46; color: white; }

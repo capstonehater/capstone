@@ -78,13 +78,15 @@ export default function InventoryInsightPage({ kind, embedded = false }: { kind:
                   <th scope="col" className={`${heading} text-left`}>{config.name}</th>
                   {kind === "waste" ? <th scope="col" className={`${heading} text-right`}>Events</th> : null}
                   <th scope="col" aria-sort={sortBy === "quantity" ? direction === "asc" ? "ascending" : "descending" : undefined} className={`${heading} text-right`}>{config.quantity}</th>
+                  {kind === "value" ? <th scope="col" className={`${heading} text-left`}>Unit</th> : null}
                   <th scope="col" aria-sort={sortBy === "amount" ? direction === "asc" ? "ascending" : "descending" : undefined} className={`${heading} text-right`}>{config.amount}</th>
                 </tr></thead>
-                <tbody>{loading ? <tr><td colSpan={kind === "waste" ? 4 : 3} className="p-8 text-center text-slate-500">Loading records...</td></tr> : rows.length === 0 ? <tr><td colSpan={kind === "waste" ? 4 : 3} className="p-8 text-center text-slate-500">No records available.</td></tr> : rows.map((row) => (
+                <tbody>{loading ? <tr><td colSpan={kind === "supplier" ? 3 : 4} className="p-8 text-center text-slate-500">Loading records...</td></tr> : rows.length === 0 ? <tr><td colSpan={kind === "supplier" ? 3 : 4} className="p-8 text-center text-slate-500">No records available.</td></tr> : rows.map((row) => (
                   <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50">
                     <th scope="row" className="px-5 py-4 text-left font-medium">{row.name}{row.detail ? <span className="mt-1 block text-xs font-normal text-slate-500">{row.detail}</span> : null}</th>
                     {kind === "waste" ? <td className="px-5 py-4 text-right tabular-nums">{quantityFormat.format(row.events ?? 0)}</td> : null}
-                    <td className="px-5 py-4 text-right tabular-nums">{quantityFormat.format(row.quantity)}{row.unit ? ` ${row.unit}` : ""}</td>
+                    <td className="px-5 py-4 text-right tabular-nums">{quantityFormat.format(row.quantity)}</td>
+                    {kind === "value" ? <td className="px-5 py-4 text-left">{row.unit}</td> : null}
                     <td className="px-5 py-4 text-right font-semibold tabular-nums">{moneyFormat.format(row.amount)}</td>
                   </tr>
                 ))}</tbody>

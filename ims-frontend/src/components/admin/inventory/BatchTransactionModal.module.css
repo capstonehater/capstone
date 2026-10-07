@@ -1,0 +1,15 @@
+.summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.summaryCard { min-width: 0; padding: 18px 20px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; }
+.summaryLabel { color: #526078; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.summaryValue { margin-top: 10px; color: #232d46; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.tableFrame { margin-top: 20px; overflow: hidden; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; }
+.tableScroll { max-height: 28rem; overflow: auto; overscroll-behavior: contain; }
+.tableScroll table td, .tableScroll table th { border-bottom: 1px solid #e2e8f0; }
+.tableScroll strong { font-size: 14px; font-weight: 600; }
+.secondary { margin-top: 4px; color: #526078; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.reason { min-width: 220px; max-width: 320px; overflow-wrap: anywhere; }
+.increase { color: #047857; font-weight: 600; }
+.decrease { color: #be123c; font-weight: 600; }
+.empty { color: #64748b; }
+@media (max-width: 800px) { .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
+@media (max-width: 400px) { .summary { grid-template-columns: minmax(0, 1fr); } }
