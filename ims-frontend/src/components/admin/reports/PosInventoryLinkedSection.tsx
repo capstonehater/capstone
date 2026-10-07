@@ -258,7 +258,7 @@ export default function PosInventoryLinkedSection({
               <input
                 value={variantSearch}
                 onChange={(event) => setVariantSearch(event.target.value)}
-                placeholder="Search product, variant, or SKU"
+                placeholder="Ex.Lasagna, Family Variant"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
               />
             </label>
@@ -267,7 +267,7 @@ export default function PosInventoryLinkedSection({
               <input
                 value={materialSearch}
                 onChange={(event) => setMaterialSearch(event.target.value)}
-                placeholder="Search ingredient or SKU"
+                placeholder="Ex. Cheddar Cheese"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
               />
             </label>

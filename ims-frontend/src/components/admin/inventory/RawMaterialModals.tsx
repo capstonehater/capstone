@@ -3,6 +3,7 @@
 import { formatUnit } from "@/lib/units";
 import AdminSelect from "@/components/admin/AdminSelect";
 import modalStyles from "./InventoryModal.module.css";
+import { LockKeyhole, PackagePlus, Plus } from "lucide-react";
 
 import { useState, type FormEvent } from "react";
 import {
@@ -97,15 +98,20 @@ export default function RawMaterialModals({
           panelClassName="rawMaterialCreateDialog"
           bodyClassName="rawMaterialCreateBody"
           title="Add Raw Material"
-          description="Create a new raw material record with clear labels before it enters the inventory flow."
+          description="Set up a material for your inventory."
           onClose={onClose}
         >
-          <form noValidate className="rawMaterialCreateForm grid gap-4 md:grid-cols-2" onSubmit={(event) => {
+          <form noValidate className={`${modalStyles.rawMaterialCreateForm} grid gap-4 md:grid-cols-2`} onSubmit={(event) => {
             event.preventDefault();
             setValidationAttempted(true);
             if (!materialForm.name.trim() || !units.some((unit) => unit.id === materialForm.unitId) || !/^[0-9]{1,5}$/.test(materialForm.reorderPoint) || reorderInputError) return;
             onCreateMaterial(event);
           }}>
+            <div className={modalStyles.materialIntro}>
+              <span className={modalStyles.materialIntroIcon}><PackagePlus size={22} aria-hidden="true" /></span>
+              <div><strong>Material details</strong><p>Choose a name, stock unit, and reorder level.</p></div>
+              <span className={modalStyles.materialRequiredNote}>* Required</span>
+            </div>
             <InventoryField htmlFor="material-name" label="Raw material name" required>
               <input
                 id="material-name"
@@ -129,11 +135,12 @@ export default function RawMaterialModals({
               <input
                 id="material-sku"
                 value={materialForm.sku}
-                onChange={(event) => onMaterialFormChange((current) => ({ ...current, sku: event.target.value }))}
-                readOnly
-                placeholder="Ex. RM-EVAP-001"
+                disabled
+                aria-describedby="material-sku-hint"
+                placeholder="Generated from material name"
                 className={inventoryInputClasses}
               />
+              <p id="material-sku-hint" className={modalStyles.materialSkuHint}><LockKeyhole size={13} aria-hidden="true" /> Automatically generated</p>
             </InventoryField>
             <div className={unitError ? "rounded-lg border border-red-600 bg-red-50 p-1" : undefined}>
               <AdminSelect label="Base unit" required describedBy={unitError ? "material-unit-error" : undefined} value={materialForm.unitId} onChange={(unitId) => onMaterialFormChange((current) => ({ ...current, unitId }))} options={[{ value: "", label: "Select unit" }, ...units.map((unit) => ({ value: unit.id, label: `${formatUnit(unit.name)} (${formatUnit(unit.code)})` }))]} />
@@ -164,11 +171,11 @@ export default function RawMaterialModals({
               />
               {reorderError && <p id="material-reorder-error" role="alert" className="text-sm text-red-600">{reorderError}</p>}
             </InventoryField>
-            <ModalActions>
-              <button type="submit" disabled={submitting} className="rawMaterialCreateSubmit rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white">
-                Create Material
+            <div className={modalStyles.materialFormActions}>
+              <button type="submit" disabled={submitting}>
+                <Plus size={16} aria-hidden="true" />{submitting ? "Creating…" : "Create Material"}
               </button>
-            </ModalActions>
+            </div>
           </form>
         </InventoryModal>
       ) : null}
@@ -196,9 +203,7 @@ export default function RawMaterialModals({
               <input
                 id="edit-material-sku"
                 value={materialForm.sku}
-                onChange={(event) =>
-                  onMaterialFormChange((current) => ({ ...current, sku: event.target.value }))
-                }
+                disabled
                 placeholder="RM-EVAP-001"
                 className={inventoryInputClasses}
               />

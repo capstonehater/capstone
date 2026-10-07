@@ -3,7 +3,7 @@ import { useAuthStore } from "@/store/authStore";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
 import { useMemo, useState, type FormEvent } from "react";
-import { Check, Plus, Search, Trash2 } from "lucide-react";
+import { Building2, Check, Plus, Search, Trash2 } from "lucide-react";
 import InventoryReportModal from "@/components/admin/inventory/InventoryReportModal";
 import dialogStyles from "./SupplierDeleteDialog.module.css";
 import { InventoryField } from "@/components/admin/inventory/InventoryField";
@@ -194,14 +194,18 @@ export default function SupplierWorkspace({
 
         <section id="supplier-details" aria-labelledby="supplier-details-title" className={styles.detailPanel}>
           <div className={styles.detailHeader}>
-            <div>
+            <div className={styles.detailHeading}>
+              <span className={styles.detailIcon}><Building2 size={23} aria-hidden="true" /></span>
+              <div>
               <h2 id="supplier-details-title" className="text-lg font-semibold text-slate-900">{creating ? "New Supplier" : "Supplier Details"}</h2>
               <p className="mt-1 text-sm text-slate-500">Supplier records are reused across stock runs and cost monitoring.</p>
+              </div>
             </div>
-            {!creating && selected ? <span className={styles.badge}>Saved supplier</span> : null}
+            {creating || selected ? <span className={styles.badge}>{creating ? "New supplier" : editing ? "Editing supplier" : "Saved supplier"}</span> : null}
           </div>
           {error ? <p role="alert" className="mx-5 mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
           {creating || selected ? <form noValidate onSubmit={(event) => void save(event)} className={styles.form}>
+            <div className={styles.formIntro}><strong>Contact details</strong><span><span className="text-red-600" aria-hidden="true">*</span> Required fields</span></div>
             <InventoryField htmlFor="supplier-name" label="Supplier Name" required>
               <input id="supplier-name" required maxLength={120} value={form.name} disabled={fieldsDisabled}
                 aria-invalid={!!fieldErrors.name} aria-describedby={fieldErrors.name ? "supplier-name-error" : undefined}
@@ -246,13 +250,13 @@ export default function SupplierWorkspace({
               <input id="supplier-longitude" value={form.longitude} readOnly disabled placeholder="Select a point on the map"
                 className={`${styles.input} cursor-not-allowed bg-slate-50 text-slate-600`} />
             </InventoryField>
-            <div className="md:col-span-2">
+            <div className={styles.locationSection}>
               <SupplierLocationPicker key={creating ? "new" : selectedId ?? "empty"} latitude={form.latitude} longitude={form.longitude} address={form.address}
                 readOnly={fieldsDisabled}
                 error={fieldErrors.location}
                 onChange={(location) => setForm((current) => ({ ...current, ...location }))} />
             </div>
-            <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4 md:col-span-2">
+            <div className={styles.formActions}>
               {!creating && selected ? <>
                 <PermissionAction permission={"suppliers.delete"}><button type="button" onClick={() => setDeleteTarget(selected)} disabled={submitting}
                   className="mr-auto inline-flex h-10 items-center gap-2 rounded-lg border border-red-200 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"><Trash2 size={15} /> Delete</button></PermissionAction>

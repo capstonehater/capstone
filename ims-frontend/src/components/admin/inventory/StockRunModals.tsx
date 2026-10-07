@@ -9,7 +9,7 @@ import { PermissionAction } from "@/components/auth/PermissionGuard";
 import { useEffect, useState, type FormEvent } from "react";
 import InventoryValidationField from "./InventoryValidationField";
 import { currentManilaReceivingDateTime } from "@/lib/stock-run-receiving";
-import { Loader2, Trash2 } from "lucide-react";
+import { ClipboardList, Loader2, Plus, Trash2 } from "lucide-react";
 import {
   InventoryField,
   inventoryInputClasses,
@@ -137,16 +137,22 @@ export default function StockRunModals({
       {activePanel === "stock-run-create" ? (
         <InventoryModal
           professional
+          panelClassName="stockRunCreateDialog"
+          bodyClassName="stockRunCreateBody"
           title="Create Stock-Run Draft"
-          description="Step 1 of 2. Create the draft first, then add incoming line items in the next modal."
+          description="Start a draft for your next inventory restock."
           onClose={onClose}
         >
-          <PermissionAction permission={"stockRuns.create"}><form noValidate className="space-y-4" onSubmit={(event) => {
+          <PermissionAction permission={"stockRuns.create"}><form noValidate className={styles.stockRunCreateForm} onSubmit={(event) => {
             event.preventDefault();
             setValidationAttempted(true);
             if (!stockRunForm.name.trim()) return;
             onCreateStockRun(event);
           }}>
+            <div className={styles.materialIntro}>
+              <span className={styles.materialIntroIcon}><ClipboardList size={22} aria-hidden="true" /></span>
+              <div><strong>Step 1 of 2 · Draft details</strong><p>Create your draft, then add incoming materials in the next step.</p></div>
+            </div>
             <InventoryValidationField error={validationAttempted && !stockRunForm.name.trim() ? "Draft name is required." : undefined}>
             <InventoryField htmlFor="stock-run-name" label="Draft name" required>
               <input
@@ -161,7 +167,7 @@ export default function StockRunModals({
               />
             </InventoryField>
             </InventoryValidationField>
-            <InventoryField htmlFor="stock-run-notes" label="Notes">
+            <InventoryField htmlFor="stock-run-notes" label="Notes (optional)">
               <textarea
                 id="stock-run-notes"
                 value={stockRunForm.notes}
@@ -172,9 +178,9 @@ export default function StockRunModals({
                 className={inventoryTextareaClasses}
               />
             </InventoryField>
-            <div className="flex justify-end gap-3 pt-2">
-              <button type="submit" disabled={submitting} className="rounded-full bg-[#f45a1f] px-5 py-2 text-sm font-semibold text-white">
-                Create Draft
+            <div className={styles.stockRunCreateActions}>
+              <button type="submit" disabled={submitting}>
+                <Plus size={16} aria-hidden="true" />{submitting ? "Creating…" : "Create Draft"}
               </button>
             </div>
           </form></PermissionAction>

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import AdminSectionHeader from '@/components/admin/AdminSectionHeader';
 import ActionAlert from '@/components/feedback/ActionAlert';
 import { createRole, deleteRole, fetchRolePermissions, fetchRoles, updateRole, type ManagedRole, type RoleDraft, type RolePermission } from '@/lib/roles';
@@ -125,7 +125,8 @@ export default function RolesWorkspace() {
         </form>}
       </section>
     </div>}
-    {modal && <RoleDialog title={modal === 'create' ? 'Create Role' : 'Delete Role'} description={modal === 'create' ? 'Set a role name and choose the permissions this role can access.' : undefined} busy={busy} onClose={closeDialog} footer={modal === 'create' ? <button form="create-role-form" className={styles.primary} disabled={busy}>{busy ? 'Creating...' : 'Create Role'}</button> : <button type="button" className={styles.danger} onClick={() => void remove()} disabled={busy}>{busy ? 'Deleting...' : 'Delete Role'}</button>}>
+    {modal && <RoleDialog className={modal === 'create' ? styles.createDialog : undefined} title={modal === 'create' ? 'Create Role' : 'Delete Role'} description={modal === 'create' ? 'Set a role name and choose the permissions this role can access.' : undefined} busy={busy} onClose={closeDialog} footer={modal === 'create' ? <button form="create-role-form" className={styles.primary} disabled={busy}>{busy ? 'Creating...' : 'Create Role'}</button> : <button type="button" className={styles.danger} onClick={() => void remove()} disabled={busy}>{busy ? 'Deleting...' : 'Delete Role'}</button>}>
+      {modal === 'create' && <div className={styles.createIntro}><span className={styles.createIntroIcon}><ShieldCheck size={22} aria-hidden="true" /></span><div><strong>Role details</strong><p>Choose the access this role needs. Permissions can be updated later.</p></div><span className={styles.createRequired}><span className={styles.requiredMark} aria-hidden="true">*</span> Required</span></div>}
       {dialogError && <p className={styles.error} role="alert">{dialogError}</p>}
       {modal === 'create' ? <form noValidate id="create-role-form" onSubmit={(event) => { event.preventDefault(); void create(); }}><RoleFields validationAttempted={createValidationAttempted} draft={newDraft} onChange={setNewDraft} disabled={busy} /><h3>Permissions <span className={styles.requiredMark} aria-hidden="true">*</span></h3>{createValidationAttempted && !newDraft.permissionKeys.length && <p role="alert" className={styles.error}>Select at least one permission.</p>}<RolePermissionMatrix permissions={permissions} selected={newDraft.permissionKeys} disabled={busy} onChange={(keys) => setNewDraft((value) => ({ ...value, permissionKeys: keys }))} /></form> : <p>Delete <strong>{selected?.name}</strong>? This permanently removes the role and its permission configuration.</p>}
     </RoleDialog>}

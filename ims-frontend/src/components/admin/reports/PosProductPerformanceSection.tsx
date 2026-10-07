@@ -324,7 +324,7 @@ export default function PosProductPerformanceSection({
                 <span>Gross Margin</span>
                 <span>Share</span>
               </div>
-              <div className="max-h-[18rem] overflow-y-auto">
+              <div className="max-h-[18rem] overflow-y-auto xl:max-h-[32rem]">
                 {loading ? (
                   <div className="px-4 py-6 text-sm text-slate-500">Loading categories...</div>
                 ) : (report?.topCategories ?? []).length === 0 ? (
@@ -348,7 +348,12 @@ export default function PosProductPerformanceSection({
           </WidgetCard>
 
           <WidgetCard title="Top 10 Views" className="pos-top-products">
-            <div className="space-y-4">
+            <div
+              className="max-h-[24rem] space-y-4 overflow-y-auto overscroll-contain pr-2"
+              tabIndex={0}
+              role="region"
+              aria-label="Top 10 product rankings"
+            >
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Best Sellers by Quantity

@@ -374,8 +374,10 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   ) {
     await loadInventorySummary();
     if (reloadStockRuns) await loadSupportData();
-    if (selectedRawMaterialId) {
-      await Promise.all([loadMaterialBase(selectedRawMaterialId), loadMaterialHistory(selectedRawMaterialId)]);
+    // The summary refresh may change the selection after a material is deleted.
+    const currentRawMaterialId = useInventoryStore.getState().selectedRawMaterialId;
+    if (currentRawMaterialId) {
+      await Promise.all([loadMaterialBase(currentRawMaterialId), loadMaterialHistory(currentRawMaterialId)]);
     }
     if (stockRunIdOverride) await loadActiveStockRun(stockRunIdOverride);
     setReportRevision((revision) => revision + 1);

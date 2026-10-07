@@ -137,3 +137,42 @@
 }
 @media(max-width:900px) { .layout { grid-template-columns:1fr; } .roleList { max-height:260px; } }
 @media(prefers-reduced-motion:reduce) { .toggle input,.toggle input:before { transition:none; } }
+.dialog.createDialog { width:min(760px,calc(100vw - 32px)); border-radius:20px; font-size:16px; }
+.createDialog > header { padding:22px 28px; }
+.createDialog h2 { font-size:25px; font-weight:650; line-height:1.35; }
+.createDialog .dialogHeading p { font-size:15px; color:#64748b; margin-top:5px; }
+.createDialog > header button { width:40px; height:40px; border-radius:10px; }
+.createDialog .dialogBody { padding:24px 28px; scrollbar-width:thin; }
+.createIntro { display:flex; align-items:center; gap:12px; padding:14px 16px; margin-bottom:22px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc; }
+.createIntroIcon { display:grid; place-items:center; flex-shrink:0; width:42px; height:42px; border-radius:10px; background:#e8edf5; color:#34425f; }
+.createIntro strong { font-size:16px; font-weight:650; }
+.createIntro p { margin:3px 0 0; font-size:14px; line-height:1.6; color:#64748b; }
+.createRequired { margin-left:auto; flex-shrink:0; font-size:13px; color:#64748b; }
+.createDialog .fields { gap:18px; margin-bottom:24px; }
+.createDialog .fields label { font-size:16px; font-weight:600; color:#475569; }
+.createDialog .fields input,.createDialog .fields textarea { font-size:16px; padding:11px 12px; border-radius:10px; }
+.createDialog .fields input { min-height:46px; }
+.createDialog .fields textarea { min-height:96px; }
+.createDialog h3 { font-size:19px; margin:0 0 16px; font-weight:650; }
+.createDialog .matrix { gap:18px; }
+.createDialog .matrix fieldset { padding:4px 16px 8px; border-radius:14px; border-color:#e2e8f0; background:#fafbfc; }
+.createDialog .matrix legend { font-size:16px; font-weight:650; padding:0 8px; }
+.createDialog .permission { padding:12px 0; gap:16px; min-height:64px; border-color:#e2e8f0; }
+.createDialog .permission strong { font-size:16px; font-weight:600; line-height:1.5; }
+.createDialog .permission small { font-size:14px; color:#64748b; line-height:1.5; margin-top:3px; }
+.createDialog .toggle { gap:8px; font-size:13px; }
+.createDialog .toggle input { width:40px; height:24px; }
+.createDialog .toggle input:before { width:18px; height:18px; }
+.createDialog .toggle input:checked:before { transform:translateX(16px); }
+.createDialog .dialogFooter { padding:18px 28px; background:#fafbfc; box-shadow:none; }
+.createDialog .dialogFooter .primary { min-height:44px; padding:10px 20px; font-size:16px; border-radius:10px; }
+.createDialog .primary:hover:not(:disabled) { background:#34425f; }
+@media(max-width:600px) {
+  .createDialog > header { padding:20px; }
+  .createDialog .dialogBody { padding:20px; }
+  .createIntro { align-items:flex-start; }
+  .createRequired { display:none; }
+  .createDialog .matrix fieldset { padding-inline:12px; }
+  .createDialog .dialogFooter { padding:16px 20px; }
+  .createDialog .dialogFooter .primary { width:100%; }
+}

@@ -1,5 +1,7 @@
 "use client";
 import AdminSelect from "@/components/admin/AdminSelect";
+import { ClipboardMinus } from "lucide-react";
+import styles from "./InventoryModal.module.css";
 
 import { useState, type FormEvent } from "react";
 import InventoryValidationField from "./InventoryValidationField";
@@ -30,10 +32,6 @@ type WasteFormState = {
   reasonCode: string;
   note: string;
 };
-
-function ModalActions({ children }: { children: React.ReactNode }) {
-  return <div className="md:col-span-2 flex justify-end gap-3 pt-2">{children}</div>;
-}
 
 type WasteModalProps = {
   activePanel: PanelMode;
@@ -79,17 +77,24 @@ export default function WasteModal({
 
   return (
     <InventoryModal
-          professional
+      professional
+      panelClassName="wasteDialog"
+      bodyClassName="wasteBody"
       title="Record Waste"
-      description="Log waste against a specific batch so the audit trail stays clear and batch balances stay accurate."
+      description="Track wasted stock and keep batch balances accurate."
       onClose={onClose}
     >
-      <form noValidate className="grid gap-4 md:grid-cols-2" onSubmit={(event) => {
+      <form noValidate className={`${styles.wasteForm} grid md:grid-cols-2`} onSubmit={(event) => {
         event.preventDefault();
         setValidationAttempted(true);
         if (Object.values(errors).some(Boolean)) return;
         onSubmitWaste(event);
       }}>
+        <div className={styles.materialIntro}>
+          <span className={styles.materialIntroIcon}><ClipboardMinus size={22} aria-hidden="true" /></span>
+          <div><strong>Waste details</strong><p>Select the affected batch, quantity, and reason.</p></div>
+          <span className={styles.materialRequiredNote}>* Required</span>
+        </div>
         <InventoryValidationField error={validationAttempted ? errors.material : undefined}>
         <AdminSelect searchable required label="Raw material" value={wasteForm.rawMaterialId} onChange={(rawMaterialId) => { onWasteFormChange((current) => ({ ...current, rawMaterialId, batchId: "" })); onSelectRawMaterial(rawMaterialId); }} options={[{ value: "", label: "Select raw material" }, ...summaries.map((summary) => ({ value: summary.rawMaterialId, label: summary.name }))]} />
         </InventoryValidationField>
@@ -120,7 +125,7 @@ export default function WasteModal({
         <AdminSelect searchable required label="Reason code" value={wasteForm.reasonCode} onChange={(reasonCode) => onWasteFormChange((current) => ({ ...current, reasonCode }))} options={[...INVENTORY_WASTE_REASON_OPTIONS.map((option) => ({ value: option.value, label: option.label }))]} />
         </InventoryValidationField>
         <div className="md:col-span-2">
-          <InventoryField htmlFor="waste-note" label="Note">
+          <InventoryField htmlFor="waste-note" label="Note (optional)">
             <textarea
               id="waste-note"
               value={wasteForm.note}
@@ -135,11 +140,11 @@ export default function WasteModal({
             />
           </InventoryField>
         </div>
-        <ModalActions>
-          <button type="submit" disabled={submitting} className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white">
-            Record Waste
+        <div className={styles.wasteActions}>
+          <button type="submit" disabled={submitting}>
+            <ClipboardMinus size={16} aria-hidden="true" />{submitting ? "Recording…" : "Record Waste"}
           </button>
-        </ModalActions>
+        </div>
       </form>
     </InventoryModal>
   );

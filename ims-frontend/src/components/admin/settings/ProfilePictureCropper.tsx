@@ -6,7 +6,7 @@ import styles from "./ProfilePictureCropper.module.css";
 
 const clamp = (value: number) => Math.max(-1, Math.min(1, value));
 
-export default function ProfilePictureCropper({ file, onCancel, onApply }: {
+export default function ProfilePictureCropper({ file, onApply }: {
   file: File;
   onCancel: () => void;
   onApply: (file: File) => void;
@@ -116,7 +116,6 @@ export default function ProfilePictureCropper({ file, onCancel, onApply }: {
       <p className={styles.hint}>The circle shows your profile picture. Save your account changes to upload it.</p>
       </div>
       <div className={styles.footer}>
-        <button type="button" disabled={saving} onClick={onCancel} className={styles.cancel}>Cancel</button>
         <button type="button" disabled={!image || saving} onClick={applyCrop} className={styles.apply}>{saving ? "Cropping..." : "Use photo"}</button>
       </div>
     </div>

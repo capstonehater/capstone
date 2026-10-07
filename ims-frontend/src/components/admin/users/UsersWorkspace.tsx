@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   Trash2,
   UserCog,
+  UserPlus,
   UsersRound,
   XCircle,
 } from "lucide-react";
@@ -1381,6 +1382,11 @@ function UserFormDialogBody({
 
   const formContent = (
       <form noValidate className={styles.userDialogForm} onSubmit={handleSubmit}>
+        <div className={styles.userFormIntro}>
+          <span className={styles.userFormIcon}><UserPlus size={22} aria-hidden="true" /></span>
+          <div><strong>{mode === "create" ? "Account details" : "Profile details"}</strong><p>{mode === "create" ? "The user will receive an email to finish setting up their account." : "Update the user's contact information and role."}</p></div>
+          <span className={styles.requiredNote}><span className="text-red-600" aria-hidden="true">*</span> Required</span>
+        </div>
         {errorMessage ? (
           <div className="md:col-span-2 rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {errorMessage}
@@ -1440,13 +1446,14 @@ function UserFormDialogBody({
 
         <div className={styles.userDialogActions}>
           <button type="submit" disabled={submitting} className="rounded-full bg-slate-950 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">
+            <UserPlus size={16} aria-hidden="true" />
             {submitting ? "Saving..." : mode === "create" ? "Create User" : "Save Changes"}
           </button>
         </div>
       </form>
   );
 
-  return <InventoryModal professional bodyClassName={styles.userDialogBody} title={mode === "create" ? "Add User" : `Edit ${user?.name ?? "User"}`} description={mode === "create" ? "Create a pending account and send an account setup email." : "Update profile fields and assignable role data."} onClose={submitting ? () => undefined : onClose}>
+  return <InventoryModal professional panelClassName="userFormDialog" bodyClassName={styles.userDialogBody} title={mode === "create" ? "Add User" : `Edit ${user?.name ?? "User"}`} description={mode === "create" ? "Create a pending account and send an account setup email." : "Update profile fields and assignable role data."} onClose={submitting ? () => undefined : onClose}>
     {formContent}
   </InventoryModal>;
 }

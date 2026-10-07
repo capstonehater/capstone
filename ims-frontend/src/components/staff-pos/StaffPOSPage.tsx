@@ -23,6 +23,7 @@ import { remainingVariantQuantity } from "@/lib/pos-cart-availability";
 import ProductImage from "@/components/ProductImage";
 import ProductConfiguratorModal from "./modals/ProductConfiguratorModal";
 import VoidConfirmationModal from "./modals/VoidConfirmationModal";
+import CancelTransactionModal from "./modals/CancelTransactionModal";
 import PaymentModal, { type PaymentState } from "./modals/PaymentModal";
 import ReceiptModal from "./modals/ReceiptModal";
 import ActionAlert from "@/components/feedback/ActionAlert";
@@ -109,6 +110,7 @@ export default function StaffPOSPage() {
   const [showPayment, setShowPayment] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [voidTargetItem, setVoidTargetItem] = useState<PosCartItem | null>(null);
+  const [showCancelTransaction, setShowCancelTransaction] = useState(false);
   const [reversalState, setReversalState] = useState<ReversalState>(defaultReversalState());
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -170,6 +172,7 @@ export default function StaffPOSPage() {
 
   const closeConfigurator = () => { setConfiguratorProduct(null); setEditingCartItem(null); };
   const resetTransaction = () => {
+    setShowCancelTransaction(false);
     setMobileCartOpen(false); setCart([]); setTransactionNote(""); setDiscount("none");
     setPayments({ cash: "", gcash: "", maya: "", card: "" }); closeConfigurator(); setVoidTargetItem(null);
   };
@@ -236,7 +239,7 @@ export default function StaffPOSPage() {
       return current.map((item) => item.cartId === cartId ? { ...item, quantity: nextQty, lineSubtotal: item.unitPrice * nextQty } : item);
     });
   };
-  const handleCancelTransaction = () => { if (cart.length && window.confirm("Cancel the current transaction?")) resetTransaction(); };
+  const handleCancelTransaction = () => { if (cart.length && !checkoutLoading) setShowCancelTransaction(true); };
   const buildCheckoutPayload = (idempotencyKey: string): PosCheckoutPayload => ({
     idempotencyKey,
     items: cart.map((item) => ({
@@ -458,7 +461,7 @@ export default function StaffPOSPage() {
             </div>
 
             <div className={styles.cartActions}>
-              <button onClick={handleCancelTransaction} type="button" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-100">Cancel Transaction</button>
+              <button onClick={handleCancelTransaction} type="button" disabled={cart.length === 0 || checkoutLoading} className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50">Cancel Transaction</button>
               <PermissionAction permission="pos.checkout"><button onClick={() => setShowPayment(true)} type="button" disabled={cart.length === 0} className="rounded-2xl bg-[#232d46] px-4 py-3 text-sm font-semibold text-white hover:bg-[#34445f] disabled:cursor-not-allowed disabled:bg-slate-300">{checkoutLoading ? "Processing..." : "Process Order"}</button></PermissionAction>
             </div>
           </aside>
@@ -467,6 +470,7 @@ export default function StaffPOSPage() {
         </div>
       </div>
 
+      {showCancelTransaction ? <CancelTransactionModal items={cart} total={totals.total} onClose={() => setShowCancelTransaction(false)} onConfirm={() => { resetTransaction(); setError(null); setNotice("Transaction cancelled. You can start a new order."); }} /> : null}
       {configuratorProduct ? <ProductConfiguratorModal product={configuratorProduct} cart={cart} initialItem={editingCartItem} onClose={closeConfigurator} onSubmit={editingCartItem ? updateConfiguredItem : addConfiguredItem} submitLabel={editingCartItem ? "Save Changes" : "Add to Cart"} /> : null}
       {voidTargetItem ? <VoidConfirmationModal item={voidTargetItem} onClose={() => setVoidTargetItem(null)} onConfirm={() => { if (!voidTargetItem) return; setCart((current) => current.filter((item) => item.cartId !== voidTargetItem.cartId)); if (editingCartItem?.cartId === voidTargetItem.cartId) closeConfigurator(); setVoidTargetItem(null); }} /> : null}
       {showPayment ? <PermissionAction permission={"pos.checkout"}><PaymentModal total={cashCorrectionOrder ? Number(cashCorrectionOrder.totalAmount) : totals.total} cartCount={cashCorrectionOrder ? cashCorrectionOrder.items.length : cart.length} payments={payments} setPayments={setPayments} onClose={closePayment} cashCorrection={!!cashCorrectionOrder} submitting={checkoutLoading} error={error} onConfirm={() => void handleConfirmPayment()} /></PermissionAction> : null}

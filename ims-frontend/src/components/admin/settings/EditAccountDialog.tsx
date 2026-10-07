@@ -2,6 +2,7 @@
 
 import type { FormEvent } from "react";
 import Image from "next/image";
+import { Check, UserRound } from "lucide-react";
 import styles from "./EditAccountDialog.module.css";
 import { useEffect, useState } from "react";
 import InventoryModal from "@/components/admin/inventory/InventoryModal";
@@ -128,12 +129,18 @@ export default function EditAccountDialog({
   return (
     <InventoryModal
       professional
+      panelClassName="editAccountDialog"
       bodyClassName={styles.body}
       title="Edit Account"
       description="Update your profile details. Role, status, and Employee ID are read-only."
       onClose={submitting ? () => undefined : onClose}
     >
       <form noValidate className={styles.form} onSubmit={handleSubmit}>
+        <div className={styles.intro}>
+          <span className={styles.introIcon}><UserRound size={22} aria-hidden="true" /></span>
+          <div><strong>Your profile</strong><p>Keep your photo and contact information up to date.</p></div>
+          <span className={styles.requiredNote}><span className="text-red-600" aria-hidden="true">*</span> Required</span>
+        </div>
         {error ? (
           <div role="alert" className={styles.error}>
             {error}
@@ -268,6 +275,7 @@ export default function EditAccountDialog({
             disabled={submitting}
             className="rounded-full bg-[#232d46] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#232d46] disabled:opacity-50"
           >
+            <Check size={16} aria-hidden="true" />
             {submitting ? "Saving..." : "Save Changes"}
           </button>
         </div>
