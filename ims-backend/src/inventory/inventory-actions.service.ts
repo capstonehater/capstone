@@ -11,6 +11,7 @@ import {
 } from '@prisma/client';
 import { AvailabilityService } from '../availability/availability.service';
 import { toDecimal } from '../common/utils/decimal.util';
+import { getTodayManilaBusinessDateInput } from '../common/utils/manila-business-date.util';
 import { OutboxService } from '../events/outbox.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateInventoryWasteDto } from './dto/create-inventory-waste.dto';
@@ -32,7 +33,7 @@ export class InventoryActionsService {
     return this.prisma.$transaction(async (tx) => {
       await this.ensureRawMaterialExists(tx, dto.rawMaterialId);
       await tx.$queryRaw(Prisma.sql`SELECT id FROM stock_batches WHERE id = ${dto.batchId} FOR UPDATE`);
-      const batch = await this.ensureUsableBatch(
+      const batch = await this.ensureWasteBatch(
         tx,
         dto.batchId,
         dto.rawMaterialId,
@@ -45,6 +46,16 @@ export class InventoryActionsService {
         );
       }
 
+      const expirationDate = batch.expirationDate?.toISOString().slice(0, 10);
+      const expired = Boolean(expirationDate && expirationDate < getTodayManilaBusinessDateInput());
+      if (dto.reasonCode === 'EXPIRED' && !expired) {
+        throw new BadRequestException(expirationDate
+          ? 'Selected batch is not expired according to its stock-run expiration date (' + expirationDate + '). Choose another reason code.'
+          : 'Selected batch has no stock-run expiration date, so it cannot be labeled as expired. Choose another reason code.');
+      }
+      if (expired && !quantity.equals(batch.remainingQuantity)) {
+        throw new BadRequestException('Expired batches must be recorded as waste using their full remaining quantity');
+      }
       await tx.stockBatch.update({
         where: { id: batch.id },
         data: {
@@ -337,7 +348,7 @@ export class InventoryActionsService {
     }
   }
 
-  private async ensureUsableBatch(
+  private async ensureWasteBatch(
     tx: TxClient,
     batchId: string,
     rawMaterialId: string,
@@ -356,15 +367,6 @@ export class InventoryActionsService {
     if (!batch || batch.rawMaterialId !== rawMaterialId) {
       throw new NotFoundException(
         'Stock batch not found for this raw material',
-      );
-    }
-
-    if (
-      batch.expirationDate &&
-      batch.expirationDate < new Date(new Date().setHours(0, 0, 0, 0))
-    ) {
-      throw new BadRequestException(
-        'Expired batches cannot be adjusted or wasted',
       );
     }
 

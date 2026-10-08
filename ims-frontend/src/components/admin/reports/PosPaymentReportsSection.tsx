@@ -1,5 +1,6 @@
 "use client";
 
+import ReportColumns from "./ReportColumns";
 import PosReportEmpty from "./PosReportEmpty";
 
 import { useEffect, useState } from "react";
@@ -8,7 +9,7 @@ import styles from "./PosReports.module.css";
 import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
-  exportPosPaymentReportsCsv,
+  exportPosPaymentReportsExcel,
   exportPosPaymentReportsPdf,
 } from "@/lib/report-exports";
 import {
@@ -37,7 +38,7 @@ export default function PosPaymentReportsSection({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<PosPaymentReportsReport | null>(null);
-  const [exportingFormat, setExportingFormat] = useState<"csv" | "pdf" | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<"excel" | "pdf" | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -72,7 +73,7 @@ export default function PosPaymentReportsSection({
     return null;
   }
 
-  const handleExport = async (format: "csv" | "pdf") => {
+  const handleExport = async (format: "excel" | "pdf") => {
     if (!report) {
       return;
     }
@@ -90,9 +91,9 @@ export default function PosPaymentReportsSection({
         report,
       };
 
-      if (format === "csv") {
-        const filename = exportPosPaymentReportsCsv(snapshot);
-        setExportNotice(`CSV export downloaded as ${filename}.`);
+      if (format === "excel") {
+        const filename = await exportPosPaymentReportsExcel(snapshot);
+        setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
         const filename = exportPosPaymentReportsPdf(snapshot);
         setExportNotice(
@@ -141,11 +142,11 @@ export default function PosPaymentReportsSection({
             <button
               type="button"
               disabled={loading || exportingFormat !== null}
-              onClick={() => void handleExport("csv")}
+              onClick={() => void handleExport("excel")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <FileSpreadsheet size={18} aria-hidden="true" />
-              <span>{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</span>
+              <span>{exportingFormat === "excel" ? "Exporting..." : "Export Excel"}</span>
             </button>
             <button
               type="button"
@@ -189,7 +190,7 @@ export default function PosPaymentReportsSection({
 
       <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <WidgetCard title="Payment Method Breakdown">
-          <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <ReportColumns columns={["Method","Amount","Orders","Payments","Share"]} gridTemplate="1fr_1fr_0.8fr_0.8fr_0.8fr"><div className="overflow-hidden rounded-2xl border border-slate-200">
             <div className="grid grid-cols-[1fr_1fr_0.8fr_0.8fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Method</span>
               <span>Amount</span>
@@ -223,11 +224,11 @@ export default function PosPaymentReportsSection({
                 ))
               )}
             </div>
-          </div>
+          </div></ReportColumns>
         </WidgetCard>
 
         <WidgetCard title="Recent Split Payment Orders">
-          <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <ReportColumns columns={["Order","Date & Time","Staff","Payments"]} gridTemplate="1fr_1fr_1fr_1.1fr"><div className="overflow-hidden rounded-2xl border border-slate-200">
             <div className="grid grid-cols-[1fr_1fr_1fr_1.1fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Order</span>
               <span>Date & Time</span>
@@ -264,7 +265,7 @@ export default function PosPaymentReportsSection({
                 ))
               )}
             </div>
-          </div>
+          </div></ReportColumns>
         </WidgetCard>
       </section>
     </div>

@@ -6,12 +6,13 @@ import { useEffect, useRef } from "react";
 import styles from "./InventoryReportModal.module.css";
 import motion from "./InventoryModalMotion.module.css";
 
-export default function InventoryReportModal({ title, description, onClose, children, className = "" }: {
+export default function InventoryReportModal({ title, description, onClose, children, className = "", fixedHeight = false }: {
   title: string;
   description?: string;
   onClose: () => void;
   children: React.ReactNode;
   className?: string;
+  fixedHeight?: boolean;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -24,7 +25,7 @@ export default function InventoryReportModal({ title, description, onClose, chil
     <dialog
       ref={dialogRef}
       data-inventory-report-modal
-      className={`${styles.dialog} ${motion.panel} ${className}`}
+      className={`${styles.dialog} ${motion.panel} ${fixedHeight ? styles.fixedDialog : ""} ${className}`}
       aria-labelledby="inventory-report-title"
       onCancel={(event) => {
         event.preventDefault();

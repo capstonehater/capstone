@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Role } from "@/lib/auth";
+import WorkspaceLoading from "@/components/admin/WorkspaceLoading";
 import NoAccess from "./NoAccess";
 import { useAuthStore } from "@/store/authStore";
 
@@ -29,7 +30,7 @@ export default function AuthGuard({
 
   }, [status, isAuthenticated, user, allowedRoles, router]);
 
-  if (status === "loading") return null;
+  if (status === "loading") return <WorkspaceLoading />;
   if (!isAuthenticated || !user) return null;
   if (allowedRoles && !allowedRoles.includes(user.role)) return <NoAccess />;
 

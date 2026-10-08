@@ -1,5 +1,6 @@
 "use client";
 
+import ReportColumns from "./ReportColumns";
 import SearchInput from "@/components/ui/SearchInput";
 import AdminSelect from "@/components/admin/AdminSelect";
 
@@ -7,7 +8,7 @@ import { useEffect, useState } from "react";
 import SummaryCard from "@/components/dashboard/SummaryCard";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
-  exportPosAuditExceptionsCsv,
+  exportPosAuditExceptionsExcel,
   exportPosAuditExceptionsPdf,
 } from "@/lib/report-exports";
 import {
@@ -98,7 +99,7 @@ export default function PosAuditExceptionsSection({
   const [status, setStatus] = useState<OrderStatus | "">("");
   const [exceptionType, setExceptionType] = useState<"ALL" | PosAuditExceptionKind>("ALL");
   const [page, setPage] = useState(1);
-  const [exportingFormat, setExportingFormat] = useState<"csv" | "pdf" | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<"excel" | "pdf" | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -159,7 +160,7 @@ export default function PosAuditExceptionsSection({
   const totalPages = report?.pagination.totalPages ?? 0;
   const hasNextPage = totalPages > 0 && page < totalPages;
 
-  const handleExport = async (format: "csv" | "pdf") => {
+  const handleExport = async (format: "excel" | "pdf") => {
     if (!report) {
       return;
     }
@@ -183,9 +184,9 @@ export default function PosAuditExceptionsSection({
         report,
       };
 
-      if (format === "csv") {
-        const filename = exportPosAuditExceptionsCsv(snapshot);
-        setExportNotice(`CSV export downloaded as ${filename}.`);
+      if (format === "excel") {
+        const filename = await exportPosAuditExceptionsExcel(snapshot);
+        setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
         const filename = exportPosAuditExceptionsPdf(snapshot);
         setExportNotice(
@@ -280,10 +281,10 @@ export default function PosAuditExceptionsSection({
             <button
               type="button"
               disabled={loading || exportingFormat !== null}
-              onClick={() => void handleExport("csv")}
+              onClick={() => void handleExport("excel")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {exportingFormat === "csv" ? "Exporting..." : "Export CSV"}
+              {exportingFormat === "excel" ? "Exporting..." : "Export Excel"}
             </button>
             <button
               type="button"
@@ -332,7 +333,7 @@ export default function PosAuditExceptionsSection({
 
       <WidgetCard title="Stored Exception Events">
         <div className="overflow-x-auto">
-          <div className="min-w-[125rem] overflow-hidden rounded-2xl border border-slate-200">
+          <ReportColumns columns={["Occurred At","Type","Order","Status","Reason / Discount","Discount Customer","Discount ID No.","Amount","Responsible User","Requested By","Approved By","Reference","Note"]} gridTemplate="1fr_0.8fr_1fr_0.8fr_1fr_1fr_1fr_0.8fr_1fr_1fr_1fr_0.9fr_1fr"><div className="min-w-[125rem] overflow-hidden rounded-2xl border border-slate-200">
             <div className="grid grid-cols-[1fr_0.8fr_1fr_0.8fr_1fr_1fr_1fr_0.8fr_1fr_1fr_1fr_0.9fr_1fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Occurred At</span>
               <span>Type</span>
@@ -418,7 +419,7 @@ export default function PosAuditExceptionsSection({
                 ))
               )}
             </div>
-          </div>
+          </div></ReportColumns>
         </div>
 
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

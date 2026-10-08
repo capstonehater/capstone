@@ -16,7 +16,8 @@ import styles from "@/components/layout/ApplicationShell.module.css";
 
 type AdminSidebarProps = { isOpen: boolean; onClose: () => void; collapsed: boolean; onToggleCollapse: () => void; className?: string; inert?: boolean };
 
-export default function AdminSidebar({ isOpen, onClose, collapsed, onToggleCollapse, className = "", inert = false }: AdminSidebarProps) {
+export default function AdminSidebar({ isOpen, onClose, collapsed: desktopCollapsed, onToggleCollapse, className = "", inert = false }: AdminSidebarProps) {
+  const collapsed = desktopCollapsed && !isOpen;
   const pathname = usePathname();
   const navigation = getVisibleNavigation(useAuthStore());
   const activeLink = navigation.flatMap(group => group.items)

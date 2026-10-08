@@ -171,7 +171,7 @@ export default function SupplierWorkspace({
                 className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none focus:border-[#232d46] focus:ring-2 focus:ring-[#232d46]/10" />
             </label>
           </div>
-          <div className="m-3 max-h-[min(65vh,42rem)] overflow-auto rounded-lg border border-slate-300">
+          <div className={styles.tableScroll}>
             {filteredSuppliers.length ? (
             <table className="w-full table-fixed border-collapse text-xs">
               <caption className="sr-only">Select a supplier to view its details.</caption>
@@ -204,6 +204,7 @@ export default function SupplierWorkspace({
             </div>
             {creating || selected ? <span className={styles.badge}>{creating ? "New supplier" : editing ? "Editing supplier" : "Saved supplier"}</span> : null}
           </div>
+          <div className={styles.detailBody}>
           {error ? <p role="alert" className="mx-5 mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
           {creating || selected ? <form noValidate onSubmit={(event) => void save(event)} className={styles.form}>
             <div className={styles.formIntro}><strong>Contact details</strong><span><span className="text-red-600" aria-hidden="true">*</span> Required fields</span></div>
@@ -278,6 +279,7 @@ export default function SupplierWorkspace({
                 className={styles.primary}><Check size={16} />{submitting ? "Saving..." : creating ? "Create Supplier" : "Save Changes"}</button></PermissionAction> : null}
             </div>
           </form> : <div className="p-10 text-center text-sm text-slate-500">Choose a supplier or create a new supplier to view its details.</div>}
+          </div>
         </section>
       </div>
 

@@ -1,4 +1,5 @@
 "use client";
+import PageSkeleton from "@/components/loading/PageSkeleton";
 import SearchInput from "@/components/ui/SearchInput";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
@@ -257,9 +258,7 @@ export default function AlertsFeature() {
 
         <section className="grid gap-4">
           {loading ? (
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-5 text-sm text-slate-500 shadow-sm">
-              Loading alerts...
-            </div>
+            <PageSkeleton page="alerts" header={false} />
           ) : alerts.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-5 text-sm text-slate-500 shadow-sm">
               No alerts matched the current filters.

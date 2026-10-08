@@ -1,3 +1,4 @@
+import ReportColumns from "./ReportColumns";
 import styles from "./PosReports.module.css";
 
 type Point = { key: string; label: string; value: number; detail?: string };
@@ -18,6 +19,6 @@ export default function PosSalesChart({ points, valueFormatter, emptyLabel }: { 
       {points.map((point, index) => <g key={point.key}><circle cx={x(index)} cy={y(values[index])} r="4" fill="#165dff"><title>{point.label}: {valueFormatter(values[index])} {point.detail}</title></circle><text x={x(index)} y="348" textAnchor="middle" fontSize="12" fill="#666">{point.label}</text></g>)}
     </svg>
     <div className={styles.chartLegend}>Net sales (₱)</div>
-    <details className="mt-3 text-xs text-slate-500"><summary className="cursor-pointer">View hourly values</summary><table className="mt-2 w-full text-left"><thead><tr><th>Hour</th><th>Net sales</th><th>Transactions</th></tr></thead><tbody>{points.map((point, index) => <tr key={point.key}><td>{point.label}</td><td>{valueFormatter(values[index])}</td><td>{point.detail}</td></tr>)}</tbody></table></details>
+    <details className="mt-3 text-xs text-slate-500"><summary className="cursor-pointer">View hourly values</summary><ReportColumns title="Hourly Values" columns={["Hour","Net sales","Transactions"]}><table className="mt-2 w-full text-left"><thead><tr><th>Hour</th><th>Net sales</th><th>Transactions</th></tr></thead><tbody>{points.map((point, index) => <tr key={point.key}><td>{point.label}</td><td>{valueFormatter(values[index])}</td><td>{point.detail}</td></tr>)}</tbody></table></ReportColumns></details>
   </div>;
 }

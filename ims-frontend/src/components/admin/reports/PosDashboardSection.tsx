@@ -1,5 +1,9 @@
 "use client";
+import PageSkeleton from "@/components/loading/PageSkeleton";
 
+import { Banknote, Tags, Trophy } from "lucide-react";
+import snapshotStyles from "./DailySalesSnapshot.module.css";
+import ReportColumns from "./ReportColumns";
 import PosReportEmpty from "./PosReportEmpty";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -120,6 +124,11 @@ export default function PosDashboardSection({
     return <>{children}</>;
   }
 
+  const grossSales = Number(report?.summary.grossSales ?? 0);
+  const discountShare = grossSales > 0 ? Number(report?.summary.discounts ?? 0) / grossSales * 100 : null;
+
+  if (loading && !report && !error) return <><PageSkeleton page="reports" header={false} />{children}</>;
+
   return (
     <div className="space-y-6">
       {error ? (
@@ -162,40 +171,43 @@ export default function PosDashboardSection({
       {children}
 
         <WidgetCard title="Daily Sales Snapshot">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Gross Sales
-              </p>
-              <p className="mt-2 text-2xl font-bold text-slate-900">
-                {loading ? "..." : formatPeso(report?.summary.grossSales ?? "0")}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Discounts
-              </p>
-              <p className="mt-2 text-2xl font-bold text-slate-900">
-                {loading ? "..." : formatPeso(report?.summary.discounts ?? "0")}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Top Product
-              </p>
-              <p className="mt-2 text-lg font-bold text-slate-900">
-                {loading
-                  ? "..."
-                  : report?.topProduct?.productName ?? "No completed sales yet"}
-              </p>
-              {report?.topProduct ? (
-                <p className="mt-2 text-sm text-slate-500">
-                  {report.topProduct.quantitySold} sold | {formatPeso(report.topProduct.revenue)}
-                </p>
-              ) : null}
-            </div>
+          <p className={snapshotStyles.intro}>Sales, savings, and your leading product for the selected date range.</p>
+          <div className={snapshotStyles.grid} aria-busy={loading}>
+            <article className={snapshotStyles.card}>
+              <div className={snapshotStyles.cardHeader}>
+                <span className={snapshotStyles.label}>Gross Sales</span>
+                <span className={snapshotStyles.icon}><Banknote size={22} aria-hidden="true" /></span>
+              </div>
+              <p className={snapshotStyles.value}>{loading ? "..." : formatPeso(report?.summary.grossSales ?? "0")}</p>
+              <p className={snapshotStyles.description}>Sales before discounts</p>
+              <dl className={snapshotStyles.details}>
+                <div><dt>Transactions</dt><dd>{loading ? "..." : report?.summary.transactionCount ?? 0}</dd></div>
+              </dl>
+            </article>
+            <article className={snapshotStyles.card}>
+              <div className={snapshotStyles.cardHeader}>
+                <span className={snapshotStyles.label}>Discounts</span>
+                <span className={snapshotStyles.icon}><Tags size={22} aria-hidden="true" /></span>
+              </div>
+              <p className={snapshotStyles.value}>{loading ? "..." : formatPeso(report?.summary.discounts ?? "0")}</p>
+              <p className={snapshotStyles.description}>Total savings given to customers</p>
+              <dl className={snapshotStyles.details}>
+                <div><dt>Share of gross sales</dt><dd>{loading ? "..." : discountShare === null ? "—" : discountShare.toFixed(1) + "%"}</dd></div>
+              </dl>
+            </article>
+            <article className={snapshotStyles.card}>
+              <div className={snapshotStyles.cardHeader}>
+                <span className={snapshotStyles.label}>Top Product</span>
+                <span className={snapshotStyles.icon}><Trophy size={22} aria-hidden="true" /></span>
+              </div>
+              <p className={snapshotStyles.product}>{loading ? "..." : report?.topProduct?.productName ?? "No completed sales yet"}</p>
+              <p className={snapshotStyles.description}>{loading ? "Loading product performance..." : report?.topProduct ? "Leading product in the selected period" : "Product details appear after a completed sale"}</p>
+              <dl className={snapshotStyles.details}>
+                <div><dt>Units sold</dt><dd>{loading ? "..." : report?.topProduct?.quantitySold ?? "—"}</dd></div>
+                <div><dt>Product revenue</dt><dd>{loading ? "..." : report?.topProduct ? formatPeso(report.topProduct.revenue) : "—"}</dd></div>
+              </dl>
+            </article>
           </div>
-
         </WidgetCard>
         <WidgetCard title="Hourly Net Sales">
           <p className="mb-4 text-xs text-slate-500">Sales from 1 PM through 10:59 PM, Manila time.</p>
@@ -256,7 +268,7 @@ export default function PosDashboardSection({
         </WidgetCard>
 
       <WidgetCard title="Recent Orders">
-        <div className="overflow-hidden rounded-2xl border border-slate-200">
+        <ReportColumns columns={["Order","Date & Time","Staff","Payments","Total"]} gridTemplate="1.1fr_1fr_1fr_0.9fr_0.8fr"><div className="overflow-hidden rounded-2xl border border-slate-200">
           <div className="grid grid-cols-[1.1fr_1fr_1fr_0.9fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
             <span>Order</span>
             <span>Date & Time</span>
@@ -295,7 +307,7 @@ export default function PosDashboardSection({
               ))
             )}
           </div>
-        </div>
+        </div></ReportColumns>
       </WidgetCard>
       </div>
     </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import ReportColumns from "./ReportColumns";
+import WasteInsightsReport from "./WasteInsightsReport";
 import SearchInput from "@/components/ui/SearchInput";
 import { formatUnit } from "@/lib/units";
 
@@ -7,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import SummaryCard from "@/components/dashboard/SummaryCard";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
-  exportPosInventoryLinkedCsv,
+  exportPosInventoryLinkedExcel,
   exportPosInventoryLinkedPdf,
   type PosInventoryLinkedExportSnapshot,
 } from "@/lib/report-exports";
@@ -62,7 +64,7 @@ export default function PosInventoryLinkedSection({
   const [variantSearch, setVariantSearch] = useState("");
   const [drilldownVariantId, setDrilldownVariantId] = useState("");
   const drilldownPanel = useRef<HTMLDivElement>(null);
-  const [exportingFormat, setExportingFormat] = useState<"csv" | "pdf" | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<"excel" | "pdf" | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -175,7 +177,7 @@ export default function PosInventoryLinkedSection({
     return null;
   }
 
-  const handleExport = async (format: "csv" | "pdf") => {
+  const handleExport = async (format: "excel" | "pdf") => {
     if (!report) {
       return;
     }
@@ -196,9 +198,9 @@ export default function PosInventoryLinkedSection({
         report,
       };
 
-      if (format === "csv") {
-        const filename = exportPosInventoryLinkedCsv(snapshot);
-        setExportNotice(`CSV export downloaded as ${filename}.`);
+      if (format === "excel") {
+        const filename = await exportPosInventoryLinkedExcel(snapshot);
+        setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
         const filename = exportPosInventoryLinkedPdf(snapshot);
         setExportNotice(
@@ -276,10 +278,10 @@ export default function PosInventoryLinkedSection({
               <button
                 type="button"
                 disabled={loading || exportingFormat !== null}
-                onClick={() => void handleExport("csv")}
+                onClick={() => void handleExport("excel")}
                 className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {exportingFormat === "csv" ? "Exporting..." : "Export CSV"}
+                {exportingFormat === "excel" ? "Exporting..." : "Export Excel"}
               </button>
             ) : null}
             {showStandaloneExportControls ? (
@@ -333,7 +335,7 @@ export default function PosInventoryLinkedSection({
       <section data-report="linked-details" className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <WidgetCard title="High-Usage Ingredients" className="report-high-usage">
           <div className="overflow-x-auto">
-            <div className="min-w-[850px] overflow-hidden rounded-2xl border border-slate-200">
+            <ReportColumns columns={["Material","SKU","Consumed Qty","Consumption Cost","Orders","Variants","Usable Qty","Reorder Point","Status"]} gridTemplate="1.15fr_0.7fr_0.9fr_0.9fr_0.7fr_0.7fr_0.9fr_0.8fr_0.7fr"><div className="min-w-[850px] overflow-hidden rounded-2xl border border-slate-200">
               <div className="grid grid-cols-[1.15fr_0.7fr_0.9fr_0.9fr_0.7fr_0.7fr_0.9fr_0.8fr_0.7fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span>Material</span>
                 <span>SKU</span>
@@ -404,11 +406,12 @@ export default function PosInventoryLinkedSection({
                   ))
                 )}
               </div>
-            </div>
+            </div></ReportColumns>
           </div>
         </WidgetCard>
 
         <div data-report="linked-support" className="space-y-6">
+          {inventoryLayout ? <WasteInsightsReport key={JSON.stringify([fromIso, toIso, refreshToken])} fromIso={fromIso} toIso={toIso} /> : (
           <WidgetCard title="Low-Stock / Reorder Pressure" className="report-low-stock">
             <div className="space-y-3">
               {loading ? (
@@ -451,34 +454,34 @@ export default function PosInventoryLinkedSection({
               )}
             </div>
           </WidgetCard>
+          )}
 
           <WidgetCard title="Recent Sales-Linked Stock Movements" className="report-movements">
-            <div className="space-y-3">
-              {loading ? (
-                <p className="text-sm text-slate-500">Loading movements...</p>
-              ) : (report?.recentSalesLinkedMovements ?? []).length === 0 ? (
-                <p className="text-sm text-slate-500">
-                  No checkout-linked stock movement matched the current filters.
-                </p>
-              ) : (
-                report?.recentSalesLinkedMovements.map((row) => (
-                  <div
-                    key={row.transactionId}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="font-semibold text-slate-900">{row.orderId ?? row.transactionId}</div>
-                      <div className="text-xs text-slate-500">{formatDateTime(row.occurredAt)}</div>
-                    </div>
-                    <div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
-                      <div>{row.movementLineCount} material lines</div>
-                      <div>{row.rawMaterialCount} ingredients</div>
-                      <div>{row.variantCount} variants</div>
-                      <div>{formatPeso(row.consumptionCost)} cost moved</div>
-                    </div>
-                  </div>
-                ))
-              )}
+            <div className="report-movements-table overflow-auto rounded-lg border border-slate-200" aria-busy={loading}>
+              <ReportColumns columns={["Order ID", "Stock Transaction ID", "Date / Time", "Material Lines", "Ingredients Used", "Product Variants", "Material Cost Used"]}><table className="w-full min-w-[900px] text-sm">
+                <caption className="sr-only">Recent checkout stock deductions in the selected date range</caption>
+                <thead className="sticky top-0 z-10 bg-slate-50 text-xs uppercase text-slate-500"><tr>
+                  <th scope="col" className="px-4 py-3 text-left">Order ID</th>
+                  <th scope="col" className="px-4 py-3 text-left">Stock Transaction ID</th>
+                  <th scope="col" className="px-4 py-3 text-left">Date / Time</th>
+                  <th scope="col" className="px-4 py-3 text-right">Material Lines</th>
+                  <th scope="col" className="px-4 py-3 text-right">Ingredients Used</th>
+                  <th scope="col" className="px-4 py-3 text-right">Product Variants</th>
+                  <th scope="col" className="px-4 py-3 text-right">Material Cost Used</th>
+                </tr></thead>
+                <tbody>{loading ? <tr><td colSpan={7} className="p-6 text-center text-slate-500">Loading stock movements...</td></tr>
+                  : error ? <tr><td colSpan={7} className="p-6 text-center text-rose-700">Stock movements unavailable.</td></tr>
+                  : !(report?.recentSalesLinkedMovements.length) ? <tr><td colSpan={7} className="p-6 text-center text-slate-500">No checkout-linked stock movements matched the selected date range and filters.</td></tr>
+                  : report.recentSalesLinkedMovements.map(row => <tr key={row.transactionId} className="border-t border-slate-200">
+                    <td className="break-all px-4 py-3 font-medium">{row.orderId ?? "—"}</td>
+                    <td className="break-all px-4 py-3 text-slate-600">{row.transactionId}</td>
+                    <td className="whitespace-nowrap px-4 py-3">{formatDateTime(row.occurredAt)}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{row.movementLineCount}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{row.rawMaterialCount}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{row.variantCount}</td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums">{formatPeso(row.consumptionCost)}</td>
+                  </tr>)}</tbody>
+              </table></ReportColumns>
             </div>
           </WidgetCard>
         </div>
@@ -487,7 +490,7 @@ export default function PosInventoryLinkedSection({
       <section data-report="variant-details" className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <WidgetCard title="Top Variants by Sales-Linked Material Usage" className="report-variants">
           <div className="overflow-x-auto">
-            <div className="min-w-[850px] overflow-hidden rounded-2xl border border-slate-200">
+            <ReportColumns columns={["Product / Variant","Category","Qty Sold","Revenue","Gross Margin","Material Cost","Orders","Action"]} gridTemplate="1.15fr_0.95fr_0.8fr_0.9fr_0.9fr_0.9fr_0.8fr_92px"><div className="min-w-[850px] overflow-hidden rounded-2xl border border-slate-200">
               <div className="grid grid-cols-[1.15fr_0.95fr_0.8fr_0.9fr_0.9fr_0.9fr_0.8fr_92px] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span>Product / Variant</span>
                 <span>Category</span>
@@ -543,7 +546,7 @@ export default function PosInventoryLinkedSection({
                   ))
                 )}
               </div>
-            </div>
+            </div></ReportColumns>
           </div>
         </WidgetCard>
 
@@ -600,7 +603,7 @@ export default function PosInventoryLinkedSection({
               </div>
 
               <div className="report-drilldown-table overflow-x-auto">
-                <div className="min-w-[38rem] overflow-hidden rounded-2xl border border-slate-200">
+                <ReportColumns columns={["Material","SKU","Consumed Qty","Consumption Cost","Usable Qty","Status"]} gridTemplate="1.2fr_0.8fr_1fr_1fr_0.9fr_0.8fr"><div className="min-w-[38rem] overflow-hidden rounded-2xl border border-slate-200">
                   <div className="grid grid-cols-[1.2fr_0.8fr_1fr_1fr_0.9fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                     <span>Material</span>
                     <span>SKU</span>
@@ -644,7 +647,7 @@ export default function PosInventoryLinkedSection({
                       ))
                     )}
                   </div>
-                </div>
+                </div></ReportColumns>
               </div>
             </div>
           ) : (

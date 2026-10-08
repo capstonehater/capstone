@@ -13,10 +13,10 @@ export function NavigationCloseButton({ onClose }: { onClose: () => void }) {
   return <button type="button" className={styles.mobileClose} onClick={onClose} aria-label="Close navigation"><X size={20} /></button>;
 }
 
-export function NavigationMenuButton({ onOpen, className = styles.shellMobileMenu, expanded, controls }: {
-  onOpen: () => void; className?: string; expanded?: boolean; controls?: string;
+export function NavigationMenuButton({ onOpen, className = styles.shellMobileMenu, expanded, controls, top }: {
+  onOpen: () => void; className?: string; expanded?: boolean; controls?: string; top?: number;
 }) {
-  return <button type="button" className={className} onClick={onOpen} aria-expanded={expanded} aria-controls={controls} aria-label="Open navigation"><Menu size={20} /></button>;
+  return <button type="button" className={className} style={top === undefined ? undefined : { top }} onClick={onOpen} aria-expanded={expanded} aria-controls={controls} aria-label="Open navigation"><Menu size={20} /></button>;
 }
 
 export function SidebarCollapseButton({ collapsed, onToggle, className }: {

@@ -26,7 +26,11 @@ export default function NearExpiryPanel({ embedded = false }: { embedded?: boole
   const [revision, setRevision] = useState(0);
   const today = businessDate();
   const cutoff = new Date(`${today}T00:00:00Z`);
-  cutoff.setUTCDate(cutoff.getUTCDate() + 14);
+  const day = cutoff.getUTCDate();
+  cutoff.setUTCDate(1);
+  cutoff.setUTCMonth(cutoff.getUTCMonth() + 2);
+  const lastDay = new Date(Date.UTC(cutoff.getUTCFullYear(), cutoff.getUTCMonth() + 1, 0)).getUTCDate();
+  cutoff.setUTCDate(Math.min(day, lastDay));
   const cutoffDate = cutoff.toISOString().slice(0, 10);
 
   useEffect(() => {
@@ -55,7 +59,7 @@ export default function NearExpiryPanel({ embedded = false }: { embedded?: boole
     return () => { active = false; };
   }, [revision]);
 
-  const rows = batches.filter((batch) => Number(batch.remainingQuantity) > 0 && batch.expirationDate && batch.expirationDate.slice(0, 10) <= cutoffDate)
+  const rows = batches.filter((batch) => Number(batch.remainingQuantity) > 0 && batch.expirationDate && batch.expirationDate.slice(0, 10) >= today && batch.expirationDate.slice(0, 10) <= cutoffDate)
     .sort((a, b) => {
       const comparison = a.expirationDate!.slice(0, 10).localeCompare(b.expirationDate!.slice(0, 10));
       return (direction === "asc" ? comparison : -comparison) || a.materialName.localeCompare(b.materialName) || a.id.localeCompare(b.id);
@@ -66,7 +70,7 @@ export default function NearExpiryPanel({ embedded = false }: { embedded?: boole
       <section className="space-y-5 text-[#232d46]">
         {!embedded && <header>
           {!embedded && <h1 className="text-2xl font-bold">Near Expiry Materials</h1>}
-          <p className="mt-1 text-sm text-slate-600">Batches with remaining stock expiring within 14 days, including expired stock. Each batch is listed separately.</p>
+          <p className="mt-1 text-sm text-slate-600">Batches with remaining stock expiring from today through the next two months. Each batch is listed separately.</p>
         </header>}
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           <div className={styles.toolbar}>
@@ -81,7 +85,7 @@ export default function NearExpiryPanel({ embedded = false }: { embedded?: boole
           {error ? <p role="alert" className="p-5 text-sm text-red-700">{error} Use Refresh to try again.</p> : (
             <div className="max-h-[32rem] overflow-auto" aria-busy={loading}>
               <table className="w-full min-w-[760px] text-sm">
-                <caption className="sr-only">All batches expiring within 14 days or already expired, sorted by expiry date</caption>
+                <caption className="sr-only">Batches expiring from today through the next two months, sorted by expiry date</caption>
                 <thead className="text-xs uppercase tracking-wide text-slate-500">
                   <tr>
                     {['Material / SKU', 'Batch', 'Supplier', 'Status', 'Remaining'].map((heading) => <th key={heading} scope="col" className="sticky top-0 z-10 bg-slate-50 px-5 py-4 text-left">{heading}</th>)}
@@ -89,7 +93,7 @@ export default function NearExpiryPanel({ embedded = false }: { embedded?: boole
                   </tr>
                 </thead>
                 <tbody>
-                  {loading ? <tr><td colSpan={6} className="p-8 text-center text-slate-500">Loading near-expiry batches...</td></tr> : rows.length === 0 ? <tr><td colSpan={6} className="p-8 text-center text-slate-500">No remaining stock is expired or due to expire within 14 days.</td></tr> : rows.map((batch) => {
+                  {loading ? <tr><td colSpan={6} className="p-8 text-center text-slate-500">Loading near-expiry batches...</td></tr> : rows.length === 0 ? <tr><td colSpan={6} className="p-8 text-center text-slate-500">No remaining stock is due to expire within the next two months.</td></tr> : rows.map((batch) => {
                     const expiry = batch.expirationDate!.slice(0, 10);
                     const expired = expiry < today;
                     return (

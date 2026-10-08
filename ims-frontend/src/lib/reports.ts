@@ -116,6 +116,7 @@ export type WasteSummaryReport = {
   };
   byReason: Array<{
     reasonCode: string;
+    materials: Array<{ rawMaterialId: string; name: string; sku: string; quantity: DecimalString; cost: DecimalString; eventCount: number }>;
     quantity: DecimalString;
     cost: DecimalString;
     eventCount: number;

@@ -1,5 +1,7 @@
 "use client";
+import { formatStockoutDuration } from "@/lib/report-duration";
 
+import ReportColumns from "./ReportColumns";
 import { formatUnit } from "@/lib/units";
 
 import { Inbox } from "lucide-react";
@@ -106,7 +108,7 @@ export default function InventoryAvailabilityRiskSection({
       <section data-report="availability-tables">
         <WidgetCard title="Materials With Recorded Stockout Time" className="report-stockout">
           <div className="report-stockout-scroll">
-            <div className="min-w-[520px]">
+            <ReportColumns columns={["Material","SKU","Stockout Time","Stockout Rate","Events","Current State"]} gridTemplate="1.2fr_0.8fr_0.9fr_0.9fr_0.9fr_0.8fr"><div className="min-w-[520px]">
               <div className="report-stockout-heading grid grid-cols-[1.2fr_0.8fr_0.9fr_0.9fr_0.9fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span>Material</span>
                 <span>SKU</span>
@@ -137,7 +139,7 @@ export default function InventoryAvailabilityRiskSection({
                         </div>
                       </div>
                       <div>{row.rawMaterial.sku}</div>
-                      <div>{formatHours(row.stockoutDurationHours)}</div>
+                      <div>{formatStockoutDuration(row.stockoutDurationHours)}</div>
                       <div>{formatPercent(row.stockoutRatePercentage)}</div>
                       <div>{row.overlappingStockoutEventCount}</div>
                       <div>
@@ -155,19 +157,19 @@ export default function InventoryAvailabilityRiskSection({
                   ))
                 )}
               </div>
-            </div>
+            </div></ReportColumns>
           </div>
         </WidgetCard>
 
         <WidgetCard title="Top Selling Item Availability" className="report-top-selling">
           <div className="report-table-scroll">
-            <table className="report-table">
+            <ReportColumns columns={["Product / Variant","Category","Qty Sold","Revenue","Availability","Sellable Time","Downtime","Coverage"]}><table className="report-table">
               <thead><tr>{["Product / Variant", "Category", "Qty Sold", "Revenue", "Availability", "Sellable Time", "Downtime", "Coverage"].map((label) => <th key={label} scope="col">{label}</th>)}</tr></thead>
               <tbody>{loading ? <tr><td colSpan={8}>Loading availability...</td></tr> : !report?.topSellingVariants.length ? <tr><td colSpan={8}><div className="report-empty"><Inbox aria-hidden="true" />No completed sales matched the selected range.<small>Try adjusting the date range or filters.</small></div></td></tr> : report.topSellingVariants.map((row) => <tr key={row.productVariant.id}>
                 <td><strong>{row.productVariant.product.name}</strong><small>{row.productVariant.name} &bull; {row.productVariant.sku}</small></td>
                 <td>{row.productVariant.product.category?.name ?? "Uncategorized"}</td><td>{row.quantitySold}</td><td>{formatPeso(row.revenue)}</td><td>{formatPercent(row.availabilityPercentage)}</td><td>{formatHours(row.sellableDurationHours)}</td><td>{formatHours(row.downtimeDurationHours)}</td><td><span className="report-badge">{row.trackedFromRangeStart ? "Tracked" : "No baseline"}</span></td>
               </tr>)}</tbody>
-            </table>
+            </table></ReportColumns>
           </div>
         </WidgetCard>
 

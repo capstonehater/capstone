@@ -1,5 +1,6 @@
 "use client";
 
+import ReportColumns from "./ReportColumns";
 import AdminSelect from "@/components/admin/AdminSelect";
 
 import PosReportEmpty from "./PosReportEmpty";
@@ -10,7 +11,7 @@ import styles from "./PosReports.module.css";
 import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
-  exportPosProductPerformanceCsv,
+  exportPosProductPerformanceExcel,
   exportPosProductPerformancePdf,
 } from "@/lib/report-exports";
 import {
@@ -51,7 +52,7 @@ export default function PosProductPerformanceSection({
   const [report, setReport] = useState<PosProductPerformanceReport | null>(null);
   const [categories, setCategories] = useState<ReportCategory[]>([]);
   const [categoryId, setCategoryId] = useState("");
-  const [exportingFormat, setExportingFormat] = useState<"csv" | "pdf" | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<"excel" | "pdf" | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -137,7 +138,7 @@ export default function PosProductPerformanceSection({
     return null;
   }
 
-  const handleExport = async (format: "csv" | "pdf") => {
+  const handleExport = async (format: "excel" | "pdf") => {
     if (!report) {
       return;
     }
@@ -157,9 +158,9 @@ export default function PosProductPerformanceSection({
         report,
       };
 
-      if (format === "csv") {
-        const filename = exportPosProductPerformanceCsv(snapshot);
-        setExportNotice(`CSV export downloaded as ${filename}.`);
+      if (format === "excel") {
+        const filename = await exportPosProductPerformanceExcel(snapshot);
+        setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
         const filename = exportPosProductPerformancePdf(snapshot);
         setExportNotice(
@@ -215,11 +216,11 @@ export default function PosProductPerformanceSection({
             <button
               type="button"
               disabled={loading || exportingFormat !== null}
-              onClick={() => void handleExport("csv")}
+              onClick={() => void handleExport("excel")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <FileSpreadsheet size={18} aria-hidden="true" />
-              <span>{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</span>
+              <span>{exportingFormat === "excel" ? "Exporting..." : "Export Excel"}</span>
             </button>
             <button
               type="button"
@@ -265,7 +266,7 @@ export default function PosProductPerformanceSection({
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <WidgetCard title="Product Comparison" className="pos-comparison">
           <div className="overflow-x-auto">
-            <div className="min-w-[76rem] overflow-hidden rounded-2xl border border-slate-200">
+            <ReportColumns columns={["Product","Category","Variants","Orders","Qty Sold","Revenue","COGS","Gross Margin","Contribution"]} gridTemplate="1.3fr_0.9fr_0.7fr_0.7fr_0.8fr_0.9fr_0.9fr_0.8fr_0.8fr"><div className="min-w-[76rem] overflow-hidden rounded-2xl border border-slate-200">
               <div className="grid grid-cols-[1.3fr_0.9fr_0.7fr_0.7fr_0.8fr_0.9fr_0.9fr_0.8fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span>Product</span>
                 <span>Category</span>
@@ -310,13 +311,13 @@ export default function PosProductPerformanceSection({
                   ))
                 )}
               </div>
-            </div>
+            </div></ReportColumns>
           </div>
         </WidgetCard>
 
         <div className="space-y-6">
           <WidgetCard title="Top Categories" className="pos-categories">
-            <div className="overflow-hidden rounded-2xl border border-slate-200">
+            <ReportColumns columns={["Category","Qty Sold","Revenue","Gross Margin","Share"]} gridTemplate="1.1fr_0.8fr_1fr_1fr_0.8fr"><div className="overflow-hidden rounded-2xl border border-slate-200">
               <div className="grid grid-cols-[1.1fr_0.8fr_1fr_1fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span>Category</span>
                 <span>Qty Sold</span>
@@ -344,7 +345,7 @@ export default function PosProductPerformanceSection({
                   ))
                 )}
               </div>
-            </div>
+            </div></ReportColumns>
           </WidgetCard>
 
           <WidgetCard title="Top 10 Views" className="pos-top-products">
@@ -402,7 +403,7 @@ export default function PosProductPerformanceSection({
 
       <WidgetCard title="Slow-Moving Products" className="pos-slow-products">
         <div className="overflow-x-auto">
-          <div className="min-w-[60rem] overflow-hidden rounded-2xl border border-slate-200">
+          <ReportColumns columns={["Product","Category","Qty Sold","Revenue","Gross Margin","Orders"]} gridTemplate="1.2fr_0.9fr_0.8fr_1fr_1fr_0.8fr"><div className="min-w-[60rem] overflow-hidden rounded-2xl border border-slate-200">
             <div className="grid grid-cols-[1.2fr_0.9fr_0.8fr_1fr_1fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Product</span>
               <span>Category</span>
@@ -434,7 +435,7 @@ export default function PosProductPerformanceSection({
                 ))
               )}
             </div>
-          </div>
+          </div></ReportColumns>
         </div>
       </WidgetCard>
     </div>

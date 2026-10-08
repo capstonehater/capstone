@@ -93,10 +93,10 @@ export default function InventoryBusinessInsights({
               <div>
                 <div className={styles.scroll}>
                   <table className={tableClass}>
-                    <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Reason</th><th className={`${headCellClass} text-right`}>Events / Qty</th><th className={`${headCellClass} text-right`}>Cost</th></tr></thead>
-                    <tbody>{wasteSummary.byReason.map((reason) => (
-                    <tr key={reason.reasonCode}><td className={cellClass}><span className="block truncate font-medium">{reason.reasonCode.replaceAll("_", " ")}</span></td><td className={`${cellClass} text-right`}>{reason.eventCount} / {formatQuantity(reason.quantity)}</td><td className={`${cellClass} text-right font-semibold text-amber-700`}>{formatMoney(reason.cost)}</td></tr>
-                    ))}</tbody>
+                    <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Reason</th><th className={headCellClass}>Material</th><th className={`${headCellClass} text-right`}>Events / Qty</th><th className={`${headCellClass} text-right`}>Cost</th></tr></thead>
+                    <tbody>{wasteSummary.byReason.flatMap(reason => reason.materials.map(material => (
+                    <tr key={JSON.stringify([reason.reasonCode, material.rawMaterialId])}><td className={cellClass}><span className="block truncate font-medium">{reason.reasonCode.replaceAll("_", " ")}</span></td><td className={cellClass}><span className="block break-words" title={material.sku}>{material.name}</span></td><td className={`${cellClass} text-right`}>{material.eventCount} / {formatQuantity(material.quantity)}</td><td className={`${cellClass} text-right font-semibold text-amber-700`}>{formatMoney(material.cost)}</td></tr>
+                    )))}</tbody>
                   </table>
                 </div>
               </div>

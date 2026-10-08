@@ -1,4 +1,5 @@
 "use client";
+import WorkspaceLoading from "@/components/admin/WorkspaceLoading";
 
 import { formatUnit, formatUnitText } from "@/lib/units";
 
@@ -137,6 +138,8 @@ export default function ForecastingFeature() {
   const critical = restocks.filter((row) => row.recommendation?.data.Priority === 'Critical');
   const chartPoints = selected?.points ?? [];
   const busy = Boolean(runId);
+
+  if (loading) return <WorkspaceLoading page="forecasting" />;
 
   return <AdminDashboardLayout showHeader={false}><div className={styles.workspace}>
     <header className={headerStyles.panel}>

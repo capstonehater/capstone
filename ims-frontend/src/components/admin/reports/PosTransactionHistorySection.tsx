@@ -1,5 +1,6 @@
 "use client";
 
+import ReportColumns from "./ReportColumns";
 import SearchInput from "@/components/ui/SearchInput";
 import PosReportEmpty from "./PosReportEmpty";
 import AdminSelect from "@/components/admin/AdminSelect";
@@ -8,7 +9,7 @@ import { useEffect, useState } from "react";
 import { FileSpreadsheet, FileText } from "lucide-react";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
-  exportPosTransactionHistoryCsv,
+  exportPosTransactionHistoryExcel,
   exportPosTransactionHistoryPdf,
 } from "@/lib/report-exports";
 import {
@@ -63,7 +64,7 @@ export default function PosTransactionHistorySection({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
   const [status, setStatus] = useState<OrderStatus | "">("");
   const [page, setPage] = useState(1);
-  const [exportingFormat, setExportingFormat] = useState<"csv" | "pdf" | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<"excel" | "pdf" | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -138,7 +139,7 @@ export default function PosTransactionHistorySection({
     }
   };
 
-  const handleExport = async (format: "csv" | "pdf") => {
+  const handleExport = async (format: "excel" | "pdf") => {
     if (!report) {
       return;
     }
@@ -162,9 +163,9 @@ export default function PosTransactionHistorySection({
         report,
       };
 
-      if (format === "csv") {
-        const filename = exportPosTransactionHistoryCsv(snapshot);
-        setExportNotice(`CSV export downloaded as ${filename}.`);
+      if (format === "excel") {
+        const filename = await exportPosTransactionHistoryExcel(snapshot);
+        setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
         const filename = exportPosTransactionHistoryPdf(snapshot);
         setExportNotice(
@@ -262,11 +263,11 @@ export default function PosTransactionHistorySection({
               <button
                 type="button"
                 disabled={loading || exportingFormat !== null}
-                onClick={() => void handleExport("csv")}
+                onClick={() => void handleExport("excel")}
                 className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <FileSpreadsheet size={18} aria-hidden="true" />
-                <span>{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</span>
+                <span>{exportingFormat === "excel" ? "Exporting..." : "Export Excel"}</span>
               </button>
               <button
                 type="button"
@@ -284,7 +285,7 @@ export default function PosTransactionHistorySection({
 
       <WidgetCard title="Transactions">
         <div className="overflow-x-auto">
-          <div className="min-w-[58rem] overflow-hidden rounded-2xl border border-slate-200">
+          <ReportColumns columns={["Order","Date & Time","Staff","Items & Qty","Total","Payment","Status","Action"]} gridTemplate="1.1fr_1fr_1fr_1.6fr_0.8fr_0.9fr_0.8fr_70px"><div className="min-w-[58rem] overflow-hidden rounded-2xl border border-slate-200">
             <div className="grid grid-cols-[1.1fr_1fr_1fr_1.6fr_0.8fr_0.9fr_0.8fr_70px] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Order</span>
               <span>Date & Time</span>
@@ -346,7 +347,7 @@ export default function PosTransactionHistorySection({
                 ))
               )}
             </div>
-          </div>
+          </div></ReportColumns>
         </div>
 
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

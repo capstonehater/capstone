@@ -1,4 +1,5 @@
 "use client";
+import WorkspaceLoading from "@/components/admin/WorkspaceLoading";
 import DateFilter from "@/components/staff-pos/DateFilter";
 
 import { useEffect, useMemo, useState } from "react";
@@ -6,7 +7,7 @@ import { ChartPie, Trash2, ChartNoAxesColumnIncreasing, Layers, Tag, TriangleAle
 import styles from "./InventoryReports.module.css";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
-  exportInventoryReportsCsv,
+  exportInventoryReportsExcel,
   exportInventoryReportsPdf,
   type PosInventoryLinkedExportSnapshot,
 } from "@/lib/report-exports";
@@ -45,7 +46,7 @@ export default function InventoryReportsWorkspace() {
     useState<InventoryAvailabilityRiskReport | null>(null);
   const [inventoryLinkedSnapshot, setInventoryLinkedSnapshot] =
     useState<PosInventoryLinkedExportSnapshot | null>(null);
-  const [exportingFormat, setExportingFormat] = useState<"csv" | "pdf" | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<"excel" | "pdf" | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const inventoryLinkedRange = useMemo(() => toManilaRangeIso({ from, to }), [from, to]);
@@ -131,7 +132,7 @@ export default function InventoryReportsWorkspace() {
     Date.parse(availabilityReport.period.from) === Date.parse(inventoryLinkedRange.from) &&
     Date.parse(availabilityReport.period.to) === Date.parse(inventoryLinkedRange.to);
 
-  const handleExport = async (format: "csv" | "pdf") => {
+  const handleExport = async (format: "excel" | "pdf") => {
     if (!canExport || exportingFormat || !kpiReport || !availabilityReport || !inventoryLinkedSnapshot) {
       return;
     }
@@ -148,9 +149,9 @@ export default function InventoryReportsWorkspace() {
         inventoryLinked: inventoryLinkedSnapshot,
       };
 
-      if (format === "csv") {
-        const filename = exportInventoryReportsCsv(snapshot);
-        setExportNotice(`CSV export downloaded as ${filename}.`);
+      if (format === "excel") {
+        const filename = await exportInventoryReportsExcel(snapshot);
+        setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
         const filename = await exportInventoryReportsPdf(snapshot);
         setExportNotice(
@@ -168,6 +169,8 @@ export default function InventoryReportsWorkspace() {
     }
   };
 
+  if (kpiLoading && !kpiReport && !kpiError) return <WorkspaceLoading page="reports" contentOnly />;
+
   return (
     <div className={styles.workspace}>
       <section className={styles.toolbar} aria-label="Report date range and exports">
@@ -176,7 +179,7 @@ export default function InventoryReportsWorkspace() {
         <DateFilter label="To date" value={to} min={from || undefined} onChange={setTo} />
         <div className={styles.toolbarActions}>
           <button type="button" className={styles.refresh} onClick={() => setRefreshToken((current) => current + 1)}><RefreshCw size={15} />Refresh</button>
-          <button type="button" disabled={!canExport || exportingFormat !== null} onClick={() => void handleExport("csv")}><FileDown size={15} />{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</button>
+          <button type="button" disabled={!canExport || exportingFormat !== null} onClick={() => void handleExport("excel")}><FileDown size={15} />{exportingFormat === "excel" ? "Exporting..." : "Export Excel"}</button>
           <button type="button" disabled={!canExport || exportingFormat !== null} onClick={() => void handleExport("pdf")}><FileDown size={15} />{exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}</button>
         </div>
       </section>

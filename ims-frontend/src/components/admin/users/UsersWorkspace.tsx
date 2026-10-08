@@ -1,4 +1,5 @@
 "use client";
+import PageSkeleton from "@/components/loading/PageSkeleton";
 import SearchInput from "@/components/ui/SearchInput";
 import StyledSelect from "@/components/admin/StyledSelect";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
@@ -610,6 +611,8 @@ export default function UsersWorkspace() {
       setSubmitting(false);
     }
   }
+
+  if (!list && !listError) return <PageSkeleton page="users" header={false} />;
 
   return (
     <div className={`${styles.workspace} ${readable.readable}`}>

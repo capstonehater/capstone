@@ -1,4 +1,5 @@
 "use client";
+import WorkspaceLoading from "@/components/admin/WorkspaceLoading";
 import { useAuthStore } from "@/store/authStore";
 import { loadIfAllowed } from "@/lib/permission-loading";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
@@ -83,23 +84,25 @@ export default function DashboardFeature() {
     void (async () => {
       setLoading(true);
       try {
-        const [nextSalesOverview, nextInventoryHealth, nextStockRunSpend, nextWasteSummary, suppliers, nextAlerts] =
-          await Promise.all([
+        const results = await Promise.allSettled([
             loadIfAllowed("reports.view", () => fetchSalesOverview({ ...range, limit: 5 }), null),
             loadIfAllowed("reports.view", () => fetchInventoryHealth({ limit: 5 }), null),
             loadIfAllowed("reports.view", () => fetchStockRunSpend({ ...range, limit: 5 }), null),
-            loadIfAllowed("reports.view", () => fetchWasteSummary({ ...range, limit: 5 }), null),
+            loadIfAllowed("reports.view", () => fetchWasteSummary({ ...range, limit: 5, includeAllGroups: true }), null),
             loadIfAllowed("suppliers.view", () => fetchSuppliers(), []),
             loadIfAllowed("alerts.view", () => fetchAlerts({ state: "ACTIVE", limit: 5 }), []),
           ]);
 
         if (!active) return;
-        setSalesOverview(nextSalesOverview);
-        setInventoryHealth(nextInventoryHealth);
-        setStockRunSpend(nextStockRunSpend);
-        setWasteSummary(nextWasteSummary);
-        setSupplierCount(suppliers.length);
-        setActiveAlerts(nextAlerts);
+        const [sales, health, spend, waste, suppliers, alerts] = results;
+        setSalesOverview(sales.status === "fulfilled" ? sales.value : null);
+        setInventoryHealth(health.status === "fulfilled" ? health.value : null);
+        setStockRunSpend(spend.status === "fulfilled" ? spend.value : null);
+        setWasteSummary(waste.status === "fulfilled" ? waste.value : null);
+        setSupplierCount(suppliers.status === "fulfilled" ? suppliers.value.length : 0);
+        setActiveAlerts(alerts.status === "fulfilled" ? alerts.value : []);
+        const failure = results.find((result) => result.status === "rejected");
+        if (failure?.status === "rejected") throw failure.reason;
         setError(null);
       } catch (nextError) {
         if (!active) return;
@@ -119,6 +122,8 @@ export default function DashboardFeature() {
     const colors = WASTE_COLORS;
     return `conic-gradient(${rows.map((row, index) => { const start = cursor; cursor += (Number(row.cost) / total) * 100; return `${colors[index % colors.length]} ${start}% ${cursor}%`; }).join(",")})`;
   }, [wasteSummary]);
+
+  if (loading) return <WorkspaceLoading page="dashboard" />;
 
   return (
     <AdminDashboardLayout showHeader={false} whiteTop>

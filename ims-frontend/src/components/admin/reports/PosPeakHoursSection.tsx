@@ -1,5 +1,6 @@
 "use client";
 
+import ReportColumns from "./ReportColumns";
 import AdminSelect from "@/components/admin/AdminSelect";
 
 import PosReportEmpty from "./PosReportEmpty";
@@ -9,7 +10,7 @@ import { FileSpreadsheet, FileText } from "lucide-react";
 import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
-  exportPosPeakHoursCsv,
+  exportPosPeakHoursExcel,
   exportPosPeakHoursPdf,
 } from "@/lib/report-exports";
 import {
@@ -52,7 +53,7 @@ export default function PosPeakHoursSection({
   const [report, setReport] = useState<PosPeakHoursReport | null>(null);
   const [dayType, setDayType] = useState<PosPeakDayType>("all");
   const [view, setView] = useState<"table" | "line">("table");
-  const [exportingFormat, setExportingFormat] = useState<"csv" | "pdf" | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<"excel" | "pdf" | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -100,7 +101,7 @@ export default function PosPeakHoursSection({
     return null;
   }
 
-  const handleExport = async (format: "csv" | "pdf") => {
+  const handleExport = async (format: "excel" | "pdf") => {
     if (!report) {
       return;
     }
@@ -119,9 +120,9 @@ export default function PosPeakHoursSection({
         report,
       };
 
-      if (format === "csv") {
-        const filename = exportPosPeakHoursCsv(snapshot);
-        setExportNotice(`CSV export downloaded as ${filename}.`);
+      if (format === "excel") {
+        const filename = await exportPosPeakHoursExcel(snapshot);
+        setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
         const filename = exportPosPeakHoursPdf(snapshot);
         setExportNotice(
@@ -196,11 +197,11 @@ export default function PosPeakHoursSection({
             <button
               type="button"
               disabled={loading || exportingFormat !== null}
-              onClick={() => void handleExport("csv")}
+              onClick={() => void handleExport("excel")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <FileSpreadsheet size={18} aria-hidden="true" />
-              <span>{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</span>
+              <span>{exportingFormat === "excel" ? "Exporting..." : "Export Excel"}</span>
             </button>
             <button
               type="button"
@@ -299,7 +300,7 @@ export default function PosPeakHoursSection({
             />
           ) : (
             <div className="overflow-x-auto">
-              <div className="min-w-[58rem] overflow-hidden rounded-2xl border border-slate-200">
+              <ReportColumns columns={["Hour","Transactions","Gross Sales","Net Sales","Average Ticket"]} gridTemplate="0.9fr_0.8fr_1fr_1fr_1fr"><div className="min-w-[58rem] overflow-hidden rounded-2xl border border-slate-200">
                 <div className="grid grid-cols-[0.9fr_0.8fr_1fr_1fr_1fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <span>Hour</span>
                   <span>Transactions</span>
@@ -329,7 +330,7 @@ export default function PosPeakHoursSection({
                     ))
                   )}
                 </div>
-              </div>
+              </div></ReportColumns>
             </div>
           )}
         </WidgetCard>

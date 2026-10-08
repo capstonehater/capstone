@@ -1,0 +1,22 @@
+.header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.title { margin: 0; font-size: 16px; font-weight: 600; color: #171717; }
+.selector { position: relative; margin-left: auto; flex-shrink: 0; color: #334155; font-size: 13px; text-align: left; }
+.trigger { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; cursor: pointer; font-weight: 600; list-style: none; transition: background .15s, border-color .15s; }
+.trigger::-webkit-details-marker { display: none; }
+.trigger:hover, .selector[open] .trigger { background: #f8fafc; border-color: #94a3b8; }
+.trigger:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+.count { color: #64748b; font-size: 11px; font-weight: 500; }
+.chevron { transition: transform .15s; }
+.selector[open] .chevron { transform: rotate(180deg); }
+.menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 40; width: min(280px, calc(100vw - 48px)); padding: 8px; border: 1px solid #e2e8f0; border-radius: 14px; background: white; box-shadow: 0 12px 32px #0f172a24; }
+.options { margin: 0; padding: 0; border: 0; max-height: 300px; overflow-y: auto; }
+.legend { padding: 8px; font-size: 11px; font-weight: 600; color: #64748b; }
+.option { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; line-height: 1.4; }
+.option:hover { background: #f1f5f9; }
+.checkbox { appearance: none; flex-shrink: 0; width: 18px; height: 18px; margin: 0; border: 1.5px solid #cbd5e1; border-radius: 5px; background: #fff; cursor: pointer; transition: background .15s, border-color .15s; }
+.checkbox:checked { border-color: #1e3a5f; background: #1e3a5f url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='m4 9 3 3 7-7' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 18px 18px no-repeat; }
+.checkbox:focus-visible { outline: 2px solid #1e3a5f; outline-offset: 3px; }
+.checkbox:disabled { opacity: .5; cursor: not-allowed; }
+.reset { width: 100%; margin-top: 8px; padding: 10px; border: 0; border-top: 1px solid #e2e8f0; background: transparent; text-align: left; font: inherit; font-weight: 600; color: #2563eb; cursor: pointer; }
+.reset:hover { background: #eff6ff; border-radius: 8px; }
+@media print { .selector { display: none; } }

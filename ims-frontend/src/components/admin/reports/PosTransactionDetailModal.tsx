@@ -1,4 +1,5 @@
 "use client";
+import ReportColumns from "./ReportColumns";
 import ModalCloseButton from "@/components/ModalCloseButton";
 import { useState } from "react";
 import { openReceipt } from "@/lib/receipt";
@@ -99,7 +100,7 @@ export default function PosTransactionDetailModal({
                 </div>
               </section>
 
-              <section className="overflow-hidden rounded-2xl border border-slate-200">
+              <ReportColumns title="Items" columns={["Item","Qty","Unit Price","Modifiers","Subtotal"]} gridTemplate="1.6fr_0.7fr_0.8fr_0.8fr_0.8fr"><section className="overflow-hidden rounded-2xl border border-slate-200">
                 <div className="grid grid-cols-[1.6fr_0.7fr_0.8fr_0.8fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <span>Item</span>
                   <span>Qty</span>
@@ -140,7 +141,7 @@ export default function PosTransactionDetailModal({
                     </div>
                   ))}
                 </div>
-              </section>
+              </section></ReportColumns>
 
               <section className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
                 <div className="rounded-2xl border border-slate-200 p-4">

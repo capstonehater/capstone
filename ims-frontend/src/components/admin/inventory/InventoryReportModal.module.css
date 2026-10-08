@@ -33,3 +33,11 @@
 .refresh:disabled { opacity:.5; cursor:wait; }
 .select:focus-visible,.refresh:focus-visible { outline:2px solid #64748b; outline-offset:3px; }
 @media(max-width:600px) { .controls { width:100%; } .field { flex:1 1 220px; } .select { width:100%; } .refresh { flex:1 1 110px; } }
+
+/* Keep Waste Insights stable as additional product rows are added. */
+.fixedDialog[open] { height:min(720px, calc(100dvh - 48px)); }
+.fixedDialog .body { flex:1 1 0; overflow:hidden; }
+.fixedInsight { height:100%; min-height:0; display:flex; flex-direction:column; }
+.fixedInsightPanel { flex:1 1 0; min-height:0; display:flex; flex-direction:column; }
+.fixedInsightPanel .toolbar { flex-shrink:0; }
+.fixedTableScroll { flex:1 1 0; min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; }

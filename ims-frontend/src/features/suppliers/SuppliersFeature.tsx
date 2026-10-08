@@ -1,9 +1,11 @@
 "use client";
+import PageSkeleton from "@/components/loading/PageSkeleton";
 
 import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
 
 import { useCallback, useEffect, useState } from "react";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
+import styles from "@/components/admin/suppliers/SupplierWorkspace.module.css";
 import SupplierWorkspace from "@/components/admin/suppliers/SupplierWorkspace";
 import { createSupplier, deleteSupplier, fetchSuppliers, updateSupplier, type Supplier } from "@/lib/inventory";
 import { useInventoryStore } from "@/store/inventoryStore";
@@ -67,11 +69,11 @@ export default function SuppliersFeature() {
     }
   }
 
-  return <AdminDashboardLayout showHeader={false}>
-    <div className="min-h-full">
+  return <AdminDashboardLayout showHeader={false} fillContent>
+    <div className={styles.page}>
       <AdminSectionHeader className="mb-5" title="Supplier Management" description="Create suppliers, inspect supplier details, and update purchasing references used by stock runs." />
       {loadError ? <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{loadError}</p> : null}
-      {loading ? <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Loading suppliers...</div>
+      {loading ? <PageSkeleton page="suppliers" header={false} />
         : <SupplierWorkspace suppliers={suppliers} submitting={submitting} onCreateSupplier={create} onUpdateSupplier={update} onDeleteSupplier={remove} />}
     </div>
   </AdminDashboardLayout>;

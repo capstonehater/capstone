@@ -176,3 +176,19 @@
   .createDialog .dialogFooter { padding:16px 20px; }
   .createDialog .dialogFooter .primary { width:100%; }
 }
+
+.detailPanel { display:flex; flex-direction:column; max-height:calc(100dvh - 48px); overflow:hidden; }
+.detailPanel > form { display:flex; flex-direction:column; min-height:0; }
+.detailPanel .detailHeader, .detailPanel .saveBar { flex-shrink:0; }
+.permissionsScroll { min-height:0; overflow-y:auto; overscroll-behavior:contain; padding-right:8px; }
+@media(min-width:1280px) {
+  .workspace { display:flex; flex-direction:column; width:100%; min-height:0; overflow:hidden; }
+  .workspace > :not(.layout) { flex-shrink:0; }
+  .layout { flex:1; min-height:0; overflow:hidden; }
+  .layout > aside { display:flex; flex-direction:column; max-height:100%; min-height:0; }
+  .listHeader, .search { flex-shrink:0; }
+  .roleList { min-height:0; max-height:none; overscroll-behavior:contain; }
+  .detailPanel { height:100%; max-height:100%; min-height:0; }
+  .detailPanel > form { flex:1; }
+  .permissionsScroll { flex:1; }
+}

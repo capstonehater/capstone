@@ -1,5 +1,6 @@
 "use client";
 
+import ReportColumns from "./ReportColumns";
 import SearchInput from "@/components/ui/SearchInput";
 import AdminSelect from "@/components/admin/AdminSelect";
 
@@ -11,7 +12,7 @@ import styles from "./PosReports.module.css";
 import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
-  exportPosSalesAnalyticsCsv,
+  exportPosSalesAnalyticsExcel,
   exportPosSalesAnalyticsPdf,
 } from "@/lib/report-exports";
 import {
@@ -76,7 +77,7 @@ export default function PosSalesAnalyticsSection({
   const [view, setView] = useState<"table" | "line">("table");
   const [staffSearch, setStaffSearch] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
-  const [exportingFormat, setExportingFormat] = useState<"csv" | "pdf" | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<"excel" | "pdf" | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const range = useMemo(() => getPresetDateRange(preset), [preset]);
@@ -115,7 +116,7 @@ export default function PosSalesAnalyticsSection({
     return null;
   }
 
-  const handleExport = async (format: "csv" | "pdf") => {
+  const handleExport = async (format: "excel" | "pdf") => {
     if (!report) {
       return;
     }
@@ -137,9 +138,9 @@ export default function PosSalesAnalyticsSection({
         report,
       };
 
-      if (format === "csv") {
-        const filename = exportPosSalesAnalyticsCsv(snapshot);
-        setExportNotice(`CSV export downloaded as ${filename}.`);
+      if (format === "excel") {
+        const filename = await exportPosSalesAnalyticsExcel(snapshot);
+        setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
         const filename = exportPosSalesAnalyticsPdf(snapshot);
         setExportNotice(
@@ -244,11 +245,11 @@ export default function PosSalesAnalyticsSection({
             <button
               type="button"
               disabled={loading || exportingFormat !== null}
-              onClick={() => void handleExport("csv")}
+              onClick={() => void handleExport("excel")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <FileSpreadsheet size={18} aria-hidden="true" />
-              <span>{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</span>
+              <span>{exportingFormat === "excel" ? "Exporting..." : "Export Excel"}</span>
             </button>
             <button
               type="button"
@@ -349,7 +350,7 @@ export default function PosSalesAnalyticsSection({
             />
           ) : (
             <div className="overflow-x-auto">
-              <div className="min-w-[72rem] overflow-hidden rounded-2xl border border-slate-200">
+              <ReportColumns columns={["Period","Gross Sales","Net Sales","Discounts","Refunds","Transactions","Average Ticket"]} gridTemplate="1.3fr_repeat(6,minmax(0,1fr))"><div className="min-w-[72rem] overflow-hidden rounded-2xl border border-slate-200">
                 <div className="grid grid-cols-[1.3fr_repeat(6,minmax(0,1fr))] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <span>Period</span>
                   <span>Gross Sales</span>
@@ -385,7 +386,7 @@ export default function PosSalesAnalyticsSection({
                     ))
                   )}
                 </div>
-              </div>
+              </div></ReportColumns>
             </div>
           )}
         </WidgetCard>

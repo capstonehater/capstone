@@ -1,4 +1,5 @@
 "use client";
+import PageSkeleton from "@/components/loading/PageSkeleton";
 import { loadIfAllowed } from "@/lib/permission-loading";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
@@ -874,6 +875,8 @@ export default function ProductsWorkspace() {
   }
 
   const isMobileDetailView = Boolean(selectedProductId);
+
+  if (!listResponse && !listError) return <PageSkeleton page="products" header={false} />;
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden">

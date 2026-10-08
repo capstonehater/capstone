@@ -269,6 +269,7 @@ export class ReportsService {
       },
     });
 
+    const reasonMaterials = new Map<string, Map<string, { rawMaterialId: string; name: string; sku: string; quantity: Prisma.Decimal; cost: Prisma.Decimal; eventCount: number }>>();
     const reasonMap = new Map<
       string,
       {
@@ -310,8 +311,17 @@ export class ReportsService {
       currentReason.eventCount += 1;
       reasonMap.set(reasonCode, currentReason);
 
+      const countedMaterials = new Set<string>();
       for (const record of transaction.lines) {
         const line = withHistoricalMaterial(record);
+        const materials = reasonMaterials.get(reasonCode) ?? new Map();
+        const reasonMaterial = materials.get(line.rawMaterialId) ?? { rawMaterialId: line.rawMaterialId, name: line.rawMaterial.name, sku: line.rawMaterial.sku, quantity: ZERO, cost: ZERO, eventCount: 0 };
+        reasonMaterial.quantity = reasonMaterial.quantity.plus(toDecimal(line.quantityDelta).abs());
+        reasonMaterial.cost = reasonMaterial.cost.plus(toDecimal(line.totalCostDelta).abs());
+        if (!countedMaterials.has(line.rawMaterialId)) reasonMaterial.eventCount += 1;
+        countedMaterials.add(line.rawMaterialId);
+        materials.set(line.rawMaterialId, reasonMaterial);
+        reasonMaterials.set(reasonCode, materials);
         const material = materialMap.get(line.rawMaterialId) ?? {
           rawMaterialId: line.rawMaterialId,
           name: line.rawMaterial.name,
@@ -345,7 +355,8 @@ export class ReportsService {
       },
       byReason: [...reasonMap.values()]
         .sort((left, right) => right.cost.comparedTo(left.cost))
-        .slice(0, filters.includeAllGroups === 'true' ? undefined : limit),
+        .slice(0, filters.includeAllGroups === 'true' ? undefined : limit)
+        .map(item => ({ ...item, materials: [...(reasonMaterials.get(item.reasonCode)?.values() ?? [])].sort((left, right) => left.name.localeCompare(right.name)) })),
       byMaterial: [...materialMap.values()]
         .sort((left, right) => right.cost.comparedTo(left.cost))
         .slice(0, limit),
@@ -461,8 +472,13 @@ export class ReportsService {
       (sum, summary) => sum + summary.summary.activeBatchCount,
       0,
     );
-    const nextTwoWeeks = new Date();
-    nextTwoWeeks.setDate(nextTwoWeeks.getDate() + 14);
+    const today = parseBusinessDateToDateOnlyUtc(formatManilaBusinessDateInput(new Date()));
+    const cutoff = new Date(today);
+    const day = cutoff.getUTCDate();
+    cutoff.setUTCDate(1);
+    cutoff.setUTCMonth(cutoff.getUTCMonth() + 2);
+    const lastDay = new Date(Date.UTC(cutoff.getUTCFullYear(), cutoff.getUTCMonth() + 1, 0)).getUTCDate();
+    cutoff.setUTCDate(Math.min(day, lastDay));
 
     const nearExpiryBatches = await this.prisma.stockBatch.findMany({
       where: {
@@ -472,7 +488,8 @@ export class ReportsService {
         },
         expirationDate: {
           not: null,
-          lte: nextTwoWeeks,
+          gte: today,
+          lte: cutoff,
         },
       },
       orderBy: [{ expirationDate: 'asc' }, { remainingQuantity: 'desc' }],

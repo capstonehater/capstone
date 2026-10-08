@@ -1,7 +1,10 @@
+import { formatStockoutDuration } from "./report-duration";
+import { downloadReportExcel } from "./report-excel";
 import { formatUnit } from "./units";
 import { formatDateTime, formatPeso } from "./pos-utils";
 import type { PosOrder } from "./pos";
 import type {
+  WasteSummaryReport,
   InventoryAvailabilityRiskReport,
   InventoryKpiSummaryReport,
   PosPaymentReportsReport,
@@ -23,6 +26,7 @@ export type InventoryReportsExportSnapshot = {
   kpiSummary: InventoryKpiSummaryReport;
   availabilityRisk: InventoryAvailabilityRiskReport;
   inventoryLinked: PosInventoryLinkedExportSnapshot;
+  wasteSummary?: WasteSummaryReport;
 };
 
 export type PosTransactionHistoryExportSnapshot = {
@@ -128,22 +132,6 @@ function buildRangeBaseName(prefix: string, from: string, to: string) {
   const safeFrom = sanitizeFilenamePart(from || "open");
   const safeTo = sanitizeFilenamePart(to || "open");
   return `${prefix}_${safeFrom}_to_${safeTo}`;
-}
-
-function downloadTextFile(filename: string, content: string, mimeType: string) {
-  if (typeof window === "undefined") {
-    throw new Error("Exports are only available in the browser.");
-  }
-
-  const blob = new Blob([content], { type: mimeType });
-  const url = window.URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  window.URL.revokeObjectURL(url);
 }
 
 function escapeCsvCell(value: unknown) {
@@ -328,7 +316,7 @@ function appendInventoryAvailabilityRiskCsvSections(
       row.rawMaterial.name,
       row.rawMaterial.sku,
       formatUnit(row.rawMaterial.unit.code),
-      formatHourExport(row.stockoutDurationHours),
+      formatStockoutDuration(row.stockoutDurationHours),
       formatPercentExport(row.stockoutRatePercentage),
       row.overlappingStockoutEventCount,
       row.currentlyOutOfStock ? "Open" : "Recovered",
@@ -384,7 +372,7 @@ function renderInventoryAvailabilityRiskHtml(report: InventoryAvailabilityRiskRe
         row.rawMaterial.name,
         row.rawMaterial.sku,
         formatUnit(row.rawMaterial.unit.code),
-        formatHourExport(row.stockoutDurationHours),
+        formatStockoutDuration(row.stockoutDurationHours),
         formatPercentExport(row.stockoutRatePercentage),
         String(row.overlappingStockoutEventCount),
         row.currentlyOutOfStock ? "Open" : "Recovered",
@@ -676,6 +664,10 @@ export function buildInventoryReportsCsvContent(snapshot: InventoryReportsExport
   appendInventoryKpiSummaryCsvSection(lines, snapshot.kpiSummary);
   appendInventoryAvailabilityRiskCsvSections(lines, snapshot.availabilityRisk);
   appendPosInventoryLinkedCsvSections(lines, snapshot.inventoryLinked);
+  if (snapshot.wasteSummary) {
+    appendCsvSection(lines, "Waste Summary", ["Metric", "Value"], [["Total Waste Cost", snapshot.wasteSummary.totals.cost], ["Waste Events", snapshot.wasteSummary.totals.eventCount]]);
+    appendCsvSection(lines, "Waste Insight Breakdown", ["Material", "SKU", "Reason", "Events", "Quantity", "Cost"], snapshot.wasteSummary.byReason.flatMap(reason => reason.materials.map(material => [material.name, material.sku, reason.reasonCode.replaceAll("_", " "), material.eventCount, material.quantity, material.cost])));
+  }
 
   return `\uFEFF${lines.join("\r\n")}`;
 }
@@ -792,13 +784,12 @@ export function buildInventoryReportsPdfHtml(
   `;
 }
 
-export function exportInventoryReportsCsv(snapshot: InventoryReportsExportSnapshot) {
-  const filename = `${buildRangeBaseName("inventory-reports", snapshot.filters.from, snapshot.filters.to)}.csv`;
-  downloadTextFile(
-    filename,
-    buildInventoryReportsCsvContent(snapshot),
-    "text/csv;charset=utf-8",
-  );
+export async function exportInventoryReportsExcel(snapshot: InventoryReportsExportSnapshot) {
+  const { fetchWasteSummary } = await import("./reports");
+  const { toManilaRangeIso } = await import("./report-date-range");
+  const wasteSummary = await fetchWasteSummary({ ...toManilaRangeIso(snapshot.filters), includeAllGroups: true });
+  const filename = `${buildRangeBaseName("inventory-reports", snapshot.filters.from, snapshot.filters.to)}.xlsx`;
+  await downloadReportExcel(filename, buildInventoryReportsCsvContent({ ...snapshot, wasteSummary }));
   return filename;
 }
 
@@ -815,12 +806,12 @@ export async function exportInventoryReportsPdf(snapshot: InventoryReportsExport
   return filename;
 }
 
-export function exportPosTransactionHistoryCsv(snapshot: PosTransactionHistoryExportSnapshot) {
+export async function exportPosTransactionHistoryExcel(snapshot: PosTransactionHistoryExportSnapshot) {
   const filename = `${buildRangeBaseName(
     "pos-transaction-history",
     snapshot.filters.from,
     snapshot.filters.to,
-  )}.csv`;
+  )}.xlsx`;
 
   const lines: string[] = [];
   lines.push(createCsvRow(["POS Transaction History Export"]));
@@ -867,7 +858,7 @@ export function exportPosTransactionHistoryCsv(snapshot: PosTransactionHistoryEx
     ]),
   );
 
-  downloadTextFile(filename, `\uFEFF${lines.join("\r\n")}`, "text/csv;charset=utf-8");
+  await downloadReportExcel(filename, `\uFEFF${lines.join("\r\n")}`);
   return filename;
 }
 
@@ -948,8 +939,8 @@ export function exportPosTransactionHistoryPdf(snapshot: PosTransactionHistoryEx
   return filename;
 }
 
-export function exportPosSalesAnalyticsCsv(snapshot: PosSalesAnalyticsExportSnapshot) {
-  const filename = `${buildRangeBaseName("pos-sales-analytics", snapshot.filters.from, snapshot.filters.to)}.csv`;
+export async function exportPosSalesAnalyticsExcel(snapshot: PosSalesAnalyticsExportSnapshot) {
+  const filename = `${buildRangeBaseName("pos-sales-analytics", snapshot.filters.from, snapshot.filters.to)}.xlsx`;
   const lines: string[] = [];
 
   lines.push(createCsvRow(["POS Sales Analytics Export"]));
@@ -1000,7 +991,7 @@ export function exportPosSalesAnalyticsCsv(snapshot: PosSalesAnalyticsExportSnap
     ]),
   );
 
-  downloadTextFile(filename, `\uFEFF${lines.join("\r\n")}`, "text/csv;charset=utf-8");
+  await downloadReportExcel(filename, `\uFEFF${lines.join("\r\n")}`);
   return filename;
 }
 
@@ -1102,8 +1093,8 @@ export function exportPosSalesAnalyticsPdf(snapshot: PosSalesAnalyticsExportSnap
   return filename;
 }
 
-export function exportPosPaymentReportsCsv(snapshot: PosPaymentReportsExportSnapshot) {
-  const filename = `${buildRangeBaseName("pos-payment-reports", snapshot.filters.from, snapshot.filters.to)}.csv`;
+export async function exportPosPaymentReportsExcel(snapshot: PosPaymentReportsExportSnapshot) {
+  const filename = `${buildRangeBaseName("pos-payment-reports", snapshot.filters.from, snapshot.filters.to)}.xlsx`;
   const lines: string[] = [];
 
   lines.push(createCsvRow(["POS Payment Reports Export"]));
@@ -1149,7 +1140,7 @@ export function exportPosPaymentReportsCsv(snapshot: PosPaymentReportsExportSnap
     ]),
   );
 
-  downloadTextFile(filename, `\uFEFF${lines.join("\r\n")}`, "text/csv;charset=utf-8");
+  await downloadReportExcel(filename, `\uFEFF${lines.join("\r\n")}`);
   return filename;
 }
 
@@ -1248,8 +1239,8 @@ export function exportPosPaymentReportsPdf(snapshot: PosPaymentReportsExportSnap
   return filename;
 }
 
-export function exportPosRefundsVoidsCsv(snapshot: PosRefundsVoidsExportSnapshot) {
-  const filename = `${buildRangeBaseName("pos-refunds-voids", snapshot.filters.from, snapshot.filters.to)}.csv`;
+export async function exportPosRefundsVoidsExcel(snapshot: PosRefundsVoidsExportSnapshot) {
+  const filename = `${buildRangeBaseName("pos-refunds-voids", snapshot.filters.from, snapshot.filters.to)}.xlsx`;
   const lines: string[] = [];
 
   lines.push(createCsvRow(["POS Refunds & Voids Export"]));
@@ -1327,7 +1318,7 @@ export function exportPosRefundsVoidsCsv(snapshot: PosRefundsVoidsExportSnapshot
     ]),
   );
 
-  downloadTextFile(filename, `\uFEFF${lines.join("\r\n")}`, "text/csv;charset=utf-8");
+  await downloadReportExcel(filename, `\uFEFF${lines.join("\r\n")}`);
   return filename;
 }
 
@@ -1443,10 +1434,10 @@ export function exportPosRefundsVoidsPdf(snapshot: PosRefundsVoidsExportSnapshot
   return filename;
 }
 
-export function exportPosProductPerformanceCsv(
+export async function exportPosProductPerformanceExcel(
   snapshot: PosProductPerformanceExportSnapshot,
 ) {
-  const filename = `${buildRangeBaseName("pos-product-performance", snapshot.filters.from, snapshot.filters.to)}.csv`;
+  const filename = `${buildRangeBaseName("pos-product-performance", snapshot.filters.from, snapshot.filters.to)}.xlsx`;
   const lines: string[] = [];
 
   lines.push(createCsvRow(["POS Product Performance Export"]));
@@ -1537,7 +1528,7 @@ export function exportPosProductPerformanceCsv(
     ]),
   );
 
-  downloadTextFile(filename, `\uFEFF${lines.join("\r\n")}`, "text/csv;charset=utf-8");
+  await downloadReportExcel(filename, `\uFEFF${lines.join("\r\n")}`);
   return filename;
 }
 
@@ -1655,8 +1646,8 @@ export function exportPosProductPerformancePdf(
   return filename;
 }
 
-export function exportPosStaffPerformanceCsv(snapshot: PosStaffPerformanceExportSnapshot) {
-  const filename = `${buildRangeBaseName("pos-staff-performance", snapshot.filters.from, snapshot.filters.to)}.csv`;
+export async function exportPosStaffPerformanceExcel(snapshot: PosStaffPerformanceExportSnapshot) {
+  const filename = `${buildRangeBaseName("pos-staff-performance", snapshot.filters.from, snapshot.filters.to)}.xlsx`;
   const lines: string[] = [];
 
   lines.push(createCsvRow(["POS Staff Performance Export"]));
@@ -1693,7 +1684,7 @@ export function exportPosStaffPerformanceCsv(snapshot: PosStaffPerformanceExport
     ]),
   );
 
-  downloadTextFile(filename, `\uFEFF${lines.join("\r\n")}`, "text/csv;charset=utf-8");
+  await downloadReportExcel(filename, `\uFEFF${lines.join("\r\n")}`);
   return filename;
 }
 
@@ -1784,8 +1775,8 @@ export function exportPosStaffPerformancePdf(snapshot: PosStaffPerformanceExport
   return filename;
 }
 
-export function exportPosPeakHoursCsv(snapshot: PosPeakHoursExportSnapshot) {
-  const filename = `${buildRangeBaseName("pos-peak-hours", snapshot.filters.from, snapshot.filters.to)}.csv`;
+export async function exportPosPeakHoursExcel(snapshot: PosPeakHoursExportSnapshot) {
+  const filename = `${buildRangeBaseName("pos-peak-hours", snapshot.filters.from, snapshot.filters.to)}.xlsx`;
   const lines: string[] = [];
 
   lines.push(createCsvRow(["POS Peak Hours Export"]));
@@ -1815,7 +1806,7 @@ export function exportPosPeakHoursCsv(snapshot: PosPeakHoursExportSnapshot) {
     ]),
   );
 
-  downloadTextFile(filename, `\uFEFF${lines.join("\r\n")}`, "text/csv;charset=utf-8");
+  await downloadReportExcel(filename, `\uFEFF${lines.join("\r\n")}`);
   return filename;
 }
 
@@ -1899,10 +1890,10 @@ export function exportPosPeakHoursPdf(snapshot: PosPeakHoursExportSnapshot) {
   return filename;
 }
 
-export function exportPosInventoryLinkedCsv(
+export async function exportPosInventoryLinkedExcel(
   snapshot: PosInventoryLinkedExportSnapshot,
 ) {
-  const filename = `${buildRangeBaseName("pos-inventory-linked", snapshot.filters.from, snapshot.filters.to)}.csv`;
+  const filename = `${buildRangeBaseName("pos-inventory-linked", snapshot.filters.from, snapshot.filters.to)}.xlsx`;
   const lines: string[] = [];
 
   lines.push(createCsvRow(["POS Inventory-Linked Report Export"]));
@@ -1920,7 +1911,7 @@ export function exportPosInventoryLinkedCsv(
   lines.push("");
   appendPosInventoryLinkedCsvSections(lines, snapshot);
 
-  downloadTextFile(filename, `\uFEFF${lines.join("\r\n")}`, "text/csv;charset=utf-8");
+  await downloadReportExcel(filename, `\uFEFF${lines.join("\r\n")}`);
   return filename;
 }
 
@@ -1991,10 +1982,10 @@ export function exportPosInventoryLinkedPdf(
   return filename;
 }
 
-export function exportPosAuditExceptionsCsv(
+export async function exportPosAuditExceptionsExcel(
   snapshot: PosAuditExceptionsExportSnapshot,
 ) {
-  const filename = `${buildRangeBaseName("pos-audit-exceptions", snapshot.filters.from, snapshot.filters.to)}.csv`;
+  const filename = `${buildRangeBaseName("pos-audit-exceptions", snapshot.filters.from, snapshot.filters.to)}.xlsx`;
   const lines: string[] = [];
 
   lines.push(createCsvRow(["POS Audit & Exceptions Export"]));
@@ -2058,7 +2049,7 @@ export function exportPosAuditExceptionsCsv(
     ]),
   );
 
-  downloadTextFile(filename, `\uFEFF${lines.join("\r\n")}`, "text/csv;charset=utf-8");
+  await downloadReportExcel(filename, `\uFEFF${lines.join("\r\n")}`);
   return filename;
 }
 

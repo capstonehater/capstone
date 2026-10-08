@@ -13,6 +13,7 @@ type AdminDashboardLayoutProps = {
   fillContent?: boolean;
   showHeader?: boolean;
   whiteTop?: boolean;
+  navigationMenuTop?: number;
 };
 
 export default function AdminDashboardLayout({
@@ -20,6 +21,7 @@ export default function AdminDashboardLayout({
   fillContent = false,
   showHeader = true,
   whiteTop = false,
+  navigationMenuTop,
 }: AdminDashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const contentRef = useAdminPageEntrance();
@@ -37,7 +39,7 @@ export default function AdminDashboardLayout({
       />
 
       <div className={`${styles.body} ${whiteTop ? styles.bodyWhiteTop : ""}`}>
-        <NavigationMenuButton onOpen={() => setSidebarOpen(true)} expanded={sidebarOpen} controls="admin-navigation" />
+        <NavigationMenuButton top={navigationMenuTop} onOpen={() => setSidebarOpen(true)} expanded={sidebarOpen} controls="admin-navigation" />
         {showHeader ? <AdminHeader /> : null}
         <main ref={contentRef} className={styles.content}>{children}</main>
       </div>

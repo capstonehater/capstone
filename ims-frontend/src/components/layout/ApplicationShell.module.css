@@ -144,7 +144,9 @@
 .staffNavigation { min-height: 0; overflow-y: auto; }
 .shellMobileMenu { display: none; }
 @media (max-width: 1023px) {
-  .shellMobileMenu { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin: 16px 0 0 16px; border: 1px solid var(--shell-border); border-radius: 8px; background: white; color: var(--shell-navy); }
+  .shellMobileMenu { position: fixed; top: 16px; left: 16px; z-index: 45; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 1px solid var(--shell-border); border-radius: 8px; background: white; color: var(--shell-navy); }
+  .body { padding-top: 56px; }
+  .adminCollapseButton, .staffCollapseButton { display: none; }
 }
 @media (min-width: 1024px) {
   .body { margin-left: var(--shell-sidebar-width); }

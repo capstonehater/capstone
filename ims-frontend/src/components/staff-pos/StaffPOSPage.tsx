@@ -1,4 +1,5 @@
 "use client";
+import WorkspaceLoading from "@/components/admin/WorkspaceLoading";
 import SearchInput from "@/components/ui/SearchInput";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
@@ -337,6 +338,8 @@ export default function StaffPOSPage() {
       setReversalSubmitting(false);
     }
   };
+
+  if (menuLoading) return <WorkspaceLoading page="pos" contentOnly />;
 
   return (
     <div className={`${styles.posPage} w-full text-slate-900`} data-focus-mode={focusMode ? "true" : undefined} data-pos-scroll={!choosingCategory && (category === "All" || focusMode) ? "true" : undefined}>

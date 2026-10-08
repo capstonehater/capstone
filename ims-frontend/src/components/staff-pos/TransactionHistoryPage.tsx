@@ -1,4 +1,5 @@
 "use client";
+import WorkspaceLoading from "@/components/admin/WorkspaceLoading";
 import SearchInput from "@/components/ui/SearchInput";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
@@ -82,6 +83,8 @@ export default function TransactionHistoryPage() {
       setReversalSubmitting(false);
     }
   };
+
+  if (loading && history.length === 0 && !error) return <WorkspaceLoading page="transactions" contentOnly />;
 
   return <section className="space-y-5 text-[#232d46]">
     <header className={styles.pageHeader}><div><h1>TRANSACTION HISTORY</h1><p>Review your transactions and receipts.</p></div><button type="button" disabled={loading} onClick={() => void loadHistory()}>{loading ? "Refreshing..." : "Refresh"}</button></header>

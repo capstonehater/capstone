@@ -1,5 +1,6 @@
 "use client";
 
+import ReportColumns from "./ReportColumns";
 import SearchInput from "@/components/ui/SearchInput";
 import PosReportEmpty from "./PosReportEmpty";
 
@@ -9,7 +10,7 @@ import styles from "./PosReports.module.css";
 import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
-  exportPosRefundsVoidsCsv,
+  exportPosRefundsVoidsExcel,
   exportPosRefundsVoidsPdf,
 } from "@/lib/report-exports";
 import {
@@ -45,7 +46,7 @@ export default function PosRefundsVoidsSection({
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<PosRefundsVoidsReport | null>(null);
   const [staffSearch, setStaffSearch] = useState("");
-  const [exportingFormat, setExportingFormat] = useState<"csv" | "pdf" | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<"excel" | "pdf" | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -82,7 +83,7 @@ export default function PosRefundsVoidsSection({
     return null;
   }
 
-  const handleExport = async (format: "csv" | "pdf") => {
+  const handleExport = async (format: "excel" | "pdf") => {
     if (!report) {
       return;
     }
@@ -101,9 +102,9 @@ export default function PosRefundsVoidsSection({
         report,
       };
 
-      if (format === "csv") {
-        const filename = exportPosRefundsVoidsCsv(snapshot);
-        setExportNotice(`CSV export downloaded as ${filename}.`);
+      if (format === "excel") {
+        const filename = await exportPosRefundsVoidsExcel(snapshot);
+        setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
         const filename = exportPosRefundsVoidsPdf(snapshot);
         setExportNotice(
@@ -165,11 +166,11 @@ export default function PosRefundsVoidsSection({
             <button
               type="button"
               disabled={loading || exportingFormat !== null}
-              onClick={() => void handleExport("csv")}
+              onClick={() => void handleExport("excel")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <FileSpreadsheet size={18} aria-hidden="true" />
-              <span>{exportingFormat === "csv" ? "Exporting..." : "Export CSV"}</span>
+              <span>{exportingFormat === "excel" ? "Exporting..." : "Export Excel"}</span>
             </button>
             <button
               type="button"
@@ -201,7 +202,7 @@ export default function PosRefundsVoidsSection({
 
       <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <WidgetCard title="Reasons">
-          <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <ReportColumns columns={["Type","Reason","Count","Amount"]} gridTemplate="0.8fr_1.3fr_0.8fr_0.9fr"><div className="overflow-hidden rounded-2xl border border-slate-200">
             <div className="grid grid-cols-[0.8fr_1.3fr_0.8fr_0.9fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Type</span>
               <span>Reason</span>
@@ -235,11 +236,11 @@ export default function PosRefundsVoidsSection({
                 ))
               )}
             </div>
-          </div>
+          </div></ReportColumns>
         </WidgetCard>
 
         <WidgetCard title="Responsible Staff">
-          <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <ReportColumns columns={["Staff","Reversals","Refunds","Voids","Refunded","Voided"]} gridTemplate="1.1fr_0.8fr_0.8fr_0.8fr_1fr_1fr"><div className="overflow-hidden rounded-2xl border border-slate-200">
             <div className="grid grid-cols-[1.1fr_0.8fr_0.8fr_0.8fr_1fr_1fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Staff</span>
               <span>Reversals</span>
@@ -278,13 +279,13 @@ export default function PosRefundsVoidsSection({
                 ))
               )}
             </div>
-          </div>
+          </div></ReportColumns>
         </WidgetCard>
       </section>
 
       <WidgetCard title="Reversal Events">
         <div className="overflow-x-auto">
-          <div className="min-w-[88rem] overflow-hidden rounded-2xl border border-slate-200">
+          <ReportColumns columns={["Order","Type","Occurred At","Responsible Staff","Reversal Actor","Reason","Requested By","Approved By","Amount"]} gridTemplate="1fr_0.8fr_1fr_1fr_1fr_0.9fr_1fr_1fr_1fr"><div className="min-w-[88rem] overflow-hidden rounded-2xl border border-slate-200">
             <div className="grid grid-cols-[1fr_0.8fr_1fr_1fr_1fr_0.9fr_1fr_1fr_1fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Order</span>
               <span>Type</span>
@@ -358,7 +359,7 @@ export default function PosRefundsVoidsSection({
                 ))
               )}
             </div>
-          </div>
+          </div></ReportColumns>
         </div>
       </WidgetCard>
     </div>
