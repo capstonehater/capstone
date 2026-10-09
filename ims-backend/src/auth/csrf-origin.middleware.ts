@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { env } from '../config/env.validation';
+import { frontendOrigins } from './frontend-origins';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
@@ -29,12 +29,12 @@ export function csrfOriginMiddleware(
     return;
   }
 
-  const allowedOrigin = env.FRONTEND_ORIGIN;
+  const allowedOrigins = frontendOrigins();
   const origin = firstHeaderValue(request.headers.origin);
   const referer = firstHeaderValue(request.headers.referer);
 
   if (origin) {
-    if (origin === allowedOrigin) {
+    if (allowedOrigins.includes(origin)) {
       next();
       return;
     }
@@ -44,7 +44,8 @@ export function csrfOriginMiddleware(
   }
 
   if (referer) {
-    if (originFromReferer(referer) === allowedOrigin) {
+    const refererOrigin = originFromReferer(referer);
+    if (refererOrigin && allowedOrigins.includes(refererOrigin)) {
       next();
       return;
     }

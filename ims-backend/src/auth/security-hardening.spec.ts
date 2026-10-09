@@ -10,6 +10,7 @@ import { FEFOAllocator } from '../inventory/fefo-allocator.service';
 jest.mock('../config/env.validation', () => ({
   env: {
     FRONTEND_ORIGIN: 'http://localhost:3000',
+    ADDITIONAL_FRONTEND_ORIGINS: 'https://ims.example.com',
     LOGIN_IP_MAX_ATTEMPTS: 2,
     PASSWORD_RESET_RATE_LIMIT_WINDOW_MINUTES: 15,
   },
@@ -30,6 +31,7 @@ describe('security boundaries', () => {
       'null',
       'https://evil.example',
       'http://localhost:3000.evil.example',
+      'https://ims.example.com.evil.example',
     ]) {
       await request(app).post('/change').set('Origin', origin).expect(403);
     }
@@ -49,6 +51,10 @@ describe('security boundaries', () => {
       .set('Referer', 'http://localhost:3000/')
       .expect(403);
     await request(app).get('/read').expect(204);
+  });
+  it('allows the additional configured frontend origin for writes', async () => {
+    await request(app).post('/change').set('Origin', 'https://ims.example.com').expect(204);
+    await request(app).post('/change').set('Referer', 'https://ims.example.com/account').expect(204);
   });
   it('rejects malformed and ambiguous cookies', () => {
     expect(readCookieValue('session=%ZZ', 'session')).toBeNull();

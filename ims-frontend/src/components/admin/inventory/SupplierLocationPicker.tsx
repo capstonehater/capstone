@@ -224,8 +224,9 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
       fittedUserLocation.current = false;
       setActiveMap(instance);
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
+        referrerPolicy: "strict-origin-when-cross-origin",
       }).addTo(instance);
       const pin = L.marker([14.299, 120.958], {
         draggable: !readOnly,

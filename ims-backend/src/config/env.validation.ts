@@ -100,6 +100,7 @@ export const env = Object.freeze({
     nodeEnv !== 'test',
   ),
   FRONTEND_ORIGIN: requireString('FRONTEND_ORIGIN', 'http://localhost:3000'),
+  ADDITIONAL_FRONTEND_ORIGINS: process.env.ADDITIONAL_FRONTEND_ORIGINS?.trim() || '',
   FRONTEND_APP_URL: requireString('FRONTEND_APP_URL', 'http://localhost:3000'),
   SESSION_COOKIE_NAME: requireString('SESSION_COOKIE_NAME', 'ims_session'),
   SESSION_TOKEN_SECRET: sessionTokenSecret,

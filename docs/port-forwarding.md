@@ -1,5 +1,31 @@
 # Cafe Salvacion: recovery and outside access
 
+## Current setup and returning to localhost
+
+Forward only port **3000**. The browser calls `/backend` on the website's own
+address; the frontend forwards those requests privately to port 4000.
+`NEXT_PUBLIC_API_BASE_URL=/backend` and
+`API_UPSTREAM_URL=http://127.0.0.1:4000` stay the same for both public and local use.
+
+The backend now supports `ADDITIONAL_FRONTEND_ORIGINS`, a comma-separated list
+of exact trusted browser origins. It is configured with `http://localhost:3000`,
+so localhost login remains permitted alongside your public tunnel.
+
+When stopping port forwarding:
+
+1. Stop sharing/forwarding port 3000 in VS Code (or remove the router forwarding rule).
+2. In `ims-backend/.env`, set `FRONTEND_ORIGIN=http://localhost:3000` and
+   `FRONTEND_APP_URL=http://localhost:3000`. Comments are beside both values.
+3. For plain HTTP localhost, keep `AUTH_COOKIE_SECURE=false`.
+4. Restart with Stop Project.cmd followed by Start Project.cmd, then open
+   http://localhost:3000/login. The frontend URL settings do not need changing
+   or rebuilding just to switch between these two addresses.
+
+If your public tunnel hostname changes, update both backend FRONTEND_* values
+and restart the backend. Keep localhost in ADDITIONAL_FRONTEND_ORIGINS.
+The localhost and public addresses have separate browser cookie sessions;
+sign in separately on each address.
+
 ## VS Code dev tunnel (port 3000)
 
 Forward port 3000 and open its HTTPS tunnel URL. The frontend now proxies

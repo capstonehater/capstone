@@ -12,6 +12,7 @@ import { PRODUCT_IMAGE_DIRECTORY } from './catalog/product-image';
 import { env } from './config/env.validation';
 import { AppModule } from './app.module';
 import { csrfOriginMiddleware } from './auth/csrf-origin.middleware';
+import { frontendOrigins } from './auth/frontend-origins';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -33,7 +34,7 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: env.FRONTEND_ORIGIN,
+    origin: frontendOrigins(),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
