@@ -11,6 +11,7 @@ import {
 } from "@/components/admin/inventory/InventoryField";
 import InventoryModal from "@/components/admin/inventory/InventoryModal";
 import type { InventoryUnit, RawMaterial } from "@/lib/inventory";
+import { makeMaterialSku } from "@/lib/sku-generation";
 
 type PanelMode =
   | null
@@ -30,18 +31,6 @@ type MaterialFormState = {
   reorderPoint: string;
   categoryIds: string[];
 };
-
-function makeMaterialSku(name: string, existingSkus: string[]) {
-  const words = name.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toUpperCase().match(/[A-Z0-9]+/g) ?? [];
-  const stem = words.length > 1
-    ? words.map((word) => word[0]).join("")
-    : (words[0] ?? "MAT").slice(0, 4);
-  const prefix = `RM-${stem || "MAT"}-`;
-  const used = new Set(existingSkus.map((sku) => sku.toUpperCase()));
-  let sequence = 1;
-  while (used.has(`${prefix}${String(sequence).padStart(3, "0")}`)) sequence += 1;
-  return `${prefix}${String(sequence).padStart(3, "0")}`;
-}
 
 function ModalActions({ children }: { children: React.ReactNode }) {
   return <div className="md:col-span-2 flex justify-end gap-3 pt-2">{children}</div>;
