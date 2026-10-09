@@ -1,0 +1,471 @@
+[
+  {
+    "category": "Pasta",
+    "product": "Creamy Tuna Pesto",
+    "imageUrl": "/product-images/00129411-476e-5084-967a-06506f8c4dee.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "1.webp"
+  },
+  {
+    "category": "Pasta",
+    "product": "Chicken Carbonara",
+    "imageUrl": "/product-images/21793317-ee9f-5726-878a-a983ed277744.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "1.webp"
+  },
+  {
+    "category": "Pasta",
+    "product": "Spanish Sardines",
+    "imageUrl": "/product-images/9189de42-9495-593f-88dc-dace56841249.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "1.webp"
+  },
+  {
+    "category": "Pasta",
+    "product": "Beef Lasagna",
+    "imageUrl": "/product-images/f095d254-3309-55a5-8a3c-54e006ba52c3.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "1.webp"
+  },
+  {
+    "category": "All Day Breakfast",
+    "product": "Pork Tocino",
+    "imageUrl": "/product-images/443ee6fe-e899-5715-aecb-901ea36f0407.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "1.webp"
+  },
+  {
+    "category": "All Day Breakfast",
+    "product": "Beef Tapa",
+    "imageUrl": "/product-images/e3882df6-76ab-5945-854d-998d44c2bfbf.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "1.webp"
+  },
+  {
+    "category": "All Day Breakfast",
+    "product": "Crispy Naked Longganisa",
+    "imageUrl": "/product-images/98544462-734d-557f-9707-2d03d422104b.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "1.webp"
+  },
+  {
+    "category": "All Day Breakfast",
+    "product": "Pan-Fried Baby Bangus",
+    "imageUrl": "/product-images/8588360c-0592-5fe5-a50f-7a94f35f4ce1.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "1.webp"
+  },
+  {
+    "category": "Ala Carte",
+    "product": "Chicken Wings 8 pcs",
+    "imageUrl": "/product-images/9ef7f0a5-2348-5a9d-9a77-ed999d185642.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp"
+  },
+  {
+    "category": "Ala Carte",
+    "product": "Soft Tacos 2 pcs",
+    "imageUrl": "/product-images/6c8bdb85-67b5-5bfe-919e-8b3d84777300.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp"
+  },
+  {
+    "category": "Ala Carte",
+    "product": "Cheese Nachos",
+    "imageUrl": "/product-images/4f705f06-9241-52fc-8dc9-7bf5308f627a.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp"
+  },
+  {
+    "category": "Ala Carte",
+    "product": "Beef Nachos",
+    "imageUrl": "/product-images/596753ea-ac37-5579-822a-3d3e21349f10.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp"
+  },
+  {
+    "category": "Ala Carte",
+    "product": "French Fries",
+    "imageUrl": "/product-images/804f07b2-7a35-5a14-987a-183eda331ced.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp,4.webp"
+  },
+  {
+    "category": "Pizza",
+    "product": "Margherita",
+    "imageUrl": "/product-images/2cd1e827-72d4-5e95-9ba2-add364d0816b.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp"
+  },
+  {
+    "category": "Pizza",
+    "product": "Four Cheese",
+    "imageUrl": "/product-images/c2b96a0c-d83c-5321-80a9-7b42fb64ed93.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp"
+  },
+  {
+    "category": "Pizza",
+    "product": "Pepperoni",
+    "imageUrl": "/product-images/74015c73-b086-5e02-a075-912880690b0d.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp"
+  },
+  {
+    "category": "Pizza",
+    "product": "Pesto Tapa",
+    "imageUrl": "/product-images/1d4c8b1f-293d-5bfd-99eb-657d612fbf5c.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp"
+  },
+  {
+    "category": "Extras",
+    "product": "Egg",
+    "imageUrl": "/product-images/2edf34a2-b48d-5e3d-8d09-c28c615b057d.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp"
+  },
+  {
+    "category": "Extras",
+    "product": "Rice",
+    "imageUrl": "/product-images/fed19f52-9b50-5e65-b586-f907c4946b88.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp"
+  },
+  {
+    "category": "Extras",
+    "product": "Bottled Water",
+    "imageUrl": "/product-images/5319aa13-50e7-5460-a4d5-4d2ba1db4b25.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp"
+  },
+  {
+    "category": "Extras",
+    "product": "Homemade Hot Sauce (150ml)",
+    "imageUrl": "/product-images/acb9494c-0144-556f-a232-fc1f4a4dc808.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp"
+  },
+  {
+    "category": "Extras",
+    "product": "Spicy Suka (150ml)",
+    "imageUrl": "/product-images/62cfddf0-af9a-5019-b295-e4df1f3c8c78.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp,4.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Cubano (Espresso Shot)",
+    "imageUrl": "/product-images/63deed67-dc69-5bd4-b752-7d01d846d16f.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Cafe Americano",
+    "imageUrl": "/product-images/967aadd0-b25a-5927-bb1f-978f754c28d7.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Cappuccino",
+    "imageUrl": "/product-images/5768183f-5e43-5b1a-b6fb-09152b1375af.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Latte",
+    "imageUrl": "/product-images/49fd790d-0a5c-51d8-ab31-ed4733c51246.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Spanish Latte",
+    "imageUrl": "/product-images/a9b3a345-9032-5692-b781-bd2d738a3954.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp,5.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Mocha",
+    "imageUrl": "/product-images/d6827ae1-7f6e-5358-9f85-4cb2e5b43ac1.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp,5.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Cold Brew",
+    "imageUrl": "/product-images/26e936a7-c7ea-5a03-a5a8-f82f691588fe.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp,5.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Caramel Macchiato",
+    "imageUrl": "/product-images/9fc85ea8-5d94-5849-a79d-1ddb4070d6cb.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp,5.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Hazelnut Macchiato",
+    "imageUrl": "/product-images/6b36e625-0a7e-5bdd-b3f5-bcd347c4ff5b.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Matcha Espresso Latte",
+    "imageUrl": "/product-images/6d0749b7-ba4f-5b39-8bfa-6e7cebcf42a7.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Cold Foam Espresso",
+    "imageUrl": "/product-images/00541676-f947-5c3b-b573-c62a0e8f35e4.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Taho Kape Latte",
+    "imageUrl": "/product-images/c50e14c9-0745-5a68-b9fd-a40928c437e8.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Blackadamia",
+    "imageUrl": "/product-images/ffee206e-62e6-5dd0-8e06-69324225cfb4.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp,5.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Crème-Bru Latte",
+    "imageUrl": "/product-images/a9826726-7055-5c58-a33e-df65ed42cc2f.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp,5.webp"
+  },
+  {
+    "category": "Coffee",
+    "product": "Biscoff Coffee Latte",
+    "imageUrl": "/product-images/b264d622-bcfa-59d1-a4f6-b149d33c4111.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "5.webp"
+  },
+  {
+    "category": "Non-Coffee",
+    "product": "Dark Chocolate",
+    "imageUrl": "/product-images/e2b79666-acb8-51f2-aec7-2aa6f86c0066.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp,5.webp"
+  },
+  {
+    "category": "Non-Coffee",
+    "product": "Matcha Latte",
+    "imageUrl": "/product-images/46d208f1-3aa5-5dfe-80c0-7320f3e4f2ab.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp,5.webp"
+  },
+  {
+    "category": "Non-Coffee",
+    "product": "Houseblend Iced Tea",
+    "imageUrl": "/product-images/2c71ce1d-cc48-5b59-80c8-883aad0e6d75.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Non-Coffee",
+    "product": "Thai Milktea",
+    "imageUrl": "/product-images/d5cff137-9127-582e-a755-d7ce076d1a57.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Non-Coffee",
+    "product": "Strawberry Taho Latte",
+    "imageUrl": "/product-images/45b0571b-8b86-5a48-8a64-df6ca83f523f.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Non-Coffee",
+    "product": "Mango Shake",
+    "imageUrl": "/product-images/a3b1d3fb-7c25-5dae-87a5-07aafb0e2bdb.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Non-Coffee",
+    "product": "Chai Tea Latte",
+    "imageUrl": "/product-images/7d8df7ab-446c-5616-a012-9f4e3db87db2.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Lemonade",
+    "product": "Classic Lemon",
+    "imageUrl": "/product-images/69bbe118-d7b5-5e63-8b5a-0bde11ad1b65.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Lemonade",
+    "product": "Passion Fruit",
+    "imageUrl": "/product-images/0aeec323-85d2-5729-b06b-ef384e3b0a39.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Lemonade",
+    "product": "Strawberiri",
+    "imageUrl": "/product-images/515376ba-370a-5c2b-b7cb-c99d5ac9a114.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Lemonade",
+    "product": "Mango Trail",
+    "imageUrl": "/product-images/d9e1b841-ae0c-5a94-aee8-18b8eb4798c9.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Lemonade",
+    "product": "Butterfly Pea (Violet Drink)",
+    "imageUrl": "/product-images/c7d8618f-1808-5b52-8266-b9dfb8715a75.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Ice-Blended Coffee",
+    "product": "Mocha Chip",
+    "imageUrl": "/product-images/934c9020-df01-5e84-8a36-518f7858c03c.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Ice-Blended Coffee",
+    "product": "White Caramel Mocha",
+    "imageUrl": "/product-images/5a544ae0-303e-5d2d-bdf0-8fce4bcd5e4a.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Ice-Blended Coffee",
+    "product": "Peppermint Mocha",
+    "imageUrl": "/product-images/84ee7d57-646c-5335-96d5-502050b61136.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Ice-Blended Non-Coffee",
+    "product": "Vanilla Bean Strawberry",
+    "imageUrl": "/product-images/3cd17a0f-5029-5d7f-ab47-1c7db205d360.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Ice-Blended Non-Coffee",
+    "product": "Double Choco Chip",
+    "imageUrl": "/product-images/32c3df52-3c9a-5325-844c-6645207f2372.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Ice-Blended Non-Coffee",
+    "product": "Oreo Cookie Crumble",
+    "imageUrl": "/product-images/f6686dd0-e3fd-52b2-bacd-776ed04c7e8d.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Ice-Blended Non-Coffee",
+    "product": "Matcha Choco Drizzle",
+    "imageUrl": "/product-images/6201db78-dc08-5cdf-8e68-e7f4faeaf8a2.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Ice-Blended Non-Coffee",
+    "product": "Peach Milk",
+    "imageUrl": "/product-images/2aa2cb5d-d5d3-5d6e-b7be-2733a35b4705.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "3.webp"
+  },
+  {
+    "category": "Crepes",
+    "product": "Butter Sugar Crepe",
+    "imageUrl": "/product-images/f3a8ff2d-eae9-5513-a709-5e3ba15f679b.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "4.webp"
+  },
+  {
+    "category": "Crepes",
+    "product": "Death by Chocolate Crepe",
+    "imageUrl": "/product-images/ead0f71f-8261-5531-9f10-64329e49b361.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "4.webp"
+  },
+  {
+    "category": "Crepes",
+    "product": "Strawberries & Cream Crepe",
+    "imageUrl": "/product-images/6f0859b5-b892-5a20-bf3f-a271b40798c5.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "4.webp"
+  },
+  {
+    "category": "Crepes",
+    "product": "Monkey Madness Crepe",
+    "imageUrl": "/product-images/8e34bad2-8135-51b2-aabc-cc03a1c1cb95.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "4.webp"
+  },
+  {
+    "category": "Crepes",
+    "product": "Mango Dream Crepe",
+    "imageUrl": "/product-images/b51e3d0a-22b0-5342-b673-4e2121b3d8b2.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp,4.webp"
+  },
+  {
+    "category": "Waffles",
+    "product": "Original Waffles",
+    "imageUrl": "/product-images/a737adef-c862-5c42-8695-8f8aa9ef2719.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "4.webp"
+  },
+  {
+    "category": "Waffles",
+    "product": "Strawberry Mallow Waffles",
+    "imageUrl": "/product-images/c0b4d058-d8cd-5675-9cdc-1af747b96902.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "4.webp"
+  },
+  {
+    "category": "Waffles",
+    "product": "Choco Cream Waffles",
+    "imageUrl": "/product-images/2e3a6fdd-4318-5dff-830d-9f343f47ce6c.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "4.webp"
+  },
+  {
+    "category": "Waffles",
+    "product": "Caramel Mocha Waffles",
+    "imageUrl": "/product-images/52cc39d7-4954-5b4a-9c0c-2a1b4b9ea3d3.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "4.webp"
+  },
+  {
+    "category": "Waffles",
+    "product": "Nutty Mango Waffles",
+    "imageUrl": "/product-images/a0ead6f6-bf1c-5205-beaa-934cd61ffce6.webp",
+    "status": "menu-reference-generated-photo",
+    "reference": "2.webp,4.webp"
+  }
+]

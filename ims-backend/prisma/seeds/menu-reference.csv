@@ -1,0 +1,86 @@
+product_id,product_name,category,variant_id,variant_name,price,sku,is_enabled,created_at,updated_at
+1,Creamy Tuna Pesto,Pasta,1,Solo,220.0,PASTA-CTP-SOLO,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+1,Creamy Tuna Pesto,Pasta,2,Family,820.0,PASTA-CTP-FAM,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+2,Chicken Carbonara,Pasta,3,Solo,240.0,PASTA-CC-SOLO,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+2,Chicken Carbonara,Pasta,4,Family,920.0,PASTA-CC-FAM,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+3,Spanish Sardines,Pasta,5,Solo,280.0,PASTA-SS-SOLO,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+3,Spanish Sardines,Pasta,6,Family,980.0,PASTA-SS-FAM,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+4,Beef Lasagna,Pasta,7,Solo,470.0,PASTA-BL-SOLO,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+4,Beef Lasagna,Pasta,8,Family,1350.0,PASTA-BL-FAM,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+5,Pork Tocino,All Day Breakfast,9,Regular,160.0,BRKFST-TOCINO,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+6,Beef Tapa,All Day Breakfast,10,Regular,225.0,BRKFST-TAPA,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+7,Crispy Naked Longganisa,All Day Breakfast,11,Regular,165.0,BRKFST-LONGGA,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+8,Pan-Fried Baby Bangus,All Day Breakfast,12,Regular,275.0,BRKFST-BANGUS,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+9,Chicken Wings 8 pcs,Ala Carte,13,Regular,320.0,ALA-WINGS-8,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+10,Soft tacos 2 pcs - Beef,Ala Carte,14,Regular,170.0,ALA-TACO-BEEF,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+11,Soft tacos 2 pcs - Shrimp,Ala Carte,15,Regular,170.0,ALA-TACO-SHRIMP,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+12,Cheese Nachos,Ala Carte,16,Regular,120.0,ALA-NACHOS-CHEESE,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+13,Beef Nachos,Ala Carte,17,Regular,165.0,ALA-NACHOS-BEEF,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+14,French Fries,Ala Carte,18,Regular,110.0,ALA-FRIES,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+15,Margherita,Pizza,19,Good for 2,250.0,PIZZA-MARG,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+16,Four Cheese,Pizza,20,Good for 2,300.0,PIZZA-4CHEESE,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+17,Pepperoni,Pizza,21,Spicy,300.0,PIZZA-PEP-SPICY,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+17,Pepperoni,Pizza,22,Non Spicy,300.0,PIZZA-PEP-REG,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+18,Pesto Tapa,Pizza,23,Good for 2,370.0,PIZZA-PESTO-TAPA,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+19,Egg,Extras,24,Regular,20.0,EXTRA-EGG,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+20,Rice,Extras,25,Regular,30.0,EXTRA-RICE,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+21,Bottled Water,Extras,26,Regular,25.0,EXTRA-WATER,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+22,Homemade Hot Sauce (150ml),Extras,27,150ml,150.0,EXTRA-HOTSAUCE-150,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+23,Spicy Suka (150ml),Extras,28,150ml,80.0,EXTRA-SUKA-150,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+24,Cubano (espresso shot),Coffee,29,Hot 12oz,60.0,COF-24-Hot12,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+25,Cafe Americano,Coffee,30,Hot 12oz,100.0,COF-25-Hot12,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+25,Cafe Americano,Coffee,31,Iced 22oz,110.0,COF-25-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+26,Cappucino,Coffee,32,Hot 12oz,120.0,COF-26-Hot12,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+26,Cappucino,Coffee,33,Iced 22oz,135.0,COF-26-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+27,Latte,Coffee,34,Hot 12oz,120.0,COF-27-Hot12,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+27,Latte,Coffee,35,Iced 22oz,135.0,COF-27-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+28,Spanish Latte,Coffee,36,Hot 12oz,135.0,COF-28-Hot12,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+28,Spanish Latte,Coffee,37,Iced 22oz,160.0,COF-28-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+29,Mocha,Coffee,38,Hot 12oz,135.0,COF-29-Hot12,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+29,Mocha,Coffee,39,Iced 22oz,160.0,COF-29-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+30,Cold Brew,Coffee,40,Iced 22oz,120.0,COF-30-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+31,Caramel Macchiato,Coffee,41,Hot 12oz,150.0,COF-31-Hot12,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+31,Caramel Macchiato,Coffee,42,Iced 22oz,175.0,COF-31-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+32,Hazelnut Macchiato,Coffee,43,Hot 12oz,150.0,COF-32-Hot12,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+32,Hazelnut Macchiato,Coffee,44,Iced 22oz,175.0,COF-32-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+33,Matcha Espresso Latte,Coffee,45,Hot 12oz,165.0,COF-33-Hot12,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+33,Matcha Espresso Latte,Coffee,46,Iced 22oz,195.0,COF-33-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+34,Cold Foam Espresso,Coffee,47,Iced 22oz,170.0,COF-34-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+35,Taho Kape Latte,Coffee,48,Iced 22oz,170.0,COF-35-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+36,Blackadamia,Coffee,49,Iced 22oz,185.0,COF-36-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+37,Crème-Bru Latte,Coffee,50,Iced 22oz,225.0,COF-37-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+38,Biscoff Coffee Latte,Coffee,51,Iced 22oz,265.0,COF-38-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+39,Dark Chocolate,Non-Coffee,52,Hot 12oz,130.0,NC-39-Hot12,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+39,Dark Chocolate,Non-Coffee,53,Iced 22oz,150.0,NC-39-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+40,Matcha Latte,Non-Coffee,54,Hot 12oz,130.0,NC-40-Hot12,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+40,Matcha Latte,Non-Coffee,55,Iced 22oz,170.0,NC-40-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+41,Houseblend Iced Tea,Non-Coffee,56,Iced 22oz,150.0,NC-41-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+42,Thai Milktea,Non-Coffee,57,Iced 22oz,150.0,NC-42-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+43,Strawberry Taho Latte,Non-Coffee,58,Iced 22oz,165.0,NC-43-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+44,Mango Shake,Non-Coffee,59,Iced 22oz,150.0,NC-44-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+45,Chai Tea Latte,Non-Coffee,60,Hot 12oz,140.0,NC-45-Hot12,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+45,Chai Tea Latte,Non-Coffee,61,Iced 22oz,175.0,NC-45-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+46,Classic Lemon,Lemonade,62,Hot 12oz,80.0,LEM-46-Hot12,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+46,Classic Lemon,Lemonade,63,Iced 22oz,85.0,LEM-46-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+47,Passion Fruit,Lemonade,64,Iced 22oz,100.0,LEM-47-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+48,Strawberiri,Lemonade,65,Iced 22oz,100.0,LEM-48-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+49,Mango Trail,Lemonade,66,Iced 22oz,100.0,LEM-49-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+50,Butterfly Pea (Violet Drink),Lemonade,67,Iced 22oz,130.0,LEM-50-Iced22,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+51,Mocha Chip,Coffee Based,68,Regular 22oz,225.0,IB-51,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+52,White Caramel Mocha,Coffee Based,69,Regular 22oz,225.0,IB-52,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+53,Peppermint Mocha,Coffee Based,70,Regular 22oz,240.0,IB-53,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+54,Vanilla Bean Strawberry,Non-Coffee Based,71,Regular 22oz,205.0,IB-54,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+55,Double Choco Chip,Non-Coffee Based,72,Regular 22oz,205.0,IB-55,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+56,Oreo Cookie Crumble,Non-Coffee Based,73,Regular 22oz,205.0,IB-56,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+57,Matcha Choco Drizzle,Non-Coffee Based,74,Regular 22oz,205.0,IB-57,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+58,Peach Milk,Non-Coffee Based,75,Regular 22oz,205.0,IB-58,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+59,Butter Sugar Crepe,Crepes,76,Regular,80.0,CREPE-59,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+60,Death by Chocolate Crepe,Crepes,77,Regular,145.0,CREPE-60,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+61,Strawberries & Cream Crepe,Crepes,78,Regular,145.0,CREPE-61,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+62,Monkey Madness Crepe,Crepes,79,Regular,145.0,CREPE-62,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+63,Mango Dream Crepe,Crepes,80,Regular,145.0,CREPE-63,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+64,Original Waffles,Waffles,81,Regular,120.0,WAFFLE-64,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+65,Strawberry Mallow Waffles,Waffles,82,Regular,185.0,WAFFLE-65,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+66,Choco Cream Waffles,Waffles,83,Regular,185.0,WAFFLE-66,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+67,Caramel Mocha Waffles,Waffles,84,Regular,185.0,WAFFLE-67,True,2025-10-10 09:00:00,2026-01-10 10:00:00
+68,Nutty Mango Waffles,Waffles,85,Regular,185.0,WAFFLE-68,True,2025-10-10 09:00:00,2026-01-10 10:00:00

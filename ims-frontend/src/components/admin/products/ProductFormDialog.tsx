@@ -9,15 +9,10 @@ import { Plus, Trash2, X } from "lucide-react";
 import styles from "./ProductFormDialog.module.css";
 import type { ProductCategory, ProductDetail, VariantFormInput } from "@/lib/products";
 import { productFormErrors } from "@/lib/products/form-validation";
+import { generateVariantSku } from "@/lib/sku-generation";
 
 type Props = { mode: "create" | "edit"; open: boolean; categories: ProductCategory[]; product: ProductDetail | null; submitting: boolean; errorMessage?: string | null; fieldErrors?: Record<string, string[]>; onClose: () => void; onSubmit: (input: { imageUrl?: string | null; name: string; categoryId: string; isEnabled: boolean; initialVariants: VariantFormInput[] }) => Promise<void> };
 const input = "h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500";
-function generateVariantSku(productName: string, variantName: string): string {
-  const words = productName.toUpperCase().match(/[A-Z0-9]+/g) ?? [];
-  const prefix = words.map(word => word[0]).join("");
-  const suffix = variantName.toUpperCase().replace(/[^A-Z0-9]/g, "");
-  return prefix && suffix ? `${prefix}-${suffix}` : "";
-}
 function emptyVariant(): VariantFormInput { return { name: "", sku: "", price: "", isEnabled: true }; }
 
 export default function ProductFormDialog(props: Props) {
