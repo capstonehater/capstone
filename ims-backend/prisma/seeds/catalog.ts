@@ -1,5 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import {
+  generateVariantSku,
+  makeMaterialSku,
+} from '../../../ims-frontend/src/lib/sku-generation';
 
 export type SyntheticMaterial = {
   key: string; name: string; sku: string; unitCode: string;
@@ -22,13 +26,15 @@ export const UNITS = [
 
 // Costs are estimated PHP per inventory unit. Brand/package identities are real;
 // historical supplier offers and purchase prices are explicitly synthetic.
+const usedMaterialSkus = new Set<string>();
 const ingredient = (
   key: string, name: string, unitCode: string, reorderPoint: number,
   baseCost: number, expiryDays: number, isActive = true,
-): SyntheticMaterial => ({
-  key, name, sku: `CS-RM-${key.toUpperCase().replace(/_/g, '-')}`,
-  unitCode, reorderPoint, baseCost, expiryDays, isActive,
-});
+): SyntheticMaterial => {
+  const sku = makeMaterialSku(name, [...usedMaterialSkus]);
+  usedMaterialSkus.add(sku);
+  return { key, name, sku, unitCode, reorderPoint, baseCost, expiryDays, isActive };
+};
 export const MATERIALS: SyntheticMaterial[] = [
   ingredient('coffee', 'TOP Creamery Atok Benguet Arabica Coffee Beans Premium Grade 1kg', 'g', 5000, 1.8, 180),
   ingredient('filtered_water', 'Wilkins Purified Water 6L', 'ml', 30000, .008, 365),
@@ -111,6 +117,42 @@ export const MATERIALS: SyntheticMaterial[] = [
   ingredient('sauce_bottle', 'Food Grade PET Sauce Bottle 150ml', 'pcs', 100, 7, 0),
 ];
 
+/** Ingredient taxonomy for the raw-material/category many-to-many relation. */
+export const MATERIAL_CATEGORY_BY_KEY: Record<string, string> = {
+  coffee: 'Coffee Ingredients',
+  filtered_water: 'Beverage Consumables', ice: 'Beverage Consumables',
+  whole_milk: 'Dairy', oat_milk: 'Dairy', evaporated_milk: 'Dairy',
+  condensed_milk: 'Dairy', cream: 'Dairy', cheese: 'Dairy',
+  mozzarella: 'Dairy', parmesan: 'Dairy', cream_cheese: 'Dairy', butter: 'Dairy',
+  sugar: 'Baking', flour: 'Baking', eggs: 'Baking',
+  vanilla: 'Flavorings and Sweeteners', caramel: 'Flavorings and Sweeteners',
+  hazelnut: 'Flavorings and Sweeteners', peppermint: 'Flavorings and Sweeteners',
+  passion: 'Flavorings and Sweeteners', strawberry_syrup: 'Flavorings and Sweeteners',
+  mango_syrup: 'Flavorings and Sweeteners', choc_syrup: 'Flavorings and Sweeteners',
+  white_choc: 'Flavorings and Sweeteners',
+  black_tea: 'Tea and Beverage Powders', thai_tea: 'Tea and Beverage Powders',
+  chai: 'Tea and Beverage Powders', matcha: 'Tea and Beverage Powders',
+  chocolate: 'Flavorings and Sweeteners', butterfly_pea: 'Tea and Beverage Powders',
+  lemon_juice: 'Produce and Fruit', taho: 'Produce and Fruit', mango: 'Produce and Fruit',
+  strawberry: 'Produce and Fruit', banana: 'Produce and Fruit', peach: 'Produce and Fruit',
+  biscoff: 'Produce and Fruit', macadamia: 'Produce and Fruit', oreos: 'Produce and Fruit',
+  marshmallow: 'Produce and Fruit',
+  oil: 'Sauces and Pantry', salt: 'Sauces and Pantry', pepper: 'Sauces and Pantry',
+  rice: 'Sauces and Pantry', pasta: 'Sauces and Pantry', tomato: 'Sauces and Pantry',
+  pesto: 'Sauces and Pantry', garlic: 'Produce and Fruit', onion: 'Produce and Fruit',
+  lettuce: 'Produce and Fruit', vinegar: 'Sauces and Pantry',
+  chicken: 'Meat and Protein', beef: 'Meat and Protein', shrimp: 'Meat and Protein',
+  pork_tocino: 'Meat and Protein', longganisa: 'Meat and Protein',
+  bangus: 'Meat and Protein', tuna: 'Meat and Protein', sardines: 'Meat and Protein',
+  pepperoni: 'Meat and Protein',
+  tortilla: 'Baking', tortilla_chips: 'Baking', fries: 'Baking', pizza_dough: 'Baking',
+  breadcrumbs: 'Baking', kbbq_sauce: 'Sauces and Pantry', sriracha: 'Sauces and Pantry',
+  salted_egg: 'Meat and Protein', red_chili: 'Produce and Fruit',
+  bottled_water: 'Beverage Consumables', cup_12: 'Packaging', cup_22: 'Packaging',
+  lid_12: 'Packaging', lid_22: 'Packaging', straw: 'Packaging', napkin: 'Packaging',
+  food_box: 'Packaging', sauce_bottle: 'Packaging',
+};
+
 const coldPack = { cup_12: 1, lid_12: 1, straw: 1, napkin: 1 };
 const hotPack = { cup_12: 1, lid_12: 1, napkin: 1 };
 const bigPack = { cup_22: 1, lid_22: 1, straw: 1, napkin: 1 };
@@ -122,7 +164,7 @@ const slug = (value: string) => value.toLowerCase().normalize('NFKD').replace(/[
 const menu: SyntheticVariant[] = [];
 function add(category: string, productName: string, variantName: string, price: number, popularity: number, recipe: Record<string, number>) {
   const key = slug(`${category}_${productName}_${variantName}`);
-  menu.push({ key, productName, category, variantName, sku: `CS-${key.toUpperCase()}`, basePrice: price, popularity, recipe });
+  menu.push({ key, productName, category, variantName, sku: generateVariantSku(productName, variantName), basePrice: price, popularity, recipe });
 }
 function coffee(name: string, price: number, extras: Record<string, number>, popularity = 4) {
   add('Coffee', name, 'Hot 12oz', price, popularity, { coffee: 18, filtered_water: 55, whole_milk: 145, ...extras, ...hotPack });
@@ -232,11 +274,10 @@ const referenceRows = readFileSync(join(__dirname, 'menu-reference.csv'), 'utf8'
   .trim().split(/\r?\n/).slice(1).map((line) => {
     const cells = line.split(',');
     return {
-      productName: cells[1].trim(),
-      category: cells[2].trim(),
-      variantName: cells[4].trim(),
-      price: Number(cells[5]),
-      sku: cells[6].trim(),
+      productName: cells[0].trim(),
+      category: cells[1].trim(),
+      variantName: cells[2].trim(),
+      price: Number(cells[3]),
     };
   });
 function referenceTemplate(productName: string, variantName: string): SyntheticVariant {
@@ -275,7 +316,7 @@ export const VARIANTS: SyntheticVariant[] = referenceRows.flatMap((row) => {
   return [{
     ...template,
     key: slug(`${category}_${productName}_${variantName}`),
-    productName, category, variantName, sku: row.sku,
+    productName, category, variantName, sku: generateVariantSku(productName, variantName),
     basePrice: row.price, recipe,
   }];
 });

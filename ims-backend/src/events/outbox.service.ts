@@ -8,6 +8,7 @@ type EnqueueEventInput = {
   aggregateId: string;
   eventType: string;
   payload: Prisma.InputJsonValue;
+  createdAt?: Date;
 };
 
 @Injectable()
@@ -19,6 +20,7 @@ export class OutboxService {
         aggregateId: input.aggregateId,
         eventType: input.eventType,
         payload: input.payload,
+        ...(input.createdAt ? { createdAt: input.createdAt } : {}),
       },
     });
   }

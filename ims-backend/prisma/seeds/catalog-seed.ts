@@ -7,6 +7,7 @@ import {
 } from '@prisma/client';
 import {
   MATERIALS,
+  MATERIAL_CATEGORY_BY_KEY,
   MODIFIER_GROUPS,
   MODIFIERS,
   SUPPLIERS,
@@ -104,6 +105,31 @@ export async function seedCatalog(
     ids.categories.set(categoryName, category.id);
   }
 
+  const rawMaterialsRootName = 'Raw Materials';
+  const rawMaterialsRoot = await prisma.category.create({
+    data: {
+      id: stableId('category', rawMaterialsRootName),
+      name: rawMaterialsRootName,
+      sortOrder: categoryNames.length + 1,
+      createdAt: dateOnly(startDate),
+      updatedAt: finalHistoryTime,
+    },
+  });
+  const ingredientCategoryNames = [...new Set(Object.values(MATERIAL_CATEGORY_BY_KEY))];
+  for (const [index, name] of ingredientCategoryNames.entries()) {
+    const category = await prisma.category.create({
+      data: {
+        id: stableId('ingredient-category', name),
+        name,
+        parentId: rawMaterialsRoot.id,
+        sortOrder: index + 1,
+        createdAt: dateOnly(startDate),
+        updatedAt: finalHistoryTime,
+      },
+    });
+    ids.categories.set(`ingredient:${name}`, category.id);
+  }
+
   for (const supplier of SUPPLIERS) {
     const saved = await prisma.supplier.upsert({
       where: { name: supplier.name },
@@ -140,6 +166,37 @@ export async function seedCatalog(
       },
     });
     ids.materialIds.set(material.key, saved.id);
+  }
+
+  const materialCategoryPairs: Array<[string, string]> = [];
+  for (const material of MATERIALS) {
+    const materialId = ids.materialIds.get(material.key)!;
+    const ingredientCategoryId = ids.categories.get(
+      `ingredient:${MATERIAL_CATEGORY_BY_KEY[material.key]}`,
+    );
+    if (!ingredientCategoryId) {
+      throw new Error(`Missing ingredient category for ${material.key}.`);
+    }
+    materialCategoryPairs.push([ingredientCategoryId, materialId]);
+    const menuCategories = new Set(
+      VARIANTS.filter((variant) => Object.prototype.hasOwnProperty.call(variant.recipe, material.key))
+        .map((variant) => variant.category),
+    );
+    for (const menuCategory of menuCategories) {
+      const categoryId = ids.categories.get(menuCategory);
+      if (!categoryId) throw new Error(`Missing recipe category ${menuCategory}.`);
+      materialCategoryPairs.push([categoryId, materialId]);
+    }
+  }
+  for (let offset = 0; offset < materialCategoryPairs.length; offset += 400) {
+    const values = materialCategoryPairs.slice(offset, offset + 400).map(
+      ([categoryId, materialId]) => Prisma.sql`(${categoryId}, ${materialId})`,
+    );
+    await prisma.$executeRaw(Prisma.sql`
+      INSERT INTO "_RawMaterialCategories" ("A", "B")
+      VALUES ${Prisma.join(values)}
+      ON CONFLICT ("A", "B") DO NOTHING
+    `);
   }
 
   const variantsByProduct = new Map<string, typeof VARIANTS>();

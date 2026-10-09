@@ -227,7 +227,7 @@ describe('User endpoint authorization (real HTTP guards and resolver)', () => {
       const reflector = new Reflector();
       const prototype = UsersController.prototype as unknown as Record<
         string,
-        object
+        (...args: never[]) => unknown
       >;
       expect(
         reflector.getAllAndOverride(REQUIRED_PERMISSIONS_KEY, [

@@ -16,6 +16,7 @@ type LedgerLineInput = {
   totalCostDelta: Prisma.Decimal;
   productVariantId?: string;
   orderItemId?: string;
+  createdAt?: Date;
 };
 
 type AppendTransactionInput = {
@@ -27,12 +28,14 @@ type AppendTransactionInput = {
   metadata?: Prisma.InputJsonValue | null;
   note?: string | null;
   occurredAt?: Date;
+  createdAt?: Date;
   lines: LedgerLineInput[];
 };
 
 @Injectable()
 export class InventoryLedgerService {
   async appendTransaction(tx: TxClient, input: AppendTransactionInput) {
+    const createdAt = input.createdAt ?? input.occurredAt ?? new Date();
     const transaction = await tx.inventoryTransaction.create({
       data: {
         type: input.type,
@@ -42,7 +45,9 @@ export class InventoryLedgerService {
         reasonCode: input.reasonCode ?? null,
         metadata: input.metadata ?? Prisma.JsonNull,
         note: input.note ?? null,
-        occurredAt: input.occurredAt ?? new Date(),
+        occurredAt: input.occurredAt ?? createdAt,
+        createdAt,
+        updatedAt: createdAt,
       },
     });
 
@@ -58,6 +63,7 @@ export class InventoryLedgerService {
           quantityDelta: line.quantityDelta,
           unitCostSnapshot: line.unitCostSnapshot,
           totalCostDelta: line.totalCostDelta,
+          createdAt: line.createdAt ?? createdAt,
         })),
       });
     }

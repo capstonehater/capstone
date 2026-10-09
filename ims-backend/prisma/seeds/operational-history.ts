@@ -10,9 +10,14 @@ import {
   PaymentMethod,
   Prisma,
   PrismaClient,
-  StockRunStatus,
   StockoutEntityType,
 } from '@prisma/client';
+import { AvailabilityService } from '../../src/availability/availability.service';
+import { InventoryStateHistoryService } from '../../src/availability/inventory-state-history.service';
+import { OutboxService } from '../../src/events/outbox.service';
+import { InventoryLedgerService } from '../../src/inventory/inventory-ledger.service';
+import type { PrismaService } from '../../src/prisma/prisma.service';
+import { StockRunsService } from '../../src/stock-runs/stock-runs.service';
 import { MATERIALS, MODIFIERS, SUPPLIERS, VARIANTS } from './catalog';
 import type { CatalogIds } from './catalog-seed';
 import {
@@ -95,9 +100,15 @@ export async function seedOperationalHistory(
   ids: CatalogIds,
   startDate: string,
   endDateExclusive: string,
+  stockRunsWorkflow?: Pick<
+    StockRunsService,
+    'createStockRun' | 'addStockRunItems' | 'postStockRun'
+  >,
 ): Promise<Record<string, number>> {
   const dates = daysBetween(startDate, endDateExclusive);
-  if (![1825, 1826].includes(dates.length)) throw new Error('The synthetic history window must span exactly five calendar years.');
+  if (dates.length !== 365 || startDate !== '2025-10-07' || endDateExclusive !== '2026-10-07') {
+    throw new Error('Synthetic history must cover October 7, 2025 through October 6, 2026.');
+  }
 
   const rows: OperationalRows = {
     stockRuns: [], stockRunItems: [], stockBatches: [], orders: [], orderItems: [],
@@ -107,6 +118,16 @@ export async function seedOperationalHistory(
     forecastPoints: [], forecastRecommendations: [], dailyConsumption: new Map(),
     rawSummaries: [], variantSummaries: [],
   };
+  const prismaService = prisma as unknown as PrismaService;
+  const availability = stockRunsWorkflow
+    ? undefined
+    : new AvailabilityService(prismaService, new InventoryStateHistoryService());
+  const stockRuns = stockRunsWorkflow ?? new StockRunsService(
+    prismaService,
+    new InventoryLedgerService(),
+    availability!,
+    new OutboxService(),
+  );
   const counts: Record<string, number> = { days: dates.length };
   const lineIds = new Set<string>();
   const balanceByBatch = new Map<string, number>();
@@ -154,10 +175,11 @@ export async function seedOperationalHistory(
     // A receipt always creates its batch and positive ledger line together.
     if (dayIndex % 7 === 0 || dayIndex % 4 === 0) {
       stockRunNumber += 1;
-      receiveWeeklyStock({
-        date, dayIndex, progress, runNumber: stockRunNumber, rows,
+      await receiveWeeklyStock({
+        date, dayIndex, progress, runNumber: stockRunNumber,
         ids, batchesByMaterial, allBatches, expectedDailyUsage,
-        batchById, inventoryUsers: staffUserIds, startDate,
+        batchById, inventoryUsers: staffUserIds, stockRuns,
+        balanceByBatch, counts,
         weekly: dayIndex % 7 === 0,
       });
     }
@@ -329,9 +351,9 @@ export async function seedOperationalHistory(
     const weekendBoost = weekday === 0 || weekday === 6 ? 1.32 : 0.92;
     const seasonalBoost = seasonalDemandFactor(Number(month), dayIndex);
     const paydayBoost = day === '01' || day === '15' ? 1.08 : 1;
-    const growth = 1 + 0.06 * 5 * progress;
+    const growth = 1 + 0.06 * progress;
     const noise = 0.86 + dayRandom() * 0.28;
-    const orderCount = Math.max(4, Math.round(7.5 * weekendBoost * holidayBoost * seasonalBoost * paydayBoost * growth * noise));
+    const orderCount = Math.max(4, Math.round(8.2 * weekendBoost * holidayBoost * seasonalBoost * paydayBoost * growth * noise));
     for (let orderNumber = 0; orderNumber < orderCount; orderNumber += 1) {
       const cashierUserId = pickUserForDay(staffUserIds, dayIndex, 'cashier');
       const random = rngFor(`order:${date}:${orderNumber}`);
@@ -454,6 +476,9 @@ export async function seedOperationalHistory(
       const discountAmount = roundMoney(subtotal * discountRate);
       const totalAmount = roundMoney(Math.max(0, subtotal - discountAmount));
       const taxAmount = roundMoney(totalAmount - totalAmount / 1.12);
+      if (![subtotal, discountAmount, taxAmount, totalAmount].every(Number.isInteger)) {
+        throw new Error(`Order ${orderId} contains a non-whole-peso amount.`);
+      }
       const completedAt = new Date(createdAt.getTime() + 2 * 60_000);
       rows.orders.push({
         id: orderId,
@@ -490,6 +515,9 @@ export async function seedOperationalHistory(
         updatedAt: completedAt,
       });
       const methods = choosePayments(totalAmount, random);
+      if (methods.some((payment) => !Number.isInteger(payment.amount))) {
+        throw new Error(`Order ${orderId} contains a non-whole-peso payment.`);
+      }
       for (const [paymentIndex, payment] of methods.entries()) {
         rows.payments.push({
           id: stableId('order-payment', `${orderId}:${paymentIndex}`),
@@ -647,7 +675,7 @@ export async function seedOperationalHistory(
 
 function estimateDailyUsage(): Map<string, number> {
   const popularityTotal = VARIANTS.reduce((total, variant) => total + variant.popularity, 0);
-  const expectedItemsPerDay = 7.5 * 1.55 * 1.12;
+  const expectedItemsPerDay = 8.2 * 1.55 * 1.12;
   const usage = new Map(MATERIALS.map((material) => [material.key, 0]));
   for (const variant of VARIANTS) {
     const expectedLines = expectedItemsPerDay * (variant.popularity / popularityTotal);
@@ -659,21 +687,38 @@ function estimateDailyUsage(): Map<string, number> {
   return usage;
 }
 
-function receiveWeeklyStock(input: {
+async function receiveWeeklyStock(input: {
   date: string; dayIndex: number; progress: number; runNumber: number;
-  rows: OperationalRows; ids: CatalogIds; batchesByMaterial: Map<string, BatchState[]>;
+  ids: CatalogIds; batchesByMaterial: Map<string, BatchState[]>;
   allBatches: BatchState[]; expectedDailyUsage: Map<string, number>;
-  batchById: Map<string, BatchState>; inventoryUsers: string[]; startDate: string;
+  batchById: Map<string, BatchState>; inventoryUsers: string[];
   weekly: boolean;
+  stockRuns: Pick<
+    StockRunsService,
+    'createStockRun' | 'addStockRunItems' | 'postStockRun'
+  >;
+  balanceByBatch: Map<string, number>; counts: Record<string, number>;
 }) {
-  const { date, dayIndex, progress, runNumber, rows, ids, batchesByMaterial, allBatches, expectedDailyUsage, batchById, inventoryUsers } = input;
+  const { date, dayIndex, progress, runNumber, ids, batchesByMaterial, allBatches, expectedDailyUsage, batchById, inventoryUsers, stockRuns, balanceByBatch, counts } = input;
   const random = rngFor(`stock-run:${date}`);
-  const runId = stableId('stock-run', date);
   const receivedAt = manilaDateTime(date, 5, 30);
+  const createdAt = new Date(receivedAt.getTime() - 30 * 60_000);
   const actorUserId = pickUserForDay(inventoryUsers, dayIndex, 'stock-run');
-  const runReference = `SYN-${date.replace(/-/g, '')}-${String(runNumber).padStart(4, '0')}`;
-  let runTotalCost = 0;
-  const receiptLines: Prisma.InventoryTransactionLineCreateManyInput[] = [];
+  const runReference = `ST-RUN-${date.replace(/-/g, '')}-001`;
+  const receipts: Array<{
+    batch: BatchState;
+    item: {
+      rawMaterialId: string;
+      supplierId: string;
+      quantity: number;
+      costPerUnit: number;
+      costQuantity: number;
+      costUnitCode: string;
+      expirationDate?: string;
+      receivedAt: string;
+      note: string;
+    };
+  }> = [];
 
   for (const material of MATERIALS) {
     if (!input.weekly && (material.expiryDays === 0 || material.expiryDays > 7)) continue;
@@ -693,100 +738,71 @@ function receiveWeeklyStock(input: {
     const costPerUnit = Math.max(0.0001, Number(decimal(material.baseCost * costTrend * supplierPriceFactor, 8).toString()));
     const priceBasis = priceBasisFor(material.unitCode);
     const purchaseCost = Number(decimal(costPerUnit * priceBasis.conversionFactor).toString());
-    const lineCost = Number(decimal(quantity * costPerUnit).toString());
-    const itemId = stableId('stock-run-item', `${date}:${material.key}`);
-    const batchId = stableId('stock-batch', `${date}:${material.key}`);
-    const batchRef = `${runReference}-B${String(MATERIALS.indexOf(material) + 1).padStart(2, '0')}`;
     const expirationDate = material.expiryDays > 0 ? addDays(date, material.expiryDays) : null;
     const batch: BatchState = {
-      id: batchId,
-      reference: batchRef,
+      id: '',
+      reference: '',
       rawMaterialId: ids.materialIds.get(material.key)!,
       materialKey: material.key,
       supplierId,
-      stockRunItemId: itemId,
+      stockRunItemId: '',
       initialQuantity: quantity,
       remainingQuantity: quantity,
       costPerUnit,
       expirationDate,
       receivedAt,
     };
-    batchesByMaterial.get(material.key)!.push(batch);
-    allBatches.push(batch);
-    batchById.set(batchId, batch);
-
-    rows.stockRunItems.push({
-      id: itemId,
-      stockRunId: runId,
-      rawMaterialId: ids.materialIds.get(material.key),
-      rawMaterialSnapshot: materialSnapshot(material, ids),
-      supplierId,
-      quantity: decimal(quantity),
-      costPerUnit: decimal(costPerUnit, 8),
-      purchaseCost: decimal(purchaseCost),
-      priceQuantity: decimal(1),
-      priceUnitCode: priceBasis.unitCode,
-      expirationDate: expirationDate ? dateOnly(expirationDate) : null,
-      receivedAt,
-      note: `Synthetic delivery from ${supplier.name}; supplier prices vary by period.`,
-      createdAt: receivedAt,
-      updatedAt: receivedAt,
-    });
-    rows.stockBatches.push({
-      id: batchId,
-      reference: batchRef,
-      rawMaterialId: batch.rawMaterialId,
-      rawMaterialSnapshot: materialSnapshot(material, ids),
-      supplierId,
-      stockRunItemId: itemId,
-      initialQuantity: decimal(quantity),
-      remainingQuantity: decimal(quantity),
-      costPerUnit: decimal(costPerUnit, 8),
-      expirationDate: expirationDate ? dateOnly(expirationDate) : null,
-      receivedAt,
-      createdAt: receivedAt,
-      updatedAt: receivedAt,
-    });
-    runTotalCost += lineCost;
-    receiptLines.push({
-      id: stableId('ledger-line-stock-run', `${date}:${material.key}`),
-      inventoryTransactionId: stableId('inventory-transaction-stock-run', runId),
-      rawMaterialId: batch.rawMaterialId,
-      stockBatchId: batchId,
-      quantityDelta: decimal(quantity),
-      unitCostSnapshot: decimal(costPerUnit, 8),
-      totalCostDelta: decimal(lineCost),
-      createdAt: receivedAt,
+    receipts.push({
+      batch,
+      item: {
+        rawMaterialId: batch.rawMaterialId,
+        supplierId,
+        quantity,
+        costPerUnit: purchaseCost,
+        costQuantity: 1,
+        costUnitCode: priceBasis.unitCode,
+        expirationDate: expirationDate ?? undefined,
+        receivedAt: receivedAt.toISOString(),
+        note: `Synthetic delivery from ${supplier.name}; supplier prices vary by period.`,
+      },
     });
   }
-
-  rows.stockRuns.push({
-    id: runId,
-    reference: runReference,
-    name: `Synthetic weekly receiving ${date}`,
-    status: StockRunStatus.POSTED,
-    createdByUserId: actorUserId,
-    totalCost: decimal(runTotalCost),
-    notes: 'Synthetic weekly supplier receipt with historical cost movement.',
-    postedAt: receivedAt,
-    createdAt: new Date(receivedAt.getTime() - 30 * 60_000),
-    updatedAt: receivedAt,
-  });
-  const transactionId = stableId('inventory-transaction-stock-run', runId);
-  rows.transactions.push({
-    id: transactionId,
-    type: InventoryTransactionType.STOCK_RUN,
-    sourceType: InventorySourceType.STOCK_RUN,
-    sourceId: runId,
+  const createdRun = await stockRuns.createStockRun(
+    {
+      name: `Synthetic receiving ${date}`,
+      notes: 'Synthetic supplier receipt generated through the stock-run workflow.',
+    },
     actorUserId,
-    reasonCode: 'RESTOCK',
-    metadata: { generator: 'synthetic-v1', reference: runReference } as Prisma.InputJsonObject,
-    note: `Stock run posted: Synthetic weekly receiving ${date}`,
-    occurredAt: receivedAt,
-    createdAt: receivedAt,
-    updatedAt: receivedAt,
-  });
-  rows.transactionLines.push(...receiptLines);
+    { reference: runReference, createdAt },
+  );
+  await stockRuns.addStockRunItems(
+    createdRun.id,
+    receipts.map((receipt) => receipt.item),
+    receivedAt,
+  );
+  const postedRun = await stockRuns.postStockRun(createdRun.id, actorUserId, receivedAt);
+  if (!postedRun) throw new Error(`Stock run ${runReference} was not returned after posting.`);
+  for (const receipt of receipts) {
+    const item = postedRun.items.find(
+      (candidate) => candidate.rawMaterialId === receipt.batch.rawMaterialId,
+    );
+    if (!item?.stockBatch) {
+      throw new Error(`Stock run ${runReference} did not create a batch for ${receipt.batch.materialKey}.`);
+    }
+    receipt.batch.id = item.stockBatch.id;
+    receipt.batch.reference = item.stockBatch.reference ?? `${runReference}-B01`;
+    receipt.batch.stockRunItemId = item.id;
+    batchesByMaterial.get(receipt.batch.materialKey)!.push(receipt.batch);
+    allBatches.push(receipt.batch);
+    batchById.set(receipt.batch.id, receipt.batch);
+    balanceByBatch.set(receipt.batch.id, receipt.batch.initialQuantity);
+  }
+  counts.stockRuns = (counts.stockRuns ?? 0) + 1;
+  counts.stockRunItems = (counts.stockRunItems ?? 0) + receipts.length;
+  counts.stockBatches = (counts.stockBatches ?? 0) + receipts.length;
+  counts.inventoryTransactions = (counts.inventoryTransactions ?? 0) + 1;
+  counts.inventoryTransactionLines = (counts.inventoryTransactionLines ?? 0) + receipts.length;
+  counts.outboxEvents = (counts.outboxEvents ?? 0) + 1;
 }
 
 function supplierForMaterial(materialKey: string, random: () => number) {
@@ -886,7 +902,7 @@ function roundToNearest(value: number, increment: number): number {
 }
 
 function roundMoney(value: number): number {
-  return Math.round((value + Number.EPSILON) * 100) / 100;
+  return Math.round(value + Number.EPSILON);
 }
 
 function roundQuantity(value: number): number {
@@ -1201,9 +1217,9 @@ async function createForecastHistory(
     const weekend = [0, 6].includes(dateOnly(date).getUTCDay()) ? 1.05 : 0.98;
     return (1 + 0.08 * Math.sin(((month - 1) / 12) * 2 * Math.PI)) * weekend;
   };
-  const historyEnds: number[] = [];
-  for (let index = 59; index < dates.length - 1; index += 28) historyEnds.push(index);
-  if (historyEnds[historyEnds.length - 1] !== dates.length - 1) historyEnds.push(dates.length - 1);
+  // Historical demand stops at the final seeded day. Forecast points must all
+  // begin after that date, so only create the production forecast at the cutoff.
+  const historyEnds = [dates.length - 1];
   for (const historyEndIndex of historyEnds) {
     const historyEnd = dates[historyEndIndex];
     const forecastStart = addDays(historyEnd, 1);
@@ -1231,7 +1247,8 @@ async function createForecastHistory(
       const rawMaterialId = ids.materialIds.get(material.key)!;
       const seriesId = stableId('forecast-series', `${runId}:${rawMaterialId}`);
       const daily = rows.dailyConsumption.get(material.key)!;
-      const window = daily.slice(historyEndIndex - 59, historyEndIndex + 1);
+      const window = daily.slice(0, historyEndIndex + 1);
+      const trainingDays = window.length;
       const average = window.reduce((sum, value) => sum + value, 0) / window.length;
       const observedDays = window.filter((value) => value > 0).length;
       const recent = window.slice(-14).reduce((sum, value) => sum + value, 0) / 14;
@@ -1239,7 +1256,7 @@ async function createForecastHistory(
 
       // Validate the same kind of simple seasonal/trend baseline on a held-out
       // week. These metrics describe this synthetic baseline, not SARIMA.
-      const validationTraining = window.slice(0, 53);
+      const validationTraining = window.slice(0, -7);
       const validationAverage = validationTraining.reduce((sum, value) => sum + value, 0) / validationTraining.length;
       const earlierAverage = validationTraining.slice(0, -14).reduce((sum, value) => sum + value, 0)
         / Math.max(1, validationTraining.length - 14);
@@ -1261,10 +1278,10 @@ async function createForecastHistory(
       const previousUsage = window.slice(-7).reduce((sum, value) => sum + value, 0);
       const zeroDemandDays = window.filter((value) => value === 0).length;
 
-      const trainingStart = dates[historyEndIndex - 59];
+      const trainingStart = dates[0];
       const trainingProducts = new Set<string>();
-      for (let offset = 0; offset < 60; offset += 1) {
-        const productNames = productsByMaterialDay.get(`${dates[historyEndIndex - 59 + offset]}:${material.key}`);
+      for (let offset = 0; offset < trainingDays; offset += 1) {
+        const productNames = productsByMaterialDay.get(`${dates[offset]}:${material.key}`);
         if (productNames) for (const productName of productNames) trainingProducts.add(productName);
       }
       const forecastValues = Array.from({ length: 7 }, (_, offset) => {
@@ -1275,8 +1292,8 @@ async function createForecastHistory(
 
       const metadata: Prisma.InputJsonObject = {
         model: 'Synthetic deterministic seasonal baseline',
-        trainingDays: 60,
-        availableTrainingDays: 60,
+        trainingDays,
+        availableTrainingDays: trainingDays,
         order: [],
         seasonalOrder: [],
         transformation: 'none',
@@ -1308,7 +1325,7 @@ async function createForecastHistory(
           lastObservedWeekEnd: historyEnd,
           csvDays: 0,
           posDays: observedDays,
-          zeroFilledDays: 60 - observedDays,
+          zeroFilledDays: trainingDays - observedDays,
           zeroDemandDays,
           bridgeCalendarDays: 0,
           weekdaysOnly: false,

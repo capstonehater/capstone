@@ -680,9 +680,7 @@ describe('User management and auth foundation (e2e)', () => {
         revokeReason: 'self_login_identifier_changed',
       },
     });
-    expect(response.headers['set-cookie']?.join(';')).toContain(
-      `${cookieName}=;`,
-    );
+    expect(String(response.headers['set-cookie'])).toContain(`${cookieName}=;`);
   });
 
   it('maps duplicate settings email changes to a safe conflict', async () => {
@@ -782,9 +780,7 @@ describe('User management and auth foundation (e2e)', () => {
         revokeReason: 'password_changed',
       },
     });
-    expect(response.headers['set-cookie']?.join(';')).toContain(
-      `${cookieName}=;`,
-    );
+    expect(String(response.headers['set-cookie'])).toContain(`${cookieName}=;`);
   });
 
   it('enforces reset password policy on settings password changes', async () => {

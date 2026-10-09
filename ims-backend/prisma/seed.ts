@@ -21,6 +21,19 @@ function resolveAsOfDate(): string {
   return asOf;
 }
 
+async function assertUpdatedCategorySchema() {
+  const relations = await prisma.$queryRaw<Array<{ relation: string | null }>>`
+    SELECT to_regclass('public.categories')::text AS relation
+    UNION ALL
+    SELECT to_regclass('"public"."_RawMaterialCategories"')::text AS relation
+  `;
+  if (relations.length !== 2 || relations.some((row) => row.relation === null)) {
+    throw new Error(
+      'Synthetic seeding requires the raw-material category migrations. No business data was changed.',
+    );
+  }
+}
+
 async function main() {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('Synthetic operational data is disabled when NODE_ENV=production.');
@@ -29,8 +42,9 @@ async function main() {
     throw new Error('This seed replaces business data. Set ALLOW_BUSINESS_DATA_RESET=true to proceed. No records were changed.');
   }
 
+  await assertUpdatedCategorySchema();
   const endDateExclusive = resolveAsOfDate();
-  const startDate = subtractCalendarYears(endDateExclusive, 5);
+  const startDate = subtractCalendarYears(endDateExclusive, 1);
   const lastHistoryDate = addDays(endDateExclusive, -1);
   validateSeedCatalog();
   // Read and validate actors before the destructive reset. No auth/RBAC rows are written.

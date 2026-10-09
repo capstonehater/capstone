@@ -80,6 +80,18 @@ const routes = [
     permission: 'inventory.create',
   },
   {
+    handler: 'createUnit',
+    method: 'post',
+    path: '/units',
+    permission: 'inventory.create',
+  },
+  {
+    handler: 'createUnitForMaterial',
+    method: 'post',
+    path: '/raw-materials/material-1/units',
+    permission: 'inventory.edit',
+  },
+  {
     handler: 'updateRawMaterial',
     method: 'patch',
     path: '/raw-materials/material-1',
@@ -166,6 +178,8 @@ describe('Inventory material HTTP authorization', () => {
   const inventory = Object.fromEntries(
     [
       'listUnits',
+      'createUnit',
+      'createUnitForMaterial',
       'listRawMaterials',
       'getRawMaterialById',
       'listRawMaterialBatches',
@@ -210,9 +224,11 @@ describe('Inventory material HTTP authorization', () => {
         ? waste
         : route.path === '/raw-materials' && route.method === 'post'
           ? material
-          : route.path === '/suppliers' && route.method === 'post'
-            ? { name: 'Supplier' }
-            : {});
+          : route.path === '/units' || route.path.endsWith('/units')
+            ? { name: 'Kilogram', code: 'KG', dimension: 'MASS' }
+            : route.path === '/suppliers' && route.method === 'post'
+              ? { name: 'Supplier' }
+              : {});
     return req.send(payload);
   };
   beforeAll(async () => {
@@ -373,6 +389,19 @@ describe('Inventory material HTTP authorization', () => {
     );
     await send({ method: 'post', path: '/inventory/waste' }).expect(403);
     expect(calls()).toBe(1);
+  });
+  it('accepts categoryIds when editing a raw material', async () => {
+    grants = ['inventory.edit'];
+    const body = { categoryIds: ['category-1', 'category-2'] };
+    await send(
+      { method: 'patch', path: '/raw-materials/material-1' },
+      true,
+      body,
+    ).expect(200);
+    expect(inventory.updateRawMaterial).toHaveBeenCalledWith(
+      'material-1',
+      body,
+    );
   });
   it('does not invent an adjustment endpoint or permission', async () => {
     grants = ['inventory.edit'];

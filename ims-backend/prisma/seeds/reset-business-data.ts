@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client';
+import { unlink } from 'node:fs/promises';
+import { basename, dirname, resolve } from 'node:path';
 
 /**
  * Remove operational data only. Authentication, user profiles, RBAC assignments,
@@ -6,6 +8,12 @@ import { PrismaClient } from '@prisma/client';
  */
 export async function resetBusinessData(prisma: PrismaClient): Promise<Record<string, number>> {
   const counts: Record<string, number> = {};
+  const productImageUrls = await prisma.product.findMany({
+    select: { imageUrl: true },
+  });
+  const profileImageUrls = await prisma.user.findMany({
+    select: { profilePictureUrl: true },
+  });
   await prisma.$transaction(async (tx) => {
     const clear = async (table: string, operation: () => Promise<{ count: number }>) => {
       counts[table] = (await operation()).count;
@@ -47,5 +55,33 @@ export async function resetBusinessData(prisma: PrismaClient): Promise<Record<st
     await clear('supplier', () => tx.supplier.deleteMany());
     await clear('unit', () => tx.unit.deleteMany());
   }, { maxWait: 10_000, timeout: 180_000 });
+  const imageDirectory = resolve(process.cwd(), 'product-images');
+  const localImagePath = (url: string | null) => {
+    if (!url?.startsWith('/product-images/')) return null;
+    const filename = basename(url);
+    const filePath = resolve(imageDirectory, filename);
+    return dirname(filePath) === imageDirectory ? filePath : null;
+  };
+  const profileImageFiles = new Set(
+    profileImageUrls.flatMap(({ profilePictureUrl }) => {
+      const filePath = localImagePath(profilePictureUrl);
+      return filePath ? [filePath] : [];
+    }),
+  );
+  const imageFiles = new Set(
+    productImageUrls.flatMap(({ imageUrl }) => {
+      const filePath = localImagePath(imageUrl);
+      if (!filePath || profileImageFiles.has(filePath)) return [];
+      return [filePath];
+    }),
+  );
+  for (const filePath of imageFiles) {
+    try {
+      await unlink(filePath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+  }
+  counts.productImageFiles = imageFiles.size;
   return counts;
 }

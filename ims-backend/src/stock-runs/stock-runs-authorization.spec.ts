@@ -198,7 +198,7 @@ describe('Stock Run endpoint authorization (real HTTP guards and resolver)', () 
       const reflector = new Reflector();
       const prototype = route.controller.prototype as unknown as Record<
         string,
-        object
+        (...args: never[]) => unknown
       >;
       expect(
         reflector.get(REQUIRED_PERMISSIONS_KEY, prototype[route.handler]),

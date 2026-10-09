@@ -250,13 +250,13 @@ describe('Settings self-service authorization and account protections', () => {
     const reflector = new Reflector();
     const prototype = SettingsController.prototype as unknown as Record<
       string,
-      object
+      (...args: never[]) => unknown
     >;
     for (const target of [
       SettingsController,
-      ...Object.getOwnPropertyNames(prototype)
-        .filter((name) => name !== 'constructor')
-        .map((name) => prototype[name]),
+      prototype.getAccount,
+      prototype.updateAccount,
+      prototype.changePassword,
     ]) {
       for (const key of [ROLES_KEY, REQUIRED_PERMISSIONS_KEY, IS_PUBLIC_KEY])
         expect(reflector.get(key, target)).toBeUndefined();

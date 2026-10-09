@@ -94,9 +94,8 @@ describe('RBAC foundation', () => {
   });
   it('does not fall back to legacy Administrator grants', async () => {
     findUnique.mockResolvedValue(record());
-    expect(
-      await resolver.resolve({ ...user, role: Role.ADMINISTRATOR }),
-    ).toEqual(new Set());
+    const legacyPrincipal = { ...user, role: Role.ADMINISTRATOR };
+    expect(await resolver.resolve(legacyPrincipal)).toEqual(new Set());
   });
   it.each([
     null,

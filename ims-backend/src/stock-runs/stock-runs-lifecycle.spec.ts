@@ -23,7 +23,9 @@ describe('Stock Run lifecycle protections retained during authorization migratio
     reference: 'ST-RUN-20261006-001',
     name: 'Delivery',
     status: StockRunStatus.DRAFT as StockRunStatus,
-    items: [item],
+    items: [item] as Array<
+      typeof item | Awaited<ReturnType<StockRunsService['addStockRunItem']>>
+    >,
   };
   const stockRun = {
     findUnique: jest.fn(),

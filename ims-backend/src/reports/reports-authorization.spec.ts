@@ -229,7 +229,7 @@ describe('Report endpoint authorization (real HTTP guards and resolver)', () => 
     const reflector = new Reflector();
     const prototype = ReportsController.prototype as unknown as Record<
       string,
-      object
+      (...args: never[]) => unknown
     >;
     expect(
       Object.getOwnPropertyNames(prototype)
