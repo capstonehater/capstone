@@ -1,3 +1,7 @@
+export function formatOrderReference(order: { id: string; displayOrderNumber?: string | null }) {
+  return order.displayOrderNumber?.trim() || `ORD-${order.id.split("-")[0].toUpperCase()}`;
+}
+
 export function formatPeso(value: number | string) {
   const amount = typeof value === "number" ? value : Number(value || 0);
   return new Intl.NumberFormat("en-PH", {

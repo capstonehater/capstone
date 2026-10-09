@@ -1,5 +1,8 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
+import ActionAlert from "@/components/feedback/ActionAlert";
 
+import { salesChartPoints } from "@/lib/sales-chart-data";
 import ReportColumns from "./ReportColumns";
 import SearchInput from "@/components/ui/SearchInput";
 import AdminSelect from "@/components/admin/AdminSelect";
@@ -142,7 +145,7 @@ export default function PosSalesAnalyticsSection({
         const filename = await exportPosSalesAnalyticsExcel(snapshot);
         setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
-        const filename = exportPosSalesAnalyticsPdf(snapshot);
+        const filename = await exportPosSalesAnalyticsPdf(snapshot);
         setExportNotice(
           `Printable sales analytics opened as ${filename}. Use your browser's Save as PDF option to finish the export.`,
         );
@@ -164,17 +167,9 @@ export default function PosSalesAnalyticsSection({
         </div>
       ) : null}
 
-      {exportError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {exportError}
-        </div>
-      ) : null}
+      {exportError ? <ActionAlert placement="header" tone="error" title="Export failed" message={exportError} onDismiss={() => setExportError(null)} /> : null}
 
-      {exportNotice ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {exportNotice}
-        </div>
-      ) : null}
+      {exportNotice ? <ActionAlert placement="header" tone="success" title="Export ready" message={exportNotice} onDismiss={() => setExportNotice(null)} /> : null}
 
       <section className={`${styles.analyticsPanel} rounded-2xl bg-white p-6 shadow-sm`}>
         <div className={styles.analyticsHeader}>
@@ -242,7 +237,7 @@ export default function PosSalesAnalyticsSection({
               onChange={(value) => setPaymentMethod(value as PaymentMethod | "")}
               options={[{ value: "", label: "All methods" }, ...POS_PAYMENT_METHOD_OPTIONS]}
             />
-            <button
+            <PermissionAction permissions={["reports.view", "reports.export.excel"]}><button
               type="button"
               disabled={loading || exportingFormat !== null}
               onClick={() => void handleExport("excel")}
@@ -250,8 +245,8 @@ export default function PosSalesAnalyticsSection({
             >
               <FileSpreadsheet size={18} aria-hidden="true" />
               <span>{exportingFormat === "excel" ? "Exporting..." : "Export Excel"}</span>
-            </button>
-            <button
+            </button></PermissionAction>
+            <PermissionAction permissions={["reports.view", "reports.export.pdf"]}><button
               type="button"
               disabled={loading || exportingFormat !== null}
               onClick={() => void handleExport("pdf")}
@@ -259,7 +254,7 @@ export default function PosSalesAnalyticsSection({
             >
               <FileText size={18} aria-hidden="true" />
               <span>{exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}</span>
-            </button>
+            </button></PermissionAction>
           </div>
         </div>
       </section>
@@ -339,12 +334,10 @@ export default function PosSalesAnalyticsSection({
         <WidgetCard title={view === "table" ? "Grouped Sales Table" : "Grouped Net Sales Line Graph"}>
           {view === "line" ? (
             <ReportLineChart
-              points={(report?.groups ?? []).map((group) => ({
-                key: group.bucketKey,
-                label: group.label,
-                value: Number(group.netSales),
-                detail: `${group.transactionCount} tx`,
-              }))}
+              points={salesChartPoints(report)}
+              title="Grouped net sales"
+              xAxisLabel="Period (Manila time)"
+              yAxisLabel="Net sales (PHP)"
               valueFormatter={(value) => formatPeso(value.toFixed(2))}
               emptyLabel="No grouped sales data matches the current filters."
             />

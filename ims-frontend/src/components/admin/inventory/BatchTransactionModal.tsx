@@ -72,7 +72,7 @@ export default function BatchTransactionModal({
         <div className={styles.tableScroll} aria-busy={loading}>
           <table aria-label="Batch stock movements">
             <thead>
-              <tr><th>Occurred</th><th>Type</th><th>Reason</th><th className="text-right">Delta</th><th className="text-right">Cost</th><th>Actor</th></tr>
+              <tr><th>Occurred</th><th>Type</th><th>Reason</th><th className="text-right">Change</th><th className="text-right">Cost</th><th>Actor</th></tr>
             </thead>
             <tbody>
               {loading ? (

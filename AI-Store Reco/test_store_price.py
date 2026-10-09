@@ -5,6 +5,76 @@ import store_price
 
 
 class StoreSearchTests(unittest.TestCase):
+    def setUp(self):
+        market = patch.object(store_price, 'get_general_market_estimate', return_value=None)
+        market.start()
+        self.addCleanup(market.stop)
+
+    def test_market_reference_is_shared_even_with_confirmed_store_prices(self):
+        quote = {'price': 110, 'listings': [
+            {'price': 100, 'title': 'Pasta', 'url': 'https://a.example'},
+            {'price': 120, 'title': 'Pasta', 'url': 'https://b.example'}]}
+        with patch.object(store_price, 'get_general_market_estimate', return_value=quote) as market, patch.object(
+            store_price, 'select_market_brand', return_value=None), patch.object(
+            store_price, 'search_store_price', side_effect=lambda *args: {'status': 'FOUND', 'price': 90}):
+            results = store_price.run_search('Pasta', [{'name': 'A'}, {'name': 'B'}])
+        market.assert_called_once_with('Pasta')
+        self.assertEqual(results[0]['market_reference'], results[1]['market_reference'])
+        self.assertEqual(results[0]['price'], 90)
+        self.assertEqual(results[0]['market_reference']['median_php'], 110)
+        self.assertEqual(results[0]['market_reference']['sample_size'], 2)
+
+    def test_equivalent_units_match_but_wrong_size_and_multipack_do_not(self):
+        self.assertTrue(store_price.product_matches('Pasta 500g', 'Pasta 0.5 kg PHP 100'))
+        self.assertFalse(store_price.product_matches('Pasta 500g', 'Pasta 1kg PHP 100'))
+        self.assertFalse(store_price.product_matches('Milk 1l', 'Milk 1kg PHP 100'))
+        self.assertFalse(store_price.product_matches('Pasta 500g', 'Pasta 6 x 500g PHP 100'))
+
+    def test_classifier_rejects_string_booleans_duplicate_and_missing_indices(self):
+        client = MagicMock()
+        item = {'title': 'Shop Pasta', 'url': 'https://shop.example',
+                'content': 'PHP 100', 'detected_price': 100}
+        responses = [
+            '[{"index":0,"product_match":"false","store_match":"SAME_STORE"}]',
+            '[{"index":true,"product_match":true,"store_match":"SAME_STORE"}]',
+            '[{"index":2,"product_match":true,"store_match":"SAME_STORE"}]',
+            '[]',
+        ]
+        with patch.object(store_price, 'client', client):
+            for response in responses:
+                client.chat.completions.create.return_value.choices[0].message.content = response
+                self.assertIsNone(store_price.classify_items_with_llm([item], 'Shop', 'Pasta'))
+
+    def test_wrong_pack_cannot_be_promoted_by_qwen(self):
+        with patch.object(store_price, 'classify_items_with_llm') as classifier:
+            result = store_price.build_fallback_result([
+                {'title': 'Shop Pasta 1kg', 'content': 'PHP 100', 'url': 'https://shop.example'}
+            ], 'Shop', 'Pasta 500g')
+        self.assertIsNone(result)
+        classifier.assert_not_called()
+
+    def test_search_deduplicates_tracking_urls_and_rejects_non_web_sources(self):
+        items = store_price.extract_search_items({'organic': [
+            {'title': 'Pasta', 'link': 'https://shop.example/pasta?utm_source=a'},
+            {'title': 'Pasta', 'link': 'https://shop.example/pasta?utm_source=b'},
+            {'title': 'Invalid', 'link': 'javascript:alert(1)'},
+        ]})
+        self.assertEqual(len(items), 1)
+
+    def test_other_retailer_quote_does_not_stop_supplier_search(self):
+        store = {'name': 'Shop', 'formatted_address': 'Cavite', 'latitude': 14,
+                 'longitude': 120, 'place_id': ''}
+        with patch.object(store_price, 'USE_LLM_CLASSIFIER', False), patch.object(
+            store_price, 'search_web', side_effect=[
+                [{'title': 'Other Pasta', 'content': 'PHP 50', 'url': 'https://other.example'}],
+                [{'title': 'Shop Pasta', 'content': 'PHP 100', 'url': 'https://shop.example'}],
+            ]
+        ) as search:
+            result = store_price.search_store_price('Pasta', store)
+        self.assertEqual(search.call_count, 2)
+        self.assertEqual(result['price'], 100)
+        self.assertEqual(result['price_type'], 'confirmed')
+
     def test_location_only_results_retry_product_chain_search(self):
         store = {"name": "Shop Cavite", "formatted_address": "Cavite Highway", "latitude": 14,
                  "longitude": 120, "place_id": ""}

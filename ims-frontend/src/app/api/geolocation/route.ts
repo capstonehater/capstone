@@ -17,7 +17,9 @@ async function validateSession(request: Request): Promise<401 | 503 | null> {
 
   try {
     // Trusted deployment configuration only; never derive the destination from the request.
-    const base = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+    const publicBase = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+    const base = process.env.API_UPSTREAM_URL?.trim() ||
+      (publicBase && !publicBase.startsWith("/") ? publicBase : "http://127.0.0.1:4000");
     if (!base) return 503;
     const url = new URL(`${base.replace(/\/+$/, "")}/auth/me`);
     if (!["https:", "http:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) return 503;

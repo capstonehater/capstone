@@ -1,5 +1,7 @@
 "use client";
 
+import { LockKeyhole, PackagePlus, Plus } from "lucide-react";
+import { generateVariantSku } from "@/lib/products/variant-sku";
 import { useState, type FormEvent } from "react";
 import {
   InventoryField,
@@ -10,6 +12,8 @@ import styles from "./VariantEditor.module.css";
 import type { ProductVariantDetail } from "@/lib/products";
 
 type Props = {
+  productName: string;
+  existingSkus: string[];
   mode: "create" | "edit";
   open: boolean;
   variant: ProductVariantDetail | null;
@@ -26,6 +30,8 @@ type Props = {
 };
 
 export default function VariantFormDialog({
+  productName,
+  existingSkus,
   mode,
   open,
   variant,
@@ -44,6 +50,8 @@ export default function VariantFormDialog({
   return (
     <VariantFormDialogBody
       key={formKey}
+      productName={productName}
+      existingSkus={existingSkus}
       mode={mode}
       variant={variant}
       submitting={submitting}
@@ -58,6 +66,8 @@ export default function VariantFormDialog({
 type VariantFormDialogBodyProps = Omit<Props, "open">;
 
 function VariantFormDialogBody({
+  productName,
+  existingSkus,
   mode,
   variant,
   submitting,
@@ -67,7 +77,7 @@ function VariantFormDialogBody({
   onSubmit,
 }: VariantFormDialogBodyProps) {
   const [name, setName] = useState(variant?.name ?? "");
-  const [sku, setSku] = useState(variant?.sku ?? "");
+  const sku = mode === "edit" ? variant?.sku ?? "" : generateVariantSku(productName, name, existingSkus);
   const [price, setPrice] = useState(variant?.price ?? "");
   const [isEnabled, setIsEnabled] = useState(
     variant?.manualAvailability !== "DISABLED",
@@ -86,7 +96,7 @@ function VariantFormDialogBody({
       nextErrors.push("SKU is required.");
     }
 
-    if (!price.trim() || Number.isNaN(priceValue) || priceValue < 0) {
+    if (!price.trim() || !Number.isFinite(priceValue) || priceValue < 0) {
       nextErrors.push("Price must be a valid non-negative number.");
     }
 
@@ -110,12 +120,16 @@ function VariantFormDialogBody({
   return (
     <InventoryModal
       professional
-      panelClassName={styles.panel}
+      panelClassName={`${styles.panel} ${styles.variantFormPanel}`}
       title={mode === "create" ? "Add Variant" : `Edit ${variant?.name ?? "Variant"}`}
-      description="Manage a product variant without leaving the selected product workspace."
+      description={`Set up variant details for ${productName}.`}
       onClose={() => { if (!submitting) onClose(); }}
     >
-      <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
+      <form noValidate className={`${styles.variantForm} grid gap-4 md:grid-cols-2`} onSubmit={handleSubmit}>
+        <div className={styles.variantIntro}>
+          <span><PackagePlus size={22} aria-hidden="true" /></span>
+          <div><strong>Variant details</strong><p>Set a name and price. The SKU is generated automatically.</p></div>
+        </div>
         {clientErrors.length > 0 ? (
           <div className="md:col-span-2 rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             <ul className="space-y-1">
@@ -139,48 +153,56 @@ function VariantFormDialogBody({
             ) : null}
           </div>
         ) : null}
-        <InventoryField htmlFor="variant-name" label="Variant name">
+        <InventoryField htmlFor="variant-name" label="Variant name" required>
           <input
             id="variant-name"
             value={name}
-            onChange={(event) => setName(event.target.value)}
+            maxLength={120}
+            disabled={submitting}
+            onChange={(event) => setName(event.target.value.replace(/[^\p{L}\p{M}\p{N} .,'?()\/+%&-]/gu, ""))}
             className={inventoryInputClasses}
-            placeholder="12oz Hot"
+            placeholder="Ex. 12oz Hot"
           />
         </InventoryField>
         <InventoryField htmlFor="variant-sku" label="SKU">
           <input
             id="variant-sku"
             value={sku}
-            onChange={(event) => setSku(event.target.value)}
+            readOnly
+            aria-describedby="variant-sku-hint"
             className={inventoryInputClasses}
-            placeholder="SL-12H"
+            placeholder="Generated from variant name"
           />
+          <p id="variant-sku-hint" className={styles.variantSkuHint}><LockKeyhole size={13} aria-hidden="true" />Automatically generated</p>
         </InventoryField>
-        <InventoryField htmlFor="variant-price" label="Price">
+        <InventoryField htmlFor="variant-price" label="Price (PHP)" required>
           <input
             id="variant-price"
             value={price}
-            onChange={(event) => setPrice(event.target.value)}
+            inputMode="decimal"
+            disabled={submitting}
+            onChange={(event) => { if (/^\d{0,10}(\.\d{0,2})?$/.test(event.target.value)) setPrice(event.target.value); }}
             className={inventoryInputClasses}
-            placeholder="180.00"
+            placeholder="Ex. 180.00"
           />
         </InventoryField>
         <label className={styles.enabledLabel}>
           <input
             type="checkbox"
+            disabled={submitting}
             className={styles.checkbox}
             checked={isEnabled}
             onChange={(event) => setIsEnabled(event.target.checked)}
           />
-          <span>Variant manually enabled</span>
+          <span>Enable variant</span>
         </label>
-        <div className="md:col-span-2 flex justify-end gap-3 pt-2">
+        <div className={styles.variantActions}>
           <button
             type="submit"
             disabled={submitting}
             className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
+            {mode === "create" && <Plus size={16} aria-hidden="true" />}
             {submitting ? "Saving..." : mode === "create" ? "Create Variant" : "Save Variant"}
           </button>
         </div>

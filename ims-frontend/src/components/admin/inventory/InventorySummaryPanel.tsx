@@ -64,14 +64,14 @@ export default function InventorySummaryPanel({
 }: InventorySummaryPanelProps) {
   return (
     <section className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4 2xl:h-[42rem] 2xl:min-h-0">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className={styles.panelHeader}>
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-bold text-[#232d46]">Materials</h2>
-          <p className="mt-1 truncate text-sm text-slate-500" title="Search and filter materials by stock status or supplier.">
+          <p className="mt-1 text-sm text-slate-500" title="Search and filter materials by stock status or supplier.">
             Search and filter materials by stock status or supplier.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className={styles.panelActions}>
         <PermissionAction permission="inventory.create">
           <button type="button" onClick={onAddMaterial} disabled={creatingDisabled} className="inline-flex items-center gap-2 rounded-lg border border-[#232d46] bg-[#232d46] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#34425f] disabled:cursor-not-allowed disabled:opacity-50">
             <Plus size={16} aria-hidden="true" />
@@ -105,7 +105,26 @@ export default function InventorySummaryPanel({
         <AdminSelect label="Supplier" value={supplierId} onChange={onSupplierChange} options={[{ value: "", label: "All suppliers" }, ...suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))]} />
       </div>
 
-      <div className="mt-4 flex min-h-0 flex-1 overflow-hidden rounded-lg border border-slate-200">
+      <div className={styles.mobileMaterials} aria-label="Raw materials">
+        {loading ? <p className="text-sm text-slate-500">Loading inventory summary...</p>
+          : summaries.length === 0 ? <p className="text-sm text-slate-500">No materials matched the current filters.</p>
+          : summaries.map((item) => <button type="button" key={item.rawMaterialId}
+              onClick={() => onSelectRawMaterial(item.rawMaterialId)}
+              aria-pressed={item.rawMaterialId === selectedRawMaterialId}
+              className={styles.mobileMaterial}>
+              <span className={styles.mobileMaterialHeading}>
+                <strong>{item.name}</strong>
+                <span className={`${styles.mobileStatus} ${statusClasses(item.status)}`}>{item.status.replaceAll("_", " ")}</span>
+              </span>
+              <span className={styles.mobileMaterialMeta}>{item.sku} ? {formatUnit(item.unit.name)}</span>
+              <span className={styles.mobileMaterialStats}>
+                <span>Usable <strong>{formatQuantity(item.summary.usableQuantity)} {formatUnit(item.unit.code)}</strong></span>
+                <span>Value <strong>{formatMoney(item.inventoryValue)}</strong></span>
+              </span>
+            </button>)}
+      </div>
+
+      <div className={`${styles.desktopTable} mt-4 flex min-h-0 flex-1 overflow-hidden rounded-lg border border-slate-200`}>
         <div className="max-h-[34rem] min-h-0 min-w-0 flex-1 overflow-auto 2xl:max-h-none">
           <table className={`${styles.materialTable} w-full table-fixed text-sm [&_td]:[overflow-wrap:anywhere]`}>
             <colgroup>

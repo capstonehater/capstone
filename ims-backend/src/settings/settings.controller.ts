@@ -13,6 +13,8 @@ import {
 import type { Response } from 'express';
 import { clearAuthCookie } from '../auth/auth.cookies';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 import type { AuthenticatedUser } from '../common/types/authenticated-user.type';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateAccountSettingsDto } from './dto/update-account-settings.dto';
@@ -27,6 +29,18 @@ export class SettingsController {
     return {
       user: await this.settingsService.getAccount(user.id),
     };
+  }
+
+  @Get('storage')
+  @Roles(Role.ADMINISTRATOR)
+  async getStorageUsage() {
+    return this.settingsService.getStorageUsage();
+  }
+
+  @Post('storage/cleanup')
+  @Roles(Role.ADMINISTRATOR)
+  async clearStorageCache() {
+    return this.settingsService.clearStorageCache();
   }
 
   @Patch('account')

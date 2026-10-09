@@ -100,11 +100,11 @@
 .stockRunManageDialog .stockRunItemForm > * { min-width:0; align-self:start; }
 .stockRunManageDialog .stockRunItemForm > *:nth-child(1),.stockRunManageDialog .stockRunItemForm > *:nth-child(2) { grid-row:1; }
 .stockRunManageDialog .stockRunItemForm > *:nth-child(3),.stockRunManageDialog .stockRunItemForm > *:nth-child(4) { grid-row:2; }
-.stockRunManageDialog .stockRunItemForm > .stockRunExpirationFields { grid-column:1; grid-row:4; display:flex; flex-direction:column; gap:14px; min-width:0; }
-.stockRunManageDialog .stockRunItemForm > .stockRunReceivedFields { display:contents; }
+.stockRunManageDialog .stockRunItemForm > .stockRunExpirationFields { grid-column:1; grid-row:3; display:flex; flex-direction:column; gap:14px; min-width:0; }
+.stockRunManageDialog .stockRunItemForm > .stockRunReceivedFields { grid-column:1 / -1; grid-row:4; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; align-items:start; }
 .stockRunManageDialog .stockRunItemForm > .stockRunTimeField { grid-column:1; grid-row:3; min-width:0; }
 .stockRunManageDialog .stockRunItemForm > .stockRunPriceFields { grid-column:2; grid-row:3; min-width:0; }
-.stockRunReceivedFields > div:last-child { grid-column:2; grid-row:4; min-width:0; }
+.stockRunReceivedFields > div { min-width:0; }
 .priceCoverageRow { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); align-items:start; gap:12px; }
 .stockRunCostPreview { min-width:0; padding-top:0; font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
 .stockRunManageDialog .stockRunItemForm > .stockRunNoteField { grid-column:1 / -1; grid-row:5; }
@@ -151,3 +151,28 @@
 .professional button.archiveAction:hover:not(:disabled) { background:#9f1239; border-color:#9f1239; }
 .professional button.unarchiveAction { background:#2563eb; border-color:#2563eb; color:#fff; }
 .professional button.unarchiveAction:hover:not(:disabled) { background:#1d4ed8; border-color:#1d4ed8; }
+
+
+.materialCategories { grid-column:1 / -1; min-width:0; margin:0; padding:16px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc; }
+.materialCategories legend { padding:0 6px; color:#232d46; font-size:14px; font-weight:650; }
+.materialCategoryToolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:14px 0; }
+.materialCategoryToolbar > span { font-size:12px; color:#64748b; }
+.materialCategorySelectAll { display:flex; align-items:center; gap:9px; cursor:pointer; }
+.materialCategoryGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; max-height:220px; overflow-y:auto; padding:3px; }
+.materialCategoryOption { display:flex; align-items:center; gap:10px; padding:12px; border:1px solid #dce2eb; border-radius:10px; background:#fff; cursor:pointer; transition:background .15s,border-color .15s; }
+.materialCategoryOption > span { min-width:0; overflow-wrap:anywhere; }
+.materialCategoryOption:hover { border-color:#94a3b8; }
+.materialCategorySelected { border-color:#34425f; background:#e8edf5; }
+.professional .materialCategories input[type="checkbox"] { width:18px; height:18px; flex:0 0 18px; margin:0; padding:0; border-radius:4px; accent-color:#34425f; cursor:pointer; }
+.materialCategories:disabled .materialCategoryOption,.materialCategories:disabled .materialCategorySelectAll { opacity:.6; cursor:wait; }
+@media (max-width:480px) { .materialCategoryGrid { grid-template-columns:1fr; } }
+
+.professional button.customUnitToggle { min-height:30px; margin-top:8px; padding:4px 0; border:0; background:transparent; font-size:12px; color:#34425f; }
+.customUnitFields { display:grid; gap:12px; min-width:0; margin:10px 0 0; padding:14px; border:1px solid #dce2eb; border-radius:12px; background:#f8fafc; }
+.customUnitFields legend { padding:0 5px; font-size:13px; font-weight:600; color:#232d46; }
+.customUnitActions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+.professional .customUnitFields .customUnitError { color:#b91c1c; }
+.professional .customUnitActions button:last-child { background:#232d46; border-color:#232d46; color:#fff; }
+
+.professional button.archiveBlackAction { background:#000; border-color:#000; color:#fff; }
+.professional button.archiveBlackAction:hover:not(:disabled) { background:#262626; border-color:#262626; }

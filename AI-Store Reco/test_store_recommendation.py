@@ -1,5 +1,6 @@
 import json
 import unittest
+from datetime import datetime, timezone, timedelta
 from unittest.mock import MagicMock, patch
 
 import store_price
@@ -16,6 +17,30 @@ def store(name, offset=0, price=100, confirmed=True):
 
 
 class RecommendationTests(unittest.TestCase):
+    def test_confidence_uses_price_freshness_and_location_not_ai_self_rating(self):
+        row = store('Shop')
+        row['fetched_at'] = datetime.now(timezone.utc).isoformat()
+        self.assertEqual(reco.recommendation_confidence(row)['level'], 'Moderate')
+        self.assertEqual(reco.recommendation_confidence(row)['percentage'], 75)
+        row['fetched_at'] = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
+        self.assertEqual(reco.recommendation_confidence(row)['level'], 'Low')
+        self.assertEqual(reco.recommendation_confidence(row)['percentage'], 45)
+        row['fetched_at'] = datetime.now(timezone.utc).isoformat()
+        row['price_type'] = 'market_estimate'
+        self.assertEqual(reco.recommendation_confidence(row)['level'], 'Low')
+        self.assertEqual(reco.recommendation_confidence(row)['percentage'], 35)
+        row['availability'] = {'status': 'OUT_OF_STOCK'}
+        self.assertEqual(reco.recommendation_confidence(row)['percentage'], 0)
+
+    def test_out_of_stock_quote_does_not_distort_scores(self):
+        rows = [store('Near', .01, 120), store('Far', .02, 100)]
+        excluded = store('Sold out', .5, 10000)
+        excluded['availability'] = {'status': 'OUT_OF_STOCK'}
+        expected = reco.rank_stores(rows)['recommendations']
+        actual = reco.rank_stores(rows + [excluded])['recommendations']
+        self.assertEqual([(r['store_name'], r['score']) for r in actual],
+                         [(r['store_name'], r['score']) for r in expected])
+
     def test_nearest_estimate_cannot_take_first_place(self):
         rows = reco.rank_stores([store("Nearby", price=50, confirmed=False), store("Confirmed", .02)])
         self.assertEqual([(r["rank"], r["store_name"]) for r in rows["recommendations"]],

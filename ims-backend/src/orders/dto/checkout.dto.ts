@@ -1,6 +1,6 @@
 import {
   IsArray,
-  IsEnum,
+  IsIn,
   Max,
   IsNumber,
   IsOptional,
@@ -42,7 +42,7 @@ export class CheckoutItemDto {
 }
 
 export class CheckoutPaymentDto {
-  @IsEnum(PaymentMethod)
+  @IsIn([PaymentMethod.CASH, PaymentMethod.CARD, PaymentMethod.GCASH, PaymentMethod.MAYA])
   method!: PaymentMethod;
 
   @IsNumber()

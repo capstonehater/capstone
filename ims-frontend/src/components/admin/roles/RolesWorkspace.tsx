@@ -1,7 +1,7 @@
 "use client";
 import PageSkeleton from "@/components/loading/PageSkeleton";
 import SearchInput from "@/components/ui/SearchInput";
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import AdminSectionHeader from '@/components/admin/AdminSectionHeader';
 import ActionAlert from '@/components/feedback/ActionAlert';
@@ -29,6 +29,8 @@ export default function RolesWorkspace() {
   const [createValidationAttempted, setCreateValidationAttempted] = useState(false);
   const [editValidationAttempted, setEditValidationAttempted] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const pendingDiscard = useRef<(() => void) | null>(null);
+  const navigationApproved = useRef(false);
   const selected = roles.find((role) => role.id === selectedId);
   const dirty = Boolean(editing && selected && !same(draft, draftOf(selected)));
   const createDirty = modal === 'create' && !same(newDraft, blank());
@@ -45,20 +47,36 @@ export default function RolesWorkspace() {
   useEffect(() => { void load(); }, []);
   useEffect(() => {
     if (!dirty && !createDirty) return;
-    const handler = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    const handler = (event: BeforeUnloadEvent) => { if (navigationApproved.current) return; event.preventDefault(); event.returnValue = ''; };
     const navigation = (event: MouseEvent) => {
-      if (!(event.target instanceof Element) || !event.target.closest('a[href]')) return;
-      if (!window.confirm('Discard your unsaved role changes?')) { event.preventDefault(); event.stopPropagation(); }
+      if (!(event.target instanceof Element) || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      const link = event.target.closest<HTMLAnchorElement>('a[href]');
+      if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+      event.preventDefault(); event.stopPropagation();
+      pendingDiscard.current = () => { navigationApproved.current = true; window.location.assign(link.href); };
+      setConfirmDiscard(true);
     };
     window.addEventListener('beforeunload', handler);
     document.addEventListener('click', navigation, true);
     return () => { window.removeEventListener('beforeunload', handler); document.removeEventListener('click', navigation, true); };
   }, [dirty, createDirty]);
-  const discard = () => !dirty || window.confirm('Discard your unsaved role changes?');
-  function choose(role: ManagedRole) { if (busy || !discard()) return; setSelectedId(role.id); setEditing(false); setError(null); }
+  function requestDiscard(action: () => void) {
+    if (busy) return;
+    if (!dirty && !createDirty) { action(); return; }
+    pendingDiscard.current = action;
+    setConfirmDiscard(true);
+  }
+  function keepEditing() { pendingDiscard.current = null; setConfirmDiscard(false); }
+  function confirmDiscardChanges() {
+    const action = pendingDiscard.current;
+    pendingDiscard.current = null;
+    setConfirmDiscard(false);
+    action?.();
+  }
+  function choose(role: ManagedRole) { requestDiscard(() => { setSelectedId(role.id); setEditing(false); setError(null); }); }
   function closeDialog() {
     if (busy) return;
-    if (createDirty) { setConfirmDiscard(true); return; }
+    if (createDirty) { requestDiscard(discardNewRole); return; }
     setModal(null); setDialogError(null);
   }
   function discardNewRole() {
@@ -105,10 +123,10 @@ export default function RolesWorkspace() {
     <AdminSectionHeader title="Roles & Permissions" description="Manage user roles and control feature access." />
     <p className={styles.notice}>Role grants control frontend navigation and actions after the session refreshes. Server endpoints continue to enforce their existing authorization rules.</p>
     {notice && <ActionAlert tone="success" title="Saved" message={notice} onDismiss={() => setNotice(null)} />}
-    {error && <div><ActionAlert tone="error" title="Unable to complete request" message={error} onDismiss={() => setError(null)} /><button className={styles.secondary} disabled={busy} onClick={() => { if (discard()) void load(); }}>Reload roles</button></div>}
+    {error && <div><ActionAlert tone="error" title="Unable to complete request" message={error} onDismiss={() => setError(null)} /><button className={styles.secondary} disabled={busy} onClick={() => requestDiscard(() => { void load(); })}>Reload roles</button></div>}
     {loading ? <PageSkeleton page="roles" header={false} /> : <div className={styles.layout}>
       <aside className={styles.panel} aria-label="Roles">
-        <div className={styles.listHeader}><h2>Roles <small>{roles.length}</small></h2><button disabled={busy || !!error} className={styles.primary} onClick={() => { if (!discard()) return; setEditing(false); setNewDraft(blank()); setCreateValidationAttempted(false); setDialogError(null); setModal('create'); }}>+ Create Role</button></div>
+        <div className={styles.listHeader}><h2>Roles <small>{roles.length}</small></h2><button disabled={busy || !!error} className={styles.primary} onClick={() => requestDiscard(() => { setEditing(false); setNewDraft(blank()); setCreateValidationAttempted(false); setDialogError(null); setModal('create'); })}>+ Create Role</button></div>
         <label className={styles.search}>Search roles<SearchInput value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search roles..." /></label>
         <div className={styles.roleList}>{visible.length ? visible.map((role) => <button type="button" className={styles.roleItem} aria-pressed={selectedId === role.id} disabled={busy} key={role.id} onClick={() => choose(role)}><strong>{role.name}</strong><span>{role.description || 'No description'}</span><small>{role.memberCount} {role.memberCount === 1 ? 'member' : 'members'}{role.isProtected ? ' · Protected' : ''}</small></button>) : <p className={styles.empty}>{roles.length ? 'No roles match your search.' : 'No roles yet. Create one to get started.'}</p>}</div>
       </aside>
@@ -116,7 +134,7 @@ export default function RolesWorkspace() {
         {!selected ? <p className={styles.empty}>Select a role to review its permissions.</p> : <form noValidate onSubmit={(event) => { event.preventDefault(); void save(); }}>
           <div className={styles.detailHeader}><div><h2>{selected.name}</h2><p>{selected.description || 'No description'}</p>{selected.isProtected && <span className={styles.badge}>Protected System Role</span>}</div><div className={styles.actions}>
             {!editing && <button type="button" className={styles.secondary} disabled={busy} onClick={() => { setDraft(draftOf(selected)); setEditValidationAttempted(false); setEditing(true); }}>Edit Role</button>}
-            <button type="button" className={styles.danger} disabled={busy || selected.isProtected || selected.isSystem || selected.memberCount > 0} title={selected.isProtected ? 'Protected roles cannot be deleted' : selected.memberCount ? 'Roles with members cannot be deleted' : 'Delete role'} onClick={() => { if (!discard()) return; setEditing(false); setDialogError(null); setModal('delete'); }}>Delete Role</button>
+            <button type="button" className={styles.danger} disabled={busy || selected.isProtected || selected.isSystem || selected.memberCount > 0} title={selected.isProtected ? 'Protected roles cannot be deleted' : selected.memberCount ? 'Roles with members cannot be deleted' : 'Delete role'} onClick={() => requestDiscard(() => { setEditing(false); setDialogError(null); setModal('delete'); })}>Delete Role</button>
           </div></div>
           <div className={styles.permissionsScroll}>
           {editing && <RoleFields validationAttempted={editValidationAttempted} draft={draft} onChange={setDraft} disabled={busy} />}
@@ -125,7 +143,7 @@ export default function RolesWorkspace() {
           <RolePermissionMatrix permissions={permissions} selected={editing ? draft.permissionKeys : selected.permissionKeys} disabled={!editing || busy} onChange={(keys) => setDraft((value) => ({ ...value, permissionKeys: keys }))} />
           {adminEmpty && editing && <p role="alert" className={styles.error}>Administrator must retain at least one permission.</p>}
           </div>
-          {editing && <footer className={styles.saveBar}><span aria-live="polite">{dirty ? 'You have unsaved changes.' : 'No changes yet.'}</span><div className={styles.actions}><button type="button" disabled={busy} className={styles.secondary} onClick={() => { if (discard()) setEditing(false); }}>Cancel</button><button className={styles.primary} disabled={busy || !dirty || !draft.name.trim() || adminEmpty}>{busy ? 'Saving...' : 'Update Role'}</button></div></footer>}
+          {editing && <footer className={styles.saveBar}><span aria-live="polite">{dirty ? 'You have unsaved changes.' : 'No changes yet.'}</span><div className={styles.actions}><button type="button" disabled={busy} className={styles.secondary} onClick={() => requestDiscard(() => setEditing(false))}>Cancel</button><button className={styles.primary} disabled={busy || !dirty || !draft.name.trim() || adminEmpty}>{busy ? 'Saving...' : 'Update Role'}</button></div></footer>}
         </form>}
       </section>
     </div>}
@@ -134,15 +152,15 @@ export default function RolesWorkspace() {
       {dialogError && <p className={styles.error} role="alert">{dialogError}</p>}
       {modal === 'create' ? <form noValidate id="create-role-form" onSubmit={(event) => { event.preventDefault(); void create(); }}><RoleFields validationAttempted={createValidationAttempted} draft={newDraft} onChange={setNewDraft} disabled={busy} /><h3>Permissions <span className={styles.requiredMark} aria-hidden="true">*</span></h3>{createValidationAttempted && !newDraft.permissionKeys.length && <p role="alert" className={styles.error}>Select at least one permission.</p>}<RolePermissionMatrix permissions={permissions} selected={newDraft.permissionKeys} disabled={busy} onChange={(keys) => setNewDraft((value) => ({ ...value, permissionKeys: keys }))} /></form> : <p>Delete <strong>{selected?.name}</strong>? This permanently removes the role and its permission configuration.</p>}
     </RoleDialog>}
-    {confirmDiscard && <RoleDialog title="Discard unfinished role?" busy={false} className={styles.discardDialog}
-      onClose={() => setConfirmDiscard(false)}
+    {confirmDiscard && <RoleDialog title="Discard unsaved changes?" busy={false} showClose={false} className={styles.discardDialog}
+      onClose={keepEditing}
       footer={<>
-        <button type="button" autoFocus className={styles.secondary} onClick={() => setConfirmDiscard(false)}>Keep Editing</button>
-        <button type="button" className={styles.discardButton} onClick={discardNewRole}>Discard Role</button>
+        <button type="button" autoFocus className={styles.secondary} onClick={keepEditing}>Keep Editing</button>
+        <button type="button" className={styles.discardButton} onClick={confirmDiscardChanges}>Discard Changes</button>
       </>}>
       <div className={styles.discardContent}>
         <span className={styles.discardIcon}><AlertTriangle size={24} aria-hidden="true" /></span>
-        <div><p>Your role has unsaved changes.</p><p>Discarding will remove the name, description, and permission selections you entered.</p></div>
+        <div><p>Your role has unsaved changes.</p><p>Your latest name, description, and permission changes will be lost. Saved role settings will remain unchanged.</p></div>
       </div>
     </RoleDialog>}
   </div>;

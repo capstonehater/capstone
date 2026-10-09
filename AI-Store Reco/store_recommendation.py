@@ -22,6 +22,47 @@ def number(value):
     return value if math.isfinite(value) else None
 
 
+def recommendation_confidence(row):
+    """Evidence quality labels, not a model's self-reported probability of success."""
+    reasons = []
+    confirmed = (number(row.get('price')) is not None and row.get('price_type') == 'confirmed'
+                 and row.get('store_match') == 'VERIFIED' and row.get('status') == 'FOUND'
+                 and bool(store_price.source_identity(row.get('source_url'))))
+    reasons.append('Store/chain price found.' if confirmed else 'No confirmed store price.')
+    sources = {store_price.source_identity(item.get('url'))
+               for item in row.get('fallback_listings', [])}
+    sources.discard(None)
+    recent = False
+    try:
+        fetched = datetime.fromisoformat(row.get('fetched_at', '').replace('Z', '+00:00'))
+        age = (datetime.now(timezone.utc) - fetched).total_seconds()
+        recent = 0 <= age <= 24 * 60 * 60
+    except (ValueError, TypeError):
+        pass
+    reasons.append('Evidence checked within 24 hours.' if recent else 'Evidence is old or its age is unknown.')
+    reasons.append('Branch stock is unconfirmed; contact the store before travel.')
+    coordinates_valid = store_price.calculate_distance(
+        store_price.USER_LATITUDE, store_price.USER_LONGITUDE,
+        row.get('latitude'), row.get('longitude')) is not None
+    level = 'Moderate' if confirmed and recent and coordinates_valid else 'Low'
+    # Fixed evidence rubric: price 40, freshness 20, location 15, corroboration 10.
+    # The remaining 15 points require verified branch inventory, which we do not have.
+    percentage = (40 * int(confirmed) + 20 * int(recent)
+                  + 15 * int(coordinates_valid) + 10 * int(confirmed and len(sources) > 1))
+    if not confirmed:
+        percentage = min(percentage, 40)
+    if not recent:
+        percentage = min(percentage, 45)
+    if (row.get('availability') or {}).get('status') == 'OUT_OF_STOCK':
+        percentage = 0
+    if len(sources) > 1:
+        reasons.append(f'{len(sources)} distinct pricing sources.')
+    return {'level': level, 'percentage': percentage, 'basis': 'evidence_quality', 'reasons': reasons,
+            'notice': 'Evidence score: price 40%, freshness 20%, location 15%, multiple pricing sources 10%. '
+                      'The remaining 15% requires verified branch stock. This is not a probability of '
+                      'price accuracy or stock availability.'}
+
+
 def rank_stores(results, distance_weight=0.6, include_all=False):
     """Reserve #1 for a confirmed priced store; score remaining candidates together.
 
@@ -63,16 +104,20 @@ def rank_stores(results, distance_weight=0.6, include_all=False):
             "stock_confirmed": False,
         })
 
+    candidates = [row for row in candidates
+                  if (row.get("availability") or {}).get("status") != "OUT_OF_STOCK"]
+
     def components(key):
-        values = [row[key] for row in candidates if row[key] is not None]
+        values = [row[key] for row in candidates if row[key] is not None
+                  and (key != "price_php" or row["price_confirmed"])]
         low, high = (min(values), max(values)) if values else (0, 0)
         return lambda value: (1.0 if value is None else
-                              (value - low) / (high - low) if high > low else 0.0)
+                              max(0.0, min(1.0, (value - low) / (high - low))) if high > low else 0.0)
 
     distance_score, price_score = components("distance_km"), components("price_php")
     for row in candidates:
         row["score"] = (weight * distance_score(row["distance_km"]) +
-                        (1 - weight) * price_score(row["price_php"]))
+                        (1 - weight) * price_score(row["price_php"] if row["price_confirmed"] else None))
     candidates.sort(key=lambda row: (
         row["score"], not row["price_confirmed"],
         row["distance_km"] if row["distance_km"] is not None else math.inf,
@@ -112,6 +157,7 @@ def recommend_stores(product, results, client=None, distance_weight=0.6):
         return baseline
     # Full evidence remains in the DB; cap the ranking prompt across up to 30 stores.
     prompt_candidates = []
+    candidates = candidates[:30]
     for candidate in candidates:
         compact = {key: value for key, value in candidate.items()
                    if key not in ("search_evidence", "availability", "reason")}
@@ -131,6 +177,9 @@ def recommend_stores(product, results, client=None, distance_weight=0.6):
                 "Use only candidate_id values provided. Balance nearby distance and affordable "
                 "price using the supplied score as a baseline (lower is better); weigh product/pack "
                 "comparability, explicit stock statements, and source relevance to make your choices. "
+                "Prices are per listed pack, not necessarily per kg or litre. Never call a smaller "
+                "pack cheaper value without equivalent quantities. Reasons must cite only supplied "
+                "facts and explicitly preserve uncertainty about branch stock and market estimates. "
                 "Never invent a price, availability, distance, store, or source. Top 1 MUST have "
                 "price_confirmed=true and a known distance_km. If none qualifies, start at Top 2. "
                 "Unknown or estimated prices can only be Top 2 or lower. Do not select out-of-stock "
@@ -145,6 +194,7 @@ def recommend_stores(product, results, client=None, distance_weight=0.6):
                 "candidates": prompt_candidates,
             }, ensure_ascii=False, allow_nan=False)}],
             temperature=0, max_completion_tokens=1800,
+            response_format={"type": "json_object"},
         )
         choices = json.loads(response.choices[0].message.content or "")["recommendations"]
         expected = {row["rank"] for row in baseline["recommendations"]}
@@ -216,6 +266,7 @@ def recommend_saved_results(product, results, client=None):
                 "Not selected among the top recommendations."),
             "source": ranking["explanation_source"], "generated_at": timestamp,
             "notice": ranking["notice"], "policy": ranking["policy"], "origin": ranking["origin"],
+            'confidence': recommendation_confidence(row),
         }
     return {"results": reviewed}
 

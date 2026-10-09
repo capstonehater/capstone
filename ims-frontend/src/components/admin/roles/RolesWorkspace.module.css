@@ -192,3 +192,7 @@
   .detailPanel > form { flex:1; }
   .permissionsScroll { flex:1; }
 }
+
+.discardButton { border-color:#232d46; background:#232d46; }
+.discardButton:hover { background:#34425f; border-color:#34425f; }
+@media (max-width:480px) { .discardDialog .dialogBody { padding:18px; } .discardDialog .dialogFooter { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:14px 18px; } .discardDialog .dialogFooter button { min-width:0; padding:10px 8px; } }

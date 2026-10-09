@@ -281,17 +281,25 @@ def build_daily_series(
 
 def build_holiday_lookup(raw_df):
     """
-    PATCH (new function): map each historical date to whether it was a
-    holiday, straight from cafe_raw_material_daily_consumption.csv's own 'holiday' column (which already
-    contains real Philippine public holidays). This becomes the is_holiday
-    exogenous regressor - see CONFIG["EXOG_COLS"] and CONFIG note above on
-    why it's needed: holiday-day usage is roughly double a normal day for
-    several raw materials, and a plain SARIMA model (no exog) can't see
-    that coming.
+    Add a function that builds a daily Philippine public-holiday indicator from
+    `cafe_raw_material_daily_consumption.csv`.
 
-    Returns
-    -------
-    pandas.Series indexed by date, values 0/1.
+    Use the CSV’s existing `holiday` column as the source of truth. Map each
+    historical date to `1` when it is a holiday and `0` otherwise. Return a
+    `pandas.Series` indexed by date, with integer values, sorted chronologically
+    and named `is_holiday`.
+
+    Use this series as an exogenous regressor in the SARIMA model. Add
+    `is_holiday` to `CONFIG["EXOG_COLS"]` and ensure the same feature is available
+    for both model-fitting dates and forecast dates. Do not infer holidays from a
+    calendar or replace the CSV’s holiday labels.
+
+    Holiday-day usage is roughly double normal usage for several raw materials,
+    so this feature should help the model account for holiday-related demand
+    spikes.
+
+    Document how the function handles missing or duplicate dates and how values
+    in the `holiday` column are interpreted as holiday versus non-holiday.
     """
     if "holiday" not in raw_df.columns:
         print(

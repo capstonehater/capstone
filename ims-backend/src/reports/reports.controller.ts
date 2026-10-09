@@ -15,6 +15,14 @@ import { ReportsService } from './reports.service';
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
+  @Get('export-access/excel')
+  @RequirePermission('reports.view', 'reports.export.excel')
+  authorizeExcelExport() { return { allowed: true }; }
+
+  @Get('export-access/pdf')
+  @RequirePermission('reports.view', 'reports.export.pdf')
+  authorizePdfExport() { return { allowed: true }; }
+
   @Get('sales-overview')
   async getSalesOverview(@Query() filters: ReportFiltersDto) {
     return {

@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+  (process.env.NEXT_PUBLIC_API_BASE_URL ?? "/backend").replace(/\/+$/, "");
 
 // Share only pending browser reads; never retain completed responses or share
 // cookie-authenticated requests between server users.
@@ -13,10 +13,13 @@ function getErrorMessage(data: unknown): string {
   if (
     typeof data === "object" &&
     data !== null &&
-    "message" in data &&
-    typeof data.message === "string"
+    "message" in data
   ) {
-    return data.message;
+    if (typeof data.message === "string") return data.message;
+    if (Array.isArray(data.message)) {
+      const messages = data.message.filter((message): message is string => typeof message === "string");
+      if (messages.length) return messages.join(" ");
+    }
   }
 
   return "Request failed";
@@ -37,6 +40,12 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     headers: requestHeaders,
   };
   const method = (rest.method ?? "GET").toUpperCase();
+  // Dev Tunnels rewrites Origin to localhost. Preserve the browser origin in
+  // a custom header so our proxy can validate it before restoring Origin.
+  if (typeof window !== "undefined" && window.location &&
+      method !== "GET" && method !== "HEAD") {
+    requestHeaders.set("X-IMS-Browser-Origin", window.location.origin);
+  }
   if (method !== "GET" && method !== "HEAD") pendingReads.clear();
 
   // Custom cancellation and other request options keep their independent fetch

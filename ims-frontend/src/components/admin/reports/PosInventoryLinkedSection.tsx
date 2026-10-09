@@ -1,4 +1,6 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
+import ActionAlert from "@/components/feedback/ActionAlert";
 
 import ReportColumns from "./ReportColumns";
 import WasteInsightsReport from "./WasteInsightsReport";
@@ -17,7 +19,7 @@ import {
   fetchPosInventoryLinked,
   type PosInventoryLinkedReport,
 } from "@/lib/reports";
-import { formatDateTime, formatPeso } from "@/lib/pos-utils";
+import { formatDateTime, formatOrderReference, formatPeso } from "@/lib/pos-utils";
 
 type Props = {
   active: boolean;
@@ -202,7 +204,7 @@ export default function PosInventoryLinkedSection({
         const filename = await exportPosInventoryLinkedExcel(snapshot);
         setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
-        const filename = exportPosInventoryLinkedPdf(snapshot);
+        const filename = await exportPosInventoryLinkedPdf(snapshot);
         setExportNotice(
           `Printable inventory-linked report opened as ${filename}. Use your browser's Save as PDF option to finish the export.`,
         );
@@ -226,17 +228,9 @@ export default function PosInventoryLinkedSection({
         </div>
       ) : null}
 
-      {showStandaloneExportControls && exportError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {exportError}
-        </div>
-      ) : null}
+      {showStandaloneExportControls && exportError ? <ActionAlert placement="header" tone="error" title="Export failed" message={exportError} onDismiss={() => setExportError(null)} /> : null}
 
-      {showStandaloneExportControls && exportNotice ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {exportNotice}
-        </div>
-      ) : null}
+      {showStandaloneExportControls && exportNotice ? <ActionAlert placement="header" tone="success" title="Export ready" message={exportNotice} onDismiss={() => setExportNotice(null)} /> : null}
 
       <section data-report="consumption-intro" className="rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
@@ -275,24 +269,24 @@ export default function PosInventoryLinkedSection({
               />
             </label>
             {showStandaloneExportControls ? (
-              <button
+              <PermissionAction permissions={["reports.view", "reports.export.excel"]}><button
                 type="button"
                 disabled={loading || exportingFormat !== null}
                 onClick={() => void handleExport("excel")}
                 className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {exportingFormat === "excel" ? "Exporting..." : "Export Excel"}
-              </button>
+              </button></PermissionAction>
             ) : null}
             {showStandaloneExportControls ? (
-              <button
+              <PermissionAction permissions={["reports.view", "reports.export.pdf"]}><button
                 type="button"
                 disabled={loading || exportingFormat !== null}
                 onClick={() => void handleExport("pdf")}
                 className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}
-              </button>
+              </button></PermissionAction>
             ) : null}
           </div>
         </div>
@@ -458,23 +452,24 @@ export default function PosInventoryLinkedSection({
 
           <WidgetCard title="Recent Sales-Linked Stock Movements" className="report-movements">
             <div className="report-movements-table overflow-auto rounded-lg border border-slate-200" aria-busy={loading}>
-              <ReportColumns columns={["Order ID", "Stock Transaction ID", "Date / Time", "Material Lines", "Ingredients Used", "Product Variants", "Material Cost Used"]}><table className="w-full min-w-[900px] text-sm">
+              <ReportColumns columns={["Order ID", "Date / Time", "Material Lines", "Ingredients Used", "Product Variants", "Material Cost Used"]}><table className="w-full min-w-[800px] text-sm">
                 <caption className="sr-only">Recent checkout stock deductions in the selected date range</caption>
                 <thead className="sticky top-0 z-10 bg-slate-50 text-xs uppercase text-slate-500"><tr>
                   <th scope="col" className="px-4 py-3 text-left">Order ID</th>
-                  <th scope="col" className="px-4 py-3 text-left">Stock Transaction ID</th>
                   <th scope="col" className="px-4 py-3 text-left">Date / Time</th>
                   <th scope="col" className="px-4 py-3 text-right">Material Lines</th>
                   <th scope="col" className="px-4 py-3 text-right">Ingredients Used</th>
                   <th scope="col" className="px-4 py-3 text-right">Product Variants</th>
                   <th scope="col" className="px-4 py-3 text-right">Material Cost Used</th>
                 </tr></thead>
-                <tbody>{loading ? <tr><td colSpan={7} className="p-6 text-center text-slate-500">Loading stock movements...</td></tr>
-                  : error ? <tr><td colSpan={7} className="p-6 text-center text-rose-700">Stock movements unavailable.</td></tr>
-                  : !(report?.recentSalesLinkedMovements.length) ? <tr><td colSpan={7} className="p-6 text-center text-slate-500">No checkout-linked stock movements matched the selected date range and filters.</td></tr>
+                <tbody>{loading ? <tr><td colSpan={6} className="p-6 text-center text-slate-500">Loading stock movements...</td></tr>
+                  : error ? <tr><td colSpan={6} className="p-6 text-center text-rose-700">Stock movements unavailable.</td></tr>
+                  : !(report?.recentSalesLinkedMovements.length) ? <tr><td colSpan={6} className="p-6 text-center text-slate-500">No checkout-linked stock movements matched the selected date range and filters.</td></tr>
                   : report.recentSalesLinkedMovements.map(row => <tr key={row.transactionId} className="border-t border-slate-200">
-                    <td className="break-all px-4 py-3 font-medium">{row.orderId ?? "—"}</td>
-                    <td className="break-all px-4 py-3 text-slate-600">{row.transactionId}</td>
+                    <td className="px-4 py-3">
+                      <div className="whitespace-nowrap font-semibold">{row.orderId ? formatOrderReference({ id: row.orderId }) : "?"}</div>
+                      <div className="mt-1 break-all text-xs text-slate-500"><span className="font-medium">Transaction UID: </span>{row.transactionId}</div>
+                    </td>
                     <td className="whitespace-nowrap px-4 py-3">{formatDateTime(row.occurredAt)}</td>
                     <td className="px-4 py-3 text-right tabular-nums">{row.movementLineCount}</td>
                     <td className="px-4 py-3 text-right tabular-nums">{row.rawMaterialCount}</td>

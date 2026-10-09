@@ -84,7 +84,7 @@
 .chart { min-width:0; padding:15px 0; }
 .chart svg { display:block; width:100%; max-height:440px; }
 .chartLegend { display:flex; align-items:center; justify-content:center; gap:8px; font-size: 14px; color:#666; }
-.chartLegend::before { content:""; width:25px; height:3px; background:#165dff; }
+.chartLegend::before { content:""; width:25px; height:3px; background:#232d46; }
 @media(min-width:1280px) {
   .workspace [data-pos-products] { display:grid; grid-template-columns:minmax(0,2.4fr) minmax(0,1fr); gap:20px; }
   .workspace [data-pos-products]>section { grid-column:1/-1; margin:0; }
@@ -115,3 +115,22 @@
 .workspace [data-report="consumption-metrics"] > div > div { min-height:48px; align-items:flex-start; margin-bottom:12px; }
 .workspace [data-report="consumption-metrics"] p { font-size:16px; font-weight:600; line-height:1.5; color:#475569; margin:0; }
 .workspace [data-report="consumption-metrics"] h3 { font-size:28px; line-height:1.25; color:#232d46; overflow-wrap:anywhere; }
+
+.dashboardRange > span:first-child { display:inline-flex; align-items:center; gap:6px; }
+@media (max-width:639px) {
+  .navigation { display:grid; grid-template-columns:30px minmax(0,1fr) 30px; padding:10px 8px; gap:6px; }
+  .navTrack { width:100%; padding:3px 0; }
+  .navTrack > button { flex:0 0 100%; min-width:0; min-height:96px; padding:12px; }
+  .navTrack strong,.navTrack span { overflow-wrap:anywhere; }
+  .datePanel { gap:14px; padding:16px; }
+  .dateControls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:14px 10px; }
+  .dateControls > strong { grid-column:1 / -1; }
+  .dateControls > div { min-width:0; width:100%; }
+  .dateControls label { display:flex; align-items:center; gap:5px; margin-bottom:6px; font-size:13px; }
+  .dateControls > div:not(.presets) button { width:100%; min-width:0; min-height:44px; padding:9px 8px; font-size:12px; }
+  .dateControls .presets { grid-column:1 / -1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0; }
+  .dateControls .presets button { min-height:44px; min-width:0; padding:10px 8px; font-size:13px; }
+  .datePanel > .refresh { width:100%; min-height:44px; justify-self:stretch; padding:10px; }
+  .dashboardRange { display:flex; flex-direction:column; align-items:flex-start; gap:5px; padding:10px; font-size:12px; overflow-wrap:anywhere; }
+  .dashboardRange > .rangeDivider { display:none; }
+}

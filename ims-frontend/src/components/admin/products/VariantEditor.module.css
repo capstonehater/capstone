@@ -7,3 +7,34 @@
 .panel button.primary:hover:not(:disabled) { background:#34425f; }
 .panel button.danger { border-color:#e5c6cb; color:#963e4b; }
 .panel button.danger:hover:not(:disabled) { background:#fff1f2; }
+
+.variantFormPanel { width:min(100%,740px); }
+.variantFormPanel form.variantForm { gap:22px; align-items:start; }
+.variantIntro { grid-column:1 / -1; display:flex; align-items:center; gap:12px; padding:14px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc; }
+.variantIntro > span { display:grid; place-items:center; flex:0 0 42px; height:42px; border-radius:10px; background:#e8edf5; color:#34425f; }
+.variantIntro strong { font-size:14px; color:#232d46; }
+.variantFormPanel .variantIntro p { margin:3px 0 0; font-size:12px; }
+.variantFormPanel .variantSkuHint { display:flex; align-items:center; gap:5px; margin:6px 0 0; font-size:11px; color:#64748b; }
+.variantFormPanel input[readonly] { background:#f1f5f9; color:#64748b; cursor:default; }
+.variantFormPanel label.enabledLabel { align-self:stretch; min-height:80px; padding:14px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc; }
+.variantFormPanel label.enabledLabel strong,.variantFormPanel label.enabledLabel small { display:block; }
+.variantFormPanel label.enabledLabel strong { font-size:13px; }
+.variantFormPanel label.enabledLabel small { margin-top:3px; font-size:12px; color:#64748b; }
+.panel.variantFormPanel input[type="checkbox"] { width:18px; height:18px; min-height:18px; flex:0 0 18px; padding:0; margin:0; accent-color:#232d46; }
+.variantActions { grid-column:1 / -1; display:flex; justify-content:flex-end; gap:10px; padding-top:18px; border-top:1px solid #e2e8f0; }
+@media (max-width:639px) { .variantFormPanel form.variantForm { gap:16px; } .variantActions button { flex:1; min-width:0; } }
+
+.panel.variantFormPanel label.enabledLabel { display:flex; flex-direction:row; align-items:center; gap:10px; min-height:44px; padding:10px 12px; }
+.panel.variantFormPanel label.enabledLabel input.checkbox[type="checkbox"] { appearance:auto; display:inline-block; width:16px !important; height:16px !important; min-width:16px; min-height:16px !important; max-width:16px; max-height:16px; flex:0 0 16px; padding:0 !important; margin:0; border:0; box-shadow:none; }
+.panel.variantFormPanel label.enabledLabel > span { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.panel.variantFormPanel label.enabledLabel strong { display:block; font-size:13px; line-height:1.4; }
+.panel.variantFormPanel label.enabledLabel small { display:block; margin:0; font-size:11px; line-height:1.4; }
+
+.panel.variantFormPanel label.enabledLabel { align-self:center; justify-content:flex-start; gap:8px; min-height:32px; padding:4px 0; border:0; background:transparent; font-size:13px; font-weight:600; }
+.panel.variantFormPanel label.enabledLabel input.checkbox[type="checkbox"] { appearance:none; width:20px !important; height:20px !important; min-width:20px; min-height:20px !important; max-width:20px; max-height:20px; flex:0 0 20px; border:1.5px solid #94a3b8; border-radius:50%; background:#fff; cursor:pointer; }
+.panel.variantFormPanel label.enabledLabel input.checkbox[type="checkbox"]:checked { border-color:#232d46; background-color:#232d46; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='m5 10 3.2 3.2L15 6.5' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-size:100% 100%; background-repeat:no-repeat; }
+.panel.variantFormPanel label.enabledLabel input.checkbox[type="checkbox"]:focus-visible { outline:2px solid #426da6; outline-offset:3px; }
+.panel.variantFormPanel label.enabledLabel > span { display:inline; font-size:13px; line-height:1.4; }
+
+.panel.variantFormPanel label.enabledLabel input.checkbox[type="checkbox"] { border-radius:4px; }
+.panel.variantFormPanel label.enabledLabel > span { font-size:14px; font-weight:500; }

@@ -199,6 +199,7 @@ export type InventoryHealthReport = {
       id: string;
       name: string;
       sku: string;
+      unit: { code: string; name: string };
     };
     supplier: Supplier | null;
   }>;

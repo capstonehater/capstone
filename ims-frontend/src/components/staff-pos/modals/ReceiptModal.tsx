@@ -4,7 +4,7 @@ import { ArrowLeft, Receipt } from "lucide-react";
 import { useState } from "react";
 import { getReceiptPaymentSummary, openReceipt } from "@/lib/receipt";
 import type { PosOrder } from "@/lib/pos";
-import { formatDateTime, formatName, formatPeso } from "@/lib/pos-utils";
+import { formatDateTime, formatName, formatOrderReference, formatPeso } from "@/lib/pos-utils";
 import Modal from "./Modal";
 import styles from "./ReceiptModal.module.css";
 
@@ -77,7 +77,7 @@ export default function ReceiptModal({
         <div className={styles.heading}>
           <Receipt className="h-5 w-5 text-[#232d46]" />
           <div>
-            <h3 className="font-semibold">{receipt.displayOrderNumber || `Receipt #${receipt.id.slice(0, 8)}`}</h3>
+            <h3 className="font-semibold">{formatOrderReference(receipt)}</h3>
             <p className={styles.reference}>Order ID: {receipt.id}</p>
             <p className="text-sm text-slate-500">{formatDateTime(receipt.completedAt)}</p>
           </div>

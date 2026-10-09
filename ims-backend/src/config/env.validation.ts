@@ -1,6 +1,8 @@
 import { loadEnvFile } from 'node:process';
+import { existsSync } from 'node:fs';
 
 // Environment values are loaded once at startup; restart after editing .env.
+if (existsSync('.env.local')) loadEnvFile('.env.local');
 loadEnvFile();
 
 type SameSite = 'lax' | 'strict' | 'none';

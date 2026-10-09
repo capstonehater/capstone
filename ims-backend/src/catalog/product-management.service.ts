@@ -1,3 +1,4 @@
+import { assertMaterialsAllowedForCategory } from '../recipes/material-category-policy';
 import { withHistoricalMaterial } from '../inventory/material-history-snapshot';
 import {
   BadRequestException,
@@ -308,6 +309,14 @@ export class ProductManagementService {
 
     if (dto.categoryId && dto.categoryId !== existing.categoryId) {
       await this.ensureCategoryExists(dto.categoryId);
+      const materials = await this.prisma.rawMaterial.findMany({
+        where: { OR: [
+          { recipeItems: { some: { productVariant: { productId } } } },
+          { modifierRecipeAdjustments: { some: { modifier: { modifierGroup: { productModifierGroups: { some: { productId } } } } } } },
+        ] },
+        select: { id: true },
+      });
+      await assertMaterialsAllowedForCategory(this.prisma, dto.categoryId, materials.map((material) => material.id));
     }
 
     const nextCategoryId = dto.categoryId ?? existing.categoryId;
@@ -815,6 +824,7 @@ export class ProductManagementService {
           select: {
             archivedAt: true,
             id: true,
+            categoryId: true,
           },
         },
       },
@@ -868,6 +878,7 @@ export class ProductManagementService {
     }
 
     await this.prisma.$transaction(async (tx) => {
+      await assertMaterialsAllowedForCategory(tx, variant.product.categoryId, recipeItems.map((item) => item.rawMaterialId));
       await tx.variantRecipeItem.deleteMany({
         where: {
           productVariantId: variantId,

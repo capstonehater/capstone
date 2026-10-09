@@ -1,3 +1,4 @@
+import { assertMaterialsAllowedForCategory } from './material-category-policy';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { toDecimal } from '../common/utils/decimal.util';
@@ -22,6 +23,7 @@ export class RecipeResolverService {
       where: { id: productVariantId },
       select: {
         id: true,
+        product: { select: { categoryId: true } },
         recipeItems: {
           select: {
             rawMaterialId: true,
@@ -51,6 +53,12 @@ export class RecipeResolverService {
         );
       }
     }
+
+    await assertMaterialsAllowedForCategory(
+      tx,
+      variant.product.categoryId,
+      [...materialMap.entries()].filter(([, quantity]) => quantity.greaterThan(0)).map(([id]) => id),
+    );
 
     return [...materialMap.entries()]
       .filter(([, quantity]) => quantity.greaterThan(0))

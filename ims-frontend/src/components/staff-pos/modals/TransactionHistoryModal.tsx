@@ -1,6 +1,6 @@
 import type { PosOrder } from "@/lib/pos";
 import type { OfflineCheckoutEntry } from "@/lib/pos-offline";
-import { formatDateTime, formatName, formatPeso } from "@/lib/pos-utils";
+import { formatDateTime, formatName, formatOrderReference, formatPeso } from "@/lib/pos-utils";
 import Modal from "./Modal";
 
 type Props = {
@@ -85,7 +85,7 @@ export default function TransactionHistoryModal({
               className="grid grid-cols-[1.2fr_1fr_1fr_0.8fr_1fr_180px] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
             >
               <div>
-                <p className="font-semibold">{txn.id}</p>
+                <p className="font-semibold">{formatOrderReference(txn)}</p>
                 <p className="text-xs text-slate-500">
                   {txn.items.length} item{txn.items.length === 1 ? "" : "s"} •{" "}
                   {txn.payments.map((payment) => payment.method).join(", ")}

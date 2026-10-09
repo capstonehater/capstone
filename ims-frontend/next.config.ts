@@ -1,10 +1,15 @@
 import type { NextConfig } from "next";
 
+const backendOrigin = (process.env.API_UPSTREAM_URL ?? "http://127.0.0.1:4000").replace(/\/+$/, "");
+const publicApiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/backend";
 const profilePictureOrigin = new URL(
-  `${(process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000").replace(/\/$/, "")}/profile-picture/*`,
+  `${(publicApiBase.startsWith("/") ? backendOrigin : publicApiBase).replace(/\/$/, "")}/profile-picture/*`,
 );
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [{ source: "/backend/:path*", destination: `${backendOrigin}/:path*` }];
+  },
   images: {
     remotePatterns: [profilePictureOrigin],
     // Local self-hosting uses the backend on loopback. External deployments

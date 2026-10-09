@@ -1,8 +1,9 @@
 "use client";
 
+import { useId, useState } from "react";
 import { formatUnit } from "@/lib/units";
 import styles from "./InventoryBusinessInsights.module.css";
-import { ArrowRight, Boxes, ChartNoAxesCombined, Clock3, PackageSearch, Truck } from "lucide-react";
+import { CircleAlert, ArrowRight, Boxes, ChartNoAxesCombined, Clock3, PackageSearch, Truck } from "lucide-react";
 import type { InventoryHealthReport, StockRunSpendReport, WasteSummaryReport } from "@/lib/reports";
 
 type ReportView = "low-stock" | "near-expiry" | "waste" | "value" | "supplier";
@@ -18,11 +19,24 @@ type InventoryBusinessInsightsProps = {
   formatDate: (value: string | null | undefined) => string;
 };
 
-function Panel({ title, icon, children, className = "", id, onOpen, footerLabel }: { title: string; icon: React.ReactNode; children: React.ReactNode; className?: string; id?: string; onOpen?: () => void; footerLabel: string }) {
+function InsightHint({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  return <span className={styles.insightHint}>
+    <button type="button" aria-label="About weekly waste insights" aria-describedby={id} aria-expanded={open}
+      onClick={() => setOpen((current) => !current)} onBlur={() => setOpen(false)}
+      onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}>
+      <CircleAlert size={17} aria-hidden="true" />
+    </button>
+    <span id={id} role="tooltip" className={styles.insightTooltip} data-open={open || undefined}>{text}</span>
+  </span>;
+}
+
+function Panel({ title, icon, children, className = "", id, onOpen, footerLabel, hint }: { title: string; icon: React.ReactNode; children: React.ReactNode; className?: string; id?: string; onOpen?: () => void; footerLabel: string; hint?: string }) {
   return (
     <section id={id} className={`${styles.panel} ${className}`}>
       <h3 className="mb-5 flex items-center gap-2 text-xl font-semibold text-[#232d46]">
-        <span className="text-[#232d46]">{icon}</span>{title}
+        <span className="text-[#232d46]">{icon}</span>{title}{hint && <InsightHint text={hint} />}
       </h3>
       <div className={styles.panelBody}>{children}</div>
       {onOpen && <button type="button" onClick={onOpen} className={styles.reportFooter}><span>{footerLabel}</span><ArrowRight size={24} aria-hidden="true" /></button>}
@@ -88,7 +102,7 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{inventoryHealth ? "No batches nearing expiry." : "Inventory health data unavailable."}</Empty>}
           </Panel>
 
-          <Panel onOpen={onOpenReport ? () => onOpenReport("waste") : undefined} id="waste-insights" footerLabel="View all waste records" title="Waste Insights" icon={<ChartNoAxesCombined size={16} />}>
+          <Panel onOpen={onOpenReport ? () => onOpenReport("waste") : undefined} id="waste-insights" footerLabel="View all waste records" title="Waste Insights" hint="Shows this week?s waste and resets Monday at midnight (Manila time). Historical records remain available in full reports." icon={<ChartNoAxesCombined size={16} />}>
             {wasteSummary?.byReason.length ? (
               <div>
                 <div className={styles.scroll}>
@@ -100,7 +114,7 @@ export default function InventoryBusinessInsights({
                   </table>
                 </div>
               </div>
-            ) : <Empty>{wasteSummary ? "No waste recorded for this period." : "Waste report unavailable."}</Empty>}
+            ) : <Empty>{wasteSummary ? "No waste recorded this week." : "Waste report unavailable."}</Empty>}
           </Panel>
 
           <Panel onOpen={onOpenReport ? () => onOpenReport("value") : undefined} id="high-value" footerLabel="View all inventory values" title="High-Value Inventory" icon={<Boxes size={16} />}>

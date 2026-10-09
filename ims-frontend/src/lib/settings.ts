@@ -43,6 +43,15 @@ export type ChangePasswordResponse = {
   requiresReauthentication: boolean;
 };
 
+export type SettingsStorageUsage = {
+  databaseBytes: number;
+  productImagesBytes: number;
+  profilePicturesBytes: number;
+  temporaryBytes: number;
+  totalBytes: number;
+  measuredAt: string;
+};
+
 type SettingsAccountResponse = {
   user: SettingsAccount;
 };
@@ -57,6 +66,17 @@ export async function fetchSettingsAccount(): Promise<SettingsAccount> {
   );
 
   return response.user;
+}
+
+export function fetchSettingsStorageUsage(): Promise<SettingsStorageUsage> {
+  return apiJsonFetch<SettingsStorageUsage>("/settings/storage", {
+    method: "GET",
+    cache: "no-store",
+  });
+}
+
+export function clearSettingsStorageCache() {
+  return apiJsonFetch<{ freedBytes: number; deletedFiles: number; usage: SettingsStorageUsage }>("/settings/storage/cleanup", { method: "POST" });
 }
 
 export async function updateSettingsAccount(
@@ -88,5 +108,5 @@ export async function changeSettingsPassword(
 
 export function profilePictureSrc(url: string | null): string | undefined {
   if (!url) return undefined;
-  return (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000").replace(/\/$/, "") + url;
+  return (process.env.NEXT_PUBLIC_API_BASE_URL ?? "/backend").replace(/\/$/, "") + url;
 }

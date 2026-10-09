@@ -1,4 +1,6 @@
 import {
+  IsArray,
+  ArrayUnique,
   IsNumber,
   IsOptional,
   IsString,
@@ -7,6 +9,12 @@ import {
 } from 'class-validator';
 
 export class UpdateRawMaterialDto {
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsString({ each: true })
+  categoryIds?: string[];
+
   @IsOptional()
   @IsString()
   @MaxLength(120)

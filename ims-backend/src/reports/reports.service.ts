@@ -499,6 +499,7 @@ export class ReportsService {
             id: true,
             name: true,
             sku: true,
+            unit: { select: { code: true, name: true } },
           },
         },
         supplier: true,
@@ -1411,9 +1412,21 @@ export class ReportsService {
         splitPaymentCollected = splitPaymentCollected.plus(order.totalAmount);
       }
 
-      for (const payment of order.payments) {
+      // Payment rows store tendered amounts. Attribute only the amount kept:
+      // change is returned from cash first, including split-payment orders.
+      let change = Prisma.Decimal.max(
+        sumDecimals(order.payments.map((payment) => payment.amount)).minus(order.totalAmount),
+        ZERO,
+      );
+      const payments = [...order.payments].sort((a, b) =>
+        Number(b.method === PaymentMethod.CASH) - Number(a.method === PaymentMethod.CASH),
+      );
+      for (const payment of payments) {
+        const returned = Prisma.Decimal.min(change, payment.amount);
+        const collected = payment.amount.minus(returned);
+        change = change.minus(returned);
         const current = breakdownMap.get(payment.method)!;
-        current.amount = current.amount.plus(payment.amount);
+        current.amount = current.amount.plus(collected);
         current.paymentCount += 1;
         current.orderIds.add(order.id);
       }
@@ -1422,7 +1435,7 @@ export class ReportsService {
     const totalCollected = sumDecimals(
       orders.map((order) => order.totalAmount),
     );
-    const breakdown = PAYMENT_METHODS.map((method) => {
+    const breakdown = PAYMENT_METHODS.filter((method) => method !== PaymentMethod.OTHER).map((method) => {
       const item = breakdownMap.get(method)!;
       return {
         method,
@@ -2074,8 +2087,8 @@ export class ReportsService {
           : ZERO,
     }));
 
-    const operatingHourly = hourly.filter((row) => isCafeOperatingHour(row.hour));
-    const busiestHours = [...operatingHourly]
+    const operatingHourly = hourly.filter((row) => row.hour >= 13 && row.hour <= 20);
+    const busiestHours = operatingHourly.filter((row) => row.transactionCount > 0)
       .sort((left, right) => {
         if (right.transactionCount !== left.transactionCount) {
           return right.transactionCount - left.transactionCount;
@@ -2086,13 +2099,10 @@ export class ReportsService {
       .slice(0, 3);
 
     const slowestHours = [...operatingHourly]
-      .sort((left, right) => {
-        if (left.transactionCount !== right.transactionCount) {
-          return left.transactionCount - right.transactionCount;
-        }
-
-        return left.netSales.comparedTo(right.netSales);
-      })
+      .sort((left, right) =>
+        left.netSales.comparedTo(right.netSales) ||
+        left.transactionCount - right.transactionCount || left.hour - right.hour,
+      )
       .slice(0, 3);
 
     return {

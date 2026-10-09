@@ -3,7 +3,7 @@ import ModalCloseButton from "@/components/ModalCloseButton";
 
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, ChevronDown, ExternalLink, Store, Package, MapPin } from "lucide-react";
+import { Loader2, ChevronDown, ExternalLink, Store, Package, MapPin, Bot } from "lucide-react";
 import { apiJsonFetch } from "@/lib/api";
 import styles from "./StoreAvailabilityModal.module.css";
 import motion from "./InventoryModalMotion.module.css";
@@ -23,6 +23,7 @@ type StoreResult = {
     source: string;
     notice: string | null;
     generated_at: string;
+    confidence?: { level: "Low" | "Moderate"; percentage?: number; reasons: string[]; notice: string };
   };
   price: number | null;
   price_type: string | null;
@@ -34,6 +35,11 @@ type StoreResult = {
   search_product?: string;
   fallback_listings?: { title: string; url: string; price?: number | null }[];
   search_sources?: { title: string; url: string }[];
+  market_reference?: {
+    median_php: number; low_php: number; high_php: number; sample_size: number;
+    product: string; fetched_at: string;
+    listings: { title: string; url: string; price: number }[];
+  } | null;
 };
 type Search = {
   id: string;
@@ -96,6 +102,7 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
   const [refresh, setRefresh] = useState(0);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showOtherStores, setShowOtherStores] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const endpoint = `/raw-materials/${encodeURIComponent(materialId)}/store-availability`;
 
@@ -144,6 +151,13 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
     (a.payload.recommendation?.rank ?? Infinity) - (b.payload.recommendation?.rank ?? Infinity)
     || a.payload.store_name.localeCompare(b.payload.store_name));
   const recommendationNotice = savedResults.find(({ payload }) => payload.recommendation?.notice)?.payload.recommendation?.notice;
+  const market = savedResults.find(({ payload }) => payload.market_reference)?.payload.market_reference;
+  const hasRecommendations = savedResults.some(({ payload }) => payload.recommendation);
+  const topResults = hasRecommendations ? savedResults.filter(({ payload }) =>
+    payload.recommendation?.rank != null && payload.recommendation.rank <= 3) : savedResults;
+  const otherCount = savedResults.length - topResults.length;
+  const visibleResults = showOtherStores ? savedResults : topResults;
+  const money = (value: number) => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(value);
   return (
     <dialog ref={dialog} onCancel={(event) => { event.preventDefault(); onClose(); }} aria-labelledby="store-availability-title"
       className={`${styles.dialog} ${motion.panel}`}>
@@ -162,19 +176,34 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
         {search?.results[0]?.payload.selected_brand && <p className="mt-2 text-sm font-semibold text-slate-700">Selected brand: {search.results[0].payload.selected_brand} · Same brand searched across stores</p>}
         <p className="mt-2 text-sm text-slate-500">Online listings and price estimates. Confirm branch stock and pack size with the store.</p>
         {search?.completedAt && <p className="mt-2 text-xs text-slate-500">Last checked: {new Date(search.completedAt).toLocaleString()}</p>}
-        {savedResults.some(({ payload }) => payload.recommendation) && <p className="mt-3 text-sm font-semibold text-slate-700">Saved stock-run recommendations · Top 1–5</p>}
+        {!pending && savedResults.length > 0 && <details aria-label="Market price comparison" className="group/market mt-3 rounded-xl border border-blue-200 bg-blue-50">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-xs text-slate-700 focus-visible:outline-2 focus-visible:outline-[#5274a4] [&::-webkit-details-marker]:hidden">
+            <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1"><span>Market estimate</span><strong className="text-sm text-slate-900">{market ? money(market.median_php) : "Unavailable"}</strong><span>{market ? "median · not a store quote" : "No comparable prices saved"}</span></span>
+            <ChevronDown size={15} aria-hidden="true" className="shrink-0 transition-transform group-open/market:rotate-180" />
+          </summary>
+          <div className="border-t border-blue-200 px-3 pb-3 pt-2">
+          {market ? <>
+            <p className="mt-1 text-xs text-slate-700">Range {money(market.low_php)}–{money(market.high_php)} · {market.sample_size} distinct listing{market.sample_size === 1 ? "" : "s"}</p>
+            <p className="mt-2 text-xs text-slate-700">For {market.product}. This is a market estimate, not a quote from any registered store. Check pack size, delivery fees and branch stock.</p>
+            <p className="mt-1 text-xs text-slate-600">Checked: {new Date(market.fetched_at).toLocaleString()}</p>
+            <PricingSources result={{ store_name: "Market", address: "", price: null, price_type: null, status: "UNVERIFIED", source_url: null, fallback_listings: market.listings }} />
+          </> : <p className="mt-2 text-xs text-slate-700">No comparable market prices saved. Search again to check the market; no estimate is assumed.</p>}
+          </div>
+        </details>}
+        {hasRecommendations && <p className="mt-3 text-sm font-semibold text-slate-700">Recommended stores · Top 1–3</p>}
         {recommendationNotice && <p className="mt-2 rounded-xl bg-[#e8eef7] p-3 text-sm text-[#232d46]">{recommendationNotice}</p>}
         <div aria-live="polite">
           {(error || search?.error) && <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error || search?.error}</p>}
           {loading && <p className="py-12 text-center text-slate-500">Loading saved results…</p>}
           {pending && <p className="flex items-center justify-center gap-2 py-10 text-sm"><Loader2 size={18} className="animate-spin" /> {search?.status === "RANKING" ? "Search results saved. Qwen is reviewing store recommendations." : "Searching registered stores."} You can close this window and return later.</p>}
         </div>
-        <div className="mt-6 space-y-4">
-          {savedResults.map(({ id, payload: row }) => (
+        <div className="mt-4 space-y-4">
+          {visibleResults.map(({ id, payload: row }) => (
             <article key={id} className={styles.card}>
               {row.recommendation && <div className="mb-3 flex flex-wrap items-center gap-2">
                 <span className={styles.rank}>{row.recommendation.rank !== null ? `Top ${row.recommendation.rank}` : "Other registered store"}</span>
-                <span className="text-xs text-slate-700">{row.recommendation.source === "rules" ? "Rule-based fallback" : "Qwen recommendation"}</span>
+                {row.recommendation.source === "rules" ? <span className="text-xs text-slate-700">Rule-based fallback</span> : <span title="AI recommendation" aria-label="AI recommendation" className="inline-flex rounded-full bg-blue-100 p-1.5 text-blue-800"><Bot size={17} aria-hidden="true" /></span>}
+                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${(row.recommendation.confidence?.percentage ?? 0) >= 60 ? "bg-blue-100 text-blue-800" : "bg-amber-100 text-amber-900"}`}>{typeof row.recommendation.confidence?.percentage === "number" ? `${row.recommendation.confidence.percentage}% confidence` : "Search again to assess confidence"}</span>
               </div>}
               <div className={styles.storeHeading}>
                 <div className="min-w-0">
@@ -206,10 +235,20 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
               </p>}
               {row.fetched_at && <p className="mt-1 text-xs text-slate-600">Evidence saved: {new Date(row.fetched_at).toLocaleString()}</p>}
               {row.recommendation && <p className="mt-3 rounded-xl bg-white/60 p-3 text-sm text-slate-800">{row.recommendation.reason}</p>}
+              {row.recommendation?.confidence && <details className="mt-2 text-xs text-slate-600">
+                <summary className="cursor-pointer font-semibold">Why this confidence level?</summary>
+                <ul className="mt-2 list-disc space-y-1 pl-4">{row.recommendation.confidence.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>
+                <p className="mt-2">{row.recommendation.confidence.notice}</p>
+              </details>}
               <PricingSources result={row} />
             </article>
           ))}
         </div>
+        {otherCount > 0 && <button type="button" onClick={() => setShowOtherStores((value) => !value)} aria-expanded={showOtherStores}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[#d5ddea] px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-[#e8eef7]">
+          {showOtherStores ? "Show Top 1–3 only" : `View ${otherCount} other store${otherCount === 1 ? "" : "s"}`}
+          <ChevronDown size={15} aria-hidden="true" className={showOtherStores ? "rotate-180" : ""} />
+        </button>}
         {!loading && !pending && !savedResults.length && !error && !search?.error && <p className={styles.empty}>No saved store listings yet. Search to check prices and availability.</p>}
       </div>
       <footer className={styles.footer}>

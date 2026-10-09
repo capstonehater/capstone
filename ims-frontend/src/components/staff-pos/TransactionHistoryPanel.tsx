@@ -3,7 +3,7 @@ import { PermissionAction } from "@/components/auth/PermissionGuard";
 import styles from "./TransactionHistory.module.css";
 import type { PosOrder } from "@/lib/pos";
 import type { OfflineCheckoutEntry } from "@/lib/pos-offline";
-import { formatDateTime, formatName, formatPeso } from "@/lib/pos-utils";
+import { formatDateTime, formatName, formatOrderReference, formatPeso } from "@/lib/pos-utils";
 
 type Props = {
   history: PosOrder[];
@@ -82,7 +82,7 @@ export default function TransactionHistoryPanel({
           history.map((txn) => (
             <tr key={txn.id}>
               <td className={styles.transaction}>
-                <p className="font-semibold">{txn.id}</p>
+                <p className="font-semibold">{formatOrderReference(txn)}</p>
                 <p className="text-xs text-slate-500">
                   {txn.items.length} item{txn.items.length === 1 ? "" : "s"} •{" "}
                   {txn.payments.map((payment) => payment.method).join(", ")}

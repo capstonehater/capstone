@@ -39,7 +39,7 @@ const SECTION_OPTIONS: Array<{
 }> = [
   {
     value: "dashboard",
-    label: "Dashboard",
+    label: "POS Overview",
     description: "Daily KPIs, sales trend, and the most recent POS orders.",
   },
   {
@@ -165,7 +165,7 @@ export default function PosReportsWorkspace() {
               </div>
             </div>
             <button type="button" className={styles.refresh} onClick={() => setRefreshToken((current) => current + 1)}><RefreshCw size={16} />Refresh {getRefreshLabel(activeSection)}</button>
-            <p className={styles.range}><Info size={14} />Active range: {getPresetLabel(preset)} <span>|</span> {from} to {to} <span>|</span> Manila time</p>
+            <p className={`${styles.range} ${styles.dashboardRange}`}><span><Info size={14} aria-hidden="true" />Active range: {getPresetLabel(preset)}</span><span className={styles.rangeDivider}>|</span><span>{from} to {to}</span><span className={styles.rangeDivider}>|</span><span>Manila time</span></p>
           </section>
         )}
         {activeSection !== "sales-analytics" && dateError && <ActionAlert tone="error" title="Invalid date range" message={dateError} onDismiss={() => setDateError(null)} />}

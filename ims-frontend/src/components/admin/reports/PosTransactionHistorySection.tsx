@@ -1,4 +1,6 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
+import ActionAlert from "@/components/feedback/ActionAlert";
 
 import ReportColumns from "./ReportColumns";
 import SearchInput from "@/components/ui/SearchInput";
@@ -167,7 +169,7 @@ export default function PosTransactionHistorySection({
         const filename = await exportPosTransactionHistoryExcel(snapshot);
         setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
-        const filename = exportPosTransactionHistoryPdf(snapshot);
+        const filename = await exportPosTransactionHistoryPdf(snapshot);
         setExportNotice(
           `Printable transaction history opened as ${filename}. Use your browser's Save as PDF option to finish the export.`,
         );
@@ -191,17 +193,9 @@ export default function PosTransactionHistorySection({
         </div>
       ) : null}
 
-      {exportError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {exportError}
-        </div>
-      ) : null}
+      {exportError ? <ActionAlert placement="header" tone="error" title="Export failed" message={exportError} onDismiss={() => setExportError(null)} /> : null}
 
-      {exportNotice ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {exportNotice}
-        </div>
-      ) : null}
+      {exportNotice ? <ActionAlert placement="header" tone="success" title="Export ready" message={exportNotice} onDismiss={() => setExportNotice(null)} /> : null}
 
       <section className="rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4">
@@ -260,7 +254,7 @@ export default function PosTransactionHistorySection({
               />
             </div>
             <div className="pos-history-exports">
-              <button
+              <PermissionAction permissions={["reports.view", "reports.export.excel"]}><button
                 type="button"
                 disabled={loading || exportingFormat !== null}
                 onClick={() => void handleExport("excel")}
@@ -268,8 +262,8 @@ export default function PosTransactionHistorySection({
               >
                 <FileSpreadsheet size={18} aria-hidden="true" />
                 <span>{exportingFormat === "excel" ? "Exporting..." : "Export Excel"}</span>
-              </button>
-              <button
+              </button></PermissionAction>
+              <PermissionAction permissions={["reports.view", "reports.export.pdf"]}><button
                 type="button"
                 disabled={loading || exportingFormat !== null}
                 onClick={() => void handleExport("pdf")}
@@ -277,7 +271,7 @@ export default function PosTransactionHistorySection({
               >
                 <FileText size={18} aria-hidden="true" />
                 <span>{exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}</span>
-              </button>
+              </button></PermissionAction>
             </div>
           </div>
         </div>

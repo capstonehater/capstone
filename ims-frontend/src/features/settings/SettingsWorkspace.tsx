@@ -7,6 +7,7 @@ import AccountSettingsCard from "@/components/admin/settings/AccountSettingsCard
 import ChangePasswordDialog from "@/components/admin/settings/ChangePasswordDialog";
 import EditAccountDialog from "@/components/admin/settings/EditAccountDialog";
 import SecuritySettingsCard from "@/components/admin/settings/SecuritySettingsCard";
+import StorageSettingsCard from "@/components/admin/settings/StorageSettingsCard";
 import {
   fetchSettingsAccount,
   type ChangePasswordResponse,
@@ -107,6 +108,7 @@ export default function SettingsWorkspace() {
 
       <AccountSettingsCard account={account} onEdit={() => setEditOpen(true)} />
       <SecuritySettingsCard onChangePassword={() => setPasswordOpen(true)} />
+      {account.role === "ADMINISTRATOR" ? <StorageSettingsCard /> : null}
 
       {editOpen ? (
         <EditAccountDialog

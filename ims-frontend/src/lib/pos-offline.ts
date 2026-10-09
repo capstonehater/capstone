@@ -65,6 +65,13 @@ export function getCachedMenuSnapshot() {
   return readJson<CachedMenuSnapshot | null>(MENU_CACHE_KEY, null);
 }
 
+export function clearCachedMenuSnapshot() {
+  const snapshot = window.localStorage.getItem(MENU_CACHE_KEY);
+  const bytes = snapshot ? new TextEncoder().encode(snapshot).length : 0;
+  window.localStorage.removeItem(MENU_CACHE_KEY);
+  return bytes;
+}
+
 export function loadQueuedCheckouts() {
   return readJson<OfflineCheckoutEntry[]>(CHECKOUT_QUEUE_KEY, []);
 }

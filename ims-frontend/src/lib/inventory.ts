@@ -10,6 +10,21 @@ export type InventoryUnit = {
   conversionFactor: DecimalString;
 };
 
+export type CreateInventoryUnitInput = {
+  name: string;
+  code: string;
+  dimension: InventoryUnit["dimension"];
+};
+
+export async function createInventoryUnit(input: CreateInventoryUnitInput, rawMaterialId?: string) {
+  const endpoint = rawMaterialId ? `/raw-materials/${rawMaterialId}/units` : "/units";
+  const response = await apiJsonFetch<{ unit: InventoryUnit }>(endpoint, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  return response.unit;
+}
+
 export type Supplier = {
   id: string;
   name: string;
@@ -20,6 +35,7 @@ export type Supplier = {
 };
 
 export type RawMaterial = {
+  categories?: { id: string; name: string }[];
   id: string;
   name: string;
   sku: string;
@@ -38,6 +54,7 @@ export type RawMaterial = {
 };
 
 export type InventorySummaryItem = {
+  categories?: { id: string; name: string }[];
   rawMaterialId: string;
   name: string;
   sku: string;
@@ -301,6 +318,7 @@ export async function createRawMaterial(input: {
   sku: string;
   unitId: string;
   reorderPoint: number;
+  categoryIds?: string[];
 }) {
   const response = await apiJsonFetch<{ rawMaterial: RawMaterial }>("/raw-materials", {
     method: "POST",
@@ -317,6 +335,7 @@ export async function updateRawMaterial(
     sku: string;
     unitId: string;
     reorderPoint: number;
+  categoryIds?: string[];
   }
 ) {
   const response = await apiJsonFetch<{ rawMaterial: RawMaterial }>(

@@ -6,19 +6,18 @@ import { PasswordResetNotifierService } from './password-reset-notifier.service'
 jest.mock('../config/env.validation', () => ({
   env: {
     NODE_ENV: 'development',
-    SMTP_HOST: 'smtp-relay.brevo.com',
+    SMTP_HOST: 'smtp.gmail.com',
     SMTP_PORT: 587,
-    SMTP_USER: 'smtp-login',
-    SMTP_PASSWORD: 'test-only',
+    SMTP_USER: 'sender@example.com',
+    SMTP_PASSWORD: 'abcd efgh ijkl mnop',
     SMTP_FROM_EMAIL: 'sender@example.com',
     SMTP_FROM_NAME: 'Cafe Salvacion',
     FRONTEND_APP_URL: 'https://app.example.com',
-    PASSWORD_RESET_TTL_MINUTES: 30,
   },
 }));
 jest.mock('nodemailer', () => ({ createTransport: jest.fn() }));
 
-describe('PasswordResetNotifierService SMTP delivery', () => {
+describe('Google SMTP account email delivery', () => {
   const sendMail = jest.fn();
   const close = jest.fn();
   const options = {
@@ -26,111 +25,133 @@ describe('PasswordResetNotifierService SMTP delivery', () => {
     resetUrl: 'https://app.example.com/reset-password?token=test&x=1',
   };
   let service: PasswordResetNotifierService;
-
   beforeEach(() => {
     jest.clearAllMocks();
     Object.assign(env, {
       NODE_ENV: 'development',
-      SMTP_HOST: 'smtp-relay.brevo.com',
-      SMTP_USER: 'smtp-login',
-      SMTP_PASSWORD: 'test-only',
+      SMTP_HOST: 'smtp.gmail.com',
+      SMTP_PORT: 587,
+      SMTP_USER: 'sender@example.com',
+      SMTP_PASSWORD: 'abcd efgh ijkl mnop',
       SMTP_FROM_EMAIL: 'sender@example.com',
     });
     (createTransport as jest.Mock).mockReturnValue({ sendMail, close });
-    sendMail.mockResolvedValue({ accepted: ['recipient@example.com'] });
+    sendMail.mockResolvedValue({ accepted: [options.email], rejected: [] });
     service = new PasswordResetNotifierService();
   });
-
-  it('sends the setup link to the requested user with TLS and the verified sender', async () => {
-    await service.sendResetLink({ ...options, isSetup: true });
-    expect(createTransport).toHaveBeenCalledWith(
-      expect.objectContaining({ port: 587, secure: false, requireTLS: true }),
-    );
-    expect(sendMail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        from: { name: 'Cafe Salvacion', address: 'sender@example.com' },
-        to: options.email,
-        subject: 'Cafe Salvacion - Set up your account',
-        text: expect.stringContaining(options.resetUrl),
-        html: expect.stringContaining('token=test&amp;x=1'),
-      }),
-    );
-    expect(close).toHaveBeenCalled();
-  });
-
-  it('uses password reset wording for existing accounts', async () => {
+  afterEach(() => jest.restoreAllMocks());
+  it('uses authenticated STARTTLS, timeouts, and disables file and URL access', async () => {
     await service.sendResetLink(options);
-    expect(sendMail).toHaveBeenCalledWith(
+    expect(createTransport).toHaveBeenCalledWith(
       expect.objectContaining({
-        subject: 'Cafe Salvacion - Reset your password',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        requireTLS: true,
+        tls: { minVersion: 'TLSv1.2' },
+        auth: { user: 'sender@example.com', pass: 'abcdefghijklmnop' },
+        connectionTimeout: 10000,
+        socketTimeout: 20000,
+        disableFileAccess: true,
+        disableUrlAccess: true,
       }),
     );
+    expect(close).toHaveBeenCalledTimes(1);
   });
-
-  it('reports SMTP failure without exposing provider errors', async () => {
-    sendMail.mockRejectedValueOnce(new Error('sensitive provider details'));
-    await expect(service.sendResetLink(options)).rejects.toThrow(
-      'Unable to send the account email.',
+  it('uses the supplied activation layout and the genuine single-use link', async () => {
+    await service.sendResetLink({ ...options, isSetup: true });
+    const message = sendMail.mock.calls[0][0];
+    expect(message).toMatchObject({
+      from: { name: 'Cafe Salvacion', address: 'sender@example.com' },
+      to: options.email,
+      subject: 'Cafe Salvacion - Set up your account',
+    });
+    expect(message.html).toContain('Welcome to Cafe Salvacion Team!');
+    expect(message.html).toContain('Set up your account');
+    expect(message.html).toContain(
+      'Open the link below to choose your Cafe Salvacion password.',
     );
-    expect(close).toHaveBeenCalled();
+    expect(message.html).toContain(
+      'href="https://app.example.com/reset-password?token=test&amp;x=1"',
+    );
+    expect(message.html).toContain(
+      'expires in 30 minutes and can only be opened once',
+    );
+    expect(message.html).toContain(
+      'Complete your password change in the first tab you open.',
+    );
+    expect(message.html).toContain(
+      'If you did not expect this email, you can ignore it.',
+    );
+    expect(message.text).toContain(options.resetUrl);
+    expect(message.html).not.toContain('link here');
   });
-
-  it('does not report success when no recipient was accepted', async () => {
-    sendMail.mockResolvedValueOnce({ accepted: [] });
-    await expect(service.sendResetLink(options)).rejects.toBeInstanceOf(
-      ServiceUnavailableException,
+  it('keeps password reset emails distinct from activation', async () => {
+    await service.sendResetLink(options);
+    expect(sendMail.mock.calls[0][0].subject).toBe(
+      'Cafe Salvacion - Reset your password',
+    );
+    expect(sendMail.mock.calls[0][0].html).not.toContain(
+      'Welcome to Cafe Salvacion Team!',
     );
   });
-
-  it('rejects incomplete SMTP configuration instead of silently logging a link', async () => {
-    Object.assign(env, { SMTP_FROM_EMAIL: undefined });
-    await expect(service.sendResetLink(options)).rejects.toThrow(
-      'Email delivery is not configured.',
-    );
-    expect(sendMail).not.toHaveBeenCalled();
+  it('escapes link attributes so content cannot inject HTML', async () => {
+    await service.sendResetLink({
+      ...options,
+      resetUrl: options.resetUrl + '\"<img src=x>',
+    });
+    const html = sendMail.mock.calls[0][0].html;
+    expect(html).toContain('&quot;&lt;img src=x&gt;');
+    expect(html).not.toContain('<img src=x>');
   });
-
-  it('never sends real email in automated test mode', async () => {
+  it('uses implicit TLS on port 465', async () => {
+    Object.assign(env, { SMTP_PORT: 465 });
+    await service.sendResetLink(options);
+    expect(createTransport).toHaveBeenCalledWith(
+      expect.objectContaining({ secure: true, requireTLS: true }),
+    );
+  });
+  it.each(['SMTP_HOST', 'SMTP_USER', 'SMTP_PASSWORD', 'SMTP_FROM_EMAIL'])(
+    'fails closed when %s is missing',
+    async (key) => {
+      Object.assign(env, { [key]: undefined });
+      await expect(service.sendResetLink(options)).rejects.toBeInstanceOf(
+        ServiceUnavailableException,
+      );
+      expect(createTransport).not.toHaveBeenCalled();
+    },
+  );
+  it('never sends real mail in automated test mode', async () => {
     Object.assign(env, { NODE_ENV: 'test' });
     await service.sendResetLink(options);
     expect(createTransport).not.toHaveBeenCalled();
   });
-
-  it('logs safe SMTP diagnostics without exposing the provider response', async () => {
+  it('rejects delivery failures and logs no secrets, links, recipient, or provider text', async () => {
     const log = jest.spyOn(Logger.prototype, 'error').mockImplementation();
-    try {
-      sendMail.mockRejectedValueOnce(
-        Object.assign(new Error('private details'), {
-          code: 'EENVELOPE',
-          command: 'MAIL FROM',
-          responseCode: 550,
-          response: 'private sender and credentials',
-        }),
-      );
-      await expect(service.sendResetLink(options)).rejects.toBeInstanceOf(
-        ServiceUnavailableException,
-      );
-      expect(log).toHaveBeenCalledWith(
-        expect.stringContaining(
-          'code=EENVELOPE, command=MAIL FROM, responseCode=550',
-        ),
-      );
-      expect(JSON.stringify(log.mock.calls)).not.toContain('private');
-    } finally {
-      log.mockRestore();
-    }
-  });
-
-  it('rejects missing SMTP configuration in development', async () => {
-    Object.assign(env, {
-      SMTP_HOST: undefined,
-      SMTP_USER: undefined,
-      SMTP_PASSWORD: undefined,
-      SMTP_FROM_EMAIL: undefined,
-    });
-    await expect(service.sendResetLink(options)).rejects.toThrow(
-      'Email delivery is not configured.',
+    sendMail.mockRejectedValueOnce(
+      Object.assign(Error('private provider credentials'), {
+        code: 'EAUTH',
+        responseCode: 535,
+        response: options.resetUrl,
+      }),
     );
-    expect(createTransport).not.toHaveBeenCalled();
+    await expect(service.sendResetLink(options)).rejects.toThrow(
+      'Unable to send the account email',
+    );
+    expect(log).toHaveBeenCalledWith(
+      expect.stringContaining('code=EAUTH, responseCode=535'),
+    );
+    expect(JSON.stringify(log.mock.calls)).not.toMatch(
+      /private|token=test|recipient|abcdefghijklmnop/,
+    );
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+  it('does not report success when the recipient is rejected', async () => {
+    jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    sendMail.mockResolvedValueOnce({ accepted: [], rejected: [options.email] });
+    await expect(service.sendResetLink(options)).rejects.toBeInstanceOf(
+      ServiceUnavailableException,
+    );
+    expect(close).toHaveBeenCalledTimes(1);
   });
 });

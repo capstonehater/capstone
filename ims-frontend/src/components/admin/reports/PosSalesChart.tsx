@@ -15,8 +15,8 @@ export default function PosSalesChart({ points, valueFormatter, emptyLabel }: { 
         const value = minimum + (maximum - minimum) * index / 5;
         return <g key={index}><line x1="100" x2="1030" y1={y(value)} y2={y(value)} stroke="#e6e6e6" /><text x="88" y={y(value) + 4} textAnchor="end" fontSize="12" fill="#777">{valueFormatter(value)}</text></g>;
       })}
-      <polyline points={values.map((value, index) => `${x(index)},${y(value)}`).join(" ")} fill="none" stroke="#165dff" strokeWidth="3" strokeLinejoin="round" />
-      {points.map((point, index) => <g key={point.key}><circle cx={x(index)} cy={y(values[index])} r="4" fill="#165dff"><title>{point.label}: {valueFormatter(values[index])} {point.detail}</title></circle><text x={x(index)} y="348" textAnchor="middle" fontSize="12" fill="#666">{point.label}</text></g>)}
+      <polyline points={values.map((value, index) => `${x(index)},${y(value)}`).join(" ")} fill="none" stroke="#232d46" strokeWidth="3" strokeLinejoin="round" />
+      {points.map((point, index) => <g key={point.key}><circle cx={x(index)} cy={y(values[index])} r="4" fill="#232d46"><title>{point.label}: {valueFormatter(values[index])} {point.detail}</title></circle><text x={x(index)} y="348" textAnchor="middle" fontSize="12" fill="#666">{point.label}</text></g>)}
     </svg>
     <div className={styles.chartLegend}>Net sales (₱)</div>
     <details className="mt-3 text-xs text-slate-500"><summary className="cursor-pointer">View hourly values</summary><ReportColumns title="Hourly Values" columns={["Hour","Net sales","Transactions"]}><table className="mt-2 w-full text-left"><thead><tr><th>Hour</th><th>Net sales</th><th>Transactions</th></tr></thead><tbody>{points.map((point, index) => <tr key={point.key}><td>{point.label}</td><td>{valueFormatter(values[index])}</td><td>{point.detail}</td></tr>)}</tbody></table></ReportColumns></details>

@@ -57,19 +57,23 @@ function InlineActionButton({
   onClick,
   destructive = false,
   blue = false,
+  black = false,
 }: {
   label: string;
   icon: React.ReactNode;
   onClick: () => void;
   destructive?: boolean;
   blue?: boolean;
+  black?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-        blue
+        black
+          ? "border-black bg-black text-white hover:border-neutral-800 hover:bg-neutral-800"
+          : blue
           ? "border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"
           : destructive
           ? "border-rose-200 text-rose-700 hover:border-rose-300 hover:bg-rose-50"
@@ -192,18 +196,18 @@ export default function MaterialDetailPanel({
           </p>
         </div>
 
-        <div className="flex max-w-full flex-col items-start gap-2">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className={styles.materialActionGroups}>
+          <div className={styles.materialPrimaryActions}>
           <PermissionAction permission={"suppliers.searchAvailability"}><InlineActionButton label="Store Availability" icon={<Store size={15} />} onClick={onStoreAvailability} /></PermissionAction>
           <PermissionAction permission={"inventory.edit"}><InlineActionButton label="Edit" icon={<ClipboardList size={15} />} onClick={onEdit} /></PermissionAction>
           <PermissionAction permission={"inventory.waste"}><InlineActionButton label="Record Waste" icon={<FlaskConical size={15} />} onClick={onWaste} /></PermissionAction>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className={styles.materialSecondaryActions}>
           <PermissionAction permission={"inventory.archive"}><InlineActionButton
             label={selectedMaterial?.isActive === false ? "Unarchive" : "Archive"}
             icon={selectedMaterial?.isActive === false ? <ArchiveRestore size={15} /> : <Archive size={15} />}
             onClick={onArchive}
-            destructive={selectedMaterial?.isActive !== false}
+            black={selectedMaterial?.isActive !== false}
             blue={selectedMaterial?.isActive === false}
           /></PermissionAction>
           <PermissionAction permission={"inventory.archive"}><InlineActionButton label="Delete" icon={<Trash2 size={15} />} onClick={onDelete} destructive /></PermissionAction>
@@ -364,7 +368,7 @@ export default function MaterialDetailPanel({
                   <th className="px-4 py-3">Occurred</th>
                   <th className="px-4 py-3">Type</th>
                   <th className="px-4 py-3">Reason</th>
-                  <th className="px-4 py-3">Delta</th>
+                  <th className="px-4 py-3">Change</th>
                   <th className="px-4 py-3">Cost</th>
                   <th className="px-4 py-3">Actor</th>
                 </tr>

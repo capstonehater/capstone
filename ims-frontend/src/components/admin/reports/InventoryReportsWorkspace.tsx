@@ -1,4 +1,6 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
+import ActionAlert from "@/components/feedback/ActionAlert";
 import WorkspaceLoading from "@/components/admin/WorkspaceLoading";
 import DateFilter from "@/components/staff-pos/DateFilter";
 
@@ -179,22 +181,14 @@ export default function InventoryReportsWorkspace() {
         <DateFilter label="To date" value={to} min={from || undefined} onChange={setTo} />
         <div className={styles.toolbarActions}>
           <button type="button" className={styles.refresh} onClick={() => setRefreshToken((current) => current + 1)}><RefreshCw size={15} />Refresh</button>
-          <button type="button" disabled={!canExport || exportingFormat !== null} onClick={() => void handleExport("excel")}><FileDown size={15} />{exportingFormat === "excel" ? "Exporting..." : "Export Excel"}</button>
-          <button type="button" disabled={!canExport || exportingFormat !== null} onClick={() => void handleExport("pdf")}><FileDown size={15} />{exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}</button>
+          <PermissionAction permissions={["reports.view", "reports.export.excel"]}><button type="button" disabled={!canExport || exportingFormat !== null} onClick={() => void handleExport("excel")}><FileDown size={15} />{exportingFormat === "excel" ? "Exporting..." : "Export Excel"}</button></PermissionAction>
+          <PermissionAction permissions={["reports.view", "reports.export.pdf"]}><button type="button" disabled={!canExport || exportingFormat !== null} onClick={() => void handleExport("pdf")}><FileDown size={15} />{exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}</button></PermissionAction>
         </div>
       </section>
 
-      {exportError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {exportError}
-        </div>
-      ) : null}
+      {exportError ? <ActionAlert placement="header" tone="error" title="Export failed" message={exportError} onDismiss={() => setExportError(null)} /> : null}
 
-      {exportNotice ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {exportNotice}
-        </div>
-      ) : null}
+      {exportNotice ? <ActionAlert placement="header" tone="success" title="Export ready" message={exportNotice} onDismiss={() => setExportNotice(null)} /> : null}
 
       <WidgetCard title="KPI Summary" className={styles.kpi}>
         {kpiError && <p role="alert" className="text-red-700">{kpiError}</p>}

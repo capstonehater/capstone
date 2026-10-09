@@ -233,7 +233,7 @@ describe('Report endpoint authorization (real HTTP guards and resolver)', () => 
     >;
     expect(
       Object.getOwnPropertyNames(prototype)
-        .filter((name) => name !== 'constructor')
+        .filter((name) => name !== 'constructor' && !name.startsWith('authorize'))
         .sort(),
     ).toEqual(routes.map((route) => route.handler).sort());
     for (const route of routes) {
@@ -314,12 +314,26 @@ describe('Report endpoint authorization (real HTTP guards and resolver)', () => 
       RequirePermission('reports.superuser' as PermissionKey),
     ).toThrow();
   });
-  it('uses only the existing reports.view catalog permission', () => {
+  it('includes separate report viewing and export permissions', () => {
     expect(
       PERMISSION_CATALOG.filter((item) => item.module === 'reports').map(
         (item) => item.key,
       ),
-    ).toEqual(['reports.view']);
+    ).toEqual(['reports.view', 'reports.export.excel', 'reports.export.pdf']);
+  });
+  it.each(['excel', 'pdf'])('requires report access and the matching %s export grant', async (format) => {
+    const endpoint = `/reports/export-access/${format}`;
+    const check = () => request(app.getHttpServer() as Server).get(endpoint).set('Cookie', 'test_session=valid');
+    grants = ['reports.view'];
+    await check().expect(403);
+    grants = [`reports.export.${format}`];
+    await check().expect(403);
+    grants = ['reports.view', `reports.export.${format === 'excel' ? 'pdf' : 'excel'}`];
+    await check().expect(403);
+    grants = ['reports.view', `reports.export.${format}`];
+    await check().expect(200, { allowed: true });
+    grants = ['reports.view'];
+    await check().expect(403);
   });
   it('revocation takes effect on the next request', async () => {
     grants = ['reports.view'];

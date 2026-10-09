@@ -220,6 +220,7 @@ model Category {
   parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   children Category[] @relation("CategoryHierarchy")
   products Product[]
+  rawMaterials RawMaterial[] @relation("RawMaterialCategories")
 
   @@unique([parentId, name])
   @@index([parentId])
@@ -346,6 +347,7 @@ model Unit {
 }
 
 model RawMaterial {
+  categories Category[] @relation("RawMaterialCategories")
   storeSearches StoreAvailabilitySearch[]
   id           String   @id @default(uuid())
   unitId       String   @map("unit_id")

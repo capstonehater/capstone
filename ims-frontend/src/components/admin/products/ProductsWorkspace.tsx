@@ -1058,6 +1058,8 @@ export default function ProductsWorkspace() {
       /></PermissionAction>}
 
       <PermissionAction permission={"products.edit"}><VariantFormDialog
+        productName={selectedProduct?.name ?? "Product"}
+        existingSkus={selectedProduct?.variants.map((variant) => variant.sku) ?? []}
         mode={variantDialog?.mode ?? "create"}
         open={Boolean(variantDialog)}
         variant={variantDialog?.mode === "edit" ? variantDialog.variant : null}

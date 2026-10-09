@@ -1,7 +1,6 @@
 "use client";
 
-import { formatUnit } from "@/lib/units";
-import AdminSelect from "@/components/admin/AdminSelect";
+import BaseUnitPicker from "./BaseUnitPicker";
 import modalStyles from "./InventoryModal.module.css";
 import { LockKeyhole, PackagePlus, Plus } from "lucide-react";
 
@@ -29,6 +28,7 @@ type MaterialFormState = {
   sku: string;
   unitId: string;
   reorderPoint: string;
+  categoryIds: string[];
 };
 
 function makeMaterialSku(name: string, existingSkus: string[]) {
@@ -51,6 +51,8 @@ type RawMaterialModalsProps = {
   activePanel: PanelMode;
   submitting: boolean;
   units: InventoryUnit[];
+  onUnitCreated: (unit: InventoryUnit) => void;
+  categories: { id: string; name: string }[];
   selectedMaterial: RawMaterial | null;
   existingSkus: string[];
   materialForm: MaterialFormState;
@@ -66,6 +68,8 @@ export default function RawMaterialModals({
   activePanel,
   submitting,
   units,
+  onUnitCreated,
+  categories,
   selectedMaterial,
   existingSkus,
   materialForm,
@@ -76,6 +80,7 @@ export default function RawMaterialModals({
   onArchiveMaterial,
   onDeleteMaterial,
 }: RawMaterialModalsProps) {
+  const [unitSaving, setUnitSaving] = useState(false);
   const [previousPanel, setPreviousPanel] = useState(activePanel);
   const [validationAttempted, setValidationAttempted] = useState(false);
   const [reorderInputError, setReorderInputError] = useState<string | null>(null);
@@ -90,6 +95,38 @@ export default function RawMaterialModals({
     ? !materialForm.reorderPoint.trim() ? "Reorder point is required." : !/^[0-9]{1,5}$/.test(materialForm.reorderPoint) ? "Enter a whole number from 0 to 99999." : undefined
     : undefined);
   const invalidClasses = " !border-red-600 !bg-red-50 focus:!border-red-600 focus:!ring-red-600/15";
+  const selectedCount = categories.filter((category) => materialForm.categoryIds.includes(category.id)).length;
+  const allSelected = categories.length > 0 && selectedCount === categories.length;
+  const categorySelection = (
+    <fieldset className={modalStyles.materialCategories} disabled={submitting}>
+      <legend>Product categories</legend>
+      <p id="material-categories-hint">{activePanel === "edit-material"
+        ? "Saved categories are already selected. Add or remove selections to update where this ingredient can be used."
+        : "Only products in the selected categories can use this ingredient. Unchecked categories cannot use it."}</p>
+      <div className={modalStyles.materialCategoryToolbar}>
+        <label className={modalStyles.materialCategorySelectAll}>
+          <input type="checkbox" checked={allSelected}
+            ref={(input) => { if (input) input.indeterminate = selectedCount > 0 && !allSelected; }}
+            disabled={!categories.length}
+            onChange={(event) => onMaterialFormChange((current) => ({ ...current, categoryIds: event.target.checked ? categories.map((category) => category.id) : [] }))} />
+          Select all
+        </label>
+        <span>{selectedCount} of {categories.length} selected</span>
+      </div>
+      <div className={modalStyles.materialCategoryGrid} aria-describedby="material-categories-hint">
+        {categories.map((category) => (
+          <label key={category.id} className={`${modalStyles.materialCategoryOption} ${materialForm.categoryIds.includes(category.id) ? modalStyles.materialCategorySelected : ""}`}>
+            <input type="checkbox" checked={materialForm.categoryIds.includes(category.id)}
+              onChange={(event) => onMaterialFormChange((current) => ({ ...current,
+                categoryIds: event.target.checked ? [...current.categoryIds, category.id] : current.categoryIds.filter((id) => id !== category.id),
+              }))} />
+            <span>{category.name}</span>
+          </label>
+        ))}
+      </div>
+      {!categories.length && <p>No product categories available.</p>}
+    </fieldset>
+  );
   return (
     <>
       {activePanel === "create-material" ? (
@@ -103,6 +140,7 @@ export default function RawMaterialModals({
         >
           <form noValidate className={`${modalStyles.rawMaterialCreateForm} grid gap-4 md:grid-cols-2`} onSubmit={(event) => {
             event.preventDefault();
+            if (unitSaving) return;
             setValidationAttempted(true);
             if (!materialForm.name.trim() || !units.some((unit) => unit.id === materialForm.unitId) || !/^[0-9]{1,5}$/.test(materialForm.reorderPoint) || reorderInputError) return;
             onCreateMaterial(event);
@@ -143,7 +181,7 @@ export default function RawMaterialModals({
               <p id="material-sku-hint" className={modalStyles.materialSkuHint}><LockKeyhole size={13} aria-hidden="true" /> Automatically generated</p>
             </InventoryField>
             <div className={unitError ? "rounded-lg border border-red-600 bg-red-50 p-1" : undefined}>
-              <AdminSelect label="Base unit" required describedBy={unitError ? "material-unit-error" : undefined} value={materialForm.unitId} onChange={(unitId) => onMaterialFormChange((current) => ({ ...current, unitId }))} options={[{ value: "", label: "Select unit" }, ...units.map((unit) => ({ value: unit.id, label: `${formatUnit(unit.name)} (${formatUnit(unit.code)})` }))]} />
+              <BaseUnitPicker onSavingChange={setUnitSaving} units={units} onUnitCreated={onUnitCreated} required disabled={submitting} describedBy={unitError ? "material-unit-error" : undefined} value={materialForm.unitId} onChange={(unitId) => onMaterialFormChange((current) => ({ ...current, unitId }))} />
               {unitError && <p id="material-unit-error" role="alert" className="mt-2 text-sm text-red-600">{unitError}</p>}
             </div>
             <InventoryField htmlFor="material-reorder" label="Reorder point" required>
@@ -171,8 +209,9 @@ export default function RawMaterialModals({
               />
               {reorderError && <p id="material-reorder-error" role="alert" className="text-sm text-red-600">{reorderError}</p>}
             </InventoryField>
+            {categorySelection}
             <div className={modalStyles.materialFormActions}>
-              <button type="submit" disabled={submitting}>
+              <button type="submit" disabled={submitting || unitSaving}>
                 <Plus size={16} aria-hidden="true" />{submitting ? "Creating…" : "Create Material"}
               </button>
             </div>
@@ -187,7 +226,7 @@ export default function RawMaterialModals({
           description="Update metadata without changing the existing stock or ledger history."
           onClose={onClose}
         >
-          <form className="grid gap-4 md:grid-cols-2" onSubmit={onUpdateMaterial}>
+          <form className="grid gap-4 md:grid-cols-2" onSubmit={(event) => { if (unitSaving) { event.preventDefault(); return; } onUpdateMaterial(event); }}>
             <InventoryField htmlFor="edit-material-name" label="Raw material name">
               <input
                 id="edit-material-name"
@@ -208,7 +247,7 @@ export default function RawMaterialModals({
                 className={inventoryInputClasses}
               />
             </InventoryField>
-            <AdminSelect label="Base unit" value={materialForm.unitId} onChange={(unitId) => onMaterialFormChange((current) => ({ ...current, unitId }))} options={[{ value: "", label: "Select unit" }, ...units.map((unit) => ({ value: unit.id, label: `${formatUnit(unit.name)} (${formatUnit(unit.code)})` }))]} />
+            <BaseUnitPicker onSavingChange={setUnitSaving} units={units} onUnitCreated={onUnitCreated} rawMaterialId={selectedMaterial.id} disabled={submitting} value={materialForm.unitId} onChange={(unitId) => onMaterialFormChange((current) => ({ ...current, unitId }))} />
             <InventoryField htmlFor="edit-material-reorder" label="Reorder point">
               <input
                 id="edit-material-reorder"
@@ -226,8 +265,9 @@ export default function RawMaterialModals({
                 className={inventoryInputClasses}
               />
             </InventoryField>
+            {categorySelection}
             <ModalActions>
-              <button type="submit" disabled={submitting} className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white">
+              <button type="submit" disabled={submitting || unitSaving} className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white">
                 Save Changes
               </button>
             </ModalActions>
@@ -251,7 +291,7 @@ export default function RawMaterialModals({
               {selectedMaterial.isActive ? "Use this when the raw material should stop appearing in normal admin workflows. This does not delete history or existing batches." : "The material will appear in active inventory again, with its existing batches and history."}
             </p>
             <ModalActions>
-              <button type="button" onClick={onArchiveMaterial} disabled={submitting} className={selectedMaterial.isActive ? modalStyles.archiveAction : modalStyles.unarchiveAction}>
+              <button type="button" onClick={onArchiveMaterial} disabled={submitting} className={selectedMaterial.isActive ? modalStyles.archiveBlackAction : modalStyles.unarchiveAction}>
                 {selectedMaterial.isActive ? "Archive Material" : "Unarchive Material"}
               </button>
             </ModalActions>

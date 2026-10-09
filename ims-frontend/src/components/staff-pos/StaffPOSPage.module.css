@@ -311,3 +311,11 @@
 
 .quantityControl button:disabled { background: #f1f5f9; color: #a8b3c3; cursor: not-allowed; opacity: .65; }
 .quantityControl button:disabled:hover { background: #f1f5f9; }
+
+@media (max-width:767px) {
+  .posPage[data-focus-mode="true"] .categoryPanel { padding:0 2px 4px; }
+  .posPage[data-focus-mode="true"] .categoryPanel > div:first-child { margin-bottom:12px; }
+  .posPage[data-focus-mode="true"] .categoryPanel > div:last-child { gap:10px; }
+  .posPage[data-focus-mode="true"] .categoryCard { min-height:80px; padding:12px 8px; font-size:15px; }
+  .posPage[data-focus-mode="true"] .categoryPanel h2 { margin:0; font-size:22px; line-height:1.3; }
+}

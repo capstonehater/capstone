@@ -124,3 +124,37 @@
 .workspace :global(.report-movements-table) th, .workspace :global(.report-movements-table) td { padding:12px 16px; vertical-align:middle; }
 .workspace :global(.report-movements-table) th:nth-child(-n+3), .workspace :global(.report-movements-table) td:nth-child(-n+3):not([colspan]) { text-align:left; }
 .workspace :global(.report-movements-table) th:nth-child(n+4), .workspace :global(.report-movements-table) td:nth-child(n+4) { text-align:right; font-variant-numeric:tabular-nums; }
+
+@media (max-width:639px) {
+  .workspace .toolbar { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:14px 10px; }
+  .toolbar > strong { grid-column:1 / -1; }
+  .toolbar > div { min-width:0; width:100%; }
+  .toolbar label { display:block; margin-bottom:6px; }
+  .toolbar > div:not(.toolbarActions) button { width:100%; min-width:0; min-height:44px; padding:9px 8px; font-size:12px; }
+  .toolbar > div:not(.toolbarActions) button span { min-width:0; }
+  .toolbarActions { grid-column:1 / -1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); margin-left:0; gap:8px; }
+  .toolbarActions button { min-width:0; min-height:44px; justify-content:center; padding:10px 8px; font-size:12px; }
+  .toolbarActions .refresh { grid-column:1 / -1; }
+  .toolbarActions button svg { flex-shrink:0; }
+}
+
+@media (max-width:639px) {
+  .workspace [data-report="consumption-metrics"] { gap:10px; }
+  .workspace [data-report="consumption-metrics"] > div { padding:14px; min-height:120px; }
+  .workspace [data-report="consumption-metrics"] > div > div { min-height:40px; margin-bottom:10px; }
+  .workspace [data-report="consumption-metrics"] p { font-size:13px; line-height:1.5; }
+  .workspace [data-report="consumption-metrics"] h3 { font-size:22px; white-space:nowrap; overflow-wrap:normal; font-variant-numeric:tabular-nums; }
+}
+@media (max-width:479px) {
+  .workspace [data-report="consumption-metrics"] { grid-template-columns:minmax(0,1fr); }
+  .workspace [data-report="consumption-metrics"] > div { min-height:0; padding:16px; }
+  .workspace [data-report="consumption-metrics"] > div > div { min-height:0; margin-bottom:8px; }
+  .workspace [data-report="consumption-metrics"] h3 { font-size:24px; }
+}
+
+@media (max-width:639px) {
+  .workspace h2 { font-size:16px; line-height:1.4; white-space:normal; overflow-wrap:anywhere; }
+  .workspace :global(.widget-card-header) { flex-direction:column; align-items:stretch; gap:10px; }
+  .workspace :global(.widget-card-header) h2 { width:100%; min-width:0; margin:0; }
+  .workspace :global(.widget-card-header) > div { align-self:flex-start; max-width:100%; flex-wrap:wrap; }
+}

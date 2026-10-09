@@ -28,6 +28,16 @@ const finish = request => request.resolve(new Response('{"count":3}', {
   headers: { 'Content-Type': 'application/json' },
 }));
 
+test('login uses the same-origin backend proxy and includes the session cookie', async () => {
+  global.window.location = { origin: 'https://v4k1z61l-3000.asse.devtunnels.ms' };
+  const login = apiFetch('/auth/login', { method: 'POST', body: '{}' });
+  assert.equal(requests[0].url, '/backend/auth/login');
+  assert.equal(requests[0].options.credentials, 'include');
+  assert.equal(requests[0].options.headers.get('X-IMS-Browser-Origin'), global.window.location.origin);
+  finish(requests[0]);
+  await login;
+});
+
 test('concurrent browser reads share a fetch with independently readable bodies; subsequent reads are fresh', async () => {
   const first = apiJsonFetch('/alerts/unread-count');
   const second = apiJsonFetch('/alerts/unread-count');

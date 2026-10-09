@@ -1,4 +1,6 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
+import ActionAlert from "@/components/feedback/ActionAlert";
 
 import ReportColumns from "./ReportColumns";
 import PosReportEmpty from "./PosReportEmpty";
@@ -95,7 +97,7 @@ export default function PosPaymentReportsSection({
         const filename = await exportPosPaymentReportsExcel(snapshot);
         setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
-        const filename = exportPosPaymentReportsPdf(snapshot);
+        const filename = await exportPosPaymentReportsPdf(snapshot);
         setExportNotice(
           `Printable payment report opened as ${filename}. Use your browser's Save as PDF option to finish the export.`,
         );
@@ -117,17 +119,9 @@ export default function PosPaymentReportsSection({
         </div>
       ) : null}
 
-      {exportError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {exportError}
-        </div>
-      ) : null}
+      {exportError ? <ActionAlert placement="header" tone="error" title="Export failed" message={exportError} onDismiss={() => setExportError(null)} /> : null}
 
-      {exportNotice ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {exportNotice}
-        </div>
-      ) : null}
+      {exportNotice ? <ActionAlert placement="header" tone="success" title="Export ready" message={exportNotice} onDismiss={() => setExportNotice(null)} /> : null}
 
       <section className="rounded-2xl bg-white p-6 shadow-sm">
         <div className={styles.peakHeader}>
@@ -139,7 +133,7 @@ export default function PosPaymentReportsSection({
             </p>
           </div>
           <div className={styles.peakControls}>
-            <button
+            <PermissionAction permissions={["reports.view", "reports.export.excel"]}><button
               type="button"
               disabled={loading || exportingFormat !== null}
               onClick={() => void handleExport("excel")}
@@ -147,8 +141,8 @@ export default function PosPaymentReportsSection({
             >
               <FileSpreadsheet size={18} aria-hidden="true" />
               <span>{exportingFormat === "excel" ? "Exporting..." : "Export Excel"}</span>
-            </button>
-            <button
+            </button></PermissionAction>
+            <PermissionAction permissions={["reports.view", "reports.export.pdf"]}><button
               type="button"
               disabled={loading || exportingFormat !== null}
               onClick={() => void handleExport("pdf")}
@@ -156,7 +150,7 @@ export default function PosPaymentReportsSection({
             >
               <FileText size={18} aria-hidden="true" />
               <span>{exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}</span>
-            </button>
+            </button></PermissionAction>
           </div>
         </div>
       </section>
@@ -167,7 +161,7 @@ export default function PosPaymentReportsSection({
           value={loading ? "..." : formatPeso(report?.summary.totalCollected ?? "0")}
         />
         <SummaryCard
-          title="Cash"
+          title="Cash (after change)"
           value={loading ? "..." : formatPeso(report?.summary.cashTotal ?? "0")}
         />
         <SummaryCard
@@ -206,7 +200,7 @@ export default function PosPaymentReportsSection({
               ) : (report?.breakdown ?? []).length === 0 ? (
                 <PosReportEmpty message="No payment records matched the selected date range." />
               ) : (
-                report?.breakdown.map((row) => (
+                report?.breakdown.filter((row) => row.method !== "OTHER").map((row) => (
                   <div
                     key={row.method}
                     className="grid grid-cols-[1fr_1fr_0.8fr_0.8fr_0.8fr] gap-3 border-b px-4 py-4 text-sm last:border-b-0"

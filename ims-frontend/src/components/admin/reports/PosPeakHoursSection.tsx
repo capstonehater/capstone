@@ -1,4 +1,6 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
+import ActionAlert from "@/components/feedback/ActionAlert";
 
 import ReportColumns from "./ReportColumns";
 import AdminSelect from "@/components/admin/AdminSelect";
@@ -124,7 +126,7 @@ export default function PosPeakHoursSection({
         const filename = await exportPosPeakHoursExcel(snapshot);
         setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
-        const filename = exportPosPeakHoursPdf(snapshot);
+        const filename = await exportPosPeakHoursPdf(snapshot);
         setExportNotice(
           `Printable peak-hours report opened as ${filename}. Use your browser's Save as PDF option to finish the export.`,
         );
@@ -138,6 +140,12 @@ export default function PosPeakHoursSection({
     }
   };
 
+  const hourlyRows = (report?.hourly ?? []).filter((row) => row.hour >= 13 && row.hour <= 20);
+  const busiestHours = hourlyRows.filter((row) => row.transactionCount > 0)
+    .sort((a, b) => b.transactionCount - a.transactionCount || Number(b.netSales) - Number(a.netSales) || a.hour - b.hour).slice(0, 3);
+  const slowestHours = [...hourlyRows]
+    .sort((a, b) => Number(a.netSales) - Number(b.netSales) || a.transactionCount - b.transactionCount || a.hour - b.hour).slice(0, 3);
+
   return (
     <div className="space-y-6">
       {error ? (
@@ -146,17 +154,9 @@ export default function PosPeakHoursSection({
         </div>
       ) : null}
 
-      {exportError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {exportError}
-        </div>
-      ) : null}
+      {exportError ? <ActionAlert placement="header" tone="error" title="Export failed" message={exportError} onDismiss={() => setExportError(null)} /> : null}
 
-      {exportNotice ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {exportNotice}
-        </div>
-      ) : null}
+      {exportNotice ? <ActionAlert placement="header" tone="success" title="Export ready" message={exportNotice} onDismiss={() => setExportNotice(null)} /> : null}
 
       <section className="rounded-2xl bg-white p-6 shadow-sm">
         <div className={styles.peakHeader}>
@@ -194,7 +194,7 @@ export default function PosPeakHoursSection({
                 </button>
               ))}
             </div>
-            <button
+            <PermissionAction permissions={["reports.view", "reports.export.excel"]}><button
               type="button"
               disabled={loading || exportingFormat !== null}
               onClick={() => void handleExport("excel")}
@@ -202,8 +202,8 @@ export default function PosPeakHoursSection({
             >
               <FileSpreadsheet size={18} aria-hidden="true" />
               <span>{exportingFormat === "excel" ? "Exporting..." : "Export Excel"}</span>
-            </button>
-            <button
+            </button></PermissionAction>
+            <PermissionAction permissions={["reports.view", "reports.export.pdf"]}><button
               type="button"
               disabled={loading || exportingFormat !== null}
               onClick={() => void handleExport("pdf")}
@@ -211,7 +211,7 @@ export default function PosPeakHoursSection({
             >
               <FileText size={18} aria-hidden="true" />
               <span>{exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}</span>
-            </button>
+            </button></PermissionAction>
           </div>
         </div>
       </section>
@@ -227,11 +227,11 @@ export default function PosPeakHoursSection({
         />
         <SummaryCard
           title="Busiest Hour"
-          value={loading ? "..." : report?.summary.busiestHour?.label ?? "N/A"}
+          value={loading ? "..." : busiestHours[0]?.label ?? "N/A"}
         />
         <SummaryCard
           title="Slowest Hour"
-          value={loading ? "..." : report?.summary.slowestHour?.label ?? "N/A"}
+          value={loading ? "..." : slowestHours[0]?.label ?? "N/A"}
         />
       </section>
 
@@ -239,7 +239,7 @@ export default function PosPeakHoursSection({
         <div className="space-y-6">
           <WidgetCard title="Busiest Hours">
             <div className="space-y-3">
-              {(loading ? [] : report?.busiestHours ?? []).map((row) => (
+              {(loading ? [] : busiestHours).map((row) => (
                 <div
                   key={`busiest-${row.hour}`}
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
@@ -247,7 +247,7 @@ export default function PosPeakHoursSection({
                   <div className="flex items-center justify-between gap-4">
                     <div className="font-semibold text-slate-900">{row.label}</div>
                     <div className="text-sm font-semibold text-slate-700">
-                      {row.transactionCount} tx
+                      {row.transactionCount} {row.transactionCount === 1 ? "transaction" : "transactions"}
                     </div>
                   </div>
                   <div className="mt-2 text-sm text-slate-600">
@@ -255,7 +255,7 @@ export default function PosPeakHoursSection({
                   </div>
                 </div>
               ))}
-              {!loading && (report?.busiestHours ?? []).length === 0 ? (
+              {!loading && (busiestHours).length === 0 ? (
                 <p className="text-sm text-slate-500">No hourly transactions matched the filter.</p>
               ) : null}
             </div>
@@ -263,7 +263,7 @@ export default function PosPeakHoursSection({
 
           <WidgetCard title="Slowest Hours">
             <div className="space-y-3">
-              {(loading ? [] : report?.slowestHours ?? []).map((row) => (
+              {(loading ? [] : slowestHours).map((row) => (
                 <div
                   key={`slowest-${row.hour}`}
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
@@ -271,7 +271,7 @@ export default function PosPeakHoursSection({
                   <div className="flex items-center justify-between gap-4">
                     <div className="font-semibold text-slate-900">{row.label}</div>
                     <div className="text-sm font-semibold text-slate-700">
-                      {row.transactionCount} tx
+                      {row.transactionCount} {row.transactionCount === 1 ? "transaction" : "transactions"}
                     </div>
                   </div>
                   <div className="mt-2 text-sm text-slate-600">
@@ -279,7 +279,7 @@ export default function PosPeakHoursSection({
                   </div>
                 </div>
               ))}
-              {!loading && (report?.slowestHours ?? []).length === 0 ? (
+              {!loading && (slowestHours).length === 0 ? (
                 <p className="text-sm text-slate-500">No hourly transactions matched the filter.</p>
               ) : null}
             </div>
@@ -289,11 +289,11 @@ export default function PosPeakHoursSection({
         <WidgetCard title={view === "table" ? "Hourly Sales Table" : "Hourly Net Sales Line Graph"}>
           {view === "line" ? (
             <ReportLineChart
-              points={(report?.hourly ?? []).filter((row) => row.hour >= (report?.operatingHours?.openingHour ?? 13) && row.hour < (report?.operatingHours?.closingHour ?? 21)).map((row) => ({
+              points={hourlyRows.map((row) => ({
                 key: String(row.hour),
                 label: row.label,
                 value: Number(row.netSales),
-                detail: `${row.transactionCount} tx`,
+                detail: `${row.transactionCount} ${row.transactionCount === 1 ? "transaction" : "transactions"}`,
               }))}
               valueFormatter={(value) => formatPeso(value.toFixed(2))}
               emptyLabel="No hourly data matched the selected range."
@@ -313,10 +313,10 @@ export default function PosPeakHoursSection({
                     <div className="px-4 py-6 text-sm text-slate-500">
                       Loading hourly aggregation...
                     </div>
-                  ) : (report?.hourly ?? []).length === 0 ? (
+                  ) : hourlyRows.length === 0 ? (
                     <PosReportEmpty message="No hourly data matched the selected range." />
                   ) : (
-                    report?.hourly.map((row) => (
+                    hourlyRows.map((row) => (
                       <div
                         key={row.hour}
                         className="grid grid-cols-[0.9fr_0.8fr_1fr_1fr_1fr] gap-3 border-b px-4 py-4 text-sm last:border-b-0"

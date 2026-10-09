@@ -8,9 +8,14 @@ import {
 import { Prisma } from '@prisma/client';
 import { PasswordService } from '../auth/password.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { readdir, stat } from 'node:fs/promises';
+import { join } from 'node:path';
+import { PRODUCT_IMAGE_DIRECTORY } from '../catalog/product-image';
+import { PROFILE_PICTURE_DIRECTORY } from './profile-picture';
 import { buildUserName } from '../users/user.mapper';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateAccountSettingsDto } from './dto/update-account-settings.dto';
+import { clearDisposableForecastFiles, scanDisposableForecastFiles } from './storage-cleanup';
 
 const selfAccountSelect = {
   id: true,
@@ -58,6 +63,21 @@ function mapSelfAccount(user: SelfAccount) {
   };
 }
 
+async function directoryBytes(directory: string): Promise<number> {
+  let filenames: string[];
+  try {
+    filenames = await readdir(directory);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return 0;
+    throw error;
+  }
+  const sizes = await Promise.all(filenames.map(async (filename) => {
+    const file = await stat(join(directory, filename));
+    return file.isFile() ? file.size : 0;
+  }));
+  return sizes.reduce((total, size) => total + size, 0);
+}
+
 @Injectable()
 export class SettingsService {
   constructor(
@@ -76,6 +96,30 @@ export class SettingsService {
     }
 
     return mapSelfAccount(user);
+  }
+
+  async getStorageUsage() {
+    const [databaseRows, productImagesBytes, profilePicturesBytes, temporaryFolders] = await Promise.all([
+      this.prisma.$queryRaw<{ bytes: string }[]>`SELECT pg_database_size(current_database())::text AS bytes`,
+      directoryBytes(PRODUCT_IMAGE_DIRECTORY),
+      directoryBytes(PROFILE_PICTURE_DIRECTORY),
+      scanDisposableForecastFiles(),
+    ]);
+    const databaseBytes = Number(databaseRows[0]?.bytes ?? 0);
+    const temporaryBytes = temporaryFolders.reduce((total, folder) => total + folder.files.reduce((sum, file) => sum + file.bytes, 0), 0);
+    return {
+      databaseBytes,
+      productImagesBytes,
+      profilePicturesBytes,
+      temporaryBytes,
+      totalBytes: databaseBytes + productImagesBytes + profilePicturesBytes + temporaryBytes,
+      measuredAt: new Date().toISOString(),
+    };
+  }
+
+  async clearStorageCache() {
+    const result = await clearDisposableForecastFiles();
+    return { ...result, usage: await this.getStorageUsage() };
   }
 
   async updateAccount(

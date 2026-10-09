@@ -8,7 +8,6 @@ export const POS_PAYMENT_METHOD_OPTIONS: Array<{
   { value: "GCASH", label: "GCash" },
   { value: "MAYA", label: "Maya" },
   { value: "CARD", label: "Card" },
-  { value: "OTHER", label: "Other" },
 ];
 
 export const POS_STATUS_OPTIONS: Array<{ value: OrderStatus; label: string }> = [

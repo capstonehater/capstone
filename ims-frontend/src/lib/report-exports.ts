@@ -1,7 +1,8 @@
+import { authorizeReportExport } from "./report-export-access";
 import { formatStockoutDuration } from "./report-duration";
 import { downloadReportExcel } from "./report-excel";
 import { formatUnit } from "./units";
-import { formatDateTime, formatPeso } from "./pos-utils";
+import { formatDateTime, formatOrderReference, formatPeso } from "./pos-utils";
 import type { PosOrder } from "./pos";
 import type {
   WasteSummaryReport,
@@ -499,8 +500,8 @@ function appendPosInventoryLinkedCsvSections(
     lines,
     "Recent Sales-Linked Stock Movements",
     [
-      "Transaction",
-      "Order",
+      "Order ID",
+      "Transaction UID",
       "Occurred At",
       "Material Lines",
       "Raw Materials",
@@ -509,8 +510,8 @@ function appendPosInventoryLinkedCsvSections(
       "Consumption Cost",
     ],
     snapshot.report.recentSalesLinkedMovements.map((row) => [
+      row.orderId ? formatOrderReference({ id: row.orderId }) : "N/A",
       row.transactionId,
-      row.orderId ?? "N/A",
       row.occurredAt,
       row.movementLineCount,
       row.rawMaterialCount,
@@ -602,10 +603,10 @@ function renderPosInventoryLinkedHtmlSections(snapshot: PosInventoryLinkedExport
 
     ${renderHtmlTable(
       "Recent Sales-Linked Stock Movements",
-      ["Transaction", "Order", "Occurred At", "Material Lines", "Raw Materials", "Variants", "Consumed Qty", "Consumption Cost"],
+      ["Order ID", "Transaction UID", "Occurred At", "Material Lines", "Raw Materials", "Variants", "Consumed Qty", "Consumption Cost"],
       snapshot.report.recentSalesLinkedMovements.map((row) => [
+        row.orderId ? formatOrderReference({ id: row.orderId }) : "N/A",
         row.transactionId,
-        row.orderId ?? "N/A",
         formatDateTime(row.occurredAt),
         String(row.movementLineCount),
         String(row.rawMaterialCount),
@@ -798,6 +799,7 @@ export async function exportInventoryReportsPdf(snapshot: InventoryReportsExport
     throw new Error("PDF exports are only available in the browser.");
   }
 
+  await authorizeReportExport("pdf");
   const filename = `${buildRangeBaseName("inventory-reports", snapshot.filters.from, snapshot.filters.to)}.pdf`;
   const { readReportPdfContent, buildReportPdfDocument } = await import("./report-pdf");
   const content = readReportPdfContent(buildInventoryReportsPdfHtml(snapshot, filename));
@@ -862,7 +864,7 @@ export async function exportPosTransactionHistoryExcel(snapshot: PosTransactionH
   return filename;
 }
 
-export function exportPosTransactionHistoryPdf(snapshot: PosTransactionHistoryExportSnapshot) {
+export async function exportPosTransactionHistoryPdf(snapshot: PosTransactionHistoryExportSnapshot) {
   if (typeof window === "undefined") {
     throw new Error("PDF exports are only available in the browser.");
   }
@@ -873,6 +875,8 @@ export function exportPosTransactionHistoryPdf(snapshot: PosTransactionHistoryEx
   if (!printWindow) {
     throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
   }
+
+  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
 
   const html = `
     <!doctype html>
@@ -995,7 +999,7 @@ export async function exportPosSalesAnalyticsExcel(snapshot: PosSalesAnalyticsEx
   return filename;
 }
 
-export function exportPosSalesAnalyticsPdf(snapshot: PosSalesAnalyticsExportSnapshot) {
+export async function exportPosSalesAnalyticsPdf(snapshot: PosSalesAnalyticsExportSnapshot) {
   if (typeof window === "undefined") {
     throw new Error("PDF exports are only available in the browser.");
   }
@@ -1006,6 +1010,8 @@ export function exportPosSalesAnalyticsPdf(snapshot: PosSalesAnalyticsExportSnap
   if (!printWindow) {
     throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
   }
+
+  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
 
   const html = `
     <!doctype html>
@@ -1109,7 +1115,6 @@ export async function exportPosPaymentReportsExcel(snapshot: PosPaymentReportsEx
     ["Cash", snapshot.report.summary.cashTotal],
     ["Card", snapshot.report.summary.cardTotal],
     ["E-Wallet", snapshot.report.summary.ewalletTotal],
-    ["Other", snapshot.report.summary.otherTotal],
     ["Split Payment Transactions", snapshot.report.summary.splitPaymentTransactionCount],
     ["Split Payment Collected", snapshot.report.summary.splitPaymentCollected],
   ]);
@@ -1118,7 +1123,7 @@ export async function exportPosPaymentReportsExcel(snapshot: PosPaymentReportsEx
     lines,
     "Payment Breakdown",
     ["Method", "Amount", "Orders", "Payments", "Share of Collected"],
-    snapshot.report.breakdown.map((row) => [
+    snapshot.report.breakdown.filter((row) => row.method !== "OTHER").map((row) => [
       row.method,
       row.amount,
       row.orderCount,
@@ -1144,7 +1149,7 @@ export async function exportPosPaymentReportsExcel(snapshot: PosPaymentReportsEx
   return filename;
 }
 
-export function exportPosPaymentReportsPdf(snapshot: PosPaymentReportsExportSnapshot) {
+export async function exportPosPaymentReportsPdf(snapshot: PosPaymentReportsExportSnapshot) {
   if (typeof window === "undefined") {
     throw new Error("PDF exports are only available in the browser.");
   }
@@ -1155,6 +1160,8 @@ export function exportPosPaymentReportsPdf(snapshot: PosPaymentReportsExportSnap
   if (!printWindow) {
     throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
   }
+
+  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
 
   const html = `
     <!doctype html>
@@ -1195,7 +1202,6 @@ export function exportPosPaymentReportsPdf(snapshot: PosPaymentReportsExportSnap
             { label: "Cash", value: formatPeso(snapshot.report.summary.cashTotal) },
             { label: "Card", value: formatPeso(snapshot.report.summary.cardTotal) },
             { label: "E-Wallet", value: formatPeso(snapshot.report.summary.ewalletTotal) },
-            { label: "Other", value: formatPeso(snapshot.report.summary.otherTotal) },
             { label: "Split Payment Transactions", value: String(snapshot.report.summary.splitPaymentTransactionCount) },
             { label: "Split Payment Collected", value: formatPeso(snapshot.report.summary.splitPaymentCollected) },
           ])}
@@ -1203,7 +1209,7 @@ export function exportPosPaymentReportsPdf(snapshot: PosPaymentReportsExportSnap
           ${renderHtmlTable(
             "Payment Breakdown",
             ["Method", "Amount", "Orders", "Payments", "Share"],
-            snapshot.report.breakdown.map((row) => [
+            snapshot.report.breakdown.filter((row) => row.method !== "OTHER").map((row) => [
               row.method,
               formatPeso(row.amount),
               String(row.orderCount),
@@ -1322,7 +1328,7 @@ export async function exportPosRefundsVoidsExcel(snapshot: PosRefundsVoidsExport
   return filename;
 }
 
-export function exportPosRefundsVoidsPdf(snapshot: PosRefundsVoidsExportSnapshot) {
+export async function exportPosRefundsVoidsPdf(snapshot: PosRefundsVoidsExportSnapshot) {
   if (typeof window === "undefined") {
     throw new Error("PDF exports are only available in the browser.");
   }
@@ -1333,6 +1339,8 @@ export function exportPosRefundsVoidsPdf(snapshot: PosRefundsVoidsExportSnapshot
   if (!printWindow) {
     throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
   }
+
+  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
 
   const html = `
     <!doctype html>
@@ -1532,7 +1540,7 @@ export async function exportPosProductPerformanceExcel(
   return filename;
 }
 
-export function exportPosProductPerformancePdf(
+export async function exportPosProductPerformancePdf(
   snapshot: PosProductPerformanceExportSnapshot,
 ) {
   if (typeof window === "undefined") {
@@ -1545,6 +1553,8 @@ export function exportPosProductPerformancePdf(
   if (!printWindow) {
     throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
   }
+
+  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
 
   const html = `
     <!doctype html>
@@ -1688,7 +1698,7 @@ export async function exportPosStaffPerformanceExcel(snapshot: PosStaffPerforman
   return filename;
 }
 
-export function exportPosStaffPerformancePdf(snapshot: PosStaffPerformanceExportSnapshot) {
+export async function exportPosStaffPerformancePdf(snapshot: PosStaffPerformanceExportSnapshot) {
   if (typeof window === "undefined") {
     throw new Error("PDF exports are only available in the browser.");
   }
@@ -1699,6 +1709,8 @@ export function exportPosStaffPerformancePdf(snapshot: PosStaffPerformanceExport
   if (!printWindow) {
     throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
   }
+
+  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
 
   const html = `
     <!doctype html>
@@ -1797,7 +1809,7 @@ export async function exportPosPeakHoursExcel(snapshot: PosPeakHoursExportSnapsh
     lines,
     "Hourly Sales",
     ["Hour", "Transactions", "Gross Sales", "Net Sales", "Average Ticket"],
-    snapshot.report.hourly.map((row) => [
+    snapshot.report.hourly.filter((row) => row.hour >= 13 && row.hour <= 20).map((row) => [
       row.label,
       row.transactionCount,
       row.grossSales,
@@ -1810,7 +1822,7 @@ export async function exportPosPeakHoursExcel(snapshot: PosPeakHoursExportSnapsh
   return filename;
 }
 
-export function exportPosPeakHoursPdf(snapshot: PosPeakHoursExportSnapshot) {
+export async function exportPosPeakHoursPdf(snapshot: PosPeakHoursExportSnapshot) {
   if (typeof window === "undefined") {
     throw new Error("PDF exports are only available in the browser.");
   }
@@ -1821,6 +1833,8 @@ export function exportPosPeakHoursPdf(snapshot: PosPeakHoursExportSnapshot) {
   if (!printWindow) {
     throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
   }
+
+  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
 
   const html = `
     <!doctype html>
@@ -1866,7 +1880,7 @@ export function exportPosPeakHoursPdf(snapshot: PosPeakHoursExportSnapshot) {
           ${renderHtmlTable(
             "Hourly Sales",
             ["Hour", "Transactions", "Gross Sales", "Net Sales", "Average Ticket"],
-            snapshot.report.hourly.map((row) => [
+            snapshot.report.hourly.filter((row) => row.hour >= 13 && row.hour <= 20).map((row) => [
               row.label,
               String(row.transactionCount),
               formatPeso(row.grossSales),
@@ -1915,7 +1929,7 @@ export async function exportPosInventoryLinkedExcel(
   return filename;
 }
 
-export function exportPosInventoryLinkedPdf(
+export async function exportPosInventoryLinkedPdf(
   snapshot: PosInventoryLinkedExportSnapshot,
 ) {
   if (typeof window === "undefined") {
@@ -1928,6 +1942,8 @@ export function exportPosInventoryLinkedPdf(
   if (!printWindow) {
     throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
   }
+
+  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
 
   const html = `
     <!doctype html>
@@ -2053,7 +2069,7 @@ export async function exportPosAuditExceptionsExcel(
   return filename;
 }
 
-export function exportPosAuditExceptionsPdf(
+export async function exportPosAuditExceptionsPdf(
   snapshot: PosAuditExceptionsExportSnapshot,
 ) {
   if (typeof window === "undefined") {
@@ -2066,6 +2082,8 @@ export function exportPosAuditExceptionsPdf(
   if (!printWindow) {
     throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
   }
+
+  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
 
   const html = `
     <!doctype html>

@@ -2,7 +2,7 @@ import { AlertTriangle } from "lucide-react";
 import { useRef, useState } from "react";
 import styles from "./OrderReversalModal.module.css";
 import type { PosOrder } from "@/lib/pos";
-import { formatDateTime, formatName, formatPeso } from "@/lib/pos-utils";
+import { formatDateTime, formatName, formatOrderReference, formatPeso } from "@/lib/pos-utils";
 import Modal from "./Modal";
 
 type Props = {
@@ -81,7 +81,7 @@ export default function OrderReversalModal({
         </div>
 
         <div className={styles.summary}>
-          <p className="font-semibold text-slate-900">Order {order.id}</p>
+          <p className="font-semibold text-slate-900">Order {formatOrderReference(order)}</p>
           <p className="mt-1">Completed {formatDateTime(order.completedAt)}</p>
           <p className="mt-1">Processed by {formatName(order.createdBy)}</p>
           <div className={styles.total}><span>Refund amount</span><strong>{formatPeso(order.totalAmount)}</strong></div>

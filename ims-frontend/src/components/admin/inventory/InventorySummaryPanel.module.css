@@ -11,3 +11,25 @@
 .filters select { padding-right:36px; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; }
 .filters input:focus-visible, .filters select:focus-visible { outline:2px solid #426da6; outline-offset:2px; border-color:#426da6; box-shadow:none; }
 @media(max-width:640px) { .filters { grid-template-columns:minmax(0,1fr); } }
+
+.panelHeader { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:16px; }
+.panelActions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.mobileMaterials { display:none; }
+@media (max-width:639px) {
+  .panelHeader { flex-direction:column; gap:14px; }
+  .panelActions { display:grid; width:100%; grid-template-columns:minmax(0,1fr) auto; }
+  .panelActions button { min-width:0; min-height:44px; justify-content:center; padding:10px; font-size:13px; }
+  .filters { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:16px; }
+  .filters > div:first-child { grid-column:1 / -1; }
+  .desktopTable { display:none; }
+  .mobileMaterials { display:grid; align-content:start; gap:10px; margin-top:16px; max-height:clamp(240px, 50dvh, 420px); overflow-y:auto; overflow-x:hidden; padding:3px; scrollbar-gutter:stable; -webkit-overflow-scrolling:touch; }
+  .mobileMaterial { display:flex; flex-direction:column; gap:8px; width:100%; min-width:0; padding:12px; border:1px solid #e2e8f0; border-radius:10px; background:#fff; color:#232d46; text-align:left; }
+  .mobileMaterial[aria-pressed="true"] { border-color:#a3c853; background:#f7fee7; }
+  .mobileMaterial:focus-visible { outline:2px solid #426da6; outline-offset:2px; }
+  .mobileMaterialHeading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; }
+  .mobileMaterialHeading > strong { min-width:0; overflow-wrap:anywhere; font-size:14px; }
+  .mobileStatus { padding:4px 8px; border-radius:8px; font-size:10px; font-weight:600; }
+  .mobileMaterialMeta { color:#64748b; font-size:11px; overflow-wrap:anywhere; }
+  .mobileMaterialStats { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; font-size:12px; color:#64748b; }
+  .mobileMaterialStats strong { display:block; margin-top:3px; color:#334155; font-size:13px; }
+}

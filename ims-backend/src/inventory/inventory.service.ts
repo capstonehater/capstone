@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { toDecimal } from '../common/utils/decimal.util';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateUnitDto } from './dto/create-unit.dto';
 import { CreateRawMaterialDto } from './dto/create-raw-material.dto';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { ListInventorySummaryDto } from './dto/list-inventory-summary.dto';
@@ -14,6 +15,36 @@ const ZERO = new Prisma.Decimal(0);
 export class InventoryService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async ensureCategoriesExist(categoryIds?: string[]) {
+    if (!categoryIds?.length) return;
+    const count = await this.prisma.category.count({ where: { id: { in: categoryIds } } });
+    if (count !== new Set(categoryIds).size) {
+      throw new BadRequestException('One or more product categories do not exist.');
+    }
+  }
+
+  async createUnit(dto: CreateUnitDto) {
+    const name = dto.name.trim();
+    const code = dto.code.trim().toUpperCase();
+    if (!name || !code) throw new BadRequestException('Unit name and abbreviation are required.');
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(614210)::text`;
+      const existing = await tx.unit.findFirst({
+        where: { OR: [
+          { name: { equals: name, mode: 'insensitive' } },
+          { code: { equals: code, mode: 'insensitive' } },
+        ] },
+      });
+      if (existing) throw new ConflictException('A unit with this name or abbreviation already exists. Select the existing unit.');
+      return tx.unit.create({ data: { name, code, dimension: dto.dimension, conversionFactor: toDecimal(1) } });
+    });
+  }
+
+  async createUnitForMaterial(rawMaterialId: string, dto: CreateUnitDto) {
+    await this.ensureRawMaterialExists(rawMaterialId);
+    return this.createUnit(dto);
+  }
+
   async listUnits() {
     return this.prisma.unit.findMany({
       orderBy: [{ dimension: 'asc' }, { name: 'asc' }],
@@ -22,6 +53,7 @@ export class InventoryService {
 
   async createRawMaterial(dto: CreateRawMaterialDto) {
     await this.ensureUnitExists(dto.unitId);
+    await this.ensureCategoriesExist(dto.categoryIds);
 
     const rawMaterial = await this.prisma.rawMaterial.create({
       data: {
@@ -29,10 +61,12 @@ export class InventoryService {
         sku: dto.sku,
         unitId: dto.unitId,
         reorderPoint: toDecimal(dto.reorderPoint ?? 0),
+        categories: { connect: (dto.categoryIds ?? []).map((id) => ({ id })) },
       },
       include: {
         unit: true,
         summary: true,
+        categories: { select: { id: true, name: true } },
       },
     });
 
@@ -52,6 +86,24 @@ export class InventoryService {
 
   async updateRawMaterial(rawMaterialId: string, dto: UpdateRawMaterialDto) {
     await this.ensureRawMaterialExists(rawMaterialId);
+    await this.ensureCategoriesExist(dto.categoryIds);
+    if (dto.categoryIds !== undefined) {
+      const disallowedCategory = { categoryId: { notIn: dto.categoryIds } };
+      const [recipe, modifier] = await Promise.all([
+        this.prisma.variantRecipeItem.findFirst({
+          where: { rawMaterialId, productVariant: { product: disallowedCategory } },
+          select: { productVariant: { select: { product: { select: { name: true, category: { select: { name: true } } } } } } },
+        }),
+        this.prisma.productModifierGroup.findFirst({
+          where: { product: disallowedCategory, modifierGroup: { modifiers: { some: { recipeAdjustments: { some: { rawMaterialId } } } } } },
+          select: { product: { select: { name: true, category: { select: { name: true } } } } },
+        }),
+      ]);
+      const conflict = recipe?.productVariant.product ?? modifier?.product;
+      if (conflict) {
+        throw new BadRequestException(`${conflict.name} already uses this material in ${conflict.category.name}. Keep that category selected or remove the material from the product's recipe first.`);
+      }
+    }
 
     if (dto.unitId) {
       await this.ensureUnitExists(dto.unitId);
@@ -63,6 +115,9 @@ export class InventoryService {
         name: dto.name,
         sku: dto.sku,
         unitId: dto.unitId,
+        categories: dto.categoryIds !== undefined
+          ? { set: dto.categoryIds.map((id) => ({ id })) }
+          : undefined,
         reorderPoint:
           dto.reorderPoint !== undefined
             ? toDecimal(dto.reorderPoint)
@@ -71,6 +126,7 @@ export class InventoryService {
       include: {
         unit: true,
         summary: true,
+        categories: { select: { id: true, name: true } },
       },
     });
   }
@@ -86,6 +142,7 @@ export class InventoryService {
       include: {
         unit: true,
         summary: true,
+        categories: { select: { id: true, name: true } },
       },
     });
   }
@@ -136,6 +193,7 @@ export class InventoryService {
       include: {
         unit: true,
         summary: true,
+        categories: { select: { id: true, name: true } },
       },
     });
   }
@@ -146,6 +204,7 @@ export class InventoryService {
       include: {
         unit: true,
         summary: true,
+        categories: { select: { id: true, name: true } },
       },
     });
 
@@ -258,6 +317,7 @@ export class InventoryService {
       include: {
         unit: true,
         summary: true,
+        categories: { select: { id: true, name: true } },
         stockBatches: {
           select: {
             remainingQuantity: true,
@@ -294,6 +354,7 @@ export class InventoryService {
 
         return {
           rawMaterialId: rawMaterial.id,
+          categories: rawMaterial.categories,
           name: rawMaterial.name,
           sku: rawMaterial.sku,
           reorderPoint: rawMaterial.reorderPoint,

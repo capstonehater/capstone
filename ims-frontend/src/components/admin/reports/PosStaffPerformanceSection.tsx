@@ -1,4 +1,6 @@
 "use client";
+import { PermissionAction } from "@/components/auth/PermissionGuard";
+import ActionAlert from "@/components/feedback/ActionAlert";
 
 import ReportColumns from "./ReportColumns";
 import { useEffect, useState } from "react";
@@ -105,7 +107,7 @@ export default function PosStaffPerformanceSection({
         const filename = await exportPosStaffPerformanceExcel(snapshot);
         setExportNotice(`Excel export downloaded as ${filename}.`);
       } else {
-        const filename = exportPosStaffPerformancePdf(snapshot);
+        const filename = await exportPosStaffPerformancePdf(snapshot);
         setExportNotice(
           `Printable staff performance report opened as ${filename}. Use your browser's Save as PDF option to finish the export.`,
         );
@@ -131,17 +133,9 @@ export default function PosStaffPerformanceSection({
         </div>
       ) : null}
 
-      {exportError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {exportError}
-        </div>
-      ) : null}
+      {exportError ? <ActionAlert placement="header" tone="error" title="Export failed" message={exportError} onDismiss={() => setExportError(null)} /> : null}
 
-      {exportNotice ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {exportNotice}
-        </div>
-      ) : null}
+      {exportNotice ? <ActionAlert placement="header" tone="success" title="Export ready" message={exportNotice} onDismiss={() => setExportNotice(null)} /> : null}
 
       <section className="rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -153,22 +147,22 @@ export default function PosStaffPerformanceSection({
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <button
+            <PermissionAction permissions={["reports.view", "reports.export.excel"]}><button
               type="button"
               disabled={loading || exportingFormat !== null}
               onClick={() => void handleExport("excel")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {exportingFormat === "excel" ? "Exporting..." : "Export Excel"}
-            </button>
-            <button
+            </button></PermissionAction>
+            <PermissionAction permissions={["reports.view", "reports.export.pdf"]}><button
               type="button"
               disabled={loading || exportingFormat !== null}
               onClick={() => void handleExport("pdf")}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {exportingFormat === "pdf" ? "Preparing..." : "Export PDF"}
-            </button>
+            </button></PermissionAction>
           </div>
         </div>
       </section>

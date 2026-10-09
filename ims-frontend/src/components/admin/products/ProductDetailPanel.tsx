@@ -137,7 +137,7 @@ export default function ProductDetailPanel({
             recipeLoading={recipeLoading}
             recipeError={recipeError}
             submitting={Boolean(submittingAction)}
-            materials={materials}
+            materials={materials.filter((material) => material.categories?.some((category) => category.id === product.category.id))}
             onSelectVariant={onSelectVariant}
             onAddVariant={onAddVariant}
             onEditVariant={onEditVariant}

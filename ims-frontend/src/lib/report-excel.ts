@@ -1,3 +1,4 @@
+import { authorizeReportExport } from "./report-export-access";
 import { strToU8, zipSync } from "fflate";
 
 type Section = { title: string; headers: string[]; rows: string[][] };
@@ -144,6 +145,7 @@ export function buildReportExcel(content: string) {
 
 export async function downloadReportExcel(filename: string, content: string) {
   if (typeof window === "undefined") throw new Error("Exports are only available in the browser.");
+  await authorizeReportExport("excel");
   const bytes = buildReportExcel(content);
   const blob = new Blob([new Uint8Array(bytes).buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   const url = URL.createObjectURL(blob);

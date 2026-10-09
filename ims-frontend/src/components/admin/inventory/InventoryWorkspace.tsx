@@ -1,4 +1,7 @@
 "use client";
+import { fetchProductCategories } from "@/lib/products/api";
+import type { ProductCategory } from "@/lib/products/types";
+import { getPresetDateRange, toManilaRangeIso } from "@/lib/report-date-range";
 import WorkspaceLoading from "@/components/admin/WorkspaceLoading";
 import { loadIfAllowed } from "@/lib/permission-loading";
 import { useAuthStore } from "@/store/authStore";
@@ -96,6 +99,7 @@ type MaterialFormState = {
   sku: string;
   unitId: string;
   reorderPoint: string;
+  categoryIds: string[];
 };
 
 type WasteFormState = {
@@ -140,6 +144,7 @@ function defaultMaterialForm(material?: RawMaterial | null, unitId?: string): Ma
     sku: material?.sku ?? "",
     unitId: material?.unitId ?? unitId ?? "",
     reorderPoint: material?.reorderPoint ?? "",
+    categoryIds: material?.categories?.map((category) => category.id) ?? [],
   };
 }
 
@@ -264,6 +269,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
 
   const [availabilityMaterial, setAvailabilityMaterial] = useState<{ id: string; name: string } | null>(null);
   const [summaries, setSummaries] = useState<InventorySummaryItem[]>([]);
+  const [productCategories, setProductCategories] = useState<ProductCategory[]>([]);
   const [units, setUnits] = useState<InventoryUnit[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [selectedMaterial, setSelectedMaterial] = useState<RawMaterial | null>(null);
@@ -307,6 +313,32 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
     note: "",
   });
 
+  // Update the weekly overview after midnight, including when a phone returns
+  // from the background. Historical reports retain their own date filters.
+  useEffect(() => {
+    let currentPeriod = JSON.stringify(getPresetDateRange("this-week"));
+    let active = true;
+    const checkPeriod = () => {
+      const range = getPresetDateRange("this-week");
+      const nextPeriod = JSON.stringify(range);
+      if (nextPeriod === currentPeriod || !useAuthStore.getState().can("reports.view")) return;
+      currentPeriod = nextPeriod;
+      setWasteSummary(null);
+      void fetchWasteSummary({ ...toManilaRangeIso(range), limit: 5, includeAllGroups: true })
+        .then((report) => { if (active) setWasteSummary(report); })
+        .catch(() => { if (active) setError("Could not refresh this week's waste insights. Use Refresh to try again."); });
+    };
+    const interval = window.setInterval(checkPeriod, 60_000);
+    window.addEventListener("focus", checkPeriod);
+    document.addEventListener("visibilitychange", checkPeriod);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", checkPeriod);
+      document.removeEventListener("visibilitychange", checkPeriod);
+    };
+  }, []);
+
   const hydratedRef = useRef(false);
   useEffect(() => {
     if (initialMaterialId) setSelectedRawMaterialId(initialMaterialId);
@@ -332,12 +364,14 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   }
 
   async function loadSupportData() {
-    const [nextUnits, nextSuppliers, nextStockRuns] = await Promise.all([
+    const [nextUnits, nextSuppliers, nextStockRuns, nextCategories] = await Promise.all([
       fetchUnits(),
       loadIfAllowed("suppliers.view", () => fetchSuppliers(), []),
       loadIfAllowed("stockRuns.view", () => fetchStockRuns({}), []),
+      fetchProductCategories(),
     ]);
     setUnits(nextUnits);
+    setProductCategories(nextCategories);
     setSuppliers(nextSuppliers);
     setStockRuns(nextStockRuns);
     setActiveStockRunId((current) => {
@@ -408,7 +442,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
       const results = await Promise.allSettled([
         fetchInventoryHealth({ limit: 5 }),
         fetchStockRunSpend({ limit: 5 }),
-        fetchWasteSummary({ limit: 5, includeAllGroups: true }),
+        fetchWasteSummary({ ...toManilaRangeIso(getPresetDateRange("this-week")), limit: 5, includeAllGroups: true }),
       ]);
       const [health, spend, waste] = results;
       setInventoryHealth(health.status === "fulfilled" ? health.value : null);
@@ -701,9 +735,11 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           activePanel={activePanel}
           submitting={submitting}
           units={units}
+          onUnitCreated={(unit) => setUnits((current) => [...current.filter((item) => item.id !== unit.id), unit].sort((a, b) => a.name.localeCompare(b.name)))}
           selectedMaterial={selectedMaterial}
           existingSkus={summaries.map((item) => item.sku)}
           materialForm={materialForm}
+          categories={productCategories}
           onClose={() => setActivePanel(null)}
           onMaterialFormChange={setMaterialForm}
           onCreateMaterial={(event) => {
@@ -713,7 +749,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
               return;
             }
             void runAction(async () => {
-              const material = await createRawMaterial({ name: materialForm.name, sku: materialForm.sku, unitId: materialForm.unitId, reorderPoint: Number(materialForm.reorderPoint) });
+              const material = await createRawMaterial({ name: materialForm.name, sku: materialForm.sku, unitId: materialForm.unitId, reorderPoint: Number(materialForm.reorderPoint), categoryIds: materialForm.categoryIds });
               setSelectedRawMaterialId(material.id);
               setActivePanel(null);
               setMessage(`Created ${material.name}.`);
@@ -725,7 +761,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
             event.preventDefault();
             if (!selectedMaterial) return;
             void runAction(async () => {
-              await updateRawMaterial(selectedMaterial.id, { name: materialForm.name, sku: materialForm.sku, unitId: materialForm.unitId, reorderPoint: Number(materialForm.reorderPoint) });
+              await updateRawMaterial(selectedMaterial.id, { name: materialForm.name, sku: materialForm.sku, unitId: materialForm.unitId, reorderPoint: Number(materialForm.reorderPoint), categoryIds: materialForm.categoryIds });
               setActivePanel(null);
               setMessage(`Updated ${materialForm.name}.`);
               await refreshEverything();

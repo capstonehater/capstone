@@ -1,4 +1,5 @@
 "use client";
+import { formatUnit } from "@/lib/units";
 import WorkspaceLoading from "@/components/admin/WorkspaceLoading";
 import { useAuthStore } from "@/store/authStore";
 import { loadIfAllowed } from "@/lib/permission-loading";
@@ -287,12 +288,12 @@ export default function DashboardFeature() {
         onClose={() => setActiveModal(null)}>
         <div className={styles.detailScroll}>
           <table className={styles.detailTable}>
-            <thead><tr>{(activeModal === "orders" ? ["Order ID", "Staff", "Date & time", "Amount"] : activeModal === "expiry" ? ["Material", "Expiry date", "Remaining quantity"] : ["Reason", "Events", "Waste cost"]).map((label, index, labels) => <th key={label} scope="col" className={index === labels.length - 1 ? styles.numeric : undefined}>{label}</th>)}</tr></thead>
+            <thead><tr>{(activeModal === "orders" ? ["Order ID", "Staff", "Date & time", "Amount"] : activeModal === "expiry" ? ["Material", "Expiry date", "Remaining quantity", "Unit"] : ["Reason", "Events", "Waste cost"]).map((label, index, labels) => <th key={label} scope="col" className={(activeModal === "expiry" ? index >= 2 : index === labels.length - 1) ? styles.numeric : undefined}>{label}</th>)}</tr></thead>
             <tbody>
               {activeModal === "orders" && (salesOverview?.recentOrders ?? []).map(order => <tr key={order.id}><td className={styles.identifier}>{order.id}</td><td>{order.createdBy.firstName}</td><td>{formatDateTime(order.completedAt)}</td><td className={styles.numeric}>{formatPeso(order.totalAmount)}</td></tr>)}
-              {activeModal === "expiry" && (inventoryHealth?.nearExpiryBatches ?? []).map(batch => <tr key={batch.id}><td>{batch.rawMaterial.name}</td><td>{formatDate(batch.expirationDate)}</td><td className={styles.numeric}>{Number(batch.remainingQuantity).toLocaleString("en-PH", { maximumFractionDigits: 4 })}</td></tr>)}
+              {activeModal === "expiry" && (inventoryHealth?.nearExpiryBatches ?? []).map(batch => <tr key={batch.id}><td>{batch.rawMaterial.name}</td><td>{formatDate(batch.expirationDate)}</td><td className={styles.numeric}>{Number(batch.remainingQuantity).toLocaleString("en-PH", { maximumFractionDigits: 4 })}</td><td className={styles.numeric}>{batch.rawMaterial.unit ? formatUnit(batch.rawMaterial.unit.code) : "?"}</td></tr>)}
               {activeModal === "waste" && (wasteSummary?.byReason ?? []).map(reason => <tr key={reason.reasonCode}><td>{reason.reasonCode.replaceAll("_", " ")}</td><td>{reason.eventCount}</td><td className={styles.numeric}>{formatPeso(reason.cost)}</td></tr>)}
-              {(activeModal === "orders" ? !salesOverview?.recentOrders.length : activeModal === "expiry" ? !inventoryHealth?.nearExpiryBatches.length : !wasteSummary?.byReason.length) && <tr><td colSpan={activeModal === "orders" ? 4 : 3}>{loading ? "Loading records..." : "No records available for this report."}</td></tr>}
+              {(activeModal === "orders" ? !salesOverview?.recentOrders.length : activeModal === "expiry" ? !inventoryHealth?.nearExpiryBatches.length : !wasteSummary?.byReason.length) && <tr><td colSpan={activeModal === "orders" || activeModal === "expiry" ? 4 : 3}>{loading ? "Loading records..." : "No records available for this report."}</td></tr>}
             </tbody>
           </table>
         </div>

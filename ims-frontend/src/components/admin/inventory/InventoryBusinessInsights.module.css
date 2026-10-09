@@ -34,3 +34,11 @@
 .reportFooter svg { flex-shrink:0; color:#525252; }
 .reportFooter:hover { background:#f1f5f9; }
 .reportFooter:focus-visible { outline:2px solid #006ac6; outline-offset:-3px; }
+
+.insightHint { position:relative; display:inline-flex; flex-shrink:0; font-size:12px; font-weight:400; }
+.insightHint > button { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; padding:0; border:0; border-radius:50%; background:transparent; color:#64748b; cursor:pointer; }
+.insightHint > button:hover { background:#f1f5f9; }
+.insightHint > button:focus-visible { outline:2px solid #426da6; outline-offset:2px; }
+.insightTooltip { display:none; position:absolute; top:calc(100% + 6px); right:0; z-index:30; width:240px; max-width:calc(100vw - 48px); padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; color:#334155; box-shadow:0 4px 16px #0f172a20; line-height:1.5; }
+.insightHint:focus-within .insightTooltip,.insightTooltip[data-open="true"] { display:block; }
+@media (hover:hover) { .insightHint:hover .insightTooltip { display:block; } }

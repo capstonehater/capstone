@@ -14,9 +14,11 @@ foreach ($name in @('frontend', 'backend')) {
 }
 $pgCtl = Join-Path $local 'pgsql/bin/pg_ctl.exe'
 $data = Join-Path $local 'pgdata'
-& $pgCtl status -D $data *> $null
-if ($LASTEXITCODE -eq 0) {
-    & $pgCtl stop -D $data -m fast -w
-    if ($LASTEXITCODE -ne 0) { throw 'Could not stop the project database.' }
+if ((Test-Path -LiteralPath $pgCtl) -and (Test-Path -LiteralPath "$data/PG_VERSION")) {
+    & $pgCtl status -D $data *> $null
+    if ($LASTEXITCODE -eq 0) {
+        & $pgCtl stop -D $data -m fast -w
+        if ($LASTEXITCODE -ne 0) { throw 'Could not stop the project database.' }
+    }
 }
 Write-Host 'Project stopped. Database data is preserved.'

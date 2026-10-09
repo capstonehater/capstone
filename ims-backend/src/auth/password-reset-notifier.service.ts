@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { createTransport } from 'nodemailer';
 import { env } from '../config/env.validation';
+import { buildAccountEmail } from './account-email.template';
 
 @Injectable()
 export class PasswordResetNotifierService {
@@ -23,7 +24,6 @@ export class PasswordResetNotifierService {
   }): Promise<void> {
     // Automated tests must never send account links to real recipients.
     if (env.NODE_ENV === 'test') return;
-
     const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM_EMAIL } =
       env;
     if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD || !SMTP_FROM_EMAIL) {
@@ -31,27 +31,19 @@ export class PasswordResetNotifierService {
         'Email delivery is not configured. Contact your administrator.',
       );
     }
-
-    const action = options.isSetup
-      ? 'Set up your account'
-      : 'Reset your password';
-    const safeUrl = options.resetUrl.replace(
-      /[&<>"']/g,
-      (character) =>
-        ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;',
-        })[character]!,
-    );
     const transport = createTransport({
       host: SMTP_HOST,
       port: SMTP_PORT,
       secure: SMTP_PORT === 465,
       requireTLS: true,
-      auth: { user: SMTP_USER, pass: SMTP_PASSWORD },
+      tls: { minVersion: 'TLSv1.2' },
+      auth: {
+        user: SMTP_USER,
+        pass:
+          SMTP_HOST === 'smtp.gmail.com'
+            ? SMTP_PASSWORD.replace(/\s/g, '')
+            : SMTP_PASSWORD,
+      },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 20000,
@@ -62,14 +54,12 @@ export class PasswordResetNotifierService {
       const result = await transport.sendMail({
         from: { name: env.SMTP_FROM_NAME, address: SMTP_FROM_EMAIL },
         to: options.email,
-        subject: `Cafe Salvacion - ${action}`,
-        text: `${action}\n\nOpen this link to choose your password:\n${options.resetUrl}\n\nThis link expires in 30 minutes and can only be opened once. Complete your password change in the first tab you open. If you did not expect this email, you can ignore it.`,
-        html: `<h1>${action}</h1><p>Open the link below to choose your Cafe Salvacion password.</p><p><a href="${safeUrl}">${action}</a></p><p>This link expires in 30 minutes and can only be opened once. Complete your password change in the first tab you open.</p><p>If you did not expect this email, you can ignore it.</p>`,
+        ...buildAccountEmail(options.resetUrl, options.isSetup),
       });
-      if (result.accepted.length === 0)
+      if (!result.accepted.length || result.rejected.length)
         throw new Error('Recipient not accepted');
     } catch (error: unknown) {
-      // SMTP errors may contain credentials or message content; do not expose them.
+      // Provider errors may include credentials or link content. Log only safe diagnostics.
       const details =
         error && typeof error === 'object'
           ? (error as Record<string, unknown>)
@@ -85,17 +75,6 @@ export class PasswordResetNotifierService {
       ].includes(String(details.code))
         ? String(details.code)
         : 'UNKNOWN';
-      const command = [
-        'CONN',
-        'AUTH',
-        'AUTH LOGIN',
-        'AUTH PLAIN',
-        'MAIL FROM',
-        'RCPT TO',
-        'DATA',
-      ].includes(String(details.command))
-        ? String(details.command)
-        : 'UNKNOWN';
       const responseCode =
         typeof details.responseCode === 'number' &&
         Number.isInteger(details.responseCode) &&
@@ -104,7 +83,7 @@ export class PasswordResetNotifierService {
           ? details.responseCode
           : 'UNKNOWN';
       this.logger.error(
-        `SMTP did not accept the account email (code=${code}, command=${command}, responseCode=${responseCode}). Check SMTP settings and provider logs.`,
+        `SMTP did not accept the account email (code=${code}, responseCode=${responseCode}). Check SMTP settings and provider logs.`,
       );
       throw new ServiceUnavailableException(
         'Unable to send the account email. Please try again later or contact your administrator.',

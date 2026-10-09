@@ -12,6 +12,7 @@ import { RequirePermission } from '../auth/decorators/require-permission.decorat
 import type { AuthenticatedUser } from '../common/types/authenticated-user.type';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateInventoryWasteDto } from './dto/create-inventory-waste.dto';
+import { CreateUnitDto } from './dto/create-unit.dto';
 import { CreateRawMaterialDto } from './dto/create-raw-material.dto';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { ListInventorySummaryDto } from './dto/list-inventory-summary.dto';
@@ -40,6 +41,18 @@ export class InventoryController {
   @RequirePermission('suppliers.searchAvailability')
   async searchStoreAvailability(@Param('id') id: string) {
     return { search: await this.storeAvailabilityService.start(id) };
+  }
+
+  @Post('units')
+  @RequirePermission('inventory.create')
+  async createUnit(@Body() dto: CreateUnitDto) {
+    return { unit: await this.inventoryService.createUnit(dto) };
+  }
+
+  @Post('raw-materials/:id/units')
+  @RequirePermission('inventory.edit')
+  async createUnitForMaterial(@Param('id') id: string, @Body() dto: CreateUnitDto) {
+    return { unit: await this.inventoryService.createUnitForMaterial(id, dto) };
   }
 
   @Get('units')

@@ -112,11 +112,13 @@ export default function StockRunModals({
 }: StockRunModalsProps) {
   const [validationAttempted, setValidationAttempted] = useState(false);
   const [supplierValidationAttempted, setSupplierValidationAttempted] = useState(false);
+  const [itemValidationAttempted, setItemValidationAttempted] = useState(false);
   const [previousPanel, setPreviousPanel] = useState(activePanel);
   if (previousPanel !== activePanel) {
     setPreviousPanel(activePanel);
     setValidationAttempted(false);
     setSupplierValidationAttempted(false);
+    setItemValidationAttempted(false);
   }
   useEffect(() => {
     if (activePanel === "stock-run-manage") {
@@ -132,6 +134,16 @@ export default function StockRunModals({
   const priceQuantity = priceQuantityInInventoryUnits(Number(stockRunItemForm.costQuantity), stockRunItemForm.costUnitCode, selectedUnitCode);
   const calculatedUnitCost = price > 0 && priceQuantity > 0 && Number.isFinite(price / priceQuantity)
     ? Number((price / priceQuantity).toFixed(8)) : null;
+  const itemErrors = {
+    material: !selectedSummary ? "Select a raw material." : undefined,
+    supplier: !stockRunItemForm.supplierId.trim() ? "Select a supplier." : undefined,
+    quantity: !Number.isFinite(receivedQuantity) || receivedQuantity <= 0 ? "Enter a quantity greater than zero." : undefined,
+    price: !Number.isFinite(price) || price <= 0 ? "Enter a purchase price greater than zero." : undefined,
+    coverage: !stockRunItemForm.costUnitCode || !Number.isFinite(priceQuantity) || priceQuantity <= 0 ? "Enter the quantity covered and select its unit." : undefined,
+    expiration: !stockRunItemForm.expirationDate ? "Input the expiration date." : stockRunItemForm.expirationDate < getTodayDateInput() ? "Expiration date cannot be before today." : undefined,
+    receivedDate: !stockRunItemForm.receivedAt.split("T")[0] ? "Select the received date." : undefined,
+    receivedTime: !stockRunItemForm.receivedAt.split("T")[1] ? "Select the received time." : undefined,
+  };
   const unitCostFormatter = new Intl.NumberFormat("en-PH", {
     style: "currency", currency: "PHP", minimumFractionDigits: 2, maximumFractionDigits: 4,
   });
@@ -220,26 +232,28 @@ export default function StockRunModals({
                   </div>
                 </div>
 
-                <PermissionAction permission={"stockRuns.edit"}><form className={`${styles.stockRunItemForm} grid bg-white`} onInvalidCapture={() => { if (!stockRunItemForm.supplierId.trim()) setSupplierValidationAttempted(true); }} onSubmit={(event) => {
-                  if (!stockRunItemForm.supplierId.trim()) {
-                    event.preventDefault();
-                    setSupplierValidationAttempted(true);
-                    return;
-                  }
+                <PermissionAction permission={"stockRuns.edit"}><form noValidate className={`${styles.stockRunItemForm} grid bg-white`} onSubmit={(event) => {
+                  event.preventDefault();
+                  setItemValidationAttempted(true);
+                  if (Object.values(itemErrors).some(Boolean)) return;
+                  setItemValidationAttempted(false);
                   setSupplierValidationAttempted(false);
                   onAddStockRunItem(event);
                 }}>
+                  <InventoryValidationField error={itemValidationAttempted ? itemErrors.material : undefined}>
                   <AdminSelect required label="Raw material" value={stockRunItemForm.rawMaterialId} onChange={(rawMaterialId) => {
                     const code = summaries.find(summary => summary.rawMaterialId === rawMaterialId)?.unit.code;
                     onStockRunItemFormChange((current) => ({ ...current, rawMaterialId, costPerUnit: "", ...defaultStockRunPriceBasis(code) }));
                     onSelectRawMaterial(rawMaterialId);
                   }} options={[{ value: "", label: "Select raw material" }, ...summaries.map((summary) => ({ value: summary.rawMaterialId, label: summary.name }))]} />
-                  <InventoryValidationField error={supplierValidationAttempted && !stockRunItemForm.supplierId.trim() ? "Select a supplier before adding this item." : undefined}>
+                  </InventoryValidationField>
+                  <InventoryValidationField error={itemValidationAttempted ? itemErrors.supplier : supplierValidationAttempted && !stockRunItemForm.supplierId.trim() ? "Select a supplier before adding this item." : undefined}>
                   <AdminSelect required label="Supplier" value={stockRunItemForm.supplierId} onChange={(supplierId) => {
                     setSupplierValidationAttempted(!supplierId.trim());
                     onStockRunItemFormChange((current) => ({ ...current, supplierId }));
                   }} options={[{ value: "", label: "Select supplier" }, ...suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))]} />
                   </InventoryValidationField>
+                  <InventoryValidationField error={itemValidationAttempted ? itemErrors.quantity : undefined}>
                   <InventoryField htmlFor="stock-run-item-quantity" label="Quantity received" required>
                     <input
                       id="stock-run-item-quantity"
@@ -263,6 +277,8 @@ export default function StockRunModals({
                       </p>
                     ) : null}
                   </InventoryField>
+                  </InventoryValidationField>
+                  <InventoryValidationField error={itemValidationAttempted ? itemErrors.price : undefined}>
                   <InventoryField htmlFor="stock-run-item-cost" label="Purchase price (PHP)" required>
                     <input
                       id="stock-run-item-cost"
@@ -285,17 +301,9 @@ export default function StockRunModals({
                       className={inventoryInputClasses}
                     />
                   </InventoryField>
-                  <div className={styles.stockRunTimeField}>
-                  <StockRunDateField
-                    id="stock-run-item-received-time"
-                    label="Received time (Manila)"
-                    type="time"
-                    required
-                    value={stockRunItemForm.receivedAt.split("T")[1] || ""}
-                    onChange={value => onStockRunItemFormChange(current => ({ ...current, receivedAt: `${current.receivedAt.split("T")[0]}T${value}` }))}
-                  />
-                  </div>
+                  </InventoryValidationField>
                   <div className={styles.stockRunPriceFields}>
+                  <InventoryValidationField error={itemValidationAttempted ? itemErrors.coverage : undefined}>
                   <InventoryField htmlFor="stock-run-item-price-quantity" label="Purchase price covers" required>
                     <div className={styles.priceCoverageRow}>
                     <div className={styles.priceCoverageControl}>
@@ -332,8 +340,10 @@ export default function StockRunModals({
                     </div>
                     <p id="stock-run-price-coverage-hint" className="mt-2 text-xs text-slate-500">Quantity covered by the price, separate from total stock received.</p>
                   </InventoryField>
+                  </InventoryValidationField>
                   </div>
                   <div className={styles.stockRunExpirationFields}>
+                  <InventoryValidationField error={itemValidationAttempted ? itemErrors.expiration : undefined}>
                   <StockRunDateField
                     id="stock-run-item-expiration"
                     min={getTodayDateInput()}
@@ -347,11 +357,26 @@ export default function StockRunModals({
                       }))
                     }
                   />
+                  </InventoryValidationField>
                   </div>
                   <div className={styles.stockRunReceivedFields}>
 
-                    <StockRunDateField id="stock-run-item-received-date" label="Received date" required value={stockRunItemForm.receivedAt.split("T")[0]}
+                    <InventoryValidationField error={itemValidationAttempted ? itemErrors.receivedDate : undefined}>
+                  <StockRunDateField id="stock-run-item-received-date" label="Received date" required value={stockRunItemForm.receivedAt.split("T")[0]}
                       onChange={value => onStockRunItemFormChange(current => ({ ...current, receivedAt: `${value}T${current.receivedAt.split("T")[1] || currentManilaReceivingDateTime().split("T")[1]}` }))} />
+                  </InventoryValidationField>
+                  <div className={styles.stockRunTimeField}>
+                  <InventoryValidationField error={itemValidationAttempted ? itemErrors.receivedTime : undefined}>
+                  <StockRunDateField
+                    id="stock-run-item-received-time"
+                    label="Received time (Manila)"
+                    type="time"
+                    required
+                    value={stockRunItemForm.receivedAt.split("T")[1] || ""}
+                    onChange={value => onStockRunItemFormChange(current => ({ ...current, receivedAt: `${current.receivedAt.split("T")[0]}T${value}` }))}
+                  />
+                  </InventoryValidationField>
+                  </div>
                   </div>
                   <div className={styles.stockRunNoteField}>
                     <InventoryField htmlFor="stock-run-item-note" label="Line note">
@@ -368,7 +393,7 @@ export default function StockRunModals({
                     <button type="button" onClick={onClose} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
                       Done
                     </button>
-                    <button type="submit" disabled={submitting || !stockRunItemForm.rawMaterialId || !stockRunItemForm.costUnitCode || !stockRunItemForm.expirationDate || !stockRunItemForm.receivedAt.split("T")[0] || !stockRunItemForm.receivedAt.split("T")[1] || !Number.isFinite(receivedQuantity) || receivedQuantity <= 0 || calculatedUnitCost === null} className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white">
+                    <button type="submit" disabled={submitting} className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white">
                       Add Item
                     </button>
                   </ModalActions>
