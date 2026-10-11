@@ -37,6 +37,7 @@ import { PricingService } from './pricing.service';
 import { validateDiscountDetails } from './discount-details';
 import { UpdateCashPaymentDto } from './dto/update-cash-payment.dto';
 import { ListOrdersDto } from './dto/list-orders.dto';
+import { isContainerCategory } from '../catalog/container-category';
 
 type TxClient = Prisma.TransactionClient;
 
@@ -295,23 +296,21 @@ export class OrdersService {
   }
 
   async listOrders(filters: ListOrdersDto = {}) {
-    const orders = await this.prisma.order.findMany({
-      where: this.buildListOrdersWhere(filters),
-      orderBy: this.getOrderListSortOrder(),
-      include: this.getOrderInclude(),
+    return this.listOrdersPaginated(filters, {
+      page: filters.page,
+      pageSize: filters.pageSize,
+      cursor: filters.cursor,
     });
-
-    return this.attachDisplayOrderNumbers(orders);
   }
 
   async listOrdersPaginated(
     filters: ListOrdersDto = {},
-    options: { page?: number; pageSize?: number } = {},
+    options: { page?: number; pageSize?: number; cursor?: string; orderIdOnly?: boolean; orderIdOrStaffName?: boolean } = {},
   ) {
     const pageSize = Math.min(Math.max(options.pageSize ?? 20, 1), 100);
     const page = Math.max(options.page ?? 1, 1);
-    const skip = (page - 1) * pageSize;
-    const where = this.buildListOrdersWhere(filters);
+    const skip = options.cursor ? 1 : (page - 1) * pageSize;
+    const where = this.buildListOrdersWhere(filters, options.orderIdOnly || options.orderIdOrStaffName, options.orderIdOrStaffName);
 
     const [total, orders] = await this.prisma.$transaction([
       this.prisma.order.count({ where }),
@@ -321,6 +320,7 @@ export class OrdersService {
         include: this.getOrderInclude(),
         skip,
         take: pageSize,
+        cursor: options.cursor ? { id: options.cursor } : undefined,
       }),
     ]);
 
@@ -429,8 +429,10 @@ export class OrdersService {
     return order ? this.attachDisplayOrderNumber(order) : null;
   }
 
-  private buildListOrdersWhere(filters: ListOrdersDto): Prisma.OrderWhereInput {
-    const search = filters.search?.trim();
+  private buildListOrdersWhere(filters: ListOrdersDto, orderIdOnly = false, includeStaffName = false): Prisma.OrderWhereInput {
+    const input = filters.search?.trim();
+    // Every displayed order reference starts with ORD-, so the prefix matches all orders.
+    const search = orderIdOnly && input && /^(?:O|OR|ORD-?)$/i.test(input) ? undefined : input;
     const orderReferenceSearch = search
       ? this.normalizeOrderReferenceSearch(search)
       : null;
@@ -494,7 +496,24 @@ export class OrdersService {
         : undefined,
       AND: andConditions.length > 0 ? andConditions : undefined,
       OR: search
-        ? [
+        ? orderIdOnly
+          ? [{ id: /^ORD-/i.test(search) && orderReferenceSearch
+              ? { startsWith: orderReferenceSearch, mode: 'insensitive' }
+              : { contains: search, mode: 'insensitive' } },
+            ...(includeStaffName ? [
+              { createdBy: { firstName: { contains: search, mode: 'insensitive' as const } } },
+              { createdBy: { lastName: { contains: search, mode: 'insensitive' as const } } },
+              ...(search.split(/\s+/).length > 1 ? [{
+                AND: search.split(/\s+/).map((part) => ({
+                  OR: [
+                    { createdBy: { firstName: { contains: part, mode: 'insensitive' as const } } },
+                    { createdBy: { lastName: { contains: part, mode: 'insensitive' as const } } },
+                  ],
+                })),
+              }] : []),
+            ] : []),
+          ]
+          : [
             {
               id: {
                 contains: search,
@@ -753,7 +772,7 @@ export class OrdersService {
         note:
           dto.note ??
           `Refund processed for order ${order.id}`,
-        occurredAt: new Date(),
+        occurredAt: reversal.occurredAt,
         lines: stockLines.map((line) => ({
           rawMaterialId: line.rawMaterialId,
           rawMaterialSnapshot: (line.rawMaterialSnapshot ?? undefined) as Prisma.InputJsonValue | undefined,
@@ -812,13 +831,17 @@ export class OrdersService {
     const variant = await tx.productVariant.findUnique({
       where: { id: item.productVariantId },
       include: {
-        product: true,
+        product: { include: { category: true } },
         availabilitySummary: true,
       },
     });
 
     if (!variant) {
       throw new NotFoundException('Product variant not found');
+    }
+
+    if (isContainerCategory(variant.product.category.name)) {
+      throw new BadRequestException('Containers cannot be sold as standalone POS items');
     }
 
     if (!variant.product.isEnabled) {

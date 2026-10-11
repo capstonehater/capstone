@@ -22,6 +22,7 @@ import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { InventoryActionsService } from './inventory-actions.service';
 import { InventoryService } from './inventory.service';
 import { StoreAvailabilityService } from './store-availability.service';
+import { StoreAvailabilityLocationDto } from './dto/store-availability-location.dto';
 
 @Controller()
 export class InventoryController {
@@ -39,8 +40,11 @@ export class InventoryController {
 
   @Post('raw-materials/:id/store-availability')
   @RequirePermission('suppliers.searchAvailability')
-  async searchStoreAvailability(@Param('id') id: string) {
-    return { search: await this.storeAvailabilityService.start(id) };
+  async searchStoreAvailability(
+    @Param('id') id: string,
+    @Body() location: StoreAvailabilityLocationDto,
+  ) {
+    return { search: await this.storeAvailabilityService.start(id, location) };
   }
 
   @Post('units')
@@ -51,7 +55,10 @@ export class InventoryController {
 
   @Post('raw-materials/:id/units')
   @RequirePermission('inventory.edit')
-  async createUnitForMaterial(@Param('id') id: string, @Body() dto: CreateUnitDto) {
+  async createUnitForMaterial(
+    @Param('id') id: string,
+    @Body() dto: CreateUnitDto,
+  ) {
     return { unit: await this.inventoryService.createUnitForMaterial(id, dto) };
   }
 
@@ -114,13 +121,19 @@ export class InventoryController {
   @Post('raw-materials/:id/unarchive')
   @RequirePermission('inventory.archive')
   async unarchiveRawMaterial(@Param('id') rawMaterialId: string) {
-    return { rawMaterial: await this.inventoryService.unarchiveRawMaterial(rawMaterialId) };
+    return {
+      rawMaterial:
+        await this.inventoryService.unarchiveRawMaterial(rawMaterialId),
+    };
   }
 
   @Delete('raw-materials/:id/permanent')
   @RequirePermission('inventory.archive')
   async deleteRawMaterial(@Param('id') rawMaterialId: string) {
-    return { deletedMaterial: await this.inventoryService.deleteRawMaterial(rawMaterialId) };
+    return {
+      deletedMaterial:
+        await this.inventoryService.deleteRawMaterial(rawMaterialId),
+    };
   }
 
   @Get('raw-materials/:id/batches')
@@ -225,5 +238,4 @@ export class InventoryController {
       transaction: await this.inventoryActionsService.logWaste(dto, user.id),
     };
   }
-
 }

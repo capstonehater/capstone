@@ -1,4 +1,5 @@
 "use client";
+import { formatStockQuantity } from "@/lib/inventory-quantity";
 
 import { formatUnit } from "@/lib/units";
 
@@ -116,8 +117,8 @@ export default function MaterialActionPage({ action }: { action: Action }) {
               </>}
               {action === "waste" && <>
                 <label>Raw material<StyledSelect aria-label="Raw material" required value={materialId} onValueChange={value => { setMaterialId(value); setBatchId(""); setBatches([]); }}><option value="">Select a material</option>{materials.map(row => <option key={row.rawMaterialId} value={row.rawMaterialId}>{row.name} ({formatUnit(row.unit.code)})</option>)}</StyledSelect></label>
-                <label>Batch<StyledSelect aria-label="Batch" required disabled={!materialId || batchLoading} value={batchId} onValueChange={value => setBatchId(value)}><option value="">{batchLoading ? "Loading batches..." : "Select a batch"}</option>{batches.map(row => <option key={row.id} value={row.id}>{(row.reference ?? row.id.slice(0, 8))} - {Number(row.remainingQuantity).toLocaleString()} remaining</option>)}</StyledSelect>{materialId && !batchLoading && !batches.length && <small>No batches with remaining stock. Choose another material.</small>}</label>
-                <label>Quantity{material && ` (${formatUnit(material.unit.code)})`}<input required type="number" min="0.0001" step="0.0001" max={batch ? Number(batch.remainingQuantity) : undefined} value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="Enter waste quantity" />{batch && <small>Available: {Number(batch.remainingQuantity).toLocaleString()} {material && formatUnit(material.unit.code)}</small>}</label>
+                <label>Batch<StyledSelect aria-label="Batch" required disabled={!materialId || batchLoading} value={batchId} onValueChange={value => setBatchId(value)}><option value="">{batchLoading ? "Loading batches..." : "Select a batch"}</option>{batches.map(row => <option key={row.id} value={row.id}>{(row.reference ?? row.id.slice(0, 8))} - {formatStockQuantity(row.remainingQuantity)} remaining</option>)}</StyledSelect>{materialId && !batchLoading && !batches.length && <small>No batches with remaining stock. Choose another material.</small>}</label>
+                <label>Quantity{material && ` (${formatUnit(material.unit.code)})`}<input required type="number" min="0.0001" step="0.0001" max={batch ? Number(batch.remainingQuantity) : undefined} value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="Enter waste quantity" />{batch && <small>Available: {formatStockQuantity(batch.remainingQuantity)} {material && formatUnit(material.unit.code)}</small>}</label>
                 <label>Reason<StyledSelect aria-label="Reason" required value={reason} onValueChange={value => setReason(value)}>{INVENTORY_WASTE_REASON_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</StyledSelect></label>
               </>}
               {action !== "add" && <label className={styles.full}>Notes <span className={styles.optional}>Optional</span><textarea rows={4} value={note} onChange={e => setNote(e.target.value)} placeholder={action === "waste" ? "Add context for this waste entry." : "Describe the delivery or items you plan to receive."} /></label>}

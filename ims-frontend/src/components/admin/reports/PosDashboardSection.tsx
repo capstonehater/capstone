@@ -1,5 +1,6 @@
 "use client";
 import PageSkeleton from "@/components/loading/PageSkeleton";
+import AdminSelect from "@/components/admin/AdminSelect";
 
 import { Banknote, Tags, Trophy } from "lucide-react";
 import snapshotStyles from "./DailySalesSnapshot.module.css";
@@ -16,6 +17,8 @@ import {
 import {
   getGrowthLabel,
   getSameWeekGrowthLabel,
+  getManilaDatesInRange,
+  toManilaRangeIso,
   type QuickDatePreset,
 } from "@/lib/report-date-range";
 import { formatDateTime, formatPeso } from "@/lib/pos-utils";
@@ -73,6 +76,52 @@ export default function PosDashboardSection({
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<PosDashboardReport | null>(null);
   const labels = useMemo(() => describePresetValue(preset), [preset]);
+  const showHourlyDateSelect = preset === "custom" || preset === "this-week";
+  const hourlyDates = useMemo(
+    () => showHourlyDateSelect ? getManilaDatesInRange(fromIso, toIso) : [],
+    [showHourlyDateSelect, fromIso, toIso],
+  );
+  const [hourlyDateSelection, setHourlyDateSelection] = useState({ range: "", date: "" });
+  const hourlyRangeKey = `${fromIso}/${toIso}`;
+  const hourlyDate = hourlyDateSelection.range === hourlyRangeKey && hourlyDates.includes(hourlyDateSelection.date)
+    ? hourlyDateSelection.date : hourlyDates[0] ?? "";
+  const [hourlyResult, setHourlyResult] = useState<{
+    key: string;
+    trend?: PosDashboardReport["trend"];
+    error?: string;
+  } | null>(null);
+  const hourlyKey = `${hourlyRangeKey}/${hourlyDate}`;
+
+  useEffect(() => {
+    if (!active || !showHourlyDateSelect || !hourlyDate) return;
+    let cancelled = false;
+    let requestNumber = 0;
+    const loadHourly = async () => {
+      const currentRequest = ++requestNumber;
+      try {
+        const range = toManilaRangeIso({ from: hourlyDate, to: hourlyDate });
+        const next = await fetchPosDashboard({ ...range, limit: 1 });
+        if (!cancelled && currentRequest === requestNumber) setHourlyResult({ key: hourlyKey, trend: next.trend });
+      } catch (error) {
+        if (!cancelled && currentRequest === requestNumber) setHourlyResult({
+          key: hourlyKey,
+          error: error instanceof Error ? error.message : "Failed to load hourly sales",
+        });
+      }
+    };
+    void loadHourly();
+    const onFocus = () => { void loadHourly(); };
+    const interval = window.setInterval(onFocus, 60000);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [active, showHourlyDateSelect, hourlyDate, hourlyKey, refreshToken]);
+
+  const selectedHourlyResult = hourlyResult?.key === hourlyKey ? hourlyResult : null;
+  const hourlyTrend = showHourlyDateSelect ? selectedHourlyResult?.trend : report?.trend;
 
   const loadDashboard = async () => {
     setLoading(true);
@@ -80,7 +129,7 @@ export default function PosDashboardSection({
       const nextDashboard = await fetchPosDashboard({
         from: fromIso,
         to: toIso,
-        limit: 5,
+        includeAllOrders: true,
       });
       setReport(nextDashboard);
       setError(null);
@@ -209,18 +258,38 @@ export default function PosDashboardSection({
             </article>
           </div>
         </WidgetCard>
-        <WidgetCard title="Hourly Net Sales">
+        <WidgetCard title="Hourly Net Sales" headerAction={showHourlyDateSelect && hourlyDates.length > 0 ? (
+          <div className={styles.hourlyDateSelect}>
+            <AdminSelect
+              label="Hourly net sales date"
+              hideLabel
+              searchable
+              value={hourlyDate}
+              onChange={(date) => setHourlyDateSelection({ range: hourlyRangeKey, date })}
+              options={hourlyDates.map((date) => ({
+                value: date,
+                label: new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", month: "short", day: "numeric", year: "numeric" }).format(new Date(`${date}T12:00:00+08:00`)),
+              }))}
+            />
+          </div>
+        ) : undefined}>
           <p className="mb-4 text-xs text-slate-500">Sales from 1 PM through 10:59 PM, Manila time.</p>
+          {showHourlyDateSelect && !selectedHourlyResult ? (
+            <p role="status" className="py-12 text-center text-sm text-slate-500">Loading hourly sales...</p>
+          ) : selectedHourlyResult?.error && showHourlyDateSelect ? (
+            <p role="alert" className="py-12 text-center text-sm text-rose-700">{selectedHourlyResult.error}</p>
+          ) : (
             <ReportLineChart
-              points={(report?.trend.points ?? []).map((point) => ({
+              points={(hourlyTrend?.points ?? []).map((point) => ({
                 key: point.bucketKey,
                 label: point.label,
                 value: Number(point.netSales),
                 detail: `${point.transactionCount} tx`,
               }))}
               valueFormatter={(value) => formatPeso(value.toFixed(2))}
-              emptyLabel="No completed sales were recorded for the current dashboard range."
+              emptyLabel="No completed sales were recorded for the selected period."
             />
+          )}
         </WidgetCard>
         <div className={styles.dashboardBottom}>
         <WidgetCard title="Sales Growth">

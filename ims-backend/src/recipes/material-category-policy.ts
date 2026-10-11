@@ -1,8 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { containerCategoryFilter } from '../catalog/container-category';
 
-// Assignments apply to the exact product category, including no implicit access
-// for parent categories, subcategories, or materials with no assignments.
+// Food ingredients require the exact product category. Containers can be used
+// by any product recipe while remaining hidden from standalone POS sales.
 export async function assertMaterialsAllowedForCategory(
   tx: Prisma.TransactionClient,
   categoryId: string,
@@ -12,7 +13,7 @@ export async function assertMaterialsAllowedForCategory(
   const disallowed = await tx.rawMaterial.findFirst({
     where: {
       id: { in: rawMaterialIds },
-      categories: { none: { id: categoryId } },
+      categories: { none: { OR: [{ id: categoryId }, containerCategoryFilter] } },
     },
     select: { name: true },
   });

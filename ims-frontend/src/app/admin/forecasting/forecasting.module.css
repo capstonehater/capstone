@@ -1,5 +1,5 @@
 .workspace { background:#f5f5f5;padding:0;border-radius:8px;color:#334155;font-family:var(--font-sans);font-size:16px;line-height:1.65 }
-.workspace > header { margin-bottom:20px }
+.forecastContent > header { margin-bottom:20px }
 .stats { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px }
 .stat,.panel { border:1px solid #dce2eb;border-radius:8px;background:white;padding:18px;box-shadow:0 0 1px #00000010 }
 .stat p { font-size:16px;color:#555;margin:0 0 3px }
@@ -326,3 +326,74 @@
 .graphSelectOption, .dropdownOption, .viewToggle button { min-height:44px; }
 .summaryScroll tbody th, .summaryScroll td { line-height:1.65; }
 .chartTooltip { min-height:0; }
+
+
+.forecastLoadingDialog {
+  width: min(480px, 100%);
+  max-height: 100%;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid #dce8df;
+  border-radius: 24px;
+  background: #fff;
+  color: #243b32;
+  box-shadow: 0 28px 90px #0d241c40;
+  font-family: var(--font-sans);
+}
+.workspaceBusy { position:relative; isolation:isolate; height:100dvh; min-height:360px; overflow:hidden; border-radius:0; }
+.forecastContentBlocked { height:100%; overflow:hidden; pointer-events:none; user-select:none; }
+.forecastLoadingOverlay { position:absolute; inset:0; z-index:1; display:grid; place-items:center; padding:24px; background:#14251e80; backdrop-filter:blur(5px); border-radius:0; overflow:auto; }
+@media (max-width:540px) { .forecastLoadingOverlay { padding:12px; } }
+.forecastLoadingCard {
+  padding: 36px 32px 28px;
+  text-align: center;
+  background: radial-gradient(ellipse at top, #edf7ee, transparent 65%);
+}
+.forecastLoadingIcon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 22px;
+  border: 1px solid #d2e6d6;
+  border-radius: 22px;
+  background: #e9f4eb;
+  color: #46794f;
+  box-shadow: 0 8px 24px #46794f12;
+}
+.forecastLoadingIcon svg { animation: forecastLoadingSpin 1.3s linear infinite; }
+.forecastLoadingEyebrow { font-size: 11px; font-weight: 700; letter-spacing: .14em; color: #5a7862; }
+.forecastLoadingCard h2 { margin: 10px 0 12px; font-size: 26px; line-height: 1.25; font-weight: 700; letter-spacing: -.025em; }
+.forecastLoadingCard > p { margin: 0; font-size: 14px; line-height: 1.7; color: #63746a; }
+.forecastLoadingTrack { height: 5px; overflow: hidden; margin: 26px 0 16px; border-radius: 99px; background: #e8eee9; }
+.forecastLoadingTrack span { display: block; height: 100%; width: 38%; border-radius: inherit; background: linear-gradient(90deg, #8fb397, #46794f); animation: forecastLoadingSweep 2s ease-in-out infinite; }
+.forecastLoadingCard > .forecastLoadingStatus { color: #365b40; font-size: 13px; font-weight: 600; }
+.forecastLoadingCard > .forecastLoadingHint { margin-top: 16px; padding-top: 16px; border-top: 1px solid #e8eee9; font-size: 12px; color: #748178; }
+.forecastLoadingCard > .forecastLoadingError { margin-top: 16px; padding: 10px 12px; border-radius: 8px; background: #fff2ed; color: #943e28; text-align: left; }
+@keyframes forecastLoadingSpin { to { transform: rotate(360deg); } }
+@keyframes forecastLoadingSweep { 0% { transform: translateX(-105%); } 100% { transform: translateX(365%); } }
+@media (prefers-reduced-motion: reduce) {
+  .forecastLoadingIcon svg, .forecastLoadingTrack span { animation: none; }
+  .forecastLoadingTrack span { width: 100%; opacity: .55; }
+}
+@media (max-width: 540px) {
+  .forecastLoadingCard { padding: 28px 22px 24px; }
+  .forecastLoadingCard h2 { font-size: 23px; }
+}
+
+.forecastLoadingTiming { display:grid; gap:16px; margin-top:24px; padding:18px; border:1px solid #e1ebe3; border-radius:14px; background:#f7faf7; }
+.forecastLoadingTiming span { display:block; margin-bottom:4px; color:#748178; font-size:11px; }
+.forecastLoadingTiming strong { color:#365b40; font-size:20px; font-variant-numeric:tabular-nums; }
+.forecastLoadingTiming > div + div strong { font-size:14px; font-weight:600; }
+.forecastLoadingCard > .forecastLoadingMaterial { margin-top:8px; font-size:12px; overflow-wrap:anywhere; }
+.forecastLoadingCard > .forecastLoadingElapsed { margin-top:8px; font-size:12px; font-variant-numeric:tabular-nums; }
+
+.backgroundForecastNotice { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 18px; margin-bottom:16px; border:1px solid #d9e8dd; border-radius:10px; background:#edf6ee; color:#365b40; font-size:14px; }
+.backgroundForecastNotice > div { display:flex; align-items:center; gap:10px; }
+.backgroundForecastNotice svg { flex-shrink:0; }
+.backgroundForecastNotice button { flex-shrink:0; border:1px solid #b7d0be; border-radius:8px; padding:8px 12px; background:#fff; color:#365b40; font-weight:600; cursor:pointer; }
+.viewSavedForecastsButton { width:100%; margin-top:20px; padding:12px 16px; border:0; border-radius:10px; background:#365b40; color:#fff; font-size:14px; font-weight:600; cursor:pointer; }
+.viewSavedForecastsButton:hover { background:#284830; }
+.viewSavedForecastsButton:focus-visible,.backgroundForecastNotice button:focus-visible { outline:3px solid #80ab8b; outline-offset:3px; }
+@media (max-width:1023px) { .workspaceBusy { height:calc(100dvh - 56px); } }
+@media (max-width:540px) { .backgroundForecastNotice { align-items:flex-start; flex-direction:column; } }

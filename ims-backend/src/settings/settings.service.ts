@@ -19,6 +19,7 @@ import { clearDisposableForecastFiles, scanDisposableForecastFiles } from './sto
 
 const selfAccountSelect = {
   id: true,
+  employeeId: true,
   firstName: true,
   middleInitial: true,
   lastName: true,
@@ -48,6 +49,7 @@ function toIso(value: Date | null): string | null {
 function mapSelfAccount(user: SelfAccount) {
   return {
     id: user.id,
+    employeeId: user.employeeId,
     firstName: user.firstName,
     middleInitial: user.middleInitial,
     lastName: user.lastName,

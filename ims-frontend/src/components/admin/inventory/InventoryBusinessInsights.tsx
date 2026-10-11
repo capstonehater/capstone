@@ -1,4 +1,5 @@
 "use client";
+import { formatStockQuantity } from "@/lib/inventory-quantity";
 
 import { useId, useState } from "react";
 import { formatUnit } from "@/lib/units";
@@ -48,6 +49,20 @@ function Empty({ children }: { children: React.ReactNode }) {
   return <p className={`${styles.empty} rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500`}>{children}</p>;
 }
 
+function MobileInsightRecords({ label, rows }: {
+  label: string;
+  rows: { id: string; name: string; fields: { label: string; value: string | number }[] }[];
+}) {
+  return <ul className={styles.mobileWaste} aria-label={label}>
+    {rows.map(row => <li key={row.id}>
+      <div className={styles.wasteRecordHeading}><strong>{row.name}</strong></div>
+      <dl className={styles.wasteRecordDetails}>
+        {row.fields.map(field => <div key={field.label}><dt>{field.label}</dt><dd>{field.value}</dd></div>)}
+      </dl>
+    </li>)}
+  </ul>;
+}
+
 const tableClass = styles.table;
 const headCellClass = "";
 const cellClass = "";
@@ -62,6 +77,10 @@ export default function InventoryBusinessInsights({
   formatQuantity,
   formatDate,
 }: InventoryBusinessInsightsProps) {
+  const wasteRows = (wasteSummary?.byReason ?? [])
+    .flatMap((reason) => reason.materials.map((material) => ({ reason, material })))
+    .slice(0, 5);
+
   return (
     <section className={styles.overview}>
       <div className={styles.intro}>
@@ -74,12 +93,18 @@ export default function InventoryBusinessInsights({
         <div className={styles.grid}>
           <Panel onOpen={onOpenReport ? () => onOpenReport("low-stock") : undefined} id="low-stock" footerLabel="View all low-stock materials" title="Low Stock" icon={<PackageSearch size={16} />}>
             {inventoryHealth?.lowStockMaterials.length ? (
-              <div>
-                <div className={styles.scroll}>
+              <div className={styles.wasteBody}>
+                <MobileInsightRecords label="Low-stock materials" rows={inventoryHealth.lowStockMaterials.map(item => ({
+                  id: item.rawMaterialId, name: item.name, fields: [
+                    { label: "Usable", value: formatStockQuantity(item.summary.usableQuantity) },
+                    { label: "Reorder Point", value: `${formatQuantity(item.reorderPoint)} ${formatUnit(item.unit.code)}` },
+                  ],
+                }))} />
+                <div className={`${styles.scroll} ${styles.overviewTable}`}>
                   <table className={tableClass}>
                     <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Material</th><th className={`${headCellClass} text-right`}>Usable</th><th className={`${headCellClass} text-right`}>Reorder Point</th></tr></thead>
                     <tbody>{inventoryHealth.lowStockMaterials.map((item) => (
-                    <tr key={item.rawMaterialId}><td className={cellClass}><span className="block truncate font-medium">{item.name}</span></td><td className={`${cellClass} text-right font-semibold text-amber-700`}>{formatQuantity(item.summary.usableQuantity)}</td><td className={`${cellClass} text-right`}>{formatQuantity(item.reorderPoint)}</td></tr>
+                    <tr key={item.rawMaterialId}><td className={cellClass}><span className="block truncate font-medium">{item.name}</span></td><td className={`${cellClass} text-right font-semibold text-amber-700`}>{formatStockQuantity(item.summary.usableQuantity)}</td><td className={`${cellClass} text-right`}>{formatQuantity(item.reorderPoint)} {formatUnit(item.unit.code)}</td></tr>
                     ))}</tbody>
                   </table>
                 </div>
@@ -89,12 +114,18 @@ export default function InventoryBusinessInsights({
 
           <Panel onOpen={onOpenReport ? () => onOpenReport("near-expiry") : undefined} id="near-expiry" footerLabel="View all near-expiry batches" title="Near Expiry" icon={<Clock3 size={16} />}>
             {inventoryHealth?.nearExpiryBatches.length ? (
-              <div>
-                <div className={styles.scroll}>
+              <div className={styles.wasteBody}>
+                <MobileInsightRecords label="Near-expiry batches" rows={inventoryHealth.nearExpiryBatches.map(batch => ({
+                  id: batch.id, name: batch.rawMaterial.name, fields: [
+                    { label: "Remaining", value: formatStockQuantity(batch.remainingQuantity) },
+                    { label: "Expiry Date", value: formatDate(batch.expirationDate) },
+                  ],
+                }))} />
+                <div className={`${styles.scroll} ${styles.overviewTable}`}>
                   <table className={tableClass}>
                     <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Material</th><th className={`${headCellClass} text-right`}>Remaining</th><th className={`${headCellClass} text-right`}>Expiry Date</th></tr></thead>
                     <tbody>{inventoryHealth.nearExpiryBatches.map((batch) => (
-                    <tr key={batch.id}><td className={cellClass}><span className="block truncate font-medium">{batch.rawMaterial.name}</span></td><td className={`${cellClass} text-right`}>{formatQuantity(batch.remainingQuantity)}</td><td className={`${cellClass} text-right font-semibold text-amber-700`}>{formatDate(batch.expirationDate)}</td></tr>
+                    <tr key={batch.id}><td className={cellClass}><span className="block truncate font-medium">{batch.rawMaterial.name}</span></td><td className={`${cellClass} text-right`}>{formatStockQuantity(batch.remainingQuantity)}</td><td className={`${cellClass} text-right font-semibold text-amber-700`}>{formatDate(batch.expirationDate)}</td></tr>
                     ))}</tbody>
                   </table>
                 </div>
@@ -102,15 +133,30 @@ export default function InventoryBusinessInsights({
             ) : <Empty>{inventoryHealth ? "No batches nearing expiry." : "Inventory health data unavailable."}</Empty>}
           </Panel>
 
-          <Panel onOpen={onOpenReport ? () => onOpenReport("waste") : undefined} id="waste-insights" footerLabel="View all waste records" title="Waste Insights" hint="Shows this week?s waste and resets Monday at midnight (Manila time). Historical records remain available in full reports." icon={<ChartNoAxesCombined size={16} />}>
+          <Panel onOpen={onOpenReport ? () => onOpenReport("waste") : undefined} id="waste-insights" footerLabel="View all waste records" title="Waste Insights" hint="Shows this week's waste and resets Monday at midnight (Manila time). Historical records remain available in full reports." icon={<ChartNoAxesCombined size={16} />}>
             {wasteSummary?.byReason.length ? (
-              <div>
-                <div className={styles.scroll}>
+              <div className={styles.wasteBody}>
+                <ul className={styles.mobileWaste} aria-label="Waste records">
+                  {wasteRows.map(({ reason, material }) => (
+                    <li key={JSON.stringify([reason.reasonCode, material.rawMaterialId])}>
+                      <div className={styles.wasteRecordHeading}>
+                        <strong title={material.sku}>{material.name}</strong>
+                        <span className={styles.wasteReason}>{reason.reasonCode.replaceAll("_", " ")}</span>
+                      </div>
+                      <dl className={styles.wasteRecordDetails}>
+                        <div><dt>Events</dt><dd>{material.eventCount}</dd></div>
+                        <div><dt>Quantity</dt><dd>{formatQuantity(material.quantity)}</dd></div>
+                        <div><dt>Cost</dt><dd>{formatMoney(material.cost)}</dd></div>
+                      </dl>
+                    </li>
+                  ))}
+                </ul>
+                <div className={`${styles.scroll} ${styles.wasteTable}`}>
                   <table className={tableClass}>
                     <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Reason</th><th className={headCellClass}>Material</th><th className={`${headCellClass} text-right`}>Events / Qty</th><th className={`${headCellClass} text-right`}>Cost</th></tr></thead>
-                    <tbody>{wasteSummary.byReason.flatMap(reason => reason.materials.map(material => (
+                    <tbody>{wasteRows.map(({ reason, material }) => (
                     <tr key={JSON.stringify([reason.reasonCode, material.rawMaterialId])}><td className={cellClass}><span className="block truncate font-medium">{reason.reasonCode.replaceAll("_", " ")}</span></td><td className={cellClass}><span className="block break-words" title={material.sku}>{material.name}</span></td><td className={`${cellClass} text-right`}>{material.eventCount} / {formatQuantity(material.quantity)}</td><td className={`${cellClass} text-right font-semibold text-amber-700`}>{formatMoney(material.cost)}</td></tr>
-                    )))}</tbody>
+                    ))}</tbody>
                   </table>
                 </div>
               </div>
@@ -119,12 +165,19 @@ export default function InventoryBusinessInsights({
 
           <Panel onOpen={onOpenReport ? () => onOpenReport("value") : undefined} id="high-value" footerLabel="View all inventory values" title="High-Value Inventory" icon={<Boxes size={16} />}>
             {inventoryHealth?.highValueMaterials.length ? (
-              <div>
-                <div className={styles.scroll}>
+              <div className={styles.wasteBody}>
+                <MobileInsightRecords label="High-value inventory" rows={inventoryHealth.highValueMaterials.map(item => ({
+                  id: item.rawMaterialId, name: item.name, fields: [
+                    { label: "Usable", value: formatStockQuantity(item.summary.usableQuantity) },
+                    { label: "Unit", value: formatUnit(item.unit.code) },
+                    { label: "Value", value: formatMoney(item.inventoryValue) },
+                  ],
+                }))} />
+                <div className={`${styles.scroll} ${styles.overviewTable}`}>
                   <table className={tableClass}>
                     <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Material</th><th className={`${headCellClass} text-right`}>Usable</th><th className={headCellClass}>Unit</th><th className={`${headCellClass} text-right`}>Value</th></tr></thead>
                     <tbody>{inventoryHealth.highValueMaterials.map((item) => (
-                    <tr key={item.rawMaterialId}><td className={cellClass}><span className="block truncate font-medium">{item.name}</span></td><td className={`${cellClass} text-right`}>{formatQuantity(item.summary.usableQuantity)}</td><td className={cellClass}>{formatUnit(item.unit.code)}</td><td className={`${cellClass} text-right font-semibold text-[#232d46]`}>{formatMoney(item.inventoryValue)}</td></tr>
+                    <tr key={item.rawMaterialId}><td className={cellClass}><span className="block truncate font-medium">{item.name}</span></td><td className={`${cellClass} text-right`}>{formatStockQuantity(item.summary.usableQuantity)}</td><td className={cellClass}>{formatUnit(item.unit.code)}</td><td className={`${cellClass} text-right font-semibold text-[#232d46]`}>{formatMoney(item.inventoryValue)}</td></tr>
                     ))}</tbody>
                   </table>
                 </div>
@@ -134,8 +187,14 @@ export default function InventoryBusinessInsights({
 
           <Panel onOpen={onOpenReport ? () => onOpenReport("supplier") : undefined} id="supplier-spend" footerLabel="View all supplier spending" title="Supplier Spend" icon={<Truck size={16} />}>
             {stockRunSpend?.bySupplier.length ? (
-              <div>
-                <div className={styles.scroll}>
+              <div className={styles.wasteBody}>
+                <MobileInsightRecords label="Supplier spending" rows={stockRunSpend.bySupplier.map(supplier => ({
+                  id: supplier.supplierId ?? supplier.supplierName, name: supplier.supplierName, fields: [
+                    { label: "Lines", value: supplier.lineCount },
+                    { label: "Spend", value: formatMoney(supplier.totalSpend) },
+                  ],
+                }))} />
+                <div className={`${styles.scroll} ${styles.overviewTable}`}>
                   <table className={tableClass}>
                     <thead className="sticky top-0 z-10"><tr><th className={headCellClass}>Supplier</th><th className={`${headCellClass} text-right`}>Lines</th><th className={`${headCellClass} text-right`}>Spend</th></tr></thead>
                     <tbody>{stockRunSpend.bySupplier.map((supplier) => (

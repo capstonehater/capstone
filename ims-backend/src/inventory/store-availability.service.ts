@@ -37,7 +37,16 @@ export class StoreAvailabilityService {
     });
   }
 
-  async start(rawMaterialId: string) {
+  async start(
+    rawMaterialId: string,
+    location?: { latitude?: number; longitude?: number },
+  ) {
+    const origin =
+      location?.latitude != null && location?.longitude != null
+        ? { latitude: location.latitude, longitude: location.longitude }
+        : undefined;
+    if ((location?.latitude != null || location?.longitude != null) && !origin)
+      throw new BadRequestException('Provide both latitude and longitude.');
     if (this.starting.has(rawMaterialId))
       throw new BadRequestException('A search is already starting.');
     this.starting.add(rawMaterialId);
@@ -73,7 +82,7 @@ export class StoreAvailabilityService {
           supplier.longitude === null ? null : Number(supplier.longitude),
         place_id: '',
       }));
-      void this.execute(search.id, material.name, stores).catch(() => {
+      void this.execute(search.id, material.name, stores, origin).catch(() => {
         // Persistence outages are recovered by the stale-job check above.
       });
       return search;
@@ -82,12 +91,18 @@ export class StoreAvailabilityService {
     }
   }
 
-  private async execute(id: string, product: string, stores: unknown[]) {
+  private async execute(
+    id: string,
+    product: string,
+    stores: unknown[],
+    origin?: { latitude: number; longitude: number },
+  ) {
     try {
       const results = await this.runPython({
         product,
         stores,
         collect_only: true,
+        ...(origin ? { origin } : {}),
       });
       const saved = await this.prisma.$transaction(async (tx) => {
         const updated = await tx.storeAvailabilitySearch.updateMany({
@@ -103,10 +118,10 @@ export class StoreAvailabilityService {
       if (!saved) return;
       if (
         results.length > 0 &&
-        results.every((row) =>
-          ['ERROR', 'RATE_LIMIT', 'PAYLOAD_TOO_LARGE'].includes(
-            String(row.status),
-          ),
+        results.every(
+          (row) =>
+            typeof row.status === 'string' &&
+            ['ERROR', 'RATE_LIMIT', 'PAYLOAD_TOO_LARGE'].includes(row.status),
         )
       ) {
         // Preserve diagnostic rows, but do not label a provider outage as success.
@@ -124,6 +139,7 @@ export class StoreAvailabilityService {
           (record) => record.payload as Prisma.InputJsonObject,
         ),
         persisted: true,
+        ...(origin ? { origin } : {}),
       });
       await this.prisma.$transaction(async (tx) => {
         const updated = await tx.storeAvailabilitySearch.updateMany({
@@ -157,6 +173,7 @@ export class StoreAvailabilityService {
     results?: Prisma.InputJsonObject[];
     collect_only?: boolean;
     persisted?: boolean;
+    origin?: { latitude: number; longitude: number };
   }): Promise<Prisma.InputJsonObject[]> {
     const script = resolve(
       input.persisted

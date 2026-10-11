@@ -13,6 +13,8 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "lint:check": "eslint \"{src,test}/**/*.ts\"",
     "prisma:seed": "prisma db seed",
     "store-data": "ts-node scripts/refresh-store-data.ts",
     "start": "nest start",
@@ -78,6 +80,9 @@
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
+    "setupFiles": [
+      "<rootDir>/../../tests/backend/setup-env.cjs"
+    ],
     "moduleFileExtensions": [
       "js",
       "json",

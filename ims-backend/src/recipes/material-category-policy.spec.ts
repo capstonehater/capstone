@@ -24,7 +24,7 @@ describe('material category restrictions', () => {
   it('allows an ingredient explicitly assigned to the category', async () => {
     await expect(assertMaterialsAllowedForCategory(tx as never, categoryId, ['bacon'])).resolves.toBeUndefined();
     expect(tx.rawMaterial.findFirst).toHaveBeenCalledWith({
-      where: { id: { in: ['bacon'] }, categories: { none: { id: categoryId } } },
+      where: { id: { in: ['bacon'] }, categories: { none: { OR: [{ id: categoryId }, { name: { in: ['Container', 'Containers'], mode: 'insensitive' } }] } } },
       select: { name: true },
     });
   });
@@ -53,7 +53,7 @@ describe('material category restrictions', () => {
       quantity: 1, recipeAdjustments: [{ rawMaterialId: 'milk', quantityDelta: new Prisma.Decimal(2) }],
     }] as never, 1);
     expect(tx.rawMaterial.findFirst).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: { in: ['bacon', 'milk'] }, categories: { none: { id: categoryId } } },
+      where: { id: { in: ['bacon', 'milk'] }, categories: { none: { OR: [{ id: categoryId }, { name: { in: ['Container', 'Containers'], mode: 'insensitive' } }] } } },
     }));
   });
 });

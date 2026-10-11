@@ -2,6 +2,10 @@ export function formatOrderReference(order: { id: string; displayOrderNumber?: s
   return order.displayOrderNumber?.trim() || `ORD-${order.id.split("-")[0].toUpperCase()}`;
 }
 
+export function formatSplitPaymentOrderReference(order: { id: string; displayOrderNumber?: string | null }) {
+  return formatOrderReference(order).replace(/^ORD_/, "ORD-");
+}
+
 export function formatPeso(value: number | string) {
   const amount = typeof value === "number" ? value : Number(value || 0);
   return new Intl.NumberFormat("en-PH", {
@@ -19,7 +23,7 @@ export function calculateIncludedVat(totalAmount: number) {
     return 0;
   }
 
-  return totalAmount - totalAmount / 1.12;
+  return Math.round((totalAmount - totalAmount / 1.12 + Number.EPSILON) * 100) / 100;
 }
 
 export function formatDateTime(value: string | null | undefined) {

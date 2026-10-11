@@ -1371,7 +1371,7 @@ describe('User management and auth foundation (e2e)', () => {
       .expect(409);
 
     expect(response.body.message).toBe(
-      'Cannot delete user with historical records. Set the account to INACTIVE instead.',
+      'This account is already inactive and cannot be permanently deleted because it has historical records.',
     );
     expect(prismaMock.user.delete).not.toHaveBeenCalled();
   });

@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 
 // Environment values are loaded once at startup; restart after editing .env.
 if (existsSync('.env.local')) loadEnvFile('.env.local');
-loadEnvFile();
+if (existsSync('.env')) loadEnvFile();
 
 type SameSite = 'lax' | 'strict' | 'none';
 
@@ -86,6 +86,16 @@ export const env = Object.freeze({
   NODE_ENV: nodeEnv,
   // Comma-separated proxy IPs/CIDRs; empty means direct connections only.
   TRUST_PROXY: process.env.TRUST_PROXY?.trim() || '',
+  REQUEST_BURST_LIMIT: parsePositiveInt('REQUEST_BURST_LIMIT', 30),
+  REQUESTS_PER_MINUTE: parsePositiveInt('REQUESTS_PER_MINUTE', 300),
+  REQUESTS_GLOBAL_PER_SECOND: parsePositiveInt(
+    'REQUESTS_GLOBAL_PER_SECOND',
+    500,
+  ),
+  REQUEST_RATE_LIMIT_MAX_CLIENTS: parsePositiveInt(
+    'REQUEST_RATE_LIMIT_MAX_CLIENTS',
+    10_000,
+  ),
   LOGIN_IP_MAX_ATTEMPTS: parsePositiveInt('LOGIN_IP_MAX_ATTEMPTS', 30),
   SMTP_HOST: process.env.SMTP_HOST?.trim() || undefined,
   SMTP_PORT: parsePositiveInt('SMTP_PORT', 587),
@@ -100,7 +110,8 @@ export const env = Object.freeze({
     nodeEnv !== 'test',
   ),
   FRONTEND_ORIGIN: requireString('FRONTEND_ORIGIN', 'http://localhost:3000'),
-  ADDITIONAL_FRONTEND_ORIGINS: process.env.ADDITIONAL_FRONTEND_ORIGINS?.trim() || '',
+  ADDITIONAL_FRONTEND_ORIGINS:
+    process.env.ADDITIONAL_FRONTEND_ORIGINS?.trim() || '',
   FRONTEND_APP_URL: requireString('FRONTEND_APP_URL', 'http://localhost:3000'),
   SESSION_COOKIE_NAME: requireString('SESSION_COOKIE_NAME', 'ims_session'),
   SESSION_TOKEN_SECRET: sessionTokenSecret,

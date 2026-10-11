@@ -2,11 +2,12 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from catalog_reference import CATALOG_FILE, load_catalog, inventory_reference
 
 
 DATA_DIR = Path(__file__).resolve().parent
 FORECAST_FILE = DATA_DIR / "forecast_database.csv"
-INVENTORY_FILE = DATA_DIR / "current_inventory.csv"
+INVENTORY_FILE = CATALOG_FILE
 REPORT_FILE = DATA_DIR / "inventory_recommendation.csv"
 ALL_RESTOCK_FILE = DATA_DIR / "raw_material_restocking.csv"
 FORECAST_COLUMNS = [
@@ -33,7 +34,7 @@ def load_inputs():
     forecast = pd.read_csv(FORECAST_FILE)
     if "RawMaterial" not in forecast.columns:
         forecast = pd.read_csv(FORECAST_FILE, header=None, names=FORECAST_COLUMNS)
-    inventory = pd.read_csv(INVENTORY_FILE)
+    inventory = inventory_reference(load_catalog(INVENTORY_FILE))
 
     required_forecast = ["Product", "RawMaterial", "Unit", "Date", "Forecast"]
     required_inventory = ["Product", "CurrentStock", "LeadTime", "SafetyStock"]
@@ -42,7 +43,7 @@ def load_inputs():
             raise ValueError(f"Missing column in forecast_database.csv: {column}")
     for column in required_inventory:
         if column not in inventory.columns:
-            raise ValueError(f"Missing column in current_inventory.csv: {column}")
+            raise ValueError(f"Missing field in catalog inventory reference: {column}")
 
     forecast["Date"] = pd.to_datetime(forecast["Date"], errors="raise")
     forecast["Forecast"] = pd.to_numeric(forecast["Forecast"], errors="coerce").fillna(0)
@@ -91,11 +92,16 @@ def simulate_inventory(product, current_stock, daily_forecast):
 
 
 def build_report(forecast, inventory):
+    inventory = inventory.copy()
+    for column in ['CurrentStock', 'SafetyStock', 'LeadTime', 'CatalogReorderPoint']:
+        if column in inventory:
+            inventory[column] = pd.to_numeric(inventory[column], errors='raise').astype(float)
     forecast_summary = create_forecast_summary(forecast)
-    inventory_data = forecast_summary.merge(inventory, on="Product", how="left")
+    match_columns = ["Product", "Unit"] if "Unit" in inventory else ["Product"]
+    inventory_data = forecast_summary.merge(inventory, on=match_columns, how="left", validate="many_to_one")
     inventory_data["HasInventoryData"] = inventory_data["CurrentStock"].notna()
-    inventory_data[["CurrentStock", "SafetyStock", "LeadTime"]] = (
-        inventory_data[["CurrentStock", "SafetyStock", "LeadTime"]].fillna(0)
+    inventory_data[["SafetyStock", "LeadTime"]] = (
+        inventory_data[["SafetyStock", "LeadTime"]].fillna(0)
     )
 
     inventory_data["DailyDemand"] = (inventory_data["ForecastTotal"] / inventory_data["ForecastDays"]).round(2)
@@ -105,6 +111,10 @@ def build_report(forecast, inventory):
     inventory_data["ReorderPoint"] = (
         inventory_data["LeadTimeDemand"] + inventory_data["SafetyStock"]
     ).round(2)
+    if "CatalogReorderPoint" in inventory_data:
+        inventory_data["ReorderPoint"] = np.maximum(
+            inventory_data["ReorderPoint"], inventory_data["CatalogReorderPoint"].fillna(0)
+        )
     inventory_data["DaysRemaining"] = np.where(
         inventory_data["DailyDemand"] > 0,
         inventory_data["CurrentStock"] / inventory_data["DailyDemand"],
@@ -116,16 +126,21 @@ def build_report(forecast, inventory):
             inventory_data["Product"], inventory_data["CurrentStock"]
         )
     ]
+    stock_target = inventory_data["SafetyStock"]
+    if "CatalogReorderPoint" in inventory_data:
+        stock_target = np.maximum(stock_target, inventory_data["CatalogReorderPoint"].fillna(0))
     inventory_data["RecommendedPurchase"] = np.ceil(
         np.maximum(
             0,
             inventory_data["ForecastTotal"]
-            + inventory_data["SafetyStock"]
+            + stock_target
             - inventory_data["CurrentStock"],
         )
-    ).astype(int)
+    ).astype("Int64")
     inventory_data["BuyOnNextRun"] = np.where(
-        inventory_data["RecommendedPurchase"] > 0, "Yes", "No"
+        inventory_data["HasInventoryData"],
+        np.where(inventory_data["RecommendedPurchase"].fillna(0) > 0, "Yes", "No"),
+        "No Data",
     )
     inventory_data["ProjectedRemaining"] = (
         inventory_data["CurrentStock"]
@@ -159,7 +174,7 @@ def build_report(forecast, inventory):
             f"{int(row['StockoutDay'])}."
             if not pd.isna(row["StockoutDay"])
             else f"Restock {row['RecommendedPurchase']} {row['Unit']} on the next "
-            "stock run to cover the forecast and safety stock."
+            "stock run to cover the forecast and configured stock target."
         ),
         axis=1,
     )

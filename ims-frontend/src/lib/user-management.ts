@@ -14,6 +14,7 @@ export type Pagination = {
 
 export type UserSummary = {
   id: string;
+  employeeId: string;
   name: string;
   email: string;
   role: UserManagementRole;

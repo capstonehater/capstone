@@ -4,6 +4,7 @@
 import { usePathname } from "next/navigation";
 import { getAdminPageInfo } from "@/components/layout/shell-navigation";
 import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
+import ReportAccountingHint from "@/components/admin/reports/ReportAccountingHint";
 import styles from "@/components/layout/ApplicationShell.module.css";
 import { useAuthStore } from "@/store/authStore";
 import { routeHref } from "@/lib/routing/routes";
@@ -21,6 +22,7 @@ export default function AdminHeader() {
       <AdminSectionHeader
         title={page?.label ?? "Cafe Salvacion"}
         description={page?.subtitle ?? "Inventory management"}
+        titleHint={pathname === routeHref("reports.inventory") ? <ReportAccountingHint /> : undefined}
       />
     </div>
   );

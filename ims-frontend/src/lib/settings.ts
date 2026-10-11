@@ -5,6 +5,7 @@ export type SettingsAccountStatus = "PENDING" | "ACTIVE" | "INACTIVE";
 
 export type SettingsAccount = {
   id: string;
+  employeeId: string;
   firstName: string;
   middleInitial: string | null;
   lastName: string;

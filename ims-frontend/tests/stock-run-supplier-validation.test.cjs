@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- Exercise stock-run form handlers in Node. */
+require('./helpers/register.cjs');
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -49,18 +50,17 @@ test("Select supplier highlights an error and blocks adding a stock-run item", (
   const formNode = nodes(tree, "form")[0];
   const add = nodes(formNode, "button").find(node => node.props.type === "submit");
   assert.equal(add.props.disabled, false);
-  formNode.props.onInvalidCapture();
-  tree = render();
-  assert.equal(nodes(tree, Validation)[0].props.error, "Select a supplier before adding this item.");
   let prevented = false;
   nodes(tree, "form")[0].props.onSubmit({ preventDefault() { prevented = true; } });
   assert.equal(prevented, true); assert.equal(submissions, 0);
+  tree = render();
+  assert.equal(nodes(tree, Validation)[1].props.error, "Select a supplier.");
   nodes(tree, Select).find(node => node.props.label === "Supplier").props.onChange("supplier-1");
   tree = render();
-  assert.equal(nodes(tree, Validation)[0].props.error, undefined);
+  assert.equal(nodes(tree, Validation)[1].props.error, undefined);
   nodes(tree, "form")[0].props.onSubmit({ preventDefault() {} });
   assert.equal(submissions, 1);
   nodes(tree, Select).find(node => node.props.label === "Supplier").props.onChange("");
   tree = render();
-  assert.ok(nodes(tree, Validation)[0].props.error);
+  assert.ok(nodes(tree, Validation)[1].props.error);
 });

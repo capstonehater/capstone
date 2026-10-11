@@ -1,4 +1,5 @@
 "use client";
+import ReportAccountingHint from "./ReportAccountingHint";
 import DateFilter from "@/components/staff-pos/DateFilter";
 import { getPosReportDateBounds, validatePosReportDateChange } from "@/lib/pos-report-date-range";
 
@@ -132,7 +133,8 @@ export default function PosReportsWorkspace() {
 
   return (
     <div className={styles.workspace}>
-      <AdminSectionHeader title="POS Reports" description="Daily sales, transaction history, and point-of-sale performance." />
+      <AdminSectionHeader title="POS Reports" titleHint={<ReportAccountingHint />} description="Daily sales, transaction history, and point-of-sale performance." />
+
 
       <PosDashboardSection
         active={activeSection === "dashboard"}

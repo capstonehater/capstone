@@ -1,13 +1,18 @@
 "use client";
+import { formatReportQuantity, formatUsableQuantity } from "@/lib/report-quantities";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 import ActionAlert from "@/components/feedback/ActionAlert";
 
 import ReportColumns from "./ReportColumns";
+import InventoryReportModal from "@/components/admin/inventory/InventoryReportModal";
+import modalStyles from "@/components/admin/inventory/BatchTransactionModal.module.css";
 import WasteInsightsReport from "./WasteInsightsReport";
 import SearchInput from "@/components/ui/SearchInput";
+import ReportSearchField from "./ReportSearchField";
+import useReportSearch from "./useReportSearch";
 import { formatUnit } from "@/lib/units";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SummaryCard from "@/components/dashboard/SummaryCard";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
@@ -34,7 +39,7 @@ type Props = {
 };
 
 function formatQuantity(value: string, unitCode: string) {
-  return `${value} ${unitCode}`;
+  return `${formatReportQuantity(value, unitCode)} ${unitCode}`;
 }
 
 function alertTone(severity: string | null) {
@@ -63,18 +68,13 @@ export default function PosInventoryLinkedSection({
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<PosInventoryLinkedReport | null>(null);
   const [materialSearch, setMaterialSearch] = useState("");
+  const materialSearchQuery = useReportSearch(materialSearch);
   const [variantSearch, setVariantSearch] = useState("");
+  const variantSearchQuery = useReportSearch(variantSearch);
   const [drilldownVariantId, setDrilldownVariantId] = useState("");
-  const drilldownPanel = useRef<HTMLDivElement>(null);
   const [exportingFormat, setExportingFormat] = useState<"excel" | "pdf" | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!drilldownVariantId) return;
-    drilldownPanel.current?.scrollIntoView({ block: "center", behavior: "auto" });
-    drilldownPanel.current?.focus({ preventScroll: true });
-  }, [drilldownVariantId]);
 
   useEffect(() => {
     if (!active) {
@@ -89,8 +89,8 @@ export default function PosInventoryLinkedSection({
         const nextReport = await fetchPosInventoryLinked({
           from: fromIso,
           to: toIso,
-          materialSearch: materialSearch.trim() || undefined,
-          variantSearch: variantSearch.trim() || undefined,
+          materialSearch: materialSearchQuery || undefined,
+          variantSearch: variantSearchQuery || undefined,
           drilldownVariantId: drilldownVariantId || undefined,
         });
 
@@ -122,8 +122,8 @@ export default function PosInventoryLinkedSection({
     active,
     fromIso,
     toIso,
-    materialSearch,
-    variantSearch,
+    materialSearchQuery,
+    variantSearchQuery,
     drilldownVariantId,
     refreshToken,
   ]);
@@ -156,8 +156,8 @@ export default function PosInventoryLinkedSection({
       filters: {
         from,
         to,
-        materialSearch: materialSearch.trim() || undefined,
-        variantSearch: variantSearch.trim() || undefined,
+        materialSearch: materialSearchQuery || undefined,
+        variantSearch: variantSearchQuery || undefined,
         drilldownVariantName: selectedVariantName,
       },
       report,
@@ -167,12 +167,12 @@ export default function PosInventoryLinkedSection({
     error,
     from,
     loading,
-    materialSearch,
+    materialSearchQuery,
     onSnapshotChange,
     report,
     selectedVariantName,
     to,
-    variantSearch,
+    variantSearchQuery,
   ]);
 
   if (!active) {
@@ -193,8 +193,8 @@ export default function PosInventoryLinkedSection({
         filters: {
           from,
           to,
-          materialSearch: materialSearch.trim() || undefined,
-          variantSearch: variantSearch.trim() || undefined,
+          materialSearch: materialSearchQuery || undefined,
+          variantSearch: variantSearchQuery || undefined,
           drilldownVariantName: selectedVariantName,
         },
         report,
@@ -246,28 +246,24 @@ export default function PosInventoryLinkedSection({
           </div>
 
           <div
-            className={`grid gap-3 sm:grid-cols-2 ${
-              showStandaloneExportControls ? "xl:grid-cols-4" : "xl:grid-cols-2"
-            }`}
+            className="report-search-controls"
           >
-            <label className="text-sm font-medium text-neutral-700">
-              <span className="mb-1 block">Product / Variant</span>
+            <ReportSearchField label="Product / Variant">
               <SearchInput
                 value={variantSearch}
                 onChange={(event) => setVariantSearch(event.target.value)}
                 placeholder="Ex.Lasagna, Family Variant"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
               />
-            </label>
-            <label className="text-sm font-medium text-neutral-700">
-              <span className="mb-1 block">Material</span>
+            </ReportSearchField>
+            <ReportSearchField label="Material">
               <SearchInput
                 value={materialSearch}
                 onChange={(event) => setMaterialSearch(event.target.value)}
                 placeholder="Ex. Cheddar Cheese"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
               />
-            </label>
+            </ReportSearchField>
             {showStandaloneExportControls ? (
               <PermissionAction permissions={["reports.view", "reports.export.excel"]}><button
                 type="button"
@@ -292,44 +288,49 @@ export default function PosInventoryLinkedSection({
         </div>
 
         <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          This section uses checkout-linked inventory ledger lines as the source of truth. It does
-          not reconstruct usage in the frontend.
+          Net material usage is checkout usage less stock restored by refunds and voids. Quantities are grouped by unit. Sales exclude VAT and include order discounts.
         </div>
       </section>
 
       <section data-report="consumption-metrics" className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
         <SummaryCard
-          title="Sales-Linked Transactions"
-          value={loading ? "..." : report?.summary.salesLinkedTransactionCount ?? 0}
+          title="Stock Movements"
+          value={loading && !report ? "..." : report?.summary.salesLinkedTransactionCount ?? 0}
         />
         <SummaryCard
-          title="Material Qty Used"
+          title="Material Used by Unit"
           value={
-            loading ? "..." : report?.summary.totalMaterialConsumptionQuantity ?? "0"
+            loading && !report ? "..." : (
+              <span style={{ display: "grid", gap: 4, fontSize: 20, whiteSpace: "normal" }}>
+                {report?.summary.materialQuantitiesByUnit?.length
+                  ? report.summary.materialQuantitiesByUnit.map(group => <span key={group.unit}>{formatReportQuantity(group.quantity, group.unit)} {formatUnit(group.unit)}</span>)
+                  : "No material usage"}
+              </span>
+            )
           }
         />
         <SummaryCard
           title="Consumption Cost"
-          value={loading ? "..." : formatPeso(report?.summary.totalConsumptionCost ?? "0")}
+          value={loading && !report ? "..." : formatPeso(report?.summary.totalConsumptionCost ?? "0")}
         />
         <SummaryCard
           title="Materials Consumed"
-          value={loading ? "..." : report?.summary.distinctMaterialsConsumed ?? 0}
+          value={loading && !report ? "..." : report?.summary.distinctMaterialsConsumed ?? 0}
         />
         <SummaryCard
           title="Variants Sold"
-          value={loading ? "..." : report?.summary.distinctVariantsSold ?? 0}
+          value={loading && !report ? "..." : report?.summary.distinctVariantsSold ?? 0}
         />
         <SummaryCard
           title="Low-Stock Consumed"
-          value={loading ? "..." : report?.summary.lowStockConsumedMaterialCount ?? 0}
+          value={loading && !report ? "..." : report?.summary.lowStockConsumedMaterialCount ?? 0}
         />
       </section>
 
       <section data-report="linked-details" className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <WidgetCard title="High-Usage Ingredients" className="report-high-usage">
           <div className="overflow-x-auto">
-            <ReportColumns columns={["Material","SKU","Consumed Qty","Consumption Cost","Orders","Variants","Usable Qty","Reorder Point","Status"]} gridTemplate="1.15fr_0.7fr_0.9fr_0.9fr_0.7fr_0.7fr_0.9fr_0.8fr_0.7fr"><div className="min-w-[850px] overflow-hidden rounded-2xl border border-slate-200">
+            <ReportColumns columns={["Material","SKU","Consumed Qty","Consumption Cost","Orders","Variants","Usable Quantity","Reorder Point","Status"]} gridTemplate="1.15fr_0.7fr_0.9fr_0.9fr_0.7fr_0.7fr_0.9fr_0.8fr_0.7fr"><div className="min-w-[850px] overflow-hidden rounded-2xl border border-slate-200">
               <div className="grid grid-cols-[1.15fr_0.7fr_0.9fr_0.9fr_0.7fr_0.7fr_0.9fr_0.8fr_0.7fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span>Material</span>
                 <span>SKU</span>
@@ -337,12 +338,12 @@ export default function PosInventoryLinkedSection({
                 <span>Consumption Cost</span>
                 <span>Orders</span>
                 <span>Variants</span>
-                <span>Usable Qty</span>
+                <span>Usable Quantity</span>
                 <span>Reorder Point</span>
                 <span>Status</span>
               </div>
               <div className="max-h-[30rem] overflow-y-auto">
-                {loading ? (
+                {loading && !report ? (
                   <div className="px-4 py-6 text-sm text-slate-500">
                     Loading material consumption...
                   </div>
@@ -372,7 +373,7 @@ export default function PosInventoryLinkedSection({
                       <div>{row.orderCount}</div>
                       <div>{row.variantCount}</div>
                       <div>
-                        {formatQuantity(row.currentUsableQuantity, formatUnit(row.rawMaterial.unit.code))}
+                        {`${formatUsableQuantity(row.currentUsableQuantity)} ${formatUnit(row.rawMaterial.unit.code)}`}
                       </div>
                       <div>
                         {formatQuantity(row.rawMaterial.reorderPoint, formatUnit(row.rawMaterial.unit.code))}
@@ -408,7 +409,7 @@ export default function PosInventoryLinkedSection({
           {inventoryLayout ? <WasteInsightsReport key={JSON.stringify([fromIso, toIso, refreshToken])} fromIso={fromIso} toIso={toIso} /> : (
           <WidgetCard title="Low-Stock / Reorder Pressure" className="report-low-stock">
             <div className="space-y-3">
-              {loading ? (
+              {loading && !report ? (
                 <p className="text-sm text-slate-500">Loading low-stock materials...</p>
               ) : (report?.lowStockMaterials ?? []).length === 0 ? (
                 <p className="text-sm text-slate-500">
@@ -440,7 +441,7 @@ export default function PosInventoryLinkedSection({
                         Used {formatQuantity(row.consumedQuantity, formatUnit(row.rawMaterial.unit.code))}
                       </div>
                       <div>
-                        Usable {formatQuantity(row.currentUsableQuantity, formatUnit(row.rawMaterial.unit.code))}
+                        Usable Quantity {`${formatUsableQuantity(row.currentUsableQuantity)} ${formatUnit(row.rawMaterial.unit.code)}`}
                       </div>
                     </div>
                   </div>
@@ -462,7 +463,7 @@ export default function PosInventoryLinkedSection({
                   <th scope="col" className="px-4 py-3 text-right">Product Variants</th>
                   <th scope="col" className="px-4 py-3 text-right">Material Cost Used</th>
                 </tr></thead>
-                <tbody>{loading ? <tr><td colSpan={6} className="p-6 text-center text-slate-500">Loading stock movements...</td></tr>
+                <tbody>{loading && !report ? <tr><td colSpan={6} className="p-6 text-center text-slate-500">Loading stock movements...</td></tr>
                   : error ? <tr><td colSpan={6} className="p-6 text-center text-rose-700">Stock movements unavailable.</td></tr>
                   : !(report?.recentSalesLinkedMovements.length) ? <tr><td colSpan={6} className="p-6 text-center text-slate-500">No checkout-linked stock movements matched the selected date range and filters.</td></tr>
                   : report.recentSalesLinkedMovements.map(row => <tr key={row.transactionId} className="border-t border-slate-200">
@@ -482,7 +483,7 @@ export default function PosInventoryLinkedSection({
         </div>
       </section>
 
-      <section data-report="variant-details" className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+      <section data-report="variant-details" className="grid gap-6">
         <WidgetCard title="Top Variants by Sales-Linked Material Usage" className="report-variants">
           <div className="overflow-x-auto">
             <ReportColumns columns={["Product / Variant","Category","Qty Sold","Revenue","Gross Margin","Material Cost","Orders","Action"]} gridTemplate="1.15fr_0.95fr_0.8fr_0.9fr_0.9fr_0.9fr_0.8fr_92px"><div className="min-w-[850px] overflow-hidden rounded-2xl border border-slate-200">
@@ -497,7 +498,7 @@ export default function PosInventoryLinkedSection({
                 <span className="text-right">Action</span>
               </div>
               <div className="max-h-[30rem] overflow-y-auto">
-                {loading ? (
+                {loading && !report ? (
                   <div className="px-4 py-6 text-sm text-slate-500">Loading variants...</div>
                 ) : (report?.variants ?? []).length === 0 ? (
                   <div className="px-4 py-6 text-sm text-slate-500">
@@ -526,15 +527,12 @@ export default function PosInventoryLinkedSection({
                       <div className="text-right">
                         <button
                           type="button"
-                          aria-expanded={drilldownVariantId === row.productVariant.id}
-                          onClick={() =>
-                            setDrilldownVariantId((current) =>
-                              current === row.productVariant.id ? "" : row.productVariant.id,
-                            )
-                          }
+                          aria-haspopup="dialog"
+                          aria-label={`Insight for ${row.productVariant.product.name} - ${row.productVariant.name}`}
+                          onClick={() => setDrilldownVariantId(row.productVariant.id)}
                           className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
                         >
-                          {drilldownVariantId === row.productVariant.id ? "Hide" : "Inspect"}
+                          Insight
                         </button>
                       </div>
                     </div>
@@ -545,11 +543,18 @@ export default function PosInventoryLinkedSection({
           </div>
         </WidgetCard>
 
-        <WidgetCard title="Variant to Material Drill-Down" className="report-drilldown">
-          <div ref={drilldownPanel} tabIndex={-1} role="region" aria-label="Variant material details" aria-busy={loading && !!drilldownVariantId}>
-          {loading && drilldownVariantId ? (
+      </section>
+      {drilldownVariantId && <InventoryReportModal
+        title="Variant to Material Drill-Down"
+        description={selectedVariantName}
+        onClose={() => setDrilldownVariantId("")}
+      >
+          <div aria-busy={loading}>
+          {error ? (
+            <p role="alert" className="text-sm text-rose-700">{error}</p>
+          ) : loading ? (
             <p role="status" className="px-4 py-6 text-sm text-slate-500">Loading variant material details...</p>
-          ) : report?.selectedVariantBreakdown ? (
+          ) : report?.selectedVariantBreakdown?.productVariant.id === drilldownVariantId ? (
             <div className="report-drilldown-content space-y-4">
               <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -561,13 +566,6 @@ export default function PosInventoryLinkedSection({
                     {report.selectedVariantBreakdown.productVariant.sku}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setDrilldownVariantId("")}
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                >
-                  Clear Drill-Down
-                </button>
               </div>
 
               <div className="report-drilldown-summary grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -597,63 +595,33 @@ export default function PosInventoryLinkedSection({
                 </div>
               </div>
 
-              <div className="report-drilldown-table overflow-x-auto">
-                <ReportColumns columns={["Material","SKU","Consumed Qty","Consumption Cost","Usable Qty","Status"]} gridTemplate="1.2fr_0.8fr_1fr_1fr_0.9fr_0.8fr"><div className="min-w-[38rem] overflow-hidden rounded-2xl border border-slate-200">
-                  <div className="grid grid-cols-[1.2fr_0.8fr_1fr_1fr_0.9fr_0.8fr] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    <span>Material</span>
-                    <span>SKU</span>
-                    <span>Consumed Qty</span>
-                    <span>Consumption Cost</span>
-                    <span>Usable Qty</span>
-                    <span>Status</span>
-                  </div>
-                  <div className="max-h-[24rem] overflow-y-auto">
-                    {report.selectedVariantBreakdown.materials.length === 0 ? (
-                      <div className="px-4 py-6 text-sm text-slate-500">
-                        No material breakdown matched the current drill-down.
-                      </div>
-                    ) : (
-                      report.selectedVariantBreakdown.materials.map((row) => (
-                        <div
-                          key={row.rawMaterial.id}
-                          className="grid grid-cols-[1.2fr_0.8fr_1fr_1fr_0.9fr_0.8fr] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
-                        >
-                          <div className="font-semibold text-slate-900">{row.rawMaterial.name}</div>
-                          <div>{row.rawMaterial.sku}</div>
-                          <div>
-                            {formatQuantity(row.consumedQuantity, formatUnit(row.rawMaterial.unit.code))}
-                          </div>
-                          <div>{formatPeso(row.consumptionCost)}</div>
-                          <div>
-                            {formatQuantity(row.currentUsableQuantity, formatUnit(row.rawMaterial.unit.code))}
-                          </div>
-                          <div>
-                            {row.isLowStock ? (
-                              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-                                Low
-                              </span>
-                            ) : (
-                              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                                OK
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div></ReportColumns>
+              <div className={modalStyles.tableFrame}>
+                <div className={modalStyles.tableScroll}>
+                  <table aria-label="Variant material breakdown">
+                    <thead><tr>{["Material", "SKU", "Consumed Qty", "Consumption Cost", "Usable Quantity", "Status"].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
+                    <tbody>{report.selectedVariantBreakdown.materials.length === 0 ? (
+                      <tr><td colSpan={6} className={modalStyles.empty}>No material breakdown matched the current drill-down.</td></tr>
+                    ) : report.selectedVariantBreakdown.materials.map(row => (
+                      <tr key={row.rawMaterial.id}>
+                        <td><strong>{row.rawMaterial.name}</strong></td>
+                        <td>{row.rawMaterial.sku}</td>
+                        <td>{formatQuantity(row.consumedQuantity, formatUnit(row.rawMaterial.unit.code))}</td>
+                        <td>{formatPeso(row.consumptionCost)}</td>
+                        <td>{`${formatUsableQuantity(row.currentUsableQuantity)} ${formatUnit(row.rawMaterial.unit.code)}`}</td>
+                        <td><span className={`rounded-full px-3 py-1 text-xs font-semibold ${row.isLowStock ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}>{row.isLowStock ? "Low" : "OK"}</span></td>
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                </div>
               </div>
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-sm text-slate-500">
-              Choose a variant from the table to inspect which materials were consumed for that
-              sales-linked ledger footprint.
+              No material details are available for this variant in the selected range.
             </div>
           )}
           </div>
-        </WidgetCard>
-      </section>
+      </InventoryReportModal>}
     </div>
   );
 }

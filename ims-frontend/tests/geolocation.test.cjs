@@ -10,11 +10,12 @@ require.extensions['.ts'] = (module, filename) => {
 };
 const { GET } = require('../src/app/api/geolocation/route.ts');
 const originalFetch = global.fetch;
-const keys = ['LOCATIONIQ_API_KEY', 'NEXT_PUBLIC_API_BASE_URL', 'SESSION_COOKIE_NAME'];
+const keys = ['LOCATIONIQ_API_KEY', 'NEXT_PUBLIC_API_BASE_URL', 'SESSION_COOKIE_NAME', 'API_UPSTREAM_URL'];
 const originalEnv = Object.fromEntries(keys.map(key => [key, process.env[key]]));
 let calls;
 let auth;
 beforeEach(() => {
+  delete process.env.API_UPSTREAM_URL;
   process.env.LOCATIONIQ_API_KEY = 'test-only';
   process.env.NEXT_PUBLIC_API_BASE_URL = 'https://backend.example/api';
   delete process.env.SESSION_COOKIE_NAME;
@@ -73,6 +74,20 @@ for (const base of ['', 'not a url', 'ftp://backend.example', 'https://user:pass
     assert.equal(calls.length, 0);
   });
 }
+test('blank explicit upstream fails before making a request', async () => {
+  process.env.API_UPSTREAM_URL = '   ';
+  assert.equal((await GET(request())).status, 503);
+  assert.equal(calls.length, 0);
+});
+
+test('server upstream takes priority over a same-origin public proxy', async () => {
+  process.env.API_UPSTREAM_URL = 'https://backend.example/api';
+  process.env.NEXT_PUBLIC_API_BASE_URL = '/backend-api';
+  assert.equal((await GET(request())).status, 200);
+  assert.equal(calls[0].url, 'https://backend.example/api/auth/me');
+  assert.equal(providers().length, 1);
+});
+
 test('valid session forwards only configured credential and preserves results', async () => {
   process.env.SESSION_COOKIE_NAME = 'custom_session';
   const response = await GET(request('other=secret; custom_session=token%3Dvalue; ims_session=wrong', 'q=coffee', {

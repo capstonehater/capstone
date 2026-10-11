@@ -26,6 +26,18 @@ jest.mock('../config/env.validation', () => ({
 }));
 const routes = [
   {
+    handler: 'createUnit',
+    method: 'post',
+    path: '/units',
+    permission: 'inventory.create',
+  },
+  {
+    handler: 'createUnitForMaterial',
+    method: 'post',
+    path: '/raw-materials/material-1/units',
+    permission: 'inventory.edit',
+  },
+  {
     handler: 'listUnits',
     method: 'get',
     path: '/units',
@@ -165,6 +177,8 @@ describe('Inventory material HTTP authorization', () => {
   const validateSession = jest.fn();
   const inventory = Object.fromEntries(
     [
+      'createUnit',
+      'createUnitForMaterial',
       'listUnits',
       'listRawMaterials',
       'getRawMaterialById',
@@ -206,13 +220,15 @@ describe('Inventory material HTTP authorization', () => {
     if (authenticated) req.set('Cookie', 'test_session=valid');
     const payload =
       body ??
-      (route.path === '/inventory/waste'
-        ? waste
-        : route.path === '/raw-materials' && route.method === 'post'
-          ? material
-          : route.path === '/suppliers' && route.method === 'post'
-            ? { name: 'Supplier' }
-            : {});
+      (route.method === 'post' && route.path.endsWith('/units')
+        ? { name: 'Piece', code: 'PC', dimension: 'COUNT' }
+        : route.path === '/inventory/waste'
+          ? waste
+          : route.path === '/raw-materials' && route.method === 'post'
+            ? material
+            : route.path === '/suppliers' && route.method === 'post'
+              ? { name: 'Supplier' }
+              : {});
     return req.send(payload);
   };
   beforeAll(async () => {
@@ -300,7 +316,10 @@ describe('Inventory material HTTP authorization', () => {
   });
   it('does not expose inventory history deletion', async () => {
     grants = PERMISSION_CATALOG.map((item) => item.key);
-    await send({ method: 'delete', path: '/inventory/transactions/transaction-1' }).expect(404);
+    await send({
+      method: 'delete',
+      path: '/inventory/transactions/transaction-1',
+    }).expect(404);
     expect(calls()).toBe(0);
   });
   it.each(routes)(
@@ -411,9 +430,9 @@ describe('Inventory material HTTP authorization', () => {
   });
   it('revocation takes effect on the next request', async () => {
     grants = ['inventory.view'];
-    await send(routes[0]).expect(200);
+    await send({ method: 'get', path: '/units' }).expect(200);
     grants = [];
-    await send(routes[0]).expect(403);
+    await send({ method: 'get', path: '/units' }).expect(403);
     expect(calls()).toBe(1);
   });
   it('invalid session fails before permission lookup', async () => {

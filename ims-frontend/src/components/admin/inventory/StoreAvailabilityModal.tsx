@@ -3,15 +3,18 @@ import ModalCloseButton from "@/components/ModalCloseButton";
 
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, ChevronDown, ExternalLink, Store, Package, MapPin, Bot } from "lucide-react";
+import { Loader2, ChevronDown, ExternalLink, Store, Package, MapPin, Bot, ChartNoAxesCombined, Search as SearchIcon, Check, CircleAlert } from "lucide-react";
 import { apiJsonFetch } from "@/lib/api";
+import { freshLocation, readLiveLocation, storeDistance, type UserLocation } from "@/lib/store-distance";
 import styles from "./StoreAvailabilityModal.module.css";
 import motion from "./InventoryModalMotion.module.css";
 
 type StoreResult = {
-  store_name: string;
+  store_name?: string | null;
   address: string;
   distance?: number | null;
+  latitude?: number | string | null;
+  longitude?: number | string | null;
   fetched_at?: string;
   availability?: {
     status: "IN_STOCK" | "OUT_OF_STOCK" | "UNKNOWN";
@@ -49,6 +52,12 @@ type Search = {
   completedAt: string | null;
   results: { id: string; payload: StoreResult }[];
 };
+
+function storeName(result: StoreResult): string {
+  return typeof result.store_name === "string" && result.store_name.trim()
+    ? result.store_name.trim()
+    : "Unknown store";
+}
 
 function PricingSources({ result }: { result: StoreResult }) {
   const sources = new Map<string, { title: string; url: string; price?: number | null; used: boolean }>();
@@ -103,8 +112,33 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showOtherStores, setShowOtherStores] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [location, setLocation] = useState<UserLocation | null>(null);
+  const [locationError, setLocationError] = useState("");
   const dialog = useRef<HTMLDialogElement>(null);
   const endpoint = `/raw-materials/${encodeURIComponent(materialId)}/store-availability`;
+
+  useEffect(() => {
+    if (!window.isSecureContext || !navigator.geolocation) {
+      setLocationError("Live location requires HTTPS and device location support.");
+      return;
+    }
+    let disposed = false;
+    const watch = navigator.geolocation.watchPosition(position => {
+      if (disposed) return;
+      const next = { latitude: position.coords.latitude, longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy, timestamp: position.timestamp };
+      setLocation(freshLocation(next) ? next : null);
+      setLocationError(freshLocation(next) ? "" : "Waiting for a fresh location reading.");
+    }, error => {
+      if (disposed) return;
+      setLocation(null);
+      setLocationError(error.code === 1 ? "Allow location access to calculate supplier distances."
+        : "Your live location is unavailable. Check device location services.");
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 });
+    const expiry = window.setInterval(() => setLocation(current => freshLocation(current) ? current : null), 1000);
+    return () => { disposed = true; navigator.geolocation.clearWatch(watch); window.clearInterval(expiry); };
+  }, []);
 
   useEffect(() => {
     const node = dialog.current;
@@ -123,7 +157,10 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
         if (disposed) return;
         setSearch(response.search);
         setError(null);
-        if (response.search && ["PENDING", "RANKING"].includes(response.search.status)) timer = setTimeout(load, 2500);
+        if (response.search && ["PENDING", "RANKING"].includes(response.search.status)) {
+          setShowResults(true);
+          timer = setTimeout(load, 2500);
+        }
       } catch (err) {
         if (!disposed) {
           setError(err instanceof Error ? err.message : "Unable to load saved results.");
@@ -139,24 +176,37 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
     setStarting(true);
     setError(null);
     try {
-      const response = await apiJsonFetch<{ search: Search }>(endpoint, { method: "POST" });
+      let origin: UserLocation | null = null;
+      try {
+        origin = await readLiveLocation();
+        setLocation(origin);
+        setLocationError("");
+      } catch (err) {
+        setLocation(null);
+        setLocationError(err instanceof Error ? err.message : "Your live location is unavailable.");
+      }
+      const response = await apiJsonFetch<{ search: Search }>(endpoint, {
+        method: "POST", body: JSON.stringify(origin ? { latitude: origin.latitude, longitude: origin.longitude } : {}),
+      });
       setSearch(response.search);
+      setShowResults(true);
       setRefresh((value) => value + 1);
     } catch (err) { setError(err instanceof Error ? err.message : "Unable to start search."); }
     finally { setStarting(false); }
   }
 
   const pending = starting || search?.status === "PENDING" || search?.status === "RANKING";
+  const displayingResults = showResults || pending;
   const savedResults = [...(search?.results ?? [])].sort((a, b) =>
     (a.payload.recommendation?.rank ?? Infinity) - (b.payload.recommendation?.rank ?? Infinity)
-    || a.payload.store_name.localeCompare(b.payload.store_name));
+    || storeName(a.payload).localeCompare(storeName(b.payload)));
   const recommendationNotice = savedResults.find(({ payload }) => payload.recommendation?.notice)?.payload.recommendation?.notice;
   const market = savedResults.find(({ payload }) => payload.market_reference)?.payload.market_reference;
   const hasRecommendations = savedResults.some(({ payload }) => payload.recommendation);
   const topResults = hasRecommendations ? savedResults.filter(({ payload }) =>
     payload.recommendation?.rank != null && payload.recommendation.rank <= 3) : savedResults;
   const otherCount = savedResults.length - topResults.length;
-  const visibleResults = showOtherStores ? savedResults : topResults;
+  const visibleResults = displayingResults ? (showOtherStores ? savedResults : topResults) : [];
   const money = (value: number) => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(value);
   return (
     <dialog ref={dialog} onCancel={(event) => { event.preventDefault(); onClose(); }} aria-labelledby="store-availability-title"
@@ -167,38 +217,83 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
         <div className={styles.heading}>
           <span className={styles.icon}><Store size={23} aria-hidden="true" /></span>
           <h2 id="store-availability-title">Store Availability</h2>
+          <details className={styles.headerHint} onKeyDown={(event) => {
+            if (event.key === "Escape" && event.currentTarget.open) {
+              event.preventDefault();
+              event.stopPropagation();
+              event.currentTarget.open = false;
+            }
+          }}>
+            <summary aria-label="About store availability" className={styles.hintButton}>
+              <CircleAlert size={18} aria-hidden="true" />
+            </summary>
+            <div className={styles.hintContent}>
+              <p>Online listings and price estimates. Confirm branch stock and pack size with the store.</p>
+              {search?.completedAt && <p className={styles.hintTimestamp}>Last checked: {new Date(search.completedAt).toLocaleString()}</p>}
+            </div>
+          </details>
         </div>
         <ModalCloseButton onClose={onClose} />
         </div>
         <div className={styles.product}><Package size={15} aria-hidden="true" /><span>{search?.productName ?? materialName}</span></div>
       </header>
       <div className={styles.body} tabIndex={0} role="region" aria-label="Store availability results">
-        {search?.results[0]?.payload.selected_brand && <p className="mt-2 text-sm font-semibold text-slate-700">Selected brand: {search.results[0].payload.selected_brand} · Same brand searched across stores</p>}
-        <p className="mt-2 text-sm text-slate-500">Online listings and price estimates. Confirm branch stock and pack size with the store.</p>
-        {search?.completedAt && <p className="mt-2 text-xs text-slate-500">Last checked: {new Date(search.completedAt).toLocaleString()}</p>}
-        {!pending && savedResults.length > 0 && <details aria-label="Market price comparison" className="group/market mt-3 rounded-xl border border-blue-200 bg-blue-50">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-xs text-slate-700 focus-visible:outline-2 focus-visible:outline-[#5274a4] [&::-webkit-details-marker]:hidden">
-            <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1"><span>Market estimate</span><strong className="text-sm text-slate-900">{market ? money(market.median_php) : "Unavailable"}</strong><span>{market ? "median · not a store quote" : "No comparable prices saved"}</span></span>
-            <ChevronDown size={15} aria-hidden="true" className="shrink-0 transition-transform group-open/market:rotate-180" />
+        {displayingResults && search?.results[0]?.payload.selected_brand && <p className="mt-2 text-sm font-semibold text-slate-700">Selected brand: {search.results[0].payload.selected_brand} · Same brand searched across stores</p>}
+        {displayingResults && !pending && savedResults.length > 0 && <details aria-label="Market price comparison" className={styles.marketCard}>
+          <summary className={styles.marketSummary}>
+            <span className={styles.marketIcon}><ChartNoAxesCombined size={22} aria-hidden="true" /></span>
+            <span className={styles.marketHeading}>
+              <span className={styles.marketLabel}>Market estimate</span>
+              <strong className={styles.marketPrice}>{market ? money(market.median_php) : "Unavailable"}</strong>
+              <span className={styles.marketCaption}>{market ? "Median price across online listings" : "No comparable prices saved"}</span>
+            </span>
+            <span className={styles.marketAside}>
+              <span className={styles.estimateBadge}>Price reference</span>
+              <span className={styles.marketToggle}><span>Details</span><ChevronDown size={16} aria-hidden="true" /></span>
+            </span>
           </summary>
-          <div className="border-t border-blue-200 px-3 pb-3 pt-2">
+          <div className={styles.marketDetails}>
           {market ? <>
-            <p className="mt-1 text-xs text-slate-700">Range {money(market.low_php)}–{money(market.high_php)} · {market.sample_size} distinct listing{market.sample_size === 1 ? "" : "s"}</p>
-            <p className="mt-2 text-xs text-slate-700">For {market.product}. This is a market estimate, not a quote from any registered store. Check pack size, delivery fees and branch stock.</p>
-            <p className="mt-1 text-xs text-slate-600">Checked: {new Date(market.fetched_at).toLocaleString()}</p>
+            <dl className={styles.marketStats}>
+              <div><dt>Price range</dt><dd>{money(market.low_php)} - {money(market.high_php)}</dd></div>
+              <div><dt>Sources compared</dt><dd>{market.sample_size} distinct listing{market.sample_size === 1 ? "" : "s"}</dd></div>
+            </dl>
+            <p className={styles.marketNote}>For {market.product}. This is a market estimate, not a store quote. Confirm pack size, delivery fees and branch stock.</p>
+            <p className={styles.marketChecked}>Checked: {new Date(market.fetched_at).toLocaleString()}</p>
             <PricingSources result={{ store_name: "Market", address: "", price: null, price_type: null, status: "UNVERIFIED", source_url: null, fallback_listings: market.listings }} />
-          </> : <p className="mt-2 text-xs text-slate-700">No comparable market prices saved. Search again to check the market; no estimate is assumed.</p>}
+          </> : <p className={styles.marketNote}>No comparable market prices saved. Search again to check the market; no estimate is assumed.</p>}
           </div>
         </details>}
-        {hasRecommendations && <p className="mt-3 text-sm font-semibold text-slate-700">Recommended stores · Top 1–3</p>}
-        {recommendationNotice && <p className="mt-2 rounded-xl bg-[#e8eef7] p-3 text-sm text-[#232d46]">{recommendationNotice}</p>}
+        {displayingResults && hasRecommendations && <p className="mt-3 text-sm font-semibold text-slate-700">Recommended stores · Top 1–3</p>}
+        {displayingResults && recommendationNotice && <p className="mt-2 rounded-xl bg-[#e8eef7] p-3 text-sm text-[#232d46]">{recommendationNotice}</p>}
         <div aria-live="polite">
           {(error || search?.error) && <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error || search?.error}</p>}
-          {loading && <p className="py-12 text-center text-slate-500">Loading saved results…</p>}
-          {pending && <p className="flex items-center justify-center gap-2 py-10 text-sm"><Loader2 size={18} className="animate-spin" /> {search?.status === "RANKING" ? "Search results saved. Qwen is reviewing store recommendations." : "Searching registered stores."} You can close this window and return later.</p>}
+          {(!showResults || loading || pending) && <section className={styles.loadingPanel} aria-busy={loading || pending} aria-label={pending ? "Store search in progress" : "Start a store search"}>
+            <div className={styles.loadingEmblem}>
+              <span className={`${styles.loadingRing} ${!loading && !pending ? styles.idleRing : ""}`} aria-hidden="true" />
+              <Bot size={28} aria-hidden="true" />
+            </div>
+            <span className={styles.loadingEyebrow}>Store availability search</span>
+            <h3 className={styles.loadingTitle}>{!pending ? "Find your best store options" : search?.status === "RANKING" ? "Finding your best store options" : "Checking registered stores"}</h3>
+            <p className={styles.loadingDescription}>{!pending ? "Search registered suppliers for product listings and prices, and compare their distance from your live location." : search?.status === "RANKING" ? "Search evidence is saved. We are comparing results to prepare your recommendations." : "Looking for product listings, prices and availability. Results will appear here as the search progresses."}</p>
+            {pending && <ol className={styles.searchSteps} aria-label="Search stages">
+              <li className={styles.stepComplete}><span className={styles.stepDot}><Check size={13} aria-hidden="true" /></span><span>Start search</span></li>
+              <li className={search?.status === "RANKING" ? styles.stepComplete : styles.stepActive} aria-current={search?.status !== "RANKING" ? "step" : undefined}><span className={styles.stepDot}>{search?.status === "RANKING" ? <Check size={13} aria-hidden="true" /> : <Loader2 size={13} className={styles.stepSpinner} aria-hidden="true" />}</span><span>Check listings</span></li>
+              <li className={search?.status === "RANKING" ? styles.stepActive : styles.stepWaiting} aria-current={search?.status === "RANKING" ? "step" : undefined}><span className={styles.stepDot}>{search?.status === "RANKING" ? <Loader2 size={13} className={styles.stepSpinner} aria-hidden="true" /> : "3"}</span><span>Compare stores</span></li>
+            </ol>}
+            {!pending && !showResults && <div className={styles.introActions}>
+              <button type="button" className={styles.search} disabled={loading} onClick={() => void start()}><SearchIcon size={16} aria-hidden="true" />{loading ? "Loading saved search..." : "Search"}</button>
+              {search && <button type="button" className={styles.savedSearchButton} onClick={() => setShowResults(true)}>View saved results</button>}
+            </div>}
+            {pending && <p className={styles.loadingHint}>You can close this window and return later.</p>}
+            {(loading || pending) && !savedResults.length && <div className={styles.skeletonList} aria-hidden="true">{[0, 1].map(index => <div key={index} className={styles.skeletonCard}><span className={styles.skeletonIcon} /><div><span className={styles.skeletonLine} /><span className={styles.skeletonLineShort} /></div><span className={styles.skeletonPrice} /></div>)}</div>}
+          </section>}
         </div>
         <div className="mt-4 space-y-4">
-          {visibleResults.map(({ id, payload: row }) => (
+          {displayingResults && <p className={styles.locationNotice}><MapPin size={14} aria-hidden="true" />{freshLocation(location) ? `Live location accuracy: approximately ${Math.ceil(location.accuracy)} m. Distances are straight-line estimates.` : locationError || "Waiting for your live location to calculate supplier distances."}</p>}
+          {visibleResults.map(({ id, payload: row }) => {
+            const distance = storeDistance(location, row.latitude, row.longitude);
+            return (
             <article key={id} className={styles.card}>
               {row.recommendation && <div className="mb-3 flex flex-wrap items-center gap-2">
                 <span className={styles.rank}>{row.recommendation.rank !== null ? `Top ${row.recommendation.rank}` : "Other registered store"}</span>
@@ -207,12 +302,12 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
               </div>}
               <div className={styles.storeHeading}>
                 <div className="min-w-0">
-                  <h4 className={styles.storeName}>{row.store_name}</h4>
+                  <h4 className={styles.storeName}>{storeName(row)}</h4>
                   <p className="mt-1 text-xs text-slate-700">{row.address}</p>
                   <p className="mt-2 text-xs font-semibold text-slate-700">
-                    {typeof row.distance === "number" && Number.isFinite(row.distance) && row.distance >= 0
-                      ? `${new Intl.NumberFormat("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(row.distance)} km from your configured location (straight-line)`
-                      : "Distance unavailable — check the store location in Manage Suppliers and search again."}
+                    {distance !== null
+                      ? `${new Intl.NumberFormat("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(distance)} km from your current location (straight-line)`
+                      : "Distance unavailable. Allow live location access and check the supplier coordinates."}
                   </p>
                 </div>
                 <p className={styles.price}>{row.price === null ? "—" : new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(row.price)}</p>
@@ -242,20 +337,20 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
               </details>}
               <PricingSources result={row} />
             </article>
-          ))}
+          ); })}
         </div>
-        {otherCount > 0 && <button type="button" onClick={() => setShowOtherStores((value) => !value)} aria-expanded={showOtherStores}
+        {displayingResults && otherCount > 0 && <button type="button" onClick={() => setShowOtherStores((value) => !value)} aria-expanded={showOtherStores}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[#d5ddea] px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-[#e8eef7]">
           {showOtherStores ? "Show Top 1–3 only" : `View ${otherCount} other store${otherCount === 1 ? "" : "s"}`}
           <ChevronDown size={15} aria-hidden="true" className={showOtherStores ? "rotate-180" : ""} />
         </button>}
-        {!loading && !pending && !savedResults.length && !error && !search?.error && <p className={styles.empty}>No saved store listings yet. Search to check prices and availability.</p>}
+        {showResults && !loading && !pending && !savedResults.length && !error && !search?.error && <p className={styles.empty}>No saved store listings yet. Search to check prices and availability.</p>}
       </div>
       <footer className={styles.footer}>
         <button type="button" onClick={onJourney} className={styles.journey}><MapPin size={16} aria-hidden="true" /><span>Journey? Manage Suppliers → Google Maps</span></button>
-        <div className={styles.actions}>
+        {displayingResults && search && <div className={styles.actions}>
           <button type="button" disabled={loading || pending} onClick={() => void start()} className={styles.search}>{pending && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}{pending ? "Searching…" : search ? "Search again" : "Search"}</button>
-        </div>
+        </div>}
       </footer>
       </div>
     </dialog>

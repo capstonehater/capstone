@@ -4,7 +4,7 @@
 .eyebrow { margin: 0 0 6px; color: #64748b; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
 .total { margin: 0; font-size: 32px; line-height: 1.2; font-weight: 700; letter-spacing: -.8px; font-variant-numeric: tabular-nums; }
 .itemCount { flex-shrink: 0; padding: 6px 12px; border: 1px solid #dde4ee; border-radius: 20px; background: white; color: #64748b; font-size: 13px; }
-.grid { display: grid; grid-template-columns: 1.1fr 1fr; align-items: start; gap: 24px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: 24px; }
 .sectionTitle { margin: 0; font-size: 15px; line-height: 1.5; font-weight: 650; }
 .description { margin: 5px 0 18px; color: #64748b; font-size: 13px; line-height: 1.6; }
 .fields { display: grid; gap: 14px; }
@@ -37,12 +37,17 @@
 .confirm:hover:not(:disabled) { background: #34445f; }
 .confirm:disabled { border-color: #dbe2ec; background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
 .footer button:focus-visible { outline: 2px solid #5274a4; outline-offset: 3px; }
-@media (max-width: 600px) {
+@media (max-width: 767px) {
   .body { padding: 20px; }
   .totalCard { padding: 18px; margin-bottom: 20px; }
   .grid { grid-template-columns: 1fr; gap: 20px; }
   .footer { padding: 16px 20px; }
   .confirm { flex: 1; }
+  .totalCard { flex-wrap: wrap; }
+  .total { overflow-wrap: anywhere; }
+  .inputWrap input { font-size: 16px; }
+  .footer { flex-wrap: wrap; }
+  .footer button { min-width: 0; white-space: normal; }
 }
 @media (prefers-reduced-motion: reduce) { .inputWrap { transition: none; } }
 

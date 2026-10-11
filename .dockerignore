@@ -1,0 +1,23 @@
+.git
+**/node_modules
+**/.next
+**/dist
+**/.env
+**/.env.*
+**/*.log
+**/*.pem
+**/*.key
+**/*.pkl
+**/__pycache__
+**/.venv
+**/venv
+**/tmp
+**/_archive
+**/trained_models
+ims-backend/profile picture
+ims-backend/product-images
+.release-output
+backups
+*.sql
+python/*.csv
+!python/raw-materials-and-products.csv

@@ -6,6 +6,9 @@ import store_price
 
 class StoreSearchTests(unittest.TestCase):
     def setUp(self):
+        origin = patch.multiple(store_price, USER_LATITUDE=14.31452, USER_LONGITUDE=120.941044)
+        origin.start()
+        self.addCleanup(origin.stop)
         market = patch.object(store_price, 'get_general_market_estimate', return_value=None)
         market.start()
         self.addCleanup(market.stop)

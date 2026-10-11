@@ -7,6 +7,29 @@ function order(total: string, payments: Array<[PaymentMethod, string]>) {
 }
 
 describe('payment collections exclude change', () => {
+  it('keeps the original sale and applies a later refund on its own date', async () => {
+    const row = {
+      ...order('1008', [[PaymentMethod.CASH, '1100']]),
+      completedAt: new Date('2026-10-01T13:00:00+08:00'),
+      reversal: { occurredAt: new Date('2026-10-02T14:00:00+08:00'), amount: new Prisma.Decimal(1008) },
+    };
+    const service = new ReportsService({ order: { findMany: jest.fn().mockResolvedValue([row]) } } as never, {} as never, {} as never);
+    const sale = await service.getPosPaymentReports({ from: '2026-10-01T00:00:00+08:00', to: '2026-10-01T23:59:59.999+08:00' });
+    const refund = await service.getPosPaymentReports({ from: '2026-10-02T00:00:00+08:00', to: '2026-10-02T23:59:59.999+08:00' });
+    expect(sale.summary.totalCollected.toString()).toBe('1008');
+    expect(refund.summary.totalCollected.toString()).toBe('-1008');
+    expect(refund.summary.cashTotal.toString()).toBe('-1008');
+    expect(refund.summary.completedTransactionCount).toBe(0);
+  });
+
+  it('lists only the four supported payment methods', async () => {
+    const row = order('180', [[PaymentMethod.MAYA, '180']]);
+    const service = new ReportsService({ order: { findMany: jest.fn().mockResolvedValue([row]) } } as never, {} as never, {} as never);
+    const report = await service.getPosPaymentReports({});
+    expect(report.breakdown.find(method => method.method === PaymentMethod.MAYA)?.amount.toString()).toBe('180');
+    expect(report.breakdown.map(item => item.method)).toEqual(['CASH', 'CARD', 'GCASH', 'MAYA']);
+  });
+
   it.each([
     ['cash with change', order('180', [[PaymentMethod.CASH, '200']]), '180', '0'],
     ['exact cash', order('180', [[PaymentMethod.CASH, '180']]), '180', '0'],

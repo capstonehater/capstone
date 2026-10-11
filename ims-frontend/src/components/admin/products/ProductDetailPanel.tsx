@@ -8,6 +8,7 @@ import type {
 } from "@/lib/products";
 import type { ProductIngredientUsage } from "@/lib/products";
 import type { InventorySummaryItem } from "@/lib/inventory";
+import { isContainerCategory } from "@/lib/container-category";
 import EmptyProductSelection from "./EmptyProductSelection";
 import ProductDetailError from "./ProductDetailError";
 import ProductDetailHeader from "./ProductDetailHeader";
@@ -107,7 +108,7 @@ export default function ProductDetailPanel({
   }
 
   return (
-    <section className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-slate-300 bg-white p-[24px] shadow-none">
+    <section className="flex min-h-0 min-w-0 flex-col xl:h-full xl:overflow-hidden rounded-xl border border-slate-300 bg-white p-4 shadow-none">
       <ProductDetailHeader
         product={product}
         mobileBackVisible={mobileBackVisible}
@@ -120,11 +121,11 @@ export default function ProductDetailPanel({
         onDelete={onDelete}
       />
 
-      <div className="mt-5">
+      <div className="mt-3 shrink-0">
         <ProductDetailTabs activeTab={activeTab} onChange={onChangeTab} />
       </div>
 
-      <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-2">
+      <div className="mt-3 min-h-0 xl:flex-1 xl:overflow-y-auto xl:pr-2">
         {activeTab === "overview" ? (
           <ProductOverviewTab product={product} />
         ) : null}
@@ -137,7 +138,7 @@ export default function ProductDetailPanel({
             recipeLoading={recipeLoading}
             recipeError={recipeError}
             submitting={Boolean(submittingAction)}
-            materials={materials.filter((material) => material.categories?.some((category) => category.id === product.category.id))}
+            materials={materials.filter((material) => material.categories?.some((category) => category.id === product.category.id || isContainerCategory(category.name)))}
             onSelectVariant={onSelectVariant}
             onAddVariant={onAddVariant}
             onEditVariant={onEditVariant}

@@ -1,4 +1,6 @@
 "use client";
+import { formatStockQuantity } from "@/lib/inventory-quantity";
+import { formatUnit } from "@/lib/units";
 import SearchInput from "@/components/ui/SearchInput";
 import DateFilter from "@/components/staff-pos/DateFilter";
 import selectStyles from "@/components/admin/AdminSelect.module.css";
@@ -149,6 +151,11 @@ export default function MaterialDetailPanel({
   const [batchStatus, setBatchStatus] = useState("");
   const [batchSupplier, setBatchSupplier] = useState("");
   const [batchOrder, setBatchOrder] = useState("desc");
+  const todayParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Manila", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date());
+  const datePart = (name: string) => todayParts.find(part => part.type === name)?.value;
+  const today = `${datePart("year")}-${datePart("month")}-${datePart("day")}`;
   const invalidHistoryDates = Boolean(historyFrom && historyTo && historyFrom > historyTo);
   const activeBatches = batches.filter((batch) => Number(batch.remainingQuantity) > 0);
   const batchSuppliers = [...new Map(batches.filter((batch) => batch.supplier).map((batch) => [batch.supplier!.id, batch.supplier!])).values()];
@@ -235,15 +242,15 @@ export default function MaterialDetailPanel({
       <div className="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
         <MetricTile
           label="On Hand"
-          value={selectedMaterial?.summary ? formatQuantity(selectedMaterial.summary.onHandQuantity) : "—"}
+          value={selectedMaterial?.summary ? formatStockQuantity(selectedMaterial.summary.onHandQuantity) : "—"}
         />
         <MetricTile
           label="Usable"
-          value={selectedMaterial?.summary ? formatQuantity(selectedMaterial.summary.usableQuantity) : "—"}
+          value={selectedMaterial?.summary ? formatStockQuantity(selectedMaterial.summary.usableQuantity) : "—"}
         />
         <MetricTile
           label="Reorder Point"
-          value={selectedMaterial ? formatQuantity(selectedMaterial.reorderPoint) : "—"}
+          value={selectedMaterial ? `${formatQuantity(selectedMaterial.reorderPoint)} ${formatUnit(selectedMaterial.unit.code)}` : "—"}
         />
         <MetricTile label="Inventory Value" value={selectedSummary ? formatMoney(selectedSummary.inventoryValue) : "—"} />
       </div>
@@ -295,12 +302,14 @@ export default function MaterialDetailPanel({
                     </td>
                   </tr>
                 ) : (
-                  recentBatches.map((batch) => (
-                    <tr key={batch.id} className="border-t border-slate-100">
+                  recentBatches.map((batch) => {
+                    const expired = Boolean(batch.expirationDate && batch.expirationDate.slice(0, 10) < today);
+                    return (
+                    <tr key={batch.id} className={`border-t ${expired ? "border-red-100 bg-red-50" : "border-slate-100"}`}>
                       <td className="px-3 py-2 font-medium text-slate-900">{(batch.reference ?? batch.id.slice(0, 8))}</td>
-                      <td className="px-3 py-2">{formatQuantity(batch.remainingQuantity)}</td>
+                      <td className="px-3 py-2">{formatStockQuantity(batch.remainingQuantity)}</td>
                       <td className="px-3 py-2">{formatMoney(batch.costPerUnit)}</td>
-                      <td className="px-3 py-2">{formatDate(batch.expirationDate)}</td>
+                      <td className={`px-3 py-2 ${expired ? "font-semibold text-red-700" : ""}`}>{formatDate(batch.expirationDate)}{expired && <span className="ml-2 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Expired</span>}</td>
                       <td className="px-3 py-2">{batch.supplier?.name ?? "N/A"}</td>
                       <td className="px-3 py-2 text-right">
                         <button
@@ -312,7 +321,8 @@ export default function MaterialDetailPanel({
                         </button>
                       </td>
                     </tr>
-                  ))
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -409,7 +419,7 @@ export default function MaterialDetailPanel({
                           }`}
                         >
                           {delta >= 0 ? "+" : ""}
-                          {formatQuantity(delta.toString())}
+                          {formatStockQuantity(delta)}
                         </td>
                         <td className="px-4 py-3 align-top">{formatMoney(totalCost.toString())}</td>
                         <td className="px-4 py-3 align-top break-words">{actor}</td>

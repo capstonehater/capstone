@@ -1,3 +1,18 @@
+/** Availability displays use completed whole hours; calculations retain their precision. */
+export function formatAvailabilityDuration(
+  value: string | number | null | undefined,
+  kind: "sellable" | "downtime",
+) {
+  if (value === null || value === undefined || value === "") return "N/A";
+  const hours = Number(value);
+  if (!Number.isFinite(hours) || hours < 0) return "N/A";
+  const totalHours = Math.floor(hours);
+  if (kind === "downtime" && hours <= 24) {
+    return `${totalHours} hour${totalHours === 1 ? "" : "s"}`;
+  }
+  return formatStockoutDuration(totalHours);
+}
+
 /** Display a recorded duration in readable units, using completed days and hours. */
 export function formatStockoutDuration(value: string | number | null | undefined) {
   if (value === null || value === undefined || value === "") return "N/A";

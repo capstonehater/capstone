@@ -993,7 +993,7 @@ function UserProfileHeader({
       </div>
 
       <dl className={styles.profileDetails}>
-        <ProfileItem label="Employee ID" value={user.id} />
+        <ProfileItem label="Employee ID" value={user.employeeId} />
         <ProfileItem label="Phone" value={user.phone ?? "Not provided"} />
         <ProfileItem label="Last Login" value={formatDateTime(user.lastLoginAt)} />
         <ProfileItem label="Joined Date" value={formatDateTime(user.createdAt)} />

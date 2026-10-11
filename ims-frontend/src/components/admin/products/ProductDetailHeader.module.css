@@ -1,0 +1,7 @@
+.header { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:12px 20px; }
+.header > :first-child { flex:1 1 220px; min-width:0; }
+.header h2 { margin:0; overflow-wrap:anywhere; }
+.header p { margin-bottom:0; }
+.actions { display:flex; flex-wrap:nowrap; justify-content:flex-end; gap:8px; max-width:100%; overflow-x:auto; }
+.actions button { flex-shrink:0; padding:8px 12px; white-space:nowrap; }
+@media (max-width:640px) { .actions { width:100%; justify-content:flex-start; } }

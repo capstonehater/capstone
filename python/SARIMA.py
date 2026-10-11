@@ -6,7 +6,7 @@ SARIMA DEMAND FORECASTING SYSTEM
 Author      : Robert
 Model       : SARIMA
 Forecast    : Raw Material-Level Demand Forecasting
-Dataset     : cafe_raw_material_daily_consumption.csv
+Dataset     : historical-raw-material-data.csv
 
 Description
 -----------
@@ -42,6 +42,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from catalog_reference import load_catalog, validate_history
 import plotly.express as px
 import plotly.graph_objects as go
 import holidays
@@ -63,7 +64,7 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 CONFIG = {
     # Dataset
-    "DATASET": "cafe_raw_material_daily_consumption.csv",
+    "DATASET": "historical-raw-material-data.csv",
 
     # Forecast horizon
     "FORECAST_DAYS": 7,
@@ -86,6 +87,21 @@ CONFIG = {
     "SEASON_LENGTH": 7,
     "BUSINESS_DAYS_ONLY": False,
     "BOXCOX_LAMBDA": 0,
+    "CONSTRAINED_SELECTION": True,
+    "MAE_TOLERANCE": 0.10,
+    "VOLUME_ESTIMATION": True,
+    "OPERATIONAL_ERROR_TOLERANCE": 0.10,
+    # Reserve an interval test from earlier selection; production selection
+    # still uses the latest folds. Update calibration with completed errors.
+    "INTERVAL_CALIBRATION_FOLDS": 12,
+    "INTERVAL_VALIDATION_FOLDS": 5,
+    "INTERVAL_POSITIVE_DEMAND_GUARD": True,
+    # Evidence checks are planning thresholds, not probabilities of accuracy.
+    "INSIGHT_MIN_TEST_DAYS": 30,
+    "INSIGHT_MIN_POSITIVE_DAYS": 20,
+    "INSIGHT_MAX_WAPE": 30.,
+    "INSIGHT_MAX_HISTORY_GAP_DAYS": 7,
+    "INSIGHT_MIN_PERIOD_COVERAGE": .80,
 
     # Country used to flag holidays in the forecast horizon (must match
     # how the historical 'holiday' column in sales.csv was populated -
@@ -155,15 +171,17 @@ def load_dataset():
         "date",
         "product",
         "raw_material",
+        "item_code",
         "quantity_used",
         "unit"
     }
     missing_columns = required_columns.difference(df.columns)
     if missing_columns:
         raise ValueError(
-            "cafe_raw_material_daily_consumption.csv is missing required columns: "
+            "historical-raw-material-data.csv is missing required columns: "
             + ", ".join(sorted(missing_columns))
         )
+    validate_history(df, load_catalog())
     df = df.rename(
         columns={
             "date": "transaction_date",
@@ -179,6 +197,8 @@ def load_dataset():
         df["transaction_qty"],
         errors="raise"
     )
+    if not np.isfinite(df["transaction_qty"]).all() or df["transaction_qty"].lt(0).any():
+        raise ValueError("History quantities must be finite and nonnegative")
     return df
 
 
@@ -257,8 +277,8 @@ def build_daily_series(
     )
     date_range = pd.bdate_range if CONFIG.get("BUSINESS_DAYS_ONLY", True) else pd.date_range
     full_dates = date_range(
-        start=series.index.min(),
-        end=series.index.max()
+        start=daily_df["transaction_date"].min(),
+        end=daily_df["transaction_date"].max()
     )
     series = series.reindex(
         full_dates,
@@ -282,7 +302,7 @@ def build_daily_series(
 def build_holiday_lookup(raw_df):
     """
     Add a function that builds a daily Philippine public-holiday indicator from
-    `cafe_raw_material_daily_consumption.csv`.
+    `historical-raw-material-data.csv`.
 
     Use the CSV’s existing `holiday` column as the source of truth. Map each
     historical date to `1` when it is a holiday and `0` otherwise. Return a
@@ -558,7 +578,7 @@ def plot_forecasts(result, product):
 def plot_future_forecast(future_df, product):
     """
     Plot the selected demand forecast with
-    95% confidence interval.
+    95% prediction interval.
     """
     fig = go.Figure()
     fig.add_trace(
@@ -586,7 +606,7 @@ def plot_future_forecast(future_df, product):
             y=future_df["Lower95"],
             mode="lines",
             fill="tonexty",
-            name="95% Confidence Interval"
+            name="95% Prediction Interval"
         )
     )
 
@@ -651,16 +671,10 @@ def evaluate_model(actual, predicted):
         predicted
     )
 
-    confidence = max(
-        0,
-        100 - mape
-    )
-
     results = {
         "MAE": round(mae, 2),
         "RMSE": round(rmse, 2),
-        "MAPE": round(mape, 2),
-        "Confidence": round(confidence, 2)
+        "MAPE": round(mape, 2)
     }
     print("\n" + "=" * 70)
     print("MODEL PERFORMANCE")
@@ -668,7 +682,6 @@ def evaluate_model(actual, predicted):
     print(f"MAE         : {results['MAE']}")
     print(f"RMSE        : {results['RMSE']}")
     print(f"MAPE        : {results['MAPE']}%")
-    print(f"Confidence  : {results['Confidence']}%")
     print("=" * 70)
 
     return results
@@ -678,6 +691,13 @@ def evaluate_model(actual, predicted):
 # =============================================================================
 
 def train_sarima(stationary_result):
+    if CONFIG.get("CONSTRAINED_SELECTION", False):
+        from constrained_sarima import train
+        return train(stationary_result, CONFIG)
+    return train_sarima_legacy(stationary_result)
+
+
+def train_sarima_legacy(stationary_result):
     """
     Train a SARIMA model using rolling-window (walk-forward) cross-
     validation instead of a single fixed train/test split.
@@ -968,26 +988,47 @@ def train_sarima(stationary_result):
 # MODEL EVALUATION
 # =============================================================================
 
+def display_interval_validation(training):
+    interval = training.get("interval_calibration", {})
+    print("Daily interval target: 95% (not a guarantee)")
+    validation = interval.get("requestedValidation") or interval.get("validation")
+    if validation:
+        print(f"Held-out coverage: {validation['coverage'] * 100:.2f}% "
+              f"({validation['coveredDays']}/{validation['days']} days)")
+        positive = validation.get("positiveDemandCoverage")
+        if positive is not None:
+            print(f"Positive-demand coverage: {positive * 100:.2f}% "
+                  f"({validation['positiveDemandDays']} days)")
+        else:
+            print("Demand-spike coverage: untested (no positive-usage test days)")
+        if validation.get("wape") is not None:
+            print(f"Held-out volume-weighted daily error: {validation['wape']:.2f}%")
+        if validation.get("biasPercent") is not None:
+            print(f"Held-out total-usage bias: {validation['biasPercent']:+.2f}% (positive means overestimated)")
+        if validation.get("seasonalNaiveSkill") is not None:
+            print(f"Absolute-error improvement over repeating last week: {validation['seasonalNaiveSkill'] * 100:+.2f}%")
+        if validation['days'] < CONFIG['INSIGHT_MIN_TEST_DAYS'] or validation['positiveDemandDays'] < CONFIG['INSIGHT_MIN_POSITIVE_DAYS']:
+            print("Evidence is limited by the number of held-out days or positive-usage observations.")
+    else:
+        print("Held-out coverage: unavailable")
+
+
 def evaluate_training(result):
     """
     Display evaluation metrics from the
     selected SARIMA model.
     """
     metrics = result["metrics"]
-    confidence = max(
-        0,
-        100 - metrics["mape"]
-    )
     print("\n" + "=" * 70)
     print("MODEL PERFORMANCE")
     print("=" * 70)
     print(f"MAE         : {metrics['mae']:.2f}")
     print(f"RMSE        : {metrics['rmse']:.2f}")
     print(f"MAPE        : {metrics['mape']:.2f}%")
-    print(f"Confidence  : {confidence:.2f}%")
+    display_interval_validation(result)
     print("=" * 70)
 
-    return confidence
+    return result.get("interval_calibration", {}).get("validation")
 
 # =============================================================================
 # RETRAIN MODEL USING ENTIRE DATASET
@@ -1009,6 +1050,17 @@ def fit_full_model(stationary_result, training_result):
     -------
     SARIMAXResults
     """
+    if training_result.get("constrained"):
+        from constrained_sarima import fit
+        from interval_calibration import build_intervals
+        model = fit(stationary_result["series"], training_result)
+        plan = training_result.get("interval_plan")
+        interval = (build_intervals(stationary_result["series"], training_result) if plan else
+            {"method": "model_based", "targetCoverage": .95, "coverageGuarantee": False,
+             "validation": None, "reason": "Insufficient history for separate interval calibration and validation"})
+        model._cafe_interval = interval
+        training_result["interval_calibration"] = interval
+        return model
     series_df = stationary_result["series"]
     exog_cols = training_result.get("exog_cols", CONFIG["EXOG_COLS"])
 
@@ -1035,7 +1087,7 @@ def forecast_future(
     exog_cols=None
 ):
     """
-    Forecast future demand with a 95% confidence interval.
+    Forecast future demand with a 95% prediction interval.
 
     Future dates follow the same calendar as training, and an is_holiday exog is built for
     those future dates from the real PH holiday calendar (future_holiday_
@@ -1052,6 +1104,9 @@ def forecast_future(
     if exog_cols is None:
         exog_cols = CONFIG["EXOG_COLS"]
 
+    if hasattr(model, "_cafe_candidate"):
+        from constrained_sarima import forecast
+        return forecast(model, stationary_result, horizon, future_holiday_flags)
     series_df = stationary_result["series"]
     lam = stationary_result["lambda"]
 
@@ -1224,12 +1279,12 @@ def plot_future_forecast(
 ):
     """
     Plot the future demand forecast
-    with a 95% confidence interval.
+    with a 95% prediction interval.
     """
     fig = go.Figure()
 
     # ----------------------------------------------------------
-    # Upper Confidence Interval
+    # Upper Prediction Interval
     # ----------------------------------------------------------
 
     fig.add_trace(
@@ -1243,7 +1298,7 @@ def plot_future_forecast(
     )
 
     # ----------------------------------------------------------
-    # Lower Confidence Interval
+    # Lower Prediction Interval
     # ----------------------------------------------------------
 
     fig.add_trace(
@@ -1252,7 +1307,7 @@ def plot_future_forecast(
             y=future_df["Lower95"],
             mode="lines",
             fill="tonexty",
-            name="95% Confidence Interval"
+            name="95% Prediction Interval"
         )
     )
 
@@ -1684,11 +1739,6 @@ def run_once(interactive=True):
         result = forecast_database[product]
         training = result["training"]
         metrics = training["metrics"]
-        confidence = max(
-            0,
-            100 - metrics["mape"]
-
-        )
 
         # ------------------------------------------------------
         # Product Summary
@@ -1707,7 +1757,7 @@ def run_once(interactive=True):
         print(f"RMSE            : {metrics['rmse']:.2f}")
         print(f"MAPE            : {metrics['mape']:.2f}%")
         print(f"SMAPE           : {metrics['smape']:.2f}%")
-        print(f"Confidence      : {confidence:.2f}%")
+        display_interval_validation(training)
         print("=" * 80)
 
         # ------------------------------------------------------
@@ -1733,7 +1783,7 @@ def run_once(interactive=True):
         )
 
         # ------------------------------------------------------
-        # Forecast Chart (next N days with 95% confidence band -
+        # Forecast Chart (next N days with 95% prediction band -
         # opens in your browser)
         # ------------------------------------------------------
 

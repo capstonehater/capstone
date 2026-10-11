@@ -1,4 +1,5 @@
 "use client";
+import { formatStockQuantity } from "@/lib/inventory-quantity";
 
 import SearchInput from "@/components/ui/SearchInput";
 import { formatUnit } from "@/lib/units";
@@ -40,7 +41,6 @@ type InventorySummaryPanelProps = {
   onRefresh: () => void;
   onAddMaterial: () => void;
   creatingDisabled: boolean;
-  formatQuantity: (value: string) => string;
   formatMoney: (value: string) => string;
 };
 
@@ -59,7 +59,6 @@ export default function InventorySummaryPanel({
   onRefresh,
   onAddMaterial,
   creatingDisabled,
-  formatQuantity,
   formatMoney,
 }: InventorySummaryPanelProps) {
   return (
@@ -116,9 +115,9 @@ export default function InventorySummaryPanel({
                 <strong>{item.name}</strong>
                 <span className={`${styles.mobileStatus} ${statusClasses(item.status)}`}>{item.status.replaceAll("_", " ")}</span>
               </span>
-              <span className={styles.mobileMaterialMeta}>{item.sku} ? {formatUnit(item.unit.name)}</span>
+              <span className={styles.mobileMaterialMeta}>{item.sku} &middot; {formatUnit(item.unit.name)}</span>
               <span className={styles.mobileMaterialStats}>
-                <span>Usable <strong>{formatQuantity(item.summary.usableQuantity)} {formatUnit(item.unit.code)}</strong></span>
+                <span>Usable <strong>{formatStockQuantity(item.summary.usableQuantity)} {formatUnit(item.unit.code)}</strong></span>
                 <span>Value <strong>{formatMoney(item.inventoryValue)}</strong></span>
               </span>
             </button>)}
@@ -176,7 +175,7 @@ export default function InventorySummaryPanel({
                         {item.status.replaceAll("_", " ")}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 text-sm text-slate-700">{formatQuantity(item.summary.usableQuantity)}</td>
+                    <td className="px-3 py-2.5 text-sm text-slate-700">{formatStockQuantity(item.summary.usableQuantity)}</td>
                     <td className="px-3 py-2.5 text-sm font-medium text-slate-700">{formatMoney(item.inventoryValue)}</td>
                   </tr>
                 ))

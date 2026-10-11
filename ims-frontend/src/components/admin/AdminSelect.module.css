@@ -21,3 +21,7 @@
 .searchInput { width: 100%; min-height: 40px; padding: 8px 11px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #232d46; font: inherit; font-size: 14px; }
 .searchInput:focus-visible { outline: 2px solid #475569; outline-offset: -2px; }
 .empty { margin: 0; padding: 12px; color: #64748b; font-size: 14px; }
+
+.trigger.danger, .menu .option.danger { background: #fef2f2; color: #b91c1c; }
+.trigger.danger { border-color: #fca5a5; }
+.trigger.danger:hover, .trigger.danger:focus, .menu .option.danger:hover, .menu .option.danger:focus, .menu .option.danger.selected { background: #fee2e2; color: #991b1b; }

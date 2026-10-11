@@ -67,7 +67,7 @@ export default function ProductVariantsRecipeTab({
         <div>
           <h3 className="text-lg font-semibold text-slate-900">Variants & Recipe</h3>
           <p className="mt-1 text-sm text-slate-500">
-            Select a variant to view recipe coverage, stock state, and sellability separately.
+            Select a variant to view its recipe and availability.
           </p>
         </div>
         <PermissionAction permission={"products.edit"}><button
@@ -101,9 +101,7 @@ export default function ProductVariantsRecipeTab({
                     {selected ? "Selected" : "Select variant"}
                   </button>
                   <h4 className="mt-3 text-base font-semibold text-slate-900">{variant.name}</h4>
-                  <p className="mt-1 text-sm text-slate-500">
-                    SKU {variant.sku} · {formatPeso(variant.price)}
-                  </p>
+                  <p className="mt-1 text-sm text-slate-500">SKU {variant.sku} &bull; {formatPeso(variant.price)}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${manualAvailabilityBadgeClasses(variant.manualAvailability)}`}
@@ -124,9 +122,7 @@ export default function ProductVariantsRecipeTab({
                       {variant.ingredientCount} ingredients
                     </span>
                   </div>
-                  <p className="mt-2 text-xs text-slate-500">
-                    Blocking reason: {variant.blockingReason || "None"}
-                  </p>
+                  <p className="mt-2 text-xs text-slate-500">Blocking reason: {variant.blockingReason || "None"}</p>
                 </div>
 
                 <div className={styles.actions}>

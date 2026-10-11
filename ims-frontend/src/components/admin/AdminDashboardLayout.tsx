@@ -11,6 +11,7 @@ import { useSidebarStore } from "@/store/sidebarStore";
 type AdminDashboardLayoutProps = {
   children: React.ReactNode;
   fillContent?: boolean;
+  contentPadding?: boolean;
   showHeader?: boolean;
   whiteTop?: boolean;
   navigationMenuTop?: number;
@@ -19,6 +20,7 @@ type AdminDashboardLayoutProps = {
 export default function AdminDashboardLayout({
   children,
   fillContent = false,
+  contentPadding = true,
   showHeader = true,
   whiteTop = false,
   navigationMenuTop,
@@ -41,7 +43,7 @@ export default function AdminDashboardLayout({
       <div className={`${styles.body} ${whiteTop ? styles.bodyWhiteTop : ""}`}>
         <NavigationMenuButton top={navigationMenuTop} onOpen={() => setSidebarOpen(true)} expanded={sidebarOpen} controls="admin-navigation" />
         {showHeader ? <AdminHeader /> : null}
-        <main ref={contentRef} className={styles.content}>{children}</main>
+        <main ref={contentRef} className={`${styles.content} ${!contentPadding ? styles.contentUnpadded : ''}`}>{children}</main>
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ type Props = {
   searchable?: boolean;
   label: string;
   value: string;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; tone?: "danger" }[];
   onChange: (value: string) => void;
   disabled?: boolean;
   id?: string;
@@ -80,7 +80,7 @@ export default function AdminSelect({ label, value, options, onChange, disabled 
     {required || name ? <select className={styles.validationSelect} aria-hidden="true" tabIndex={-1} value={value} name={name} required={required} disabled={disabled} onChange={event => onChange(event.target.value)} onInvalid={() => trigger.current?.focus()}>
       {options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
     </select> : null}
-    <button ref={trigger} id={triggerId} disabled={disabled} aria-describedby={describedBy} type="button" className={styles.trigger}
+    <button ref={trigger} id={triggerId} disabled={disabled} aria-describedby={describedBy} type="button" className={`${styles.trigger} ${selected?.tone === "danger" ? styles.danger : ""}`}
       aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="listbox" aria-expanded={!!position}
       aria-controls={position ? `${id}-options` : undefined}
       onClick={() => position ? setPosition(null) : openMenu()}
@@ -100,7 +100,7 @@ export default function AdminSelect({ label, value, options, onChange, disabled 
       <div id={`${id}-options`} role="listbox" aria-labelledby={`${id}-label`}>
       {filteredOptions.map((option, index) => <button key={option.value} ref={(node) => { items.current[index] = node; }}
         type="button" role="option" aria-selected={option.value === value} tabIndex={-1}
-        className={`${styles.option} ${option.value === value ? styles.selected : ""}`}
+        className={`${styles.option} ${option.value === value ? styles.selected : ""} ${option.tone === "danger" ? styles.danger : ""}`}
         onClick={() => { onChange(option.value); setPosition(null); trigger.current?.focus(); }}
         onKeyDown={(event) => {
           if (event.key === "Escape" || event.key === "Tab") {

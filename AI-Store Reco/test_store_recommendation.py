@@ -1,4 +1,5 @@
 import json
+import io
 import unittest
 from datetime import datetime, timezone, timedelta
 from unittest.mock import MagicMock, patch
@@ -17,6 +18,31 @@ def store(name, offset=0, price=100, confirmed=True):
 
 
 class RecommendationTests(unittest.TestCase):
+    def setUp(self):
+        origin = patch.multiple(store_price, USER_LATITUDE=14.31452, USER_LONGITUDE=120.941044)
+        origin.start()
+        self.addCleanup(origin.stop)
+
+    def test_worker_uses_request_origin_for_distance_and_ranking(self):
+        row = store('Shop')
+        row.update(latitude=0, longitude=1)
+        for origin, expected in [({'latitude': 0, 'longitude': 0}, 111.195), (None, None)]:
+            with self.subTest(origin=origin):
+                payload = {'product': 'Pasta', 'results': [row], 'persisted': True}
+                if origin is not None:
+                    payload['origin'] = origin
+                output = io.StringIO()
+                with patch.object(reco.sys, 'stdin', io.StringIO(json.dumps(payload))), patch.object(
+                    reco.sys, 'stdout', output), patch.object(store_price, 'api_key', None):
+                    reco.main()
+                result = json.loads(output.getvalue())['results'][0]
+                if expected is None:
+                    self.assertIsNone(result['distance'])
+                    self.assertIsNone(result['recommendation']['origin']['latitude'])
+                else:
+                    self.assertAlmostEqual(result['distance'], expected, places=3)
+                    self.assertEqual(result['recommendation']['origin'], origin)
+
     def test_confidence_uses_price_freshness_and_location_not_ai_self_rating(self):
         row = store('Shop')
         row['fetched_at'] = datetime.now(timezone.utc).isoformat()

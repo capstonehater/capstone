@@ -1,4 +1,5 @@
 "use client";
+import { formatStockQuantity } from "@/lib/inventory-quantity";
 
 import InventoryReportModal from "./InventoryReportModal";
 import styles from "./BatchTransactionModal.module.css";
@@ -21,7 +22,6 @@ export default function BatchTransactionModal({
   loading,
   onClose,
   formatMoney,
-  formatQuantity,
   formatDate,
   formatDateTime,
 }: BatchTransactionModalProps) {
@@ -39,7 +39,7 @@ export default function BatchTransactionModal({
             Remaining
           </div>
           <div className={styles.summaryValue}>
-            {formatQuantity(batch.remainingQuantity)}
+            {formatStockQuantity(batch.remainingQuantity)}
           </div>
         </div>
         <div className={styles.summaryCard}>
@@ -89,7 +89,7 @@ export default function BatchTransactionModal({
                   <td>{formatDateTime(transaction.occurredAt)}</td>
                   <td><strong>{transaction.type}</strong><div className={styles.secondary}>{transaction.sourceType}</div></td>
                   <td className={styles.reason}><strong>{transaction.reasonCode || "N/A"}</strong><div className={styles.secondary}>{transaction.note || "No note"}</div></td>
-                  <td className={`text-right ${delta >= 0 ? styles.increase : styles.decrease}`}>{delta >= 0 ? "+" : ""}{formatQuantity(line?.quantityDelta ?? "0")}</td>
+                  <td className={`text-right ${delta >= 0 ? styles.increase : styles.decrease}`}>{delta >= 0 ? "+" : ""}{formatStockQuantity(delta)}</td>
                   <td className="text-right">{formatMoney(line?.totalCostDelta ?? "0")}</td>
                   <td>{actor}</td>
                 </tr>;

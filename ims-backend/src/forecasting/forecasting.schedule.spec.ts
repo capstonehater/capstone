@@ -1,4 +1,4 @@
-import { ForecastingService, scheduledStart } from './forecasting.service';
+import { ForecastingService, scheduledStart, nextPhilippineMidnight } from './forecasting.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 const transactionMock = <T>(tx: T) =>
@@ -128,5 +128,37 @@ describe('fixed weekly forecast period', () => {
     expect(scheduledStart('2026-10-01', new Date('2026-09-30T00:00:00Z'))).toBe(
       '2026-10-01',
     );
+  });
+});
+
+
+describe('Philippine midnight trigger', () => {
+  it('targets midnight Philippine time instead of host midnight', () => {
+    expect(nextPhilippineMidnight(Date.parse('2026-10-16T15:59:00Z'))).toBe(Date.parse('2026-10-16T16:00:00Z'));
+  });
+  it('schedules tomorrow when already at midnight', () => {
+    expect(nextPhilippineMidnight(Date.parse('2026-10-16T16:00:00Z'))).toBe(Date.parse('2026-10-17T16:00:00Z'));
+  });
+  it('triggers the scheduler at midnight and clears timers on shutdown', async () => {
+    const originalBackgroundJobs = process.env.ENABLE_BACKGROUND_JOBS;
+    process.env.ENABLE_BACKGROUND_JOBS = 'true';
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-10-16T15:59:59Z'));
+    const service = new ForecastingService({} as PrismaService);
+    const check = jest.spyOn(service, 'checkSchedule').mockResolvedValue();
+    try {
+      service.onModuleInit();
+      expect(check).toHaveBeenCalledTimes(1);
+      await jest.advanceTimersByTimeAsync(1000);
+      expect(check).toHaveBeenCalledTimes(2);
+      service.onModuleDestroy();
+      await jest.advanceTimersByTimeAsync(86400000);
+      expect(check).toHaveBeenCalledTimes(2);
+    } finally {
+      service.onModuleDestroy();
+      jest.useRealTimers();
+      if (originalBackgroundJobs === undefined) delete process.env.ENABLE_BACKGROUND_JOBS;
+      else process.env.ENABLE_BACKGROUND_JOBS = originalBackgroundJobs;
+    }
   });
 });

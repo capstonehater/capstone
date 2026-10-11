@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- Node loader for Suppliers adapter tests. */
+require('./helpers/register.cjs');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -33,6 +34,6 @@ for (const route of ['(protected)/suppliers']) {
     assert.equal((html.match(/<main/g) || []).length, 1);
     assert.ok(html.includes('data-header="false"'));
     assert.ok(html.includes('Supplier Management'));
-    assert.ok(html.includes('Loading suppliers...'));
+    assert.ok(html.includes('aria-label="Loading suppliers page"'));
   });
 }

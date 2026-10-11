@@ -250,6 +250,9 @@ def recommend_saved_results(product, results, client=None):
                                source_url=fallback["source_url"], fallback_note=fallback["note"],
                                fallback_listings=fallback.get("listings", []),
                                status="FOUND" if fallback["price_type"] == "confirmed" else "UNVERIFIED")
+            row['distance'] = store_price.calculate_distance(
+                store_price.USER_LATITUDE, store_price.USER_LONGITUDE,
+                row.get('latitude'), row.get('longitude'))
             reviewed.append(row)
     finally:
         store_price.client = previous_client
@@ -273,6 +276,9 @@ def recommend_saved_results(product, results, client=None):
 
 def main():
     payload = json.load(sys.stdin)
+    origin = payload.get('origin') or {}
+    store_price.USER_LATITUDE = origin.get('latitude')
+    store_price.USER_LONGITUDE = origin.get('longitude')
     product = payload.get("product", "")
     if not isinstance(product, str) or not product.strip():
         raise ValueError("A product is required.")

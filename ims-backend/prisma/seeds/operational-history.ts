@@ -950,7 +950,6 @@ function choosePayments(total: number, random: () => number): Array<{ method: Pa
     { value: PaymentMethod.GCASH, weight: 0.25 },
     { value: PaymentMethod.MAYA, weight: 0.13 },
     { value: PaymentMethod.CARD, weight: 0.14 },
-    { value: PaymentMethod.OTHER, weight: 0.05 },
   ], random);
   if (random() >= 0.12) return [{ method: chooseMethod(), amount: roundMoney(total) }];
   const first = chooseMethod();

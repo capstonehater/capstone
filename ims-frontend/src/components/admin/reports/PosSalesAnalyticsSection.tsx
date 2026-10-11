@@ -5,13 +5,18 @@ import ActionAlert from "@/components/feedback/ActionAlert";
 import { salesChartPoints } from "@/lib/sales-chart-data";
 import ReportColumns from "./ReportColumns";
 import SearchInput from "@/components/ui/SearchInput";
+import ReportSearchField from "./ReportSearchField";
+import useReportSearch from "./useReportSearch";
 import AdminSelect from "@/components/admin/AdminSelect";
+import DateFilter from "@/components/staff-pos/DateFilter";
+import { validatePosReportDateChange } from "@/lib/pos-report-date-range";
 
 import PosReportEmpty from "./PosReportEmpty";
 
-import { useEffect, useMemo, useState } from "react";
-import { FileSpreadsheet, FileText, RefreshCw, Info } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FileSpreadsheet, FileText, RefreshCw, Info, TrendingUp, TrendingDown, Minus, Banknote, RotateCcw } from "lucide-react";
 import styles from "./PosReports.module.css";
+import comparisonStyles from "./SalesComparison.module.css";
 import SummaryCard from "./PosReportMetric";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
@@ -49,14 +54,14 @@ type Props = {
 
 type SalesAnalyticsPreset = Extract<
   QuickDatePreset,
-  "today" | "yesterday" | "this-week" | "monthly"
+  "today" | "yesterday" | "this-week" | "custom"
 >;
 
 const PRESET_OPTIONS: SalesAnalyticsPreset[] = [
   "today",
   "yesterday",
   "this-week",
-  "monthly",
+  "custom",
 ];
 
 const GROUP_OPTIONS: Array<{
@@ -76,34 +81,53 @@ export default function PosSalesAnalyticsSection({
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<PosSalesAnalyticsReport | null>(null);
   const [preset, setPreset] = useState<SalesAnalyticsPreset>("today");
+  const [customRange, setCustomRange] = useState(() => getPresetDateRange("today"));
+  const [dateError, setDateError] = useState<string | null>(null);
   const [groupBy, setGroupBy] = useState<PosSalesAnalyticsGroupBy>("daily");
   const [view, setView] = useState<"table" | "line">("table");
   const [staffSearch, setStaffSearch] = useState("");
+  const staffSearchQuery = useReportSearch(staffSearch);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
   const [exportingFormat, setExportingFormat] = useState<"excel" | "pdf" | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
-  const range = useMemo(() => getPresetDateRange(preset), [preset]);
+  const range = useMemo(() => preset === "custom" ? customRange : getPresetDateRange(preset), [preset, customRange]);
   const rangeIso = useMemo(() => toManilaRangeIso(range), [range]);
 
+  const handlePresetChange = (nextPreset: SalesAnalyticsPreset) => {
+    if (nextPreset === "custom" && preset !== "custom") setCustomRange(range);
+    setDateError(null);
+    setPreset(nextPreset);
+  };
+
+  const handleDateChange = (field: "from" | "to", value: string) => {
+    const error = validatePosReportDateChange("custom", field, value, customRange);
+    setDateError(error);
+    if (!error) setCustomRange((current) => ({ ...current, [field]: value }));
+  };
+
+  const searchRequest = useRef(0);
   const loadAnalytics = async () => {
+    const request = ++searchRequest.current;
     setLoading(true);
     try {
       const nextReport = await fetchPosSalesAnalytics({
         from: rangeIso.from,
         to: rangeIso.to,
         groupBy,
-        staffSearch: staffSearch.trim() || undefined,
+        staffSearch: staffSearchQuery || undefined,
         paymentMethod: paymentMethod || undefined,
       });
+      if (request !== searchRequest.current) return;
       setReport(nextReport);
       setError(null);
     } catch (nextError) {
+      if (request !== searchRequest.current) return;
       setError(
         nextError instanceof Error ? nextError.message : "Failed to load sales analytics",
       );
     } finally {
-      setLoading(false);
+      if (request === searchRequest.current) setLoading(false);
     }
   };
 
@@ -113,7 +137,7 @@ export default function PosSalesAnalyticsSection({
     }
 
     void loadAnalytics();
-  }, [active, rangeIso.from, rangeIso.to, groupBy, staffSearch, paymentMethod, refreshToken]);
+  }, [active, rangeIso.from, rangeIso.to, groupBy, staffSearchQuery, paymentMethod, refreshToken]);
 
   if (!active) {
     return null;
@@ -135,7 +159,7 @@ export default function PosSalesAnalyticsSection({
           to: range.to,
           preset,
           groupBy,
-          staffSearch: staffSearch.trim() || undefined,
+          staffSearch: staffSearchQuery || undefined,
           paymentMethod: paymentMethod || undefined,
         },
         report,
@@ -182,8 +206,8 @@ export default function PosSalesAnalyticsSection({
           <div className={styles.analyticsActions}>
             <div className={styles.presets} role="group" aria-label="Sales analytics period">
               {PRESET_OPTIONS.map(option => (
-                <button key={option} type="button" aria-pressed={preset === option} onClick={() => setPreset(option)}>
-                  {getPresetLabel(option)}
+                <button key={option} type="button" aria-pressed={preset === option} onClick={() => handlePresetChange(option)}>
+                  {option === "custom" ? "Custom Date" : getPresetLabel(option)}
                 </button>
               ))}
             </div>
@@ -192,6 +216,13 @@ export default function PosSalesAnalyticsSection({
             </button>
           </div>
         </div>
+        {preset === "custom" ? (
+          <div className={styles.analyticsDateControls} aria-label="Sales analytics custom date range">
+            <DateFilter label="From date" value={customRange.from} max={customRange.to} required onChange={(value) => handleDateChange("from", value)} />
+            <DateFilter label="To date" value={customRange.to} min={customRange.from} required onChange={(value) => handleDateChange("to", value)} />
+          </div>
+        ) : null}
+        {dateError ? <ActionAlert tone="error" title="Invalid date range" message={dateError} onDismiss={() => setDateError(null)} /> : null}
         <p className={styles.range}><Info size={14} aria-hidden="true" />Active range: {getPresetLabel(preset)} <span>|</span> {range.from} to {range.to} <span>|</span> Manila time</p>
       </section>
       <section className="rounded-2xl bg-white p-6 shadow-sm">
@@ -222,15 +253,14 @@ export default function PosSalesAnalyticsSection({
                 </button>
               ))}
             </div>
-            <label className="text-sm font-medium text-neutral-700">
-              <span className="mb-1 block">Cashier / Staff</span>
+            <ReportSearchField label="Cashier / Staff">
               <SearchInput
                 value={staffSearch}
                 onChange={(event) => setStaffSearch(event.target.value)}
                 placeholder="Ex. Robert (name of employee)"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
               />
-            </label>
+            </ReportSearchField>
             <AdminSelect
               label="Payment Method"
               value={paymentMethod}
@@ -259,76 +289,60 @@ export default function PosSalesAnalyticsSection({
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
         <SummaryCard
           title="Gross Sales"
-          value={loading ? "..." : formatPeso(report?.summary.grossSales ?? "0")}
+          value={loading && !report ? "..." : formatPeso(report?.summary.grossSales ?? "0")}
         />
         <SummaryCard
           title="Net Sales"
-          value={loading ? "..." : formatPeso(report?.summary.netSales ?? "0")}
+          value={loading && !report ? "..." : formatPeso(report?.summary.netSales ?? "0")}
         />
         <SummaryCard
           title="Discounts"
-          value={loading ? "..." : formatPeso(report?.summary.discounts ?? "0")}
+          value={loading && !report ? "..." : formatPeso(report?.summary.discounts ?? "0")}
         />
         <SummaryCard
-          title="Refunds"
-          value={loading ? "..." : formatPeso(report?.summary.refunds ?? "0")}
+          title="Sales Refunds (excl. VAT)"
+          value={loading && !report ? "..." : formatPeso(report?.summary.refunds ?? "0")}
         />
+        <SummaryCard title="VAT (net of reversals)" value={loading && !report ? "..." : formatPeso(report?.summary.taxes ?? "0")} />
+        <SummaryCard title="COGS" value={loading && !report ? "..." : formatPeso(report?.summary.cogs ?? "0")} />
+        <SummaryCard title="Gross Profit" value={loading && !report ? "..." : formatPeso(report?.summary.grossMargin ?? "0")} />
+        <SummaryCard title="Net Collected (incl. VAT)" value={loading && !report ? "..." : formatPeso(report?.summary.collectedAmount ?? "0")} />
         <SummaryCard
           title="Transactions"
-          value={loading ? "..." : report?.summary.transactionCount ?? 0}
+          value={loading && !report ? "..." : report?.summary.transactionCount ?? 0}
         />
         <SummaryCard
           title="Average Ticket"
-          value={loading ? "..." : formatPeso(report?.summary.averageTicketSize ?? "0")}
+          value={loading && !report ? "..." : formatPeso(report?.summary.averageTicketSize ?? "0")}
         />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-        <WidgetCard title="Comparison to Previous Period">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Net Sales Growth
-            </p>
-            <p
-              className={`mt-2 text-3xl font-bold ${growthTone(
-                report?.comparison.previousPeriod.growthRate ?? null,
-              )}`}
-            >
-              {loading
-                ? "..."
-                : formatGrowthRate(report?.comparison.previousPeriod.growthRate ?? null)}
-            </p>
-            <p className="mt-3 text-sm text-slate-500">
-              Previous period net sales:{" "}
-              {formatPeso(report?.comparison.previousPeriod.netSales ?? "0")}
-            </p>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Previous Gross Sales
-              </p>
-              <p className="mt-2 text-xl font-bold text-slate-900">
-                {loading
-                  ? "..."
-                  : formatPeso(report?.comparison.previousPeriod.grossSales ?? "0")}
-              </p>
+        <WidgetCard title="Comparison to Previous Period" className={comparisonStyles.card}>
+          <p className={comparisonStyles.intro}>Compare net sales with the previous period of the same length.</p>
+          <div className={comparisonStyles.hero}>
+            <p className={comparisonStyles.label}>Net sales growth</p>
+            <div className={`${comparisonStyles.growth} ${growthTone(report?.comparison.previousPeriod.growthRate ?? null)}`}>
+              <span className={comparisonStyles.indicator} aria-hidden="true">
+                {(report?.comparison.previousPeriod.growthRate ?? 0) > 0 ? <TrendingUp size={20} /> : (report?.comparison.previousPeriod.growthRate ?? 0) < 0 ? <TrendingDown size={20} /> : <Minus size={20} />}
+              </span>
+              <strong>{loading && !report ? "..." : formatGrowthRate(report?.comparison.previousPeriod.growthRate ?? null)}</strong>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Previous Refunds
-              </p>
-              <p className="mt-2 text-xl font-bold text-slate-900">
-                {loading
-                  ? "..."
-                  : formatPeso(report?.comparison.previousPeriod.refunds ?? "0")}
-              </p>
-            </div>
+            <p className={comparisonStyles.note}>
+              {report?.comparison.previousPeriod.growthRate == null ? "Growth is unavailable without previous period net sales." : report.comparison.previousPeriod.growthRate > 0 ? "Net sales increased from the previous period." : report.comparison.previousPeriod.growthRate < 0 ? "Net sales decreased from the previous period." : "Net sales are unchanged from the previous period."}
+            </p>
+            <dl className={comparisonStyles.sales}>
+              <div><dt>Current net sales</dt><dd>{loading && !report ? "..." : formatPeso(report?.summary.netSales ?? "0")}</dd></div>
+              <div><dt>Previous net sales</dt><dd>{loading && !report ? "..." : formatPeso(report?.comparison.previousPeriod.netSales ?? "0")}</dd></div>
+            </dl>
           </div>
+          <dl className={comparisonStyles.details}>
+            <div><dt><Banknote size={18} aria-hidden="true" />Previous gross sales</dt><dd>{loading && !report ? "..." : formatPeso(report?.comparison.previousPeriod.grossSales ?? "0")}</dd></div>
+            <div><dt><RotateCcw size={18} aria-hidden="true" />Previous refunds</dt><dd>{loading && !report ? "..." : formatPeso(report?.comparison.previousPeriod.refunds ?? "0")}</dd></div>
+          </dl>
         </WidgetCard>
 
         <WidgetCard title={view === "table" ? "Grouped Sales Table" : "Grouped Net Sales Line Graph"}>
@@ -343,18 +357,19 @@ export default function PosSalesAnalyticsSection({
             />
           ) : (
             <div className="overflow-x-auto">
-              <ReportColumns columns={["Period","Gross Sales","Net Sales","Discounts","Refunds","Transactions","Average Ticket"]} gridTemplate="1.3fr_repeat(6,minmax(0,1fr))"><div className="min-w-[72rem] overflow-hidden rounded-2xl border border-slate-200">
-                <div className="grid grid-cols-[1.3fr_repeat(6,minmax(0,1fr))] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <ReportColumns columns={["Period","Gross Sales","Net Sales","Discounts","Sales Refunds","VAT","COGS","Gross Profit","Net Collected","Transactions","Average Ticket"]} gridTemplate="1.3fr_repeat(10,minmax(0,1fr))"><div className="min-w-[110rem] overflow-hidden rounded-2xl border border-slate-200">
+                <div className="grid grid-cols-[1.3fr_repeat(10,minmax(0,1fr))] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <span>Period</span>
                   <span>Gross Sales</span>
                   <span>Net Sales</span>
                   <span>Discounts</span>
-                  <span>Refunds</span>
+                  <span>Sales Refunds</span>
+                  <span>VAT</span><span>COGS</span><span>Gross Profit</span><span>Net Collected</span>
                   <span>Transactions</span>
                   <span>Average Ticket</span>
                 </div>
-                <div className="max-h-[32rem] overflow-y-auto">
-                  {loading ? (
+                <div className="min-h-[24rem] max-h-[32rem] overflow-y-auto" aria-busy={loading}>
+                  {loading && !report ? (
                     <div className="px-4 py-6 text-sm text-slate-500">
                       Loading sales analytics...
                     </div>
@@ -364,7 +379,7 @@ export default function PosSalesAnalyticsSection({
                     report?.groups.map((group) => (
                       <div
                         key={group.bucketKey}
-                        className="grid grid-cols-[1.3fr_repeat(6,minmax(0,1fr))] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
+                        className="grid grid-cols-[1.3fr_repeat(10,minmax(0,1fr))] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
                       >
                         <div className="font-semibold text-slate-900">{group.label}</div>
                         <div>{formatPeso(group.grossSales)}</div>
@@ -373,6 +388,7 @@ export default function PosSalesAnalyticsSection({
                         </div>
                         <div>{formatPeso(group.discounts)}</div>
                         <div>{formatPeso(group.refunds)}</div>
+                        <div>{formatPeso(group.taxes)}</div><div>{formatPeso(group.cogs)}</div><div>{formatPeso(group.grossMargin)}</div><div>{formatPeso(group.collectedAmount)}</div>
                         <div>{group.transactionCount}</div>
                         <div>{formatPeso(group.averageTicketSize)}</div>
                       </div>

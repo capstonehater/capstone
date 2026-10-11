@@ -5,8 +5,8 @@ import ReportColumns from "./ReportColumns";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import { fetchWasteSummary, type WasteSummaryReport } from "@/lib/reports";
 import { formatPeso } from "@/lib/pos-utils";
-
-const quantityFormat = new Intl.NumberFormat("en-PH", { maximumFractionDigits: 4 });
+import { formatReportQuantity } from "@/lib/report-quantities";
+import { formatUnit } from "@/lib/units";
 
 export default function WasteInsightsReport({ fromIso, toIso }: { fromIso: string; toIso: string }) {
   const [report, setReport] = useState<WasteSummaryReport | null>(null);
@@ -45,7 +45,7 @@ export default function WasteInsightsReport({ fromIso, toIso }: { fromIso: strin
               <th scope="row" className="px-3 py-3 text-left font-medium">{row.name}<span className="block text-xs font-normal text-slate-500">{row.sku}</span></th>
               <td className="px-3 py-3">{row.reasonCode.replaceAll("_", " ")}</td>
               <td className="px-3 py-3 text-right tabular-nums">{row.eventCount}</td>
-              <td className="px-3 py-3 text-right tabular-nums">{quantityFormat.format(Number(row.quantity))}</td>
+              <td className="px-3 py-3 text-right tabular-nums">{formatReportQuantity(row.quantity, row.unitCode)} {formatUnit(row.unitCode)}</td>
               <td className="whitespace-nowrap px-3 py-3 text-right font-semibold tabular-nums">{formatPeso(row.cost)}</td>
             </tr>)}</tbody>
         </table></ReportColumns>

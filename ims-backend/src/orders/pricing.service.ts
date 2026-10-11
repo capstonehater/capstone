@@ -20,7 +20,7 @@ export class PricingService {
     discountRate?: number,
   ): Prisma.Decimal {
     const normalizedRate = toDecimal(discountRate ?? 0);
-    return subtotalAmount.mul(normalizedRate);
+    return subtotalAmount.mul(normalizedRate).toDecimalPlaces(2);
   }
 
   calculateIncludedTax(totalAmount: Prisma.Decimal): Prisma.Decimal {
@@ -28,6 +28,6 @@ export class PricingService {
       return new Prisma.Decimal(0);
     }
 
-    return totalAmount.minus(totalAmount.dividedBy('1.12'));
+    return totalAmount.minus(totalAmount.dividedBy('1.12')).toDecimalPlaces(2);
   }
 }

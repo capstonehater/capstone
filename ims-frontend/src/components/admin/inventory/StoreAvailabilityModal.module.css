@@ -44,6 +44,16 @@
 .product svg { flex-shrink: 0; }
 .product span { overflow-wrap: anywhere; }
 
+.header { position: relative; z-index: 2; }
+.headerHint { flex-shrink: 0; }
+.hintButton { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; color: #5274a4; cursor: pointer; list-style: none; transition: background 150ms ease; }
+.hintButton::-webkit-details-marker { display: none; }
+.hintButton:hover, .headerHint[open] .hintButton { background: #dce5f3; color: #232d46; }
+.hintButton:focus-visible { outline: 2px solid #5274a4; outline-offset: 2px; }
+.hintContent { position: absolute; top: 60px; left: 24px; right: 24px; z-index: 5; max-width: 410px; padding: 16px 18px; border: 1px solid #d5dfea; border-radius: 14px; background: white; box-shadow: 0 12px 32px #232d4626; color: #475569; font-size: 13px; font-weight: 400; line-height: 1.7; }
+.hintContent p { margin: 0; }
+.hintContent .hintTimestamp { margin-top: 10px; padding-top: 10px; border-top: 1px solid #e4e9f2; color: #64748b; font-size: 12px; }
+
 .body {
   flex: 1;
   min-height: 0;
@@ -62,6 +72,67 @@
 .price { flex-shrink: 0; margin: 0; color: #232d46; font-size: 20px; font-weight: 700; }
 .empty { margin: 36px auto; max-width: 300px; text-align: center; color: #64748b; font-size: 15px; }
 
+.marketCard { margin-top: 20px; overflow: hidden; border: 1px solid #d5dfea; border-radius: 20px; background: linear-gradient(120deg, #f0f5fc, #fafcff); box-shadow: 0 4px 16px #232d4605; }
+.marketSummary { display: flex; align-items: center; gap: 16px; padding: 20px; cursor: pointer; list-style: none; }
+.marketSummary::-webkit-details-marker { display: none; }
+.marketSummary:hover { background: #e8eef74d; }
+.marketSummary:focus-visible { outline: 2px solid #5274a4; outline-offset: -3px; border-radius: 18px; }
+.marketIcon { display: grid; place-items: center; flex-shrink: 0; width: 46px; height: 46px; border: 1px solid #d9e3f1; border-radius: 15px; background: white; color: #5274a4; }
+.marketHeading { display: flex; flex: 1; flex-direction: column; min-width: 0; gap: 3px; }
+.marketLabel { color: #5274a4; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.marketPrice { color: #232d46; font-size: 27px; font-weight: 750; letter-spacing: -0.8px; line-height: 1.3; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.marketCaption { color: #64748b; font-size: 12px; line-height: 1.5; }
+.marketAside { display: flex; flex-shrink: 0; flex-direction: column; align-items: flex-end; gap: 15px; }
+.estimateBadge { padding: 5px 9px; border: 1px solid #d5dfea; border-radius: 20px; color: #5274a4; background: #ffffffb3; font-size: 11px; font-weight: 600; }
+.marketToggle { display: flex; align-items: center; gap: 6px; color: #475569; font-size: 12px; font-weight: 600; }
+.marketToggle svg { transition: transform 180ms ease; }
+.marketCard[open] .marketToggle svg { transform: rotate(180deg); }
+.marketDetails { padding: 18px 20px 20px; border-top: 1px solid #d5dfea; background: #ffffff80; }
+.marketStats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 14px; }
+.marketStats > div { padding: 12px 14px; border: 1px solid #e1e7f0; border-radius: 12px; background: white; }
+.marketStats dt { color: #64748b; font-size: 11px; }
+.marketStats dd { margin: 5px 0 0; color: #232d46; font-size: 14px; font-weight: 650; }
+.marketNote { margin: 0; color: #475569; font-size: 12px; line-height: 1.7; }
+.marketChecked { margin: 8px 0 0; color: #64748b; font-size: 11px; }
+
+.loadingPanel { margin-top: 22px; padding: 32px 24px 24px; border: 1px solid #dce4f0; border-radius: 22px; background: radial-gradient(ellipse at top, #eaf0fa, #f9fbfe 65%); text-align: center; }
+.loadingEmblem { position: relative; display: grid; place-items: center; width: 76px; height: 76px; margin: 0 auto 22px; border-radius: 50%; background: white; color: #5274a4; box-shadow: 0 6px 20px #5274a414; }
+.loadingRing { position: absolute; inset: -5px; border: 2px solid #dce5f3; border-top-color: #5274a4; border-right-color: #8ca5cb; border-radius: 50%; animation: storeSpin 1.6s linear infinite; }
+.idleRing { animation: none; }
+.introActions { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 24px; }
+.introActions .search { min-width: 160px; border-radius: 12px; padding: 12px 22px; }
+.savedSearchButton { padding: 6px 12px; border: 0; border-radius: 8px; background: transparent; color: #5274a4; font-size: 12px; font-weight: 600; cursor: pointer; }
+.savedSearchButton:hover { background: #e8eef7; }
+.locationNotice { display: flex; align-items: flex-start; gap: 7px; margin: 0 0 14px; color: #64748b; font-size: 11px; line-height: 1.6; }
+.locationNotice svg { flex-shrink: 0; margin-top: 2px; }
+.loadingEyebrow { color: #5274a4; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.loadingTitle { margin: 8px 0 10px; color: #232d46; font-size: 21px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.4; }
+.loadingDescription { max-width: 370px; margin: 0 auto; color: #64748b; font-size: 13px; line-height: 1.8; }
+.searchSteps { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px 18px; margin: 24px 0 0; padding: 0; list-style: none; }
+.searchSteps li { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; }
+.stepDot { display: grid; place-items: center; flex-shrink: 0; width: 23px; height: 23px; border: 1px solid #d5dfea; border-radius: 50%; background: white; font-size: 10px; }
+.stepComplete { color: #5274a4; }
+.stepComplete .stepDot { border-color: #d5dfed; background: #e4ecf8; }
+.stepActive { color: #232d46; }
+.stepActive .stepDot { border-color: #5274a4; background: #5274a4; color: white; }
+.stepWaiting { color: #64748b; }
+.stepSpinner { animation: storeSpin 1.4s linear infinite; }
+.loadingHint { margin: 20px 0 0; color: #64748b; font-size: 11px; line-height: 1.6; }
+.skeletonList { display: grid; gap: 10px; margin-top: 24px; }
+.skeletonCard { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid #e2e8f2; border-radius: 14px; background: #ffffffb3; }
+.skeletonCard > div { display: grid; flex: 1; gap: 9px; }
+.skeletonIcon, .skeletonLine, .skeletonLineShort, .skeletonPrice { display: block; border-radius: 5px; background: linear-gradient(100deg, #e9eef6 25%, #f5f8fc 45%, #e9eef6 65%); background-size: 250% 100%; animation: storeShimmer 2s ease-in-out infinite; }
+.skeletonIcon { width: 34px; height: 34px; border-radius: 10px; }
+.skeletonLine { width: 65%; height: 9px; }
+.skeletonLineShort { width: 40%; height: 7px; }
+.skeletonPrice { width: 52px; height: 14px; }
+@keyframes storeSpin { to { transform: rotate(360deg); } }
+@keyframes storeShimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .loadingRing, .stepSpinner, .skeletonIcon, .skeletonLine, .skeletonLineShort, .skeletonPrice { animation: none; }
+  .marketToggle svg { transition: none; }
+}
+
 .footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0; padding: 18px 32px; border-top: 1px solid #e4e9f2; background: white; }
 .journey { display: inline-flex; align-items: center; gap: 8px; max-width: 240px; padding: 4px 0; border: 0; background: transparent; color: #64748b; font-size: 14px; text-align: left; }
 .journey svg { flex-shrink: 0; color: #5274a4; }
@@ -76,6 +147,19 @@
 .body:focus-visible { outline-offset: -3px; }
 
 @media (max-width: 540px) {
+  .heading { gap: 8px; }
+  .hintButton { width: 28px; height: 28px; }
+  .hintContent { top: 66px; left: 18px; right: 18px; }
+  .marketSummary { flex-wrap: wrap; gap: 12px; padding: 16px; }
+  .marketIcon { width: 38px; height: 38px; border-radius: 12px; }
+  .marketPrice { font-size: 24px; }
+  .marketAside { width: 100%; flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; }
+  .marketDetails { padding: 16px; }
+  .marketStats { grid-template-columns: 1fr; }
+  .loadingPanel { padding: 28px 16px 18px; }
+  .loadingTitle { font-size: 19px; }
+  .searchSteps { gap: 12px; }
+  .skeletonCard { padding: 13px; gap: 9px; }
   .header { padding: 22px 20px 18px; }
   .heading h2 { font-size: 20px; }
   .body { padding: 16px 18px 22px; }

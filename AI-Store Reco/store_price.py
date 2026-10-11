@@ -22,9 +22,10 @@ from groq import Groq
 
 # Stores are supplied by the backend from saved Manage Suppliers records.
 
-# Fixed reference location
-USER_LATITUDE = 14.31452
-USER_LONGITUDE = 120.941044
+# Set by each worker request using the device's live Geolocation API reading.
+# No default origin: unavailable location must never imply a known distance.
+USER_LATITUDE = None
+USER_LONGITUDE = None
 
 # Serper supplies Google search results; Groq is used only for classification.
 SERPER_SEARCH_URL = "https://google.serper.dev/search"
@@ -896,8 +897,11 @@ def run_search(product_query, stores):
 
 
 def main():
-    global client, USE_LLM_CLASSIFIER
+    global client, USE_LLM_CLASSIFIER, USER_LATITUDE, USER_LONGITUDE
     payload = json.load(sys.stdin)
+    origin = payload.get('origin') or {}
+    USER_LATITUDE = origin.get('latitude')
+    USER_LONGITUDE = origin.get('longitude')
     collect_only = payload.get("collect_only") is True
     if not serper_api_key or (not collect_only and not api_key):
         raise ValueError("Configure SERPER_API_KEY and GROQ_API_KEY for store search.")

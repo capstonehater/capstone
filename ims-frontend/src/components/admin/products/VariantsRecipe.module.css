@@ -1,9 +1,9 @@
-.workspace { display:grid; gap:20px; padding-top:4px; color:#334155; }
+.workspace { display:grid; grid-template-columns:minmax(0,1fr); min-width:0; gap:20px; padding-top:4px; color:#334155; }
 .header { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:14px; }
 .header > div { flex:1 1 240px; min-width:0; }
 .workspace h3,.workspace h4 { margin:0; color:#232d46; font-size:18px; font-weight:650; line-height:1.4; }
 .workspace p { margin-bottom:0; }
-.card,.recipe { padding:18px; border:1px solid #dce2eb; border-radius:12px; background:#fff; }
+.card,.recipe { min-width:0; padding:18px; border:1px solid #dce2eb; border-radius:12px; background:#fff; }
 .card[data-selected="true"] { background:#f4f6fa; border-color:#94a3b8; box-shadow:inset 3px 0 0 #34425f; }
 .cardContent { display:flex; flex-direction:column; gap:16px; }
 .actions { display:flex; flex-wrap:wrap; gap:8px; padding-top:14px; border-top:1px solid #e2e8f0; }
@@ -33,3 +33,7 @@
 
 .recipeEditor button.removeIngredient { background: #dc2626; border-color: #dc2626; color: #fff; }
 .recipeEditor button.removeIngredient:hover:not(:disabled) { background: #b91c1c; border-color: #b91c1c; }
+
+.workspace > *, .cardContent, .cardContent > *, .tableWrap { min-width:0; }
+.cardContent p { overflow-wrap:anywhere; }
+.cardContent span { max-width:100%; overflow-wrap:anywhere; }

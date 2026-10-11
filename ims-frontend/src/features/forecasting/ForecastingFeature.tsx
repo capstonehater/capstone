@@ -7,7 +7,7 @@ import headerStyles from "@/components/admin/AdminSectionHeader.module.css";
 import { useEffect, useRef, useState } from 'react';
 import { Check, CircleAlert, LoaderCircle, RefreshCw } from 'lucide-react';
 import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout';
-import { fetchForecast, fetchForecastProducts, fetchForecastRun, forecastPeriodDays, forecastTotal, type ForecastProduct, type ForecastResponse, type Recommendation } from '@/lib/forecasting';
+import { fetchForecast, fetchForecastProducts, fetchForecastRun, forecastPeriodDays, forecastTotal, type ForecastProduct, type ForecastProgress, type ForecastResponse, type Recommendation } from '@/lib/forecasting';
 import MaterialDropdown from '@/app/admin/forecasting/MaterialDropdown';
 import ForecastGraph from '@/app/admin/forecasting/ForecastGraph';
 import ForecastNotes from '@/app/admin/forecasting/ForecastNotes';
@@ -51,6 +51,15 @@ export default function ForecastingFeature() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [runId, setRunId] = useState('');
+  const [hiddenLoadingRunId, setHiddenLoadingRunId] = useState('');
+  const [progress, setProgress] = useState<ForecastProgress | null>(null);
+  const [runStartedAt, setRunStartedAt] = useState<string | null>(null);
+  const [clockNow, setClockNow] = useState(0);
+  useEffect(() => {
+    if (!runId) return;
+    const timer = setInterval(() => setClockNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [runId]);
   const [refresh, setRefresh] = useState(0);
   const [refreshFeedback, setRefreshFeedback] = useState<'idle' | 'refreshing' | 'success' | 'error'>('idle');
   const manualRefreshPending = useRef(false);
@@ -88,7 +97,10 @@ export default function ForecastingFeature() {
       setProducts(catalog.products);
       setData(result);
       loadedSelection.current = selection;
-      if (result.activeRun) setRunId(result.activeRun.id);
+      if (result.activeRun) {
+        setRunId(result.activeRun.id); setRunStartedAt(result.activeRun.createdAt);
+        setProgress(result.activeRun.progress ?? null); setClockNow(Date.now());
+      }
       if (manualRefresh) {
         manualRefreshPending.current = false;
         setRefreshFeedback('success');
@@ -113,8 +125,11 @@ export default function ForecastingFeature() {
       try {
         const result = await fetchForecastRun(runId);
         if (!active) return;
+        setProgress(result.run.progress ?? null);
+        setRunStartedAt(result.run.createdAt);
+        setClockNow(Date.now());
         if (result.run.status !== 'RUNNING') {
-          setRunId('');
+          setRunId(''); setProgress(null);
           if (result.run.status === 'FAILED') setError('The forecast could not be updated. An automatic retry will follow; saved periods remain available.');
           else { setNotice('Forecast and inventory recommendations saved.'); setRefresh((value) => value + 1); }
           return;
@@ -138,10 +153,20 @@ export default function ForecastingFeature() {
   const critical = restocks.filter((row) => row.recommendation?.data.Priority === 'Critical');
   const chartPoints = selected?.points ?? [];
   const busy = Boolean(runId);
-
+  const hasSavedForecasts = Boolean(data?.run || data?.periods.length);
+  const blocking = busy && (!hasSavedForecasts || hiddenLoadingRunId !== runId);
+  const finishTime = progress?.estimatedFinishAt ? Date.parse(progress.estimatedFinishAt) : null;
+  const remaining = finishTime == null ? null : Math.max(0, Math.ceil((finishTime - clockNow) / 1000));
+  const elapsed = runStartedAt ? Math.max(0, Math.floor((clockNow - Date.parse(runStartedAt)) / 1000)) : 0;
+  const durationLabel = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours ? `${hours}h ` : ''}${minutes}m ${seconds % 60}s`;
+  };
   if (loading) return <WorkspaceLoading page="forecasting" />;
 
-  return <AdminDashboardLayout showHeader={false}><div className={styles.workspace}>
+  return <AdminDashboardLayout showHeader={false} contentPadding={!blocking}><div className={`${styles.workspace} ${blocking ? styles.workspaceBusy : ''}`}>
+    <div className={`${styles.forecastContent} ${blocking ? styles.forecastContentBlocked : ''}`} inert={blocking} aria-hidden={blocking || undefined}>
     <header className={headerStyles.panel}>
       <div ref={helpRoot} className={styles.titleRow} onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setHelpOpen(false);
@@ -154,7 +179,7 @@ export default function ForecastingFeature() {
         </button>
         {helpOpen && <div id="forecast-help" role="region" aria-label="About stock forecasts" className={styles.forecastHelp}>
           <p>See how much stock you may need and what to buy. Choose a saved period in the graph, then a product or material to explore.</p>
-          <p>Forecasts cover seven days and are prepared automatically after the current period ends (Philippine time).</p>
+          <p>Forecasts cover seven days. The next run starts at 12:00 AM Philippine time after the saved period ends. If the server is offline, it catches up when it returns.</p>
           {!loading && run && <p>{data?.scope} Displaying {dateLabel(run.startDate)} - {dateLabel(run.endDate)}. History through {run.historyEnd ? dateLabel(run.historyEnd) : 'N/A'}. Stock snapshot saved {new Date(run.createdAt).toLocaleString('en-PH')}.</p>}
         </div>}
       </div>
@@ -178,10 +203,14 @@ export default function ForecastingFeature() {
         </button>
       </div>
     </div>
+    {busy && !blocking && <section className={styles.backgroundForecastNotice} aria-label="Forecast generation progress">
+      <div><LoaderCircle size={18} className={styles.refreshSpinner} aria-hidden="true" /><span role="status">A new forecast is running. You are viewing saved results.{remaining != null && remaining > 0 ? ` Estimated time remaining: ${durationLabel(remaining)}.` : ''}</span></div>
+      <button type="button" onClick={() => setHiddenLoadingRunId('')}>Show progress</button>
+    </section>}
     {data?.automaticRetryPending && !busy && <p role="status" className={`${styles.errorMessage} ${styles.noticePill}`}>Update delayed. Retries hourly. Saved periods available.</p>}
     {error && <p role="alert" className={styles.errorMessage}>{error}</p>}
     {notice && <p role="status" className={styles.message}>{notice}</p>}
-    {busy && <p role="status" className={styles.running}><LoaderCircle size={18} className="animate-spin" />Your next forecast is being prepared automatically. This may take several minutes. You can still browse saved periods.</p>}
+
     {loading ? <p role="status">Loading saved forecasts...</p> : !run ? <section className={styles.panel}><h2>No forecasts yet</h2><p>The system prepares your first forecast automatically while the server is running. The saved period will appear here when it is ready.</p></section> : <>
       <ForecastNotes run={run} title="Latest Forecast Notes" />
       {!rows.length ? <section className={styles.panel}><h2>No matching forecast</h2><p>This product has no recipe ingredients with saved forecasts. Check its recipe and historical raw-material data.</p></section> : <>
@@ -220,5 +249,28 @@ export default function ForecastingFeature() {
         <section className={styles.panel} style={{ marginTop: 16 }}><h2>{selected.name}: Daily Forecast</h2><div className={styles.tableScroll}><table><thead><tr><th>Date</th><th>Expected usage ({formatUnit(selected.unit)})</th><th>Lower estimate ({formatUnit(selected.unit)})</th><th>Upper estimate ({formatUnit(selected.unit)})</th></tr></thead><tbody>{chartPoints.map((point) => <tr key={point.date}><td>{dateLabel(point.date)}</td><td>{number(Number(point.forecast))}</td><td>{number(Number(point.lower95))}</td><td>{number(Number(point.upper95))}</td></tr>)}</tbody></table></div></section>
       </>}
     </>}
+    </div>
+    {blocking && <section className={styles.forecastLoadingOverlay} role="region" aria-labelledby="forecast-loading-title" aria-describedby="forecast-loading-description">
+      <div className={styles.forecastLoadingDialog}><div className={styles.forecastLoadingCard}>
+        <div className={styles.forecastLoadingIcon} aria-hidden="true"><LoaderCircle size={32} /></div>
+        <span className={styles.forecastLoadingEyebrow}>FORECAST IN PROGRESS</span>
+        <h2 id="forecast-loading-title">Preparing your new forecast</h2>
+        <p id="forecast-loading-description">We are analyzing material usage and checking the estimates. Forecasting content will unlock automatically when the forecast is ready. You can use the sidebar to visit other pages or view saved forecasts while this run continues.</p>
+        <div className={styles.forecastLoadingTiming}>
+          <div><span>Estimated time remaining</span><strong>{progress?.stage === 'finalizing' ? 'Saving results' : remaining === null ? 'Calculating estimate' : remaining === 0 ? 'Updating estimate' : durationLabel(remaining)}</strong></div>
+          <div><span>Estimated finish (Philippine time)</span><strong>{finishTime == null || remaining === 0 ? 'Waiting for timing data' : new Date(finishTime).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' })}</strong></div>
+        </div>
+        <div className={styles.forecastLoadingTrack} aria-hidden="true"><span style={progress?.total ? { width: `${100 * progress.completed / progress.total}%`, animation: 'none' } : undefined} /></div>
+        <p className={styles.forecastLoadingStatus} role="status" aria-live="polite">{progress?.total ? `${progress.completed} of ${progress.total} materials processed` : 'Loading usage history and preparing models'}</p>
+        {progress?.currentMaterial && <p className={styles.forecastLoadingMaterial}>Processing: {progress.currentMaterial}</p>}
+        <p className={styles.forecastLoadingElapsed}>Elapsed: {durationLabel(elapsed)}</p>
+        <p className={styles.forecastLoadingHint}>Timing is estimated from completed material fits and updates as processing continues. Training times vary by material.</p>
+        {progress?.stale && <p className={styles.forecastLoadingError}>Processing is taking longer than expected. The finish estimate will resume with the next progress update.</p>}
+        {!progress?.total && <p className={styles.forecastLoadingElapsed}>This run has no timing data yet. An accurate finish estimate is unavailable.</p>}
+        {error && <p role="alert" className={styles.forecastLoadingError}>{error}</p>}
+        {hasSavedForecasts && <button type="button" className={styles.viewSavedForecastsButton} onClick={() => setHiddenLoadingRunId(runId)}>View saved forecasts</button>}
+      </div>
+      </div>
+    </section>}
   </div></AdminDashboardLayout>;
 }

@@ -668,7 +668,6 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
             onRefresh={() => void refreshEverything(true)}
             onAddMaterial={() => { setError(null); setMaterialForm(defaultMaterialForm(null, units[0]?.id)); setActivePanel("create-material"); }}
             creatingDisabled={initialLoading || submitting}
-            formatQuantity={formatQuantity}
             formatMoney={formatMoney}
           />
 
@@ -900,7 +899,6 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
             }, "Failed to record waste");
           }}
           onSelectRawMaterial={setSelectedRawMaterialId}
-          formatQuantity={formatQuantity}
         /></PermissionAction>
 
         {availabilityMaterial && <PermissionAction permission={"suppliers.searchAvailability"}><StoreAvailabilityModal key={availabilityMaterial.id} materialId={availabilityMaterial.id} materialName={availabilityMaterial.name} onClose={() => setAvailabilityMaterial(null)} onJourney={() => { setAvailabilityMaterial(null); router.push("/suppliers"); }} /></PermissionAction>}

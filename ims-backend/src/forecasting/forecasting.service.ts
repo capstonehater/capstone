@@ -14,8 +14,11 @@ import { resolve, join } from 'node:path';
 import { PrismaService } from '../prisma/prisma.service';
 import { loadPosHistory } from './pos-history';
 import { validateWorkerResult } from './forecasting.types';
+import { progressFile, readForecastProgress } from './forecasting-progress';
+import { isBackgroundJobsEnabled } from '../config/env.validation';
 
-const TIMEOUT_MS = 30 * 60 * 1000;
+// Interval calibration adds rolling refits to the weekly material batch.
+const TIMEOUT_MS = 120 * 60 * 1000;
 
 @Injectable()
 export class ForecastingService implements OnModuleDestroy, OnModuleInit {
@@ -25,13 +28,24 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
 
   private timer?: ReturnType<typeof setInterval>;
   private checking = false;
+  private midnightTimer?: ReturnType<typeof setTimeout>;
 
   onModuleInit() {
+    if (!isBackgroundJobsEnabled()) return;
     void this.checkSchedule();
+    this.scheduleMidnight();
     this.timer = setInterval(() => {
       void this.checkSchedule();
     }, 60000);
     this.timer.unref();
+  }
+
+  private scheduleMidnight() {
+    this.midnightTimer = setTimeout(() => {
+      void this.checkSchedule();
+      this.scheduleMidnight();
+    }, nextPhilippineMidnight(Date.now()) - Date.now());
+    this.midnightTimer.unref();
   }
 
   async checkSchedule() {
@@ -71,6 +85,7 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
 
   onModuleDestroy() {
     if (this.timer) clearInterval(this.timer);
+    if (this.midnightTimer) clearTimeout(this.midnightTimer);
     for (const child of this.children) child.kill();
   }
 
@@ -201,7 +216,7 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
         noteSeries: run.series.map(({ materialId, name, unit, metadata }) => ({ materialId, name, unit, metadata })),
         series: materialIds ? run.series.filter((series) => materialIds.includes(series.materialId)) : run.series,
       } : null,
-      activeRun,
+      activeRun: activeRun ? { ...activeRun, progress: await readForecastProgress(activeRun) } : null,
       periods,
       nextScheduledDate: nextForecastPeriod.startDate,
       nextForecastPeriod,
@@ -216,7 +231,7 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
     await this.expireAbandonedRuns();
     const run = await this.prisma.forecastRun.findUnique({ where: { id } });
     if (!run) throw new NotFoundException('Forecast run not found');
-    return { run };
+    return { run: { ...run, progress: run.status === 'RUNNING' ? await readForecastProgress(run) : null } };
   }
 
   async generate(startDate: string) {
@@ -313,6 +328,7 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
         JSON.stringify({
           startDate,
           forecastDays,
+          progressFile: progressFile(runId),
           ...pos,
           materials: materials.map((material) => ({
             id: material.id,
@@ -394,6 +410,7 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
         },
       });
     } finally {
+      await rm(progressFile(runId), { force: true });
       if (directory) await rm(directory, { recursive: true, force: true });
     }
   }
@@ -439,7 +456,7 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
       child.on('close', (code) => {
         clearTimeout(timer);
         this.children.delete(child);
-        if (timedOut) reject(new Error('Forecast timed out after 30 minutes.'));
+        if (timedOut) reject(new Error('Forecast timed out after 120 minutes.'));
         else if (code !== 0)
           reject(new Error(stderr.trim() || `Python exited with code ${code}`));
         else resolvePromise();
@@ -460,4 +477,11 @@ export function scheduledStart(
   )
     return null;
   return today;
+}
+
+
+// Philippine time is UTC+08 year-round; the execution host timezone is irrelevant.
+export function nextPhilippineMidnight(now: number): number {
+  const local = new Date(now + 8 * 3600000);
+  return Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() + 1) - 8 * 3600000;
 }

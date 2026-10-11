@@ -879,12 +879,12 @@ export default function ProductsWorkspace() {
   if (!listResponse && !listError) return <PageSkeleton page="products" header={false} />;
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden">
+    <div className="flex min-h-0 flex-col gap-3 xl:h-full xl:overflow-hidden">
       {workspaceError ? <ActionAlert tone="error" title="Action failed" message={workspaceError} onDismiss={() => setWorkspaceError(null)} /> : null}
       {listError ? <ActionAlert tone="error" title="Unable to load products" message={listError} onDismiss={() => setListError(null)} /> : null}
       {notice ? <ActionAlert tone="success" title="Success!" message={notice} onDismiss={() => setNotice(null)} /> : null}
 
-      <div className={`${styles.panels} grid min-h-0 flex-1 gap-[24px] overflow-hidden`}>
+      <div className={`${styles.panels} grid min-h-0 gap-[24px] xl:flex-1 xl:overflow-hidden`}>
         <div className={`${isMobileDetailView ? "hidden xl:block" : "block"} min-h-0`}>
           <ProductsMasterPanel
             categories={categories}

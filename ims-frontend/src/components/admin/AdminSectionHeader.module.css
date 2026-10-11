@@ -1,4 +1,5 @@
 .panel { flex-shrink:0; min-width:0; padding:24px 20px; border:1px solid #dce2eb; border-radius:12px; background:#fff; color:#232d46; }
+.titleRow { display:flex; align-items:center; gap:10px; }
 .panel h1 { margin:0; color:#232d46; font-size:30px; font-weight:700; line-height:1.25; letter-spacing:-.025em; text-transform:uppercase; }
 .panel > p { margin:10px 0 0; color:#64748b; font-size:14px; line-height:1.6; }
 .actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:24px; }

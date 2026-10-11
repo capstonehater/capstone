@@ -7,8 +7,9 @@ export async function loadPosHistory(tx: Prisma.TransactionClient, startDate: st
   }).format(capturedAt);
   // Use complete Philippine calendar days; a partial trading day would understate demand.
   const cutoff = new Date(`${startDate < snapshotDay ? startDate : snapshotDay}T00:00:00+08:00`);
-  const rows = await tx.$queryRaw<{ materialId: string; date: string; quantity: Prisma.Decimal }[]>`
+  const rows = await tx.$queryRaw<{ materialId: string; date: string; sourceUnit: string | null; quantity: Prisma.Decimal }[]>`
     SELECT l.raw_material_id AS "materialId",
+      l.raw_material_snapshot->>'unitCode' AS "sourceUnit",
       to_char(o.completed_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Manila', 'YYYY-MM-DD') AS date,
       SUM(-l.quantity_delta) AS quantity
     FROM inventory_transaction_lines l
@@ -17,7 +18,7 @@ export async function loadPosHistory(tx: Prisma.TransactionClient, startDate: st
     JOIN orders o ON o.id = i.order_id
     WHERE t.type = 'CHECKOUT' AND o.status = 'COMPLETED'
       AND l.quantity_delta < 0 AND o.completed_at < ${cutoff} AND o.completed_at <= ${capturedAt}
-    GROUP BY l.raw_material_id, date ORDER BY date, l.raw_material_id
+    GROUP BY l.raw_material_id, date, l.raw_material_snapshot->>'unitCode' ORDER BY date, l.raw_material_id
   `;
   // Retain dates of refunded/voided orders, so CSV data cannot restore their demand.
   const dates = await tx.$queryRaw<{ date: string }[]>`

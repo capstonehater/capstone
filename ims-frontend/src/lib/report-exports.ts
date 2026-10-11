@@ -1,8 +1,10 @@
+import { reportAccountingNote } from "./report-accounting";
+import { formatReportQuantities } from "./report-quantities";
 import { authorizeReportExport } from "./report-export-access";
-import { formatStockoutDuration } from "./report-duration";
+import { formatAvailabilityDuration, formatStockoutDuration } from "./report-duration";
 import { downloadReportExcel } from "./report-excel";
 import { formatUnit } from "./units";
-import { formatDateTime, formatOrderReference, formatPeso } from "./pos-utils";
+import { formatSplitPaymentOrderReference, formatDateTime, formatOrderReference, formatPeso } from "./pos-utils";
 import type { PosOrder } from "./pos";
 import type {
   WasteSummaryReport,
@@ -48,7 +50,7 @@ export type PosSalesAnalyticsExportSnapshot = {
   filters: {
     from: string;
     to: string;
-    preset: "today" | "yesterday" | "this-week" | "monthly";
+    preset: "today" | "yesterday" | "this-week" | "monthly" | "custom";
     groupBy: "daily" | "weekly" | "monthly";
     staffSearch?: string;
     paymentMethod?: string;
@@ -124,6 +126,27 @@ export type PosAuditExceptionsExportSnapshot = {
   };
   report: PosAuditExceptionsReport;
 };
+
+// A single, restrained print layout for every report export.
+const reportPrintStyles = `
+  @page { size: A4 landscape; margin: 12mm; }
+  body { margin: 0; color: #222; background: #fff; font: 11px/1.4 Arial, sans-serif; }
+  .page { padding: 0; }
+  h1 { margin: 0 0 8px; font-size: 20px; }
+  .meta { margin-bottom: 16px; color: #555; overflow-wrap: anywhere; }
+  .section { margin-top: 16px; }
+  h2 { margin: 0 0 6px; font-size: 13px; break-after: avoid; }
+  .summary-grid { display: block; }
+  .summary-card { display: flex; justify-content: space-between; gap: 16px; padding: 5px 8px; border-bottom: 1px solid #ddd; break-inside: avoid; }
+  .summary-label { color: #444; }
+  .summary-value { font-weight: 700; text-align: right; }
+  table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  thead { display: table-header-group; }
+  tr { break-inside: avoid; }
+  th, td { padding: 6px 7px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+  th { background: #eee; color: #222; font-weight: 700; }
+  td.empty { color: #666; font-style: italic; }
+`;
 
 function sanitizeFilenamePart(value: string) {
   return value.replace(/[^a-z0-9-]+/gi, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
@@ -280,14 +303,6 @@ function renderInventoryKpiSummaryHtml(report: InventoryKpiSummaryReport) {
   ]);
 }
 
-function formatHourExport(value: string | null | undefined) {
-  if (!value) {
-    return "N/A";
-  }
-
-  return `${Number(value).toFixed(2)} h`;
-}
-
 function appendInventoryAvailabilityRiskCsvSections(
   lines: string[],
   report: InventoryAvailabilityRiskReport,
@@ -336,8 +351,8 @@ function appendInventoryAvailabilityRiskCsvSections(
       row.quantitySold,
       row.revenue,
       formatPercentExport(row.availabilityPercentage),
-      formatHourExport(row.sellableDurationHours),
-      formatHourExport(row.downtimeDurationHours),
+      formatAvailabilityDuration(row.sellableDurationHours, "sellable"),
+      formatAvailabilityDuration(row.downtimeDurationHours, "downtime"),
       row.trackedFromRangeStart ? "Tracked" : "No baseline",
       row.eventCount,
     ]),
@@ -391,8 +406,8 @@ function renderInventoryAvailabilityRiskHtml(report: InventoryAvailabilityRiskRe
         String(row.quantitySold),
         formatPeso(row.revenue),
         formatPercentExport(row.availabilityPercentage),
-        formatHourExport(row.sellableDurationHours),
-        formatHourExport(row.downtimeDurationHours),
+        formatAvailabilityDuration(row.sellableDurationHours, "sellable"),
+        formatAvailabilityDuration(row.downtimeDurationHours, "downtime"),
         row.trackedFromRangeStart ? "Tracked" : "No baseline",
         String(row.eventCount),
       ]),
@@ -405,8 +420,8 @@ function appendPosInventoryLinkedCsvSections(
   snapshot: PosInventoryLinkedExportSnapshot,
 ) {
   appendCsvSection(lines, "Inventory-Linked Sales Consumption Summary", ["Metric", "Value"], [
-    ["Sales-Linked Transactions", snapshot.report.summary.salesLinkedTransactionCount],
-    ["Total Material Consumption Quantity", snapshot.report.summary.totalMaterialConsumptionQuantity],
+    ["Stock Movements", snapshot.report.summary.salesLinkedTransactionCount],
+    ["Net Material Usage by Unit", formatReportQuantities(snapshot.report.summary.materialQuantitiesByUnit)],
     ["Total Consumption Cost", snapshot.report.summary.totalConsumptionCost],
     ["Distinct Materials Consumed", snapshot.report.summary.distinctMaterialsConsumed],
     ["Distinct Variants Sold", snapshot.report.summary.distinctVariantsSold],
@@ -424,7 +439,7 @@ function appendPosInventoryLinkedCsvSections(
       "Consumption Cost",
       "Orders",
       "Variants",
-      "Usable Qty",
+      "Usable Quantity",
       "Reorder Point",
       "Low Stock",
       "Active Alert",
@@ -437,7 +452,7 @@ function appendPosInventoryLinkedCsvSections(
       row.consumptionCost,
       row.orderCount,
       row.variantCount,
-      row.currentUsableQuantity,
+      Math.round(Number(row.currentUsableQuantity)),
       row.rawMaterial.reorderPoint,
       row.isLowStock ? "Yes" : "No",
       row.activeLowStockAlert ? row.activeLowStockAlert.severity : "",
@@ -455,7 +470,7 @@ function appendPosInventoryLinkedCsvSections(
       "Revenue",
       "COGS",
       "Gross Margin",
-      "Material Qty",
+      "Material Usage by Unit",
       "Material Cost",
       "Orders",
     ],
@@ -467,7 +482,7 @@ function appendPosInventoryLinkedCsvSections(
       row.revenue,
       row.cogs,
       row.grossMargin,
-      row.materialConsumptionQuantity,
+      formatReportQuantities(row.materialQuantitiesByUnit),
       row.materialConsumptionCost,
       row.orderCount,
     ]),
@@ -479,18 +494,20 @@ function appendPosInventoryLinkedCsvSections(
     [
       "Material",
       "SKU",
+      "Unit",
       "Consumed Qty",
       "Consumption Cost",
-      "Usable Qty",
+      "Usable Quantity",
       "Reorder Point",
       "Alert",
     ],
     snapshot.report.lowStockMaterials.map((row) => [
       row.rawMaterial.name,
       row.rawMaterial.sku,
+      formatUnit(row.rawMaterial.unit.code),
       row.consumedQuantity,
       row.consumptionCost,
-      row.currentUsableQuantity,
+      Math.round(Number(row.currentUsableQuantity)),
       row.rawMaterial.reorderPoint,
       row.activeLowStockAlert?.title ?? "",
     ]),
@@ -516,7 +533,7 @@ function appendPosInventoryLinkedCsvSections(
       row.movementLineCount,
       row.rawMaterialCount,
       row.variantCount,
-      row.consumedQuantity,
+      formatReportQuantities(row.materialQuantitiesByUnit),
       row.consumptionCost,
     ]),
   );
@@ -525,14 +542,14 @@ function appendPosInventoryLinkedCsvSections(
     appendCsvSection(
       lines,
       "Selected Variant Material Breakdown",
-      ["Material", "SKU", "Unit", "Consumed Qty", "Consumption Cost", "Usable Qty", "Low Stock"],
+      ["Material", "SKU", "Unit", "Consumed Qty", "Consumption Cost", "Usable Quantity", "Low Stock"],
       snapshot.report.selectedVariantBreakdown.materials.map((row) => [
         row.rawMaterial.name,
         row.rawMaterial.sku,
         formatUnit(row.rawMaterial.unit.code),
         row.consumedQuantity,
         row.consumptionCost,
-        row.currentUsableQuantity,
+        Math.round(Number(row.currentUsableQuantity)),
         row.isLowStock ? "Yes" : "No",
       ]),
     );
@@ -542,8 +559,8 @@ function appendPosInventoryLinkedCsvSections(
 function renderPosInventoryLinkedHtmlSections(snapshot: PosInventoryLinkedExportSnapshot) {
   return `
     ${renderHtmlSummary("Inventory-Linked Sales Consumption Summary", [
-      { label: "Sales-Linked Transactions", value: String(snapshot.report.summary.salesLinkedTransactionCount) },
-      { label: "Material Consumption Qty", value: String(snapshot.report.summary.totalMaterialConsumptionQuantity) },
+      { label: "Stock Movements", value: String(snapshot.report.summary.salesLinkedTransactionCount) },
+      { label: "Net Material Usage by Unit", value: String(formatReportQuantities(snapshot.report.summary.materialQuantitiesByUnit)) },
       { label: "Consumption Cost", value: formatPeso(snapshot.report.summary.totalConsumptionCost) },
       { label: "Materials Consumed", value: String(snapshot.report.summary.distinctMaterialsConsumed) },
       { label: "Variants Sold", value: String(snapshot.report.summary.distinctVariantsSold) },
@@ -552,7 +569,7 @@ function renderPosInventoryLinkedHtmlSections(snapshot: PosInventoryLinkedExport
 
     ${renderHtmlTable(
       "High-Usage Ingredients",
-      ["Material", "SKU", "Unit", "Consumed Qty", "Consumption Cost", "Orders", "Variants", "On Hand Qty", "Usable Qty", "Reorder Point", "Low Stock", "Active Alert"],
+      ["Material", "SKU", "Unit", "Consumed Qty", "Consumption Cost", "Orders", "Variants", "On Hand Qty", "Usable Quantity", "Reorder Point", "Low Stock", "Active Alert"],
       snapshot.report.materials.map((row) => [
         row.rawMaterial.name,
         row.rawMaterial.sku,
@@ -562,7 +579,7 @@ function renderPosInventoryLinkedHtmlSections(snapshot: PosInventoryLinkedExport
         String(row.orderCount),
         String(row.variantCount),
         String(row.currentOnHandQuantity),
-        String(row.currentUsableQuantity),
+        String(Math.round(Number(row.currentUsableQuantity))),
         String(row.rawMaterial.reorderPoint),
         row.isLowStock ? "Yes" : "No",
         row.activeLowStockAlert ? `${row.activeLowStockAlert.severity}: ${row.activeLowStockAlert.title} - ${row.activeLowStockAlert.message}` : "None",
@@ -571,7 +588,7 @@ function renderPosInventoryLinkedHtmlSections(snapshot: PosInventoryLinkedExport
 
     ${renderHtmlTable(
       "Top Variants by Sales-Linked Consumption",
-      ["Product", "Variant", "Category", "Qty Sold", "Revenue", "COGS", "Gross Margin", "Material Qty", "Material Cost", "Orders"],
+      ["Product", "Variant", "Category", "Qty Sold", "Revenue", "COGS", "Gross Margin", "Material Usage by Unit", "Material Cost", "Orders"],
       snapshot.report.variants.map((row) => [
         row.productVariant.product.name,
         row.productVariant.name,
@@ -580,7 +597,7 @@ function renderPosInventoryLinkedHtmlSections(snapshot: PosInventoryLinkedExport
         formatPeso(row.revenue),
         formatPeso(row.cogs),
         formatPeso(row.grossMargin),
-        String(row.materialConsumptionQuantity),
+        String(formatReportQuantities(row.materialQuantitiesByUnit)),
         formatPeso(row.materialConsumptionCost),
         String(row.orderCount),
       ]),
@@ -588,14 +605,14 @@ function renderPosInventoryLinkedHtmlSections(snapshot: PosInventoryLinkedExport
 
     ${renderHtmlTable(
       "Low-Stock or Reorder-Oriented Materials",
-      ["Material", "SKU", "Unit", "Consumed Qty", "Consumption Cost", "Usable Qty", "Reorder Point", "Alert"],
+      ["Material", "SKU", "Unit", "Consumed Qty", "Consumption Cost", "Usable Quantity", "Reorder Point", "Alert"],
       snapshot.report.lowStockMaterials.map((row) => [
         row.rawMaterial.name,
         row.rawMaterial.sku,
         formatUnit(row.rawMaterial.unit.code),
         String(row.consumedQuantity),
         formatPeso(row.consumptionCost),
-        String(row.currentUsableQuantity),
+        String(Math.round(Number(row.currentUsableQuantity))),
         String(row.rawMaterial.reorderPoint),
         row.activeLowStockAlert?.title ?? "N/A",
       ]),
@@ -611,7 +628,7 @@ function renderPosInventoryLinkedHtmlSections(snapshot: PosInventoryLinkedExport
         String(row.movementLineCount),
         String(row.rawMaterialCount),
         String(row.variantCount),
-        String(row.consumedQuantity),
+        formatReportQuantities(row.materialQuantitiesByUnit),
         formatPeso(row.consumptionCost),
       ]),
     )}
@@ -624,18 +641,18 @@ function renderPosInventoryLinkedHtmlSections(snapshot: PosInventoryLinkedExport
             { label: "Revenue", value: formatPeso(snapshot.report.selectedVariantBreakdown.summary.revenue) },
             { label: "COGS", value: formatPeso(snapshot.report.selectedVariantBreakdown.summary.cogs) },
             { label: "Gross Margin", value: formatPeso(snapshot.report.selectedVariantBreakdown.summary.grossMargin) },
-            { label: "Material Consumption Qty", value: snapshot.report.selectedVariantBreakdown.summary.materialConsumptionQuantity },
+            { label: "Net Material Usage by Unit", value: formatReportQuantities(snapshot.report.selectedVariantBreakdown.summary.materialQuantitiesByUnit) },
             { label: "Material Consumption Cost", value: formatPeso(snapshot.report.selectedVariantBreakdown.summary.materialConsumptionCost) },
           ]) + renderHtmlTable(
             "Selected Variant Material Breakdown",
-            ["Material", "SKU", "Unit", "Consumed Qty", "Consumption Cost", "Usable Qty", "Low Stock"],
+            ["Material", "SKU", "Unit", "Consumed Qty", "Consumption Cost", "Usable Quantity", "Low Stock"],
             snapshot.report.selectedVariantBreakdown.materials.map((row) => [
               row.rawMaterial.name,
               row.rawMaterial.sku,
               formatUnit(row.rawMaterial.unit.code),
               String(row.consumedQuantity),
               formatPeso(row.consumptionCost),
-              String(row.currentUsableQuantity),
+              String(Math.round(Number(row.currentUsableQuantity))),
               row.isLowStock ? "Yes" : "No",
             ]),
           )
@@ -649,6 +666,7 @@ export function buildInventoryReportsCsvContent(snapshot: InventoryReportsExport
 
   lines.push(createCsvRow(["Inventory Reports Export"]));
   lines.push(createCsvRow(["Generated At", new Date().toISOString()]));
+  lines.push(createCsvRow(["Accounting Basis", reportAccountingNote]));
   lines.push(createCsvRow(["From", snapshot.filters.from]));
   lines.push(createCsvRow(["To", snapshot.filters.to]));
   lines.push(createCsvRow(["Scope", "Current inventory reports page view"]));
@@ -667,7 +685,7 @@ export function buildInventoryReportsCsvContent(snapshot: InventoryReportsExport
   appendPosInventoryLinkedCsvSections(lines, snapshot.inventoryLinked);
   if (snapshot.wasteSummary) {
     appendCsvSection(lines, "Waste Summary", ["Metric", "Value"], [["Total Waste Cost", snapshot.wasteSummary.totals.cost], ["Waste Events", snapshot.wasteSummary.totals.eventCount]]);
-    appendCsvSection(lines, "Waste Insight Breakdown", ["Material", "SKU", "Reason", "Events", "Quantity", "Cost"], snapshot.wasteSummary.byReason.flatMap(reason => reason.materials.map(material => [material.name, material.sku, reason.reasonCode.replaceAll("_", " "), material.eventCount, material.quantity, material.cost])));
+    appendCsvSection(lines, "Waste Insight Breakdown", ["Material", "SKU", "Unit", "Reason", "Events", "Quantity", "Cost"], snapshot.wasteSummary.byReason.flatMap(reason => reason.materials.map(material => [material.name, material.sku, material.unitCode, reason.reasonCode.replaceAll("_", " "), material.eventCount, material.quantity, material.cost])));
   }
 
   return `\uFEFF${lines.join("\r\n")}`;
@@ -683,90 +701,13 @@ export function buildInventoryReportsPdfHtml(
       <head>
         <meta charset="utf-8" />
         <title>${escapeHtml(filename)}</title>
-        <style>
-          @page { size: A4; margin: 16mm; }
-          body {
-            margin: 0;
-            color: #1f2937;
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.45;
-            background: #ffffff;
-          }
-          .page {
-            padding: 12px 0 24px;
-          }
-          h1 {
-            margin: 0 0 8px;
-            color: #0f172a;
-            font-size: 24px;
-          }
-          .meta {
-            margin-bottom: 18px;
-            color: #475569;
-          }
-          .section {
-            margin-top: 18px;
-            break-inside: avoid;
-          }
-          h2 {
-            margin: 0 0 10px;
-            color: #0f172a;
-            font-size: 16px;
-          }
-          .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px;
-          }
-          .summary-card {
-            border: 1px solid #dbe3ee;
-            border-radius: 10px;
-            padding: 12px;
-            background: #f8fafc;
-          }
-          .summary-label {
-            color: #64748b;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-          }
-          .summary-value {
-            margin-top: 6px;
-            color: #0f172a;
-            font-size: 18px;
-            font-weight: 700;
-          }
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            border: 1px solid #dbe3ee;
-            border-radius: 10px;
-            overflow: hidden;
-          }
-          th, td {
-            border-bottom: 1px solid #e2e8f0;
-            padding: 10px 12px;
-            text-align: left;
-            vertical-align: top;
-          }
-          th {
-            background: #f8fafc;
-            color: #64748b;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-          }
-          td.empty {
-            color: #64748b;
-            font-style: italic;
-          }
-        </style>
+        <style>${reportPrintStyles}</style>
       </head>
       <body>
         <div class="page">
           <h1>Inventory Reports</h1>
           <div class="meta">
+            <div><strong>Accounting Basis:</strong> ${escapeHtml(reportAccountingNote)}</div>
             <div><strong>Generated:</strong> ${escapeHtml(formatDateTime(new Date().toISOString()))}</div>
             <div><strong>From:</strong> ${escapeHtml(snapshot.filters.from)}</div>
             <div><strong>To:</strong> ${escapeHtml(snapshot.filters.to)}</div>
@@ -818,6 +759,7 @@ export async function exportPosTransactionHistoryExcel(snapshot: PosTransactionH
   const lines: string[] = [];
   lines.push(createCsvRow(["POS Transaction History Export"]));
   lines.push(createCsvRow(["Generated At", new Date().toISOString()]));
+  lines.push(createCsvRow(["Accounting Basis", reportAccountingNote]));
   lines.push(createCsvRow(["From", snapshot.filters.from]));
   lines.push(createCsvRow(["To", snapshot.filters.to]));
   lines.push(createCsvRow(["Search", snapshot.filters.search ?? ""]));
@@ -884,24 +826,13 @@ export async function exportPosTransactionHistoryPdf(snapshot: PosTransactionHis
       <head>
         <meta charset="utf-8" />
         <title>${escapeHtml(filename)}</title>
-        <style>
-          @page { size: A4; margin: 16mm; }
-          body { margin: 0; color: #1f2937; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.45; background: #ffffff; }
-          .page { padding: 12px 0 24px; }
-          h1 { margin: 0 0 8px; color: #0f172a; font-size: 24px; }
-          .meta { margin-bottom: 18px; color: #475569; }
-          .section { margin-top: 18px; break-inside: avoid; }
-          h2 { margin: 0 0 10px; color: #0f172a; font-size: 16px; }
-          table { width: 100%; border-collapse: collapse; border: 1px solid #dbe3ee; border-radius: 10px; overflow: hidden; }
-          th, td { border-bottom: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
-          th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          td.empty { color: #64748b; font-style: italic; }
-        </style>
+        <style>${reportPrintStyles}</style>
       </head>
       <body>
         <div class="page">
           <h1>POS Transaction History</h1>
           <div class="meta">
+            <div><strong>Accounting Basis:</strong> ${escapeHtml(reportAccountingNote)}</div>
             <div><strong>Generated:</strong> ${escapeHtml(formatDateTime(new Date().toISOString()))}</div>
             <div><strong>From:</strong> ${escapeHtml(snapshot.filters.from)}</div>
             <div><strong>To:</strong> ${escapeHtml(snapshot.filters.to)}</div>
@@ -949,6 +880,7 @@ export async function exportPosSalesAnalyticsExcel(snapshot: PosSalesAnalyticsEx
 
   lines.push(createCsvRow(["POS Sales Analytics Export"]));
   lines.push(createCsvRow(["Generated At", new Date().toISOString()]));
+  lines.push(createCsvRow(["Accounting Basis", reportAccountingNote]));
   lines.push(createCsvRow(["From", snapshot.filters.from]));
   lines.push(createCsvRow(["To", snapshot.filters.to]));
   lines.push(createCsvRow(["Preset", snapshot.filters.preset]));
@@ -961,7 +893,11 @@ export async function exportPosSalesAnalyticsExcel(snapshot: PosSalesAnalyticsEx
     ["Gross Sales", snapshot.report.summary.grossSales],
     ["Net Sales", snapshot.report.summary.netSales],
     ["Discounts", snapshot.report.summary.discounts],
-    ["Refunds", snapshot.report.summary.refunds],
+    ["Sales Refunds (excl. VAT)", snapshot.report.summary.refunds],
+    ["VAT (net of reversals)", snapshot.report.summary.taxes],
+    ["COGS", snapshot.report.summary.cogs],
+    ["Gross Profit", snapshot.report.summary.grossMargin],
+    ["Net Collected (incl. VAT)", snapshot.report.summary.collectedAmount],
     ["Transaction Count", snapshot.report.summary.transactionCount],
     ["Average Ticket Size", snapshot.report.summary.averageTicketSize],
     [
@@ -980,7 +916,11 @@ export async function exportPosSalesAnalyticsExcel(snapshot: PosSalesAnalyticsEx
       "Gross Sales",
       "Net Sales",
       "Discounts",
-      "Refunds",
+      "Sales Refunds (excl. VAT)",
+      "VAT",
+      "COGS",
+      "Gross Profit",
+      "Net Collected (incl. VAT)",
       "Transaction Count",
       "Average Ticket Size",
     ],
@@ -990,6 +930,10 @@ export async function exportPosSalesAnalyticsExcel(snapshot: PosSalesAnalyticsEx
       group.netSales,
       group.discounts,
       group.refunds,
+      group.taxes,
+      group.cogs,
+      group.grossMargin,
+      group.collectedAmount,
       group.transactionCount,
       group.averageTicketSize,
     ]),
@@ -1019,28 +963,13 @@ export async function exportPosSalesAnalyticsPdf(snapshot: PosSalesAnalyticsExpo
       <head>
         <meta charset="utf-8" />
         <title>${escapeHtml(filename)}</title>
-        <style>
-          @page { size: A4; margin: 16mm; }
-          body { margin: 0; color: #1f2937; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.45; background: #ffffff; }
-          .page { padding: 12px 0 24px; }
-          h1 { margin: 0 0 8px; color: #0f172a; font-size: 24px; }
-          .meta { margin-bottom: 18px; color: #475569; }
-          .section { margin-top: 18px; break-inside: avoid; }
-          h2 { margin: 0 0 10px; color: #0f172a; font-size: 16px; }
-          .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-          .summary-card { border: 1px solid #dbe3ee; border-radius: 10px; padding: 12px; background: #f8fafc; }
-          .summary-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          .summary-value { margin-top: 6px; color: #0f172a; font-size: 18px; font-weight: 700; }
-          table { width: 100%; border-collapse: collapse; border: 1px solid #dbe3ee; border-radius: 10px; overflow: hidden; }
-          th, td { border-bottom: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
-          th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          td.empty { color: #64748b; font-style: italic; }
-        </style>
+        <style>${reportPrintStyles}</style>
       </head>
       <body>
         <div class="page">
           <h1>POS Sales Analytics</h1>
           <div class="meta">
+            <div><strong>Accounting Basis:</strong> ${escapeHtml(reportAccountingNote)}</div>
             <div><strong>Generated:</strong> ${escapeHtml(formatDateTime(new Date().toISOString()))}</div>
             <div><strong>From:</strong> ${escapeHtml(snapshot.filters.from)}</div>
             <div><strong>To:</strong> ${escapeHtml(snapshot.filters.to)}</div>
@@ -1054,7 +983,11 @@ export async function exportPosSalesAnalyticsPdf(snapshot: PosSalesAnalyticsExpo
             { label: "Gross Sales", value: formatPeso(snapshot.report.summary.grossSales) },
             { label: "Net Sales", value: formatPeso(snapshot.report.summary.netSales) },
             { label: "Discounts", value: formatPeso(snapshot.report.summary.discounts) },
-            { label: "Refunds", value: formatPeso(snapshot.report.summary.refunds) },
+            { label: "Sales Refunds (excl. VAT)", value: formatPeso(snapshot.report.summary.refunds) },
+            { label: "VAT (net of reversals)", value: formatPeso(snapshot.report.summary.taxes) },
+            { label: "COGS", value: formatPeso(snapshot.report.summary.cogs) },
+            { label: "Gross Profit", value: formatPeso(snapshot.report.summary.grossMargin) },
+            { label: "Net Collected (incl. VAT)", value: formatPeso(snapshot.report.summary.collectedAmount) },
             { label: "Transactions", value: String(snapshot.report.summary.transactionCount) },
             { label: "Average Ticket", value: formatPeso(snapshot.report.summary.averageTicketSize) },
             {
@@ -1072,13 +1005,17 @@ export async function exportPosSalesAnalyticsPdf(snapshot: PosSalesAnalyticsExpo
 
           ${renderHtmlTable(
             "Grouped Sales Analytics",
-            ["Bucket", "Gross Sales", "Net Sales", "Discounts", "Refunds", "Transactions", "Average Ticket"],
+            ["Bucket", "Gross Sales", "Net Sales", "Discounts", "Sales Refunds", "VAT", "COGS", "Gross Profit", "Net Collected", "Transactions", "Average Ticket"],
             snapshot.report.groups.map((group) => [
               group.label,
               formatPeso(group.grossSales),
               formatPeso(group.netSales),
               formatPeso(group.discounts),
               formatPeso(group.refunds),
+              formatPeso(group.taxes),
+              formatPeso(group.cogs),
+              formatPeso(group.grossMargin),
+              formatPeso(group.collectedAmount),
               String(group.transactionCount),
               formatPeso(group.averageTicketSize),
             ]),
@@ -1105,6 +1042,7 @@ export async function exportPosPaymentReportsExcel(snapshot: PosPaymentReportsEx
 
   lines.push(createCsvRow(["POS Payment Reports Export"]));
   lines.push(createCsvRow(["Generated At", new Date().toISOString()]));
+  lines.push(createCsvRow(["Accounting Basis", reportAccountingNote]));
   lines.push(createCsvRow(["From", snapshot.filters.from]));
   lines.push(createCsvRow(["To", snapshot.filters.to]));
   lines.push("");
@@ -1123,7 +1061,7 @@ export async function exportPosPaymentReportsExcel(snapshot: PosPaymentReportsEx
     lines,
     "Payment Breakdown",
     ["Method", "Amount", "Orders", "Payments", "Share of Collected"],
-    snapshot.report.breakdown.filter((row) => row.method !== "OTHER").map((row) => [
+    snapshot.report.breakdown.map((row) => [
       row.method,
       row.amount,
       row.orderCount,
@@ -1137,7 +1075,7 @@ export async function exportPosPaymentReportsExcel(snapshot: PosPaymentReportsEx
     "Recent Split Payment Orders",
     ["Order ID", "Completed At", "Staff", "Total", "Payments"],
     snapshot.report.splitPaymentOrders.map((order) => [
-      order.id,
+      formatSplitPaymentOrderReference(order),
       order.completedAt,
       `${order.createdBy.firstName} ${order.createdBy.lastName}`,
       order.totalAmount,
@@ -1169,28 +1107,13 @@ export async function exportPosPaymentReportsPdf(snapshot: PosPaymentReportsExpo
       <head>
         <meta charset="utf-8" />
         <title>${escapeHtml(filename)}</title>
-        <style>
-          @page { size: A4; margin: 16mm; }
-          body { margin: 0; color: #1f2937; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.45; background: #ffffff; }
-          .page { padding: 12px 0 24px; }
-          h1 { margin: 0 0 8px; color: #0f172a; font-size: 24px; }
-          .meta { margin-bottom: 18px; color: #475569; }
-          .section { margin-top: 18px; break-inside: avoid; }
-          h2 { margin: 0 0 10px; color: #0f172a; font-size: 16px; }
-          .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-          .summary-card { border: 1px solid #dbe3ee; border-radius: 10px; padding: 12px; background: #f8fafc; }
-          .summary-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          .summary-value { margin-top: 6px; color: #0f172a; font-size: 18px; font-weight: 700; }
-          table { width: 100%; border-collapse: collapse; border: 1px solid #dbe3ee; border-radius: 10px; overflow: hidden; }
-          th, td { border-bottom: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
-          th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          td.empty { color: #64748b; font-style: italic; }
-        </style>
+        <style>${reportPrintStyles}</style>
       </head>
       <body>
         <div class="page">
           <h1>POS Payment Reports</h1>
           <div class="meta">
+            <div><strong>Accounting Basis:</strong> ${escapeHtml(reportAccountingNote)}</div>
             <div><strong>Generated:</strong> ${escapeHtml(formatDateTime(new Date().toISOString()))}</div>
             <div><strong>From:</strong> ${escapeHtml(snapshot.filters.from)}</div>
             <div><strong>To:</strong> ${escapeHtml(snapshot.filters.to)}</div>
@@ -1209,7 +1132,7 @@ export async function exportPosPaymentReportsPdf(snapshot: PosPaymentReportsExpo
           ${renderHtmlTable(
             "Payment Breakdown",
             ["Method", "Amount", "Orders", "Payments", "Share"],
-            snapshot.report.breakdown.filter((row) => row.method !== "OTHER").map((row) => [
+            snapshot.report.breakdown.map((row) => [
               row.method,
               formatPeso(row.amount),
               String(row.orderCount),
@@ -1222,7 +1145,7 @@ export async function exportPosPaymentReportsPdf(snapshot: PosPaymentReportsExpo
             "Recent Split Payment Orders",
             ["Order ID", "Completed At", "Staff", "Total", "Payments"],
             snapshot.report.splitPaymentOrders.map((order) => [
-              order.id,
+              formatSplitPaymentOrderReference(order),
               formatDateTime(order.completedAt),
               `${order.createdBy.firstName} ${order.createdBy.lastName}`,
               formatPeso(order.totalAmount),
@@ -1251,6 +1174,7 @@ export async function exportPosRefundsVoidsExcel(snapshot: PosRefundsVoidsExport
 
   lines.push(createCsvRow(["POS Refunds & Voids Export"]));
   lines.push(createCsvRow(["Generated At", new Date().toISOString()]));
+  lines.push(createCsvRow(["Accounting Basis", reportAccountingNote]));
   lines.push(createCsvRow(["From", snapshot.filters.from]));
   lines.push(createCsvRow(["To", snapshot.filters.to]));
   lines.push(createCsvRow(["Staff Filter", snapshot.filters.staffSearch ?? ""]));
@@ -1308,7 +1232,7 @@ export async function exportPosRefundsVoidsExcel(snapshot: PosRefundsVoidsExport
       "Note",
     ],
     snapshot.report.reversals.map((reversal) => [
-      reversal.orderId,
+      formatOrderReference({ id: reversal.orderId }),
       reversal.type,
       reversal.occurredAt,
       reversal.reasonCode,
@@ -1348,28 +1272,13 @@ export async function exportPosRefundsVoidsPdf(snapshot: PosRefundsVoidsExportSn
       <head>
         <meta charset="utf-8" />
         <title>${escapeHtml(filename)}</title>
-        <style>
-          @page { size: A4; margin: 16mm; }
-          body { margin: 0; color: #1f2937; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.45; background: #ffffff; }
-          .page { padding: 12px 0 24px; }
-          h1 { margin: 0 0 8px; color: #0f172a; font-size: 24px; }
-          .meta { margin-bottom: 18px; color: #475569; }
-          .section { margin-top: 18px; break-inside: avoid; }
-          h2 { margin: 0 0 10px; color: #0f172a; font-size: 16px; }
-          .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-          .summary-card { border: 1px solid #dbe3ee; border-radius: 10px; padding: 12px; background: #f8fafc; }
-          .summary-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          .summary-value { margin-top: 6px; color: #0f172a; font-size: 18px; font-weight: 700; }
-          table { width: 100%; border-collapse: collapse; border: 1px solid #dbe3ee; border-radius: 10px; overflow: hidden; }
-          th, td { border-bottom: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
-          th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          td.empty { color: #64748b; font-style: italic; }
-        </style>
+        <style>${reportPrintStyles}</style>
       </head>
       <body>
         <div class="page">
           <h1>POS Refunds & Voids</h1>
           <div class="meta">
+            <div><strong>Accounting Basis:</strong> ${escapeHtml(reportAccountingNote)}</div>
             <div><strong>Generated:</strong> ${escapeHtml(formatDateTime(new Date().toISOString()))}</div>
             <div><strong>From:</strong> ${escapeHtml(snapshot.filters.from)}</div>
             <div><strong>To:</strong> ${escapeHtml(snapshot.filters.to)}</div>
@@ -1413,7 +1322,7 @@ export async function exportPosRefundsVoidsPdf(snapshot: PosRefundsVoidsExportSn
             "Reversal Events",
             ["Order ID", "Type", "Occurred At", "Reason", "Amount", "Responsible Staff", "Reversal Actor", "Requested By", "Approved By"],
             snapshot.report.reversals.map((reversal) => [
-              reversal.orderId,
+              formatOrderReference({ id: reversal.orderId }),
               reversal.type,
               formatDateTime(reversal.occurredAt),
               reversal.reasonCode,
@@ -1450,6 +1359,7 @@ export async function exportPosProductPerformanceExcel(
 
   lines.push(createCsvRow(["POS Product Performance Export"]));
   lines.push(createCsvRow(["Generated At", new Date().toISOString()]));
+  lines.push(createCsvRow(["Accounting Basis", reportAccountingNote]));
   lines.push(createCsvRow(["From", snapshot.filters.from]));
   lines.push(createCsvRow(["To", snapshot.filters.to]));
   lines.push(createCsvRow(["Category Filter", snapshot.filters.categoryName ?? "All categories"]));
@@ -1562,28 +1472,13 @@ export async function exportPosProductPerformancePdf(
       <head>
         <meta charset="utf-8" />
         <title>${escapeHtml(filename)}</title>
-        <style>
-          @page { size: A4; margin: 16mm; }
-          body { margin: 0; color: #1f2937; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.45; background: #ffffff; }
-          .page { padding: 12px 0 24px; }
-          h1 { margin: 0 0 8px; color: #0f172a; font-size: 24px; }
-          .meta { margin-bottom: 18px; color: #475569; }
-          .section { margin-top: 18px; break-inside: avoid; }
-          h2 { margin: 0 0 10px; color: #0f172a; font-size: 16px; }
-          .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-          .summary-card { border: 1px solid #dbe3ee; border-radius: 10px; padding: 12px; background: #f8fafc; }
-          .summary-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          .summary-value { margin-top: 6px; color: #0f172a; font-size: 18px; font-weight: 700; }
-          table { width: 100%; border-collapse: collapse; border: 1px solid #dbe3ee; border-radius: 10px; overflow: hidden; }
-          th, td { border-bottom: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
-          th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          td.empty { color: #64748b; font-style: italic; }
-        </style>
+        <style>${reportPrintStyles}</style>
       </head>
       <body>
         <div class="page">
           <h1>POS Product Performance</h1>
           <div class="meta">
+            <div><strong>Accounting Basis:</strong> ${escapeHtml(reportAccountingNote)}</div>
             <div><strong>Generated:</strong> ${escapeHtml(formatDateTime(new Date().toISOString()))}</div>
             <div><strong>From:</strong> ${escapeHtml(snapshot.filters.from)}</div>
             <div><strong>To:</strong> ${escapeHtml(snapshot.filters.to)}</div>
@@ -1662,6 +1557,7 @@ export async function exportPosStaffPerformanceExcel(snapshot: PosStaffPerforman
 
   lines.push(createCsvRow(["POS Staff Performance Export"]));
   lines.push(createCsvRow(["Generated At", new Date().toISOString()]));
+  lines.push(createCsvRow(["Accounting Basis", reportAccountingNote]));
   lines.push(createCsvRow(["From", snapshot.filters.from]));
   lines.push(createCsvRow(["To", snapshot.filters.to]));
   lines.push("");
@@ -1718,28 +1614,13 @@ export async function exportPosStaffPerformancePdf(snapshot: PosStaffPerformance
       <head>
         <meta charset="utf-8" />
         <title>${escapeHtml(filename)}</title>
-        <style>
-          @page { size: A4; margin: 16mm; }
-          body { margin: 0; color: #1f2937; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.45; background: #ffffff; }
-          .page { padding: 12px 0 24px; }
-          h1 { margin: 0 0 8px; color: #0f172a; font-size: 24px; }
-          .meta { margin-bottom: 18px; color: #475569; }
-          .section { margin-top: 18px; break-inside: avoid; }
-          h2 { margin: 0 0 10px; color: #0f172a; font-size: 16px; }
-          .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-          .summary-card { border: 1px solid #dbe3ee; border-radius: 10px; padding: 12px; background: #f8fafc; }
-          .summary-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          .summary-value { margin-top: 6px; color: #0f172a; font-size: 18px; font-weight: 700; }
-          table { width: 100%; border-collapse: collapse; border: 1px solid #dbe3ee; border-radius: 10px; overflow: hidden; }
-          th, td { border-bottom: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
-          th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          td.empty { color: #64748b; font-style: italic; }
-        </style>
+        <style>${reportPrintStyles}</style>
       </head>
       <body>
         <div class="page">
           <h1>POS Staff Performance</h1>
           <div class="meta">
+            <div><strong>Accounting Basis:</strong> ${escapeHtml(reportAccountingNote)}</div>
             <div><strong>Generated:</strong> ${escapeHtml(formatDateTime(new Date().toISOString()))}</div>
             <div><strong>From:</strong> ${escapeHtml(snapshot.filters.from)}</div>
             <div><strong>To:</strong> ${escapeHtml(snapshot.filters.to)}</div>
@@ -1793,6 +1674,7 @@ export async function exportPosPeakHoursExcel(snapshot: PosPeakHoursExportSnapsh
 
   lines.push(createCsvRow(["POS Peak Hours Export"]));
   lines.push(createCsvRow(["Generated At", new Date().toISOString()]));
+  lines.push(createCsvRow(["Accounting Basis", reportAccountingNote]));
   lines.push(createCsvRow(["From", snapshot.filters.from]));
   lines.push(createCsvRow(["To", snapshot.filters.to]));
   lines.push(createCsvRow(["Day Type", snapshot.filters.dayType]));
@@ -1842,28 +1724,13 @@ export async function exportPosPeakHoursPdf(snapshot: PosPeakHoursExportSnapshot
       <head>
         <meta charset="utf-8" />
         <title>${escapeHtml(filename)}</title>
-        <style>
-          @page { size: A4; margin: 16mm; }
-          body { margin: 0; color: #1f2937; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.45; background: #ffffff; }
-          .page { padding: 12px 0 24px; }
-          h1 { margin: 0 0 8px; color: #0f172a; font-size: 24px; }
-          .meta { margin-bottom: 18px; color: #475569; }
-          .section { margin-top: 18px; break-inside: avoid; }
-          h2 { margin: 0 0 10px; color: #0f172a; font-size: 16px; }
-          .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-          .summary-card { border: 1px solid #dbe3ee; border-radius: 10px; padding: 12px; background: #f8fafc; }
-          .summary-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          .summary-value { margin-top: 6px; color: #0f172a; font-size: 18px; font-weight: 700; }
-          table { width: 100%; border-collapse: collapse; border: 1px solid #dbe3ee; border-radius: 10px; overflow: hidden; }
-          th, td { border-bottom: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
-          th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          td.empty { color: #64748b; font-style: italic; }
-        </style>
+        <style>${reportPrintStyles}</style>
       </head>
       <body>
         <div class="page">
           <h1>POS Peak Hours</h1>
           <div class="meta">
+            <div><strong>Accounting Basis:</strong> ${escapeHtml(reportAccountingNote)}</div>
             <div><strong>Generated:</strong> ${escapeHtml(formatDateTime(new Date().toISOString()))}</div>
             <div><strong>From:</strong> ${escapeHtml(snapshot.filters.from)}</div>
             <div><strong>To:</strong> ${escapeHtml(snapshot.filters.to)}</div>
@@ -1912,6 +1779,7 @@ export async function exportPosInventoryLinkedExcel(
 
   lines.push(createCsvRow(["POS Inventory-Linked Report Export"]));
   lines.push(createCsvRow(["Generated At", new Date().toISOString()]));
+  lines.push(createCsvRow(["Accounting Basis", reportAccountingNote]));
   lines.push(createCsvRow(["From", snapshot.filters.from]));
   lines.push(createCsvRow(["To", snapshot.filters.to]));
   lines.push(createCsvRow(["Variant Search", snapshot.filters.variantSearch ?? ""]));
@@ -1951,28 +1819,13 @@ export async function exportPosInventoryLinkedPdf(
       <head>
         <meta charset="utf-8" />
         <title>${escapeHtml(filename)}</title>
-        <style>
-          @page { size: A4; margin: 16mm; }
-          body { margin: 0; color: #1f2937; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.45; background: #ffffff; }
-          .page { padding: 12px 0 24px; }
-          h1 { margin: 0 0 8px; color: #0f172a; font-size: 24px; }
-          .meta { margin-bottom: 18px; color: #475569; }
-          .section { margin-top: 18px; break-inside: avoid; }
-          h2 { margin: 0 0 10px; color: #0f172a; font-size: 16px; }
-          .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-          .summary-card { border: 1px solid #dbe3ee; border-radius: 10px; padding: 12px; background: #f8fafc; }
-          .summary-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          .summary-value { margin-top: 6px; color: #0f172a; font-size: 18px; font-weight: 700; }
-          table { width: 100%; border-collapse: collapse; border: 1px solid #dbe3ee; border-radius: 10px; overflow: hidden; }
-          th, td { border-bottom: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
-          th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          td.empty { color: #64748b; font-style: italic; }
-        </style>
+        <style>${reportPrintStyles}</style>
       </head>
       <body>
         <div class="page">
           <h1>POS Inventory-Linked Report</h1>
           <div class="meta">
+            <div><strong>Accounting Basis:</strong> ${escapeHtml(reportAccountingNote)}</div>
             <div><strong>Generated:</strong> ${escapeHtml(formatDateTime(new Date().toISOString()))}</div>
             <div><strong>From:</strong> ${escapeHtml(snapshot.filters.from)}</div>
             <div><strong>To:</strong> ${escapeHtml(snapshot.filters.to)}</div>
@@ -2006,6 +1859,7 @@ export async function exportPosAuditExceptionsExcel(
 
   lines.push(createCsvRow(["POS Audit & Exceptions Export"]));
   lines.push(createCsvRow(["Generated At", new Date().toISOString()]));
+  lines.push(createCsvRow(["Accounting Basis", reportAccountingNote]));
   lines.push(createCsvRow(["From", snapshot.filters.from]));
   lines.push(createCsvRow(["To", snapshot.filters.to]));
   lines.push(createCsvRow(["Staff/User Filter", snapshot.filters.staffSearch ?? ""]));
@@ -2047,7 +1901,7 @@ export async function exportPosAuditExceptionsExcel(
     snapshot.report.rows.map((row) => [
       row.occurredAt,
       row.kind,
-      row.orderId,
+      formatOrderReference({ id: row.orderId }),
       row.orderStatus,
       row.kind === "DISCOUNT"
         ? row.discountDetails?.discountCode ?? "ORDER_LEVEL_DISCOUNT"
@@ -2091,28 +1945,13 @@ export async function exportPosAuditExceptionsPdf(
       <head>
         <meta charset="utf-8" />
         <title>${escapeHtml(filename)}</title>
-        <style>
-          @page { size: A4 landscape; margin: 12mm; }
-          body { margin: 0; color: #1f2937; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.45; background: #ffffff; }
-          .page { padding: 12px 0 24px; }
-          h1 { margin: 0 0 8px; color: #0f172a; font-size: 24px; }
-          .meta { margin-bottom: 18px; color: #475569; }
-          .section { margin-top: 18px; break-inside: avoid; }
-          h2 { margin: 0 0 10px; color: #0f172a; font-size: 16px; }
-          .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-          .summary-card { border: 1px solid #dbe3ee; border-radius: 10px; padding: 12px; background: #f8fafc; }
-          .summary-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          .summary-value { margin-top: 6px; color: #0f172a; font-size: 18px; font-weight: 700; }
-          table { width: 100%; border-collapse: collapse; border: 1px solid #dbe3ee; border-radius: 10px; overflow: hidden; }
-          th, td { border-bottom: 1px solid #e2e8f0; padding: 6px 5px; text-align: left; vertical-align: top; overflow-wrap: anywhere; font-size: 9px; }
-          th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
-          td.empty { color: #64748b; font-style: italic; }
-        </style>
+        <style>${reportPrintStyles}</style>
       </head>
       <body>
         <div class="page">
           <h1>POS Audit & Exceptions</h1>
           <div class="meta">
+            <div><strong>Accounting Basis:</strong> ${escapeHtml(reportAccountingNote)}</div>
             <div><strong>Generated:</strong> ${escapeHtml(formatDateTime(new Date().toISOString()))}</div>
             <div><strong>From:</strong> ${escapeHtml(snapshot.filters.from)}</div>
             <div><strong>To:</strong> ${escapeHtml(snapshot.filters.to)}</div>
@@ -2136,7 +1975,7 @@ export async function exportPosAuditExceptionsPdf(
             snapshot.report.rows.map((row) => [
               formatDateTime(row.occurredAt),
               row.kind,
-              row.orderId,
+              formatOrderReference({ id: row.orderId }),
               row.orderStatus,
               row.kind === "DISCOUNT"
                 ? row.discountDetails?.discountCode ?? "ORDER_LEVEL_DISCOUNT"

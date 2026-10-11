@@ -30,10 +30,9 @@ for (const value of ['ADMINISTRATOR', 'STAFF', 'MANAGER']) {
     assert.equal((html.match(/<main/g) || []).length, 1);
     assert.equal((html.match(/data-workspace/g) || []).length, 1);
     assert.ok(html.includes(`data-shell="${value === 'STAFF' ? 'staff' : 'admin'}"`));
-    assert.ok(html.includes(`data-header="${value === 'MANAGER'}"`));
+    assert.ok(html.includes(`data-header="false"`));
     assert.equal(html.includes('class="readable space-y-6"'), value !== 'MANAGER');
-    assert.ok(html.includes(value === 'MANAGER' ? 'Manager Account' : '>Account<'));
-    assert.ok(html.includes(value === 'MANAGER' ? 'ACCOUNT SETTINGS' : '>SETTINGS<'));
-    assert.ok(html.includes(value === 'MANAGER' ? 'border-[#232d46]/15' : 'border-[#232d46]/10'));
+    assert.ok(html.includes('Settings'));
+    assert.ok(html.includes('Manage your account information and security.'));
   });
 }

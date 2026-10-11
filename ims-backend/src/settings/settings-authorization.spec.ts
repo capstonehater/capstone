@@ -72,6 +72,8 @@ describe('Settings self-service authorization and account protections', () => {
   };
   const validateSession = jest.fn();
   const resolve = jest.fn();
+  let storageUsage: jest.SpyInstance;
+  let storageCleanup: jest.SpyInstance;
   const send = (
     route: {
       method: 'get' | 'patch' | 'post' | 'put';
@@ -101,6 +103,13 @@ describe('Settings self-service authorization and account protections', () => {
         { provide: APP_GUARD, useClass: RolesGuard },
       ],
     }).compile();
+    const settings = module.get(SettingsService);
+    storageUsage = jest
+      .spyOn(settings, 'getStorageUsage')
+      .mockResolvedValue({} as never);
+    storageCleanup = jest
+      .spyOn(settings, 'clearStorageCache')
+      .mockResolvedValue({} as never);
     app = module.createNestApplication();
     app.useGlobalPipes(
       new ValidationPipe({
@@ -254,12 +263,37 @@ describe('Settings self-service authorization and account protections', () => {
     >;
     for (const target of [
       SettingsController,
-      ...Object.getOwnPropertyNames(prototype)
-        .filter((name) => name !== 'constructor')
-        .map((name) => prototype[name]),
+      ...['getAccount', 'updateAccount', 'changePassword'].map(
+        (name) => prototype[name],
+      ),
     ]) {
       for (const key of [ROLES_KEY, REQUIRED_PERMISSIONS_KEY, IS_PUBLIC_KEY])
         expect(reflector.get(key, target)).toBeUndefined();
     }
+  });
+
+  it.each([Role.STAFF, Role.MANAGER, Role.ADMINISTRATOR])(
+    'restricts storage inspection and cleanup for %s',
+    async (value) => {
+      role = value;
+      const allowed = value === Role.ADMINISTRATOR;
+      await send({ method: 'get', path: '/settings/storage' }).expect(
+        allowed ? 200 : 403,
+      );
+      await send({ method: 'post', path: '/settings/storage/cleanup' }).expect(
+        allowed ? 201 : 403,
+      );
+      expect(storageUsage).toHaveBeenCalledTimes(allowed ? 1 : 0);
+      expect(storageCleanup).toHaveBeenCalledTimes(allowed ? 1 : 0);
+    },
+  );
+
+  it.each([
+    { method: 'get' as const, path: '/settings/storage' },
+    { method: 'post' as const, path: '/settings/storage/cleanup' },
+  ])('requires a session for storage $method $path', async (route) => {
+    await send(route, false).expect(401);
+    expect(storageUsage).not.toHaveBeenCalled();
+    expect(storageCleanup).not.toHaveBeenCalled();
   });
 });

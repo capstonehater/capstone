@@ -1,4 +1,5 @@
 "use client";
+
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 import ActionAlert from "@/components/feedback/ActionAlert";
 import WorkspaceLoading from "@/components/admin/WorkspaceLoading";
@@ -176,6 +177,7 @@ export default function InventoryReportsWorkspace() {
   return (
     <div className={styles.workspace}>
       <section className={styles.toolbar} aria-label="Report date range and exports">
+
         <strong>Date Range</strong>
         <DateFilter label="From date" value={from} max={to || undefined} onChange={setFrom} />
         <DateFilter label="To date" value={to} min={from || undefined} onChange={setTo} />

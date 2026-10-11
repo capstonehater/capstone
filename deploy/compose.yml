@@ -1,0 +1,94 @@
+name: salvacion
+
+x-backend: &backend
+  image: salvacion-api:${RELEASE_TAG:-local}
+  build:
+    context: ..
+    dockerfile: ims-backend/Dockerfile
+  env_file: .env
+  environment: &backend-env
+    PORT: '4000'
+    TRUST_PROXY: '${NETWORK_SUBNET:-172.30.90.0/24}'
+    ENABLE_BACKGROUND_JOBS: 'false'
+    OMP_NUM_THREADS: '1'
+    OPENBLAS_NUM_THREADS: '1'
+  init: true
+  restart: unless-stopped
+  stop_grace_period: 30s
+  volumes:
+    - profile-pictures:/app/ims-backend/profile picture
+    - product-images:/app/ims-backend/product-images
+    - forecast-progress:/var/lib/ims/tmp
+    - forecast-models:/var/lib/ims/models
+  networks: [app]
+
+services:
+  api:
+    <<: *backend
+    deploy:
+      replicas: 2
+
+  worker:
+    <<: *backend
+    environment:
+      <<: *backend-env
+      ENABLE_BACKGROUND_JOBS: 'true'
+    # Exactly one scheduler. Do not scale this service without distributed locks.
+    deploy:
+      replicas: 1
+
+  migrate:
+    <<: *backend
+    profiles: [tools]
+    restart: 'no'
+    command: ['npm', 'run', 'prisma:migrate:deploy']
+    healthcheck:
+      disable: true
+
+  web:
+    image: salvacion-web:${RELEASE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: ims-frontend/Dockerfile
+    environment:
+      API_UPSTREAM_URL: http://edge:8080/backend
+      NEXT_PUBLIC_API_BASE_URL: /backend
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 30s
+    networks: [app]
+    deploy:
+      replicas: 2
+
+  edge:
+    image: nginx:1.28-alpine
+    ports:
+      - '${LISTEN_ADDRESS:-127.0.0.1}:${HTTP_PORT:-8080}:8080'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./proxy-headers.conf:/etc/nginx/proxy-headers.conf:ro
+    networks: [app]
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:8080/edge-health']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+networks:
+  app:
+    ipam:
+      config:
+        - subnet: '${NETWORK_SUBNET:-172.30.90.0/24}'
+
+volumes:
+  profile-pictures:
+  product-images:
+  forecast-progress:
+  forecast-models:

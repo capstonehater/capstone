@@ -1,6 +1,8 @@
 "use client";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
+import styles from "./ProductDetailHeader.module.css";
+
 import type { ProductDetail } from "@/lib/products";
 import {
   archiveStateBadgeClasses,
@@ -35,8 +37,8 @@ export default function ProductDetailHeader({
   const isArchived = product.archive.state === "ARCHIVED";
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-col gap-4">
+    <div className="shrink-0">
+      <div className={styles.header}>
         <div>
           {mobileBackVisible ? (
             <button
@@ -49,7 +51,7 @@ export default function ProductDetailHeader({
           ) : null}
           <h2 className="text-xl font-bold text-slate-900">{product.name}</h2>
           <p className="mt-1 text-xs text-slate-600">Category: <span className="text-slate-700">{product.category.name}</span></p>
-          <div className="mt-2 flex flex-wrap gap-3 text-xs">
+          <div className="mt-2 flex flex-wrap gap-2 text-xs">
             <span
               className={`rounded-full px-2.5 py-1 font-medium ${archiveStateBadgeClasses(product.archive.state)}`}
             >
@@ -68,7 +70,7 @@ export default function ProductDetailHeader({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className={styles.actions}>
           <PermissionAction permission={"products.edit"}><button
             type="button"
             onClick={onEdit}

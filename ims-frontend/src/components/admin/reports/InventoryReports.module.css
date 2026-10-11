@@ -30,7 +30,7 @@
 .workspace [data-report="consumption-intro"] { grid-column: 1 / 6; grid-row: 4; }
 .workspace [data-report="consumption-metrics"] { grid-column: 1 / -1; grid-row: 5; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; padding: 0; border: 0; background: transparent; box-shadow: none; }
 .workspace :global(.report-top-selling) { grid-column: 1 / -1; grid-row: 6; }
-.workspace :global(.report-low-stock) { grid-column: 1 / 7; grid-row: 7; }
+.workspace :global(.report-low-stock) { grid-column: 1 / -1; grid-row: 7; }
 .workspace :global(.report-movements) { grid-column: 1 / -1; grid-row: 8; }
 .workspace :global(.report-drilldown) { grid-column: 7 / -1; grid-row: 7; }
 .workspace :global(.report-high-usage) { grid-column: 1 / -1; grid-row: 9; }
@@ -39,9 +39,9 @@
 .workspace :global(.report-risk) > div > p, .workspace :global(.report-risk) > div > div:not(:global(.report-risk-metrics)) { grid-column: 1 / -1; }
 .workspace :global(.report-risk-metrics) { display: contents; }
 .workspace :global(.report-risk) > div > * { margin-top: 0; margin-bottom: 0; }
-.workspace :global(.report-risk-metrics) > div > div, .workspace [data-report="consumption-metrics"] > div > div { margin-bottom: 4px; }
+.workspace :global(.report-risk-metrics) > button > div, .workspace [data-report="consumption-metrics"] > div > div { margin-bottom: 4px; }
 .workspace :global(.report-definition) { font-size: 13px; line-height: 1.4; color: #444; }
-.workspace :global(.report-risk-metrics) > div, .workspace [data-report="consumption-metrics"] > div { padding: 10px; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: none; min-width: 0; }
+.workspace :global(.report-risk-metrics) > button, .workspace [data-report="consumption-metrics"] > div { padding: 10px; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: none; min-width: 0; }
 .workspace :global(.report-risk-metrics) p { font-size: 13px; color: #475569; margin: 0; }
 .workspace :global(.report-risk-metrics) h3 { margin: 6px 0 0; font-size: 18px; }
 .workspace [data-report="consumption-metrics"] > div { padding:20px; min-height:150px; }
@@ -116,6 +116,9 @@
 .workspace :global(.report-movements-table) { overscroll-behavior:contain; scrollbar-gutter:stable; }
 
 /* Match waste column headings to their numeric values. */
+.workspace :global(.report-waste-table) table, .workspace :global(.report-movements-table) table { border-collapse:collapse; }
+.workspace :global(.report-waste-table) tbody > tr > th, .workspace :global(.report-waste-table) tbody > tr > td,
+.workspace :global(.report-movements-table) tbody > tr > td { border-top:1px solid #dedede; }
 .workspace :global(.report-waste-table) th, .workspace :global(.report-waste-table) td { padding:12px; vertical-align:middle; }
 .workspace :global(.report-waste-table) th:nth-child(-n+2), .workspace :global(.report-waste-table) td:nth-child(-n+2):not([colspan]) { text-align:left; }
 .workspace :global(.report-waste-table) th:nth-child(n+3), .workspace :global(.report-waste-table) td:nth-child(n+3) { text-align:right; font-variant-numeric:tabular-nums; }
@@ -157,4 +160,21 @@
   .workspace :global(.widget-card-header) { flex-direction:column; align-items:stretch; gap:10px; }
   .workspace :global(.widget-card-header) h2 { width:100%; min-width:0; margin:0; }
   .workspace :global(.widget-card-header) > div { align-self:flex-start; max-width:100%; flex-wrap:wrap; }
+}
+
+.workspace :global(.report-metric-select) { cursor: pointer; }
+.workspace :global(.report-metric-select[aria-pressed="true"]) { border-color: #34445f; background: #edf2f8; }
+.workspace :global(.report-metric-select:focus-visible) { outline: 2px solid #34445f; outline-offset: 2px; }
+
+/* Shared report search sizing and stable header layout. */
+.workspace :global(.report-search-controls) { display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px; }
+.workspace :global(.report-search-controls) > :global(.report-search-field) { flex:1 1 300px; max-width:374px; }
+.workspace :global(.report-search-controls) > div { min-width:160px; }
+.workspace :global(.report-table-search) { width:374px; max-width:100%; }
+.workspace :global(.widget-card-header) { flex-wrap:wrap; }
+.workspace :global(.widget-card-header) > div { min-width:0; max-width:100%; }
+@media(max-width:600px) {
+  .workspace :global(.report-search-controls) > :global(.report-search-field) { flex-basis:100%; max-width:100%; }
+  .workspace :global(.report-table-search) { width:100%; }
+  .workspace :global(.widget-card-header):has(:global(.report-table-search)) > div { width:100%; flex-wrap:wrap; }
 }

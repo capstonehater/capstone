@@ -7,6 +7,8 @@ import { AuthController } from './auth.controller';
 import { AuthPermissionsInterceptor } from './auth-permissions.interceptor';
 import { PermissionResolver } from './rbac/permission-resolver.service';
 import { PrismaService } from '../prisma/prisma.service';
+
+jest.mock('../config/env.validation', () => ({ env: {} }));
 const member = (id: string, keys: string[], revision = 1) => ({
   assignedAt: new Date('2026-01-01'),
   role: {

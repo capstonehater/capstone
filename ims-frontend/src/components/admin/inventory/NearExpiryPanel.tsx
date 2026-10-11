@@ -1,4 +1,5 @@
 "use client";
+import { formatStockQuantity } from "@/lib/inventory-quantity";
 
 import { formatUnit } from "@/lib/units";
 
@@ -9,7 +10,7 @@ import styles from "@/components/admin/inventory/InventoryReportModal.module.css
 import { fetchInventorySummary, fetchRawMaterialBatches, type StockBatch } from "@/lib/inventory";
 
 type ExpiryRow = StockBatch & { materialName: string; sku: string; unit: string };
-const quantity = new Intl.NumberFormat("en-PH", { maximumFractionDigits: 4 });
+
 const dateFormat = new Intl.DateTimeFormat("en-PH", { timeZone: "UTC", year: "numeric", month: "short", day: "numeric" });
 
 function businessDate() {
@@ -102,7 +103,7 @@ export default function NearExpiryPanel({ embedded = false }: { embedded?: boole
                         <td className="max-w-48 break-words px-5 py-4 text-xs">{batch.id}</td>
                         <td className="px-5 py-4">{batch.supplier?.name ?? "No supplier"}</td>
                         <td className="px-5 py-4"><span className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${expired ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-800"}`}>{expired ? "Expired" : expiry === today ? "Expires today" : "Near expiry"}</span></td>
-                        <td className="whitespace-nowrap px-5 py-4 tabular-nums">{quantity.format(Number(batch.remainingQuantity))} {batch.unit}</td>
+                        <td className="whitespace-nowrap px-5 py-4 tabular-nums">{formatStockQuantity(batch.remainingQuantity)} {batch.unit}</td>
                         <td className="whitespace-nowrap px-5 py-4 text-right font-semibold">{dateFormat.format(new Date(`${expiry}T00:00:00Z`))}</td>
                       </tr>
                     );

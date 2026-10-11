@@ -57,7 +57,7 @@ for (const file of ['admin/AdminDashboardLayout.tsx', 'admin/AdminSidebar.tsx', 
       collapsed = collapse;
       const props = { isOpen: open, onClose() {}, collapsed: collapse, onToggleCollapse() {}, children: 'Content' };
       const render = component => {
-        states = file.startsWith('staff') ? [open, collapse, focus] : file.endsWith('AdminSidebar.tsx') ? [] : [open];
+        states = file.startsWith('staff') ? [open, focus] : file.endsWith('AdminSidebar.tsx') ? [] : [open];
         return renderToStaticMarkup(React.createElement(component, props));
       };
       for (const route of ['/pos', '/dashboard', '/pos/transactions', '/settings']) {
@@ -70,15 +70,16 @@ for (const file of ['admin/AdminDashboardLayout.tsx', 'admin/AdminSidebar.tsx', 
         }
         if (file.startsWith('staff')) {
           assert.equal(html.includes('focusShell'), focus && route === '/pos');
-          assert.equal(html.includes('<header'), route !== '/pos/transactions');
+          assert.equal(html.includes('<header'), route !== '/pos/transactions' && route !== '/pos');
           assert.equal(html.includes('class="overlay"'), open);
-          assert.equal(html.includes('staffSidebarCollapsed'), collapse);
+          assert.equal(html.includes('adminShellCollapsed'), collapse);
           assert.ok(html.includes('mobileMenu'));
-          assert.equal(html.includes('Exit Focus Mode'), focus && route === '/pos');
+          // The POS page owns the focus toggle; the layout supplies its context.
+          assert.equal(html.includes('Exit Focus Mode'), false);
         }
         if (file.endsWith('AdminSidebar.tsx')) {
           assert.equal(html.includes('class="overlay"'), open);
-          assert.equal(html.includes('adminSidebarCollapsed'), collapse);
+          assert.equal(html.includes('adminSidebarCollapsed'), collapse && !open);
           assert.ok(html.includes('id="admin-navigation"'));
         }
       }

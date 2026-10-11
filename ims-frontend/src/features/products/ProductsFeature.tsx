@@ -8,9 +8,9 @@ import ProductsWorkspace from "@/components/admin/products/ProductsWorkspace";
 export default function ProductsFeature() {
   return (
     <AdminDashboardLayout fillContent showHeader={false}>
-      <div className="flex h-[calc(100dvh-100px)] min-h-[480px] w-full flex-col gap-5 xl:h-auto xl:min-h-0">
+      <div className="flex w-full flex-col gap-5 xl:h-full xl:min-h-0">
         <AdminSectionHeader title="Products" description="Manage menu products, variants, recipes, archive lifecycle, and ingredient usage." />
-        <div className="min-h-0 flex-1 overflow-hidden">
+        <div className="min-h-0 xl:flex-1 xl:overflow-hidden">
           <ProductsWorkspace />
         </div>
       </div>

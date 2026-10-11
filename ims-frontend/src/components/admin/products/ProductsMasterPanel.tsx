@@ -59,7 +59,7 @@ export default function ProductsMasterPanel({
   const pagination = listResponse?.pagination;
 
   return (
-    <section className="flex h-full min-h-0 flex-col rounded-xl border border-slate-300 bg-white p-4 shadow-none">
+    <section className="flex min-h-0 flex-col xl:h-full rounded-xl border border-slate-300 bg-white p-4 shadow-none">
       <ProductListToolbar
         search={search}
         view={view}
@@ -83,7 +83,7 @@ export default function ProductsMasterPanel({
         />
       </div>
 
-      <div className="mt-3 min-h-0 flex-1 overflow-hidden pr-1">
+      <div className="mt-3 min-h-0 xl:flex-1 xl:overflow-hidden xl:pr-1">
         <ProductList
           items={items}
           loading={loading}

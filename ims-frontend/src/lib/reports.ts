@@ -1,3 +1,4 @@
+import type { ReportMaterialQuantity } from "./report-quantities";
 import { apiJsonFetch } from "./api";
 import type {
   DecimalString,
@@ -9,6 +10,7 @@ import type {
 import type { OrderStatus, PaymentMethod, PosMenuCategory, PosOrder } from "./pos";
 
 type ReportFilters = {
+  includeAllOrders?: boolean;
   includeAllGroups?: boolean;
   from?: string;
   to?: string;
@@ -30,6 +32,7 @@ function toQueryString(params: Record<string, string | undefined | null>) {
 
 function buildReportQuery(filters: ReportFilters) {
   return toQueryString({
+    includeAllOrders: filters.includeAllOrders ? "true" : undefined,
     includeAllGroups: filters.includeAllGroups ? "true" : undefined,
     from: filters.from,
     to: filters.to,
@@ -111,13 +114,15 @@ export type WasteSummaryReport = {
   };
   totals: {
     eventCount: number;
-    quantity: DecimalString;
+    quantity: DecimalString | null;
+    quantitiesByUnit: ReportMaterialQuantity[];
     cost: DecimalString;
   };
   byReason: Array<{
     reasonCode: string;
-    materials: Array<{ rawMaterialId: string; name: string; sku: string; quantity: DecimalString; cost: DecimalString; eventCount: number }>;
-    quantity: DecimalString;
+    materials: Array<{ rawMaterialId: string; name: string; sku: string; unitCode: string; quantity: DecimalString; cost: DecimalString; eventCount: number }>;
+    quantity: DecimalString | null;
+    quantitiesByUnit: ReportMaterialQuantity[];
     cost: DecimalString;
     eventCount: number;
   }>;
@@ -125,6 +130,7 @@ export type WasteSummaryReport = {
     rawMaterialId: string;
     name: string;
     sku: string;
+    unitCode: string;
     quantity: DecimalString;
     cost: DecimalString;
     eventCount: number;
@@ -140,7 +146,7 @@ export type WasteSummaryReport = {
       firstName: string;
       lastName: string;
     } | null;
-    quantity: DecimalString;
+    quantitiesByUnit: ReportMaterialQuantity[];
     cost: DecimalString;
   }>;
 };
@@ -294,6 +300,10 @@ export type PosDashboardReport = {
   summary: {
     grossSales: DecimalString;
     netSales: DecimalString;
+    taxes: DecimalString;
+    cogs: DecimalString;
+    grossMargin: DecimalString;
+    collectedAmount: DecimalString;
     discounts: DecimalString;
     transactionCount: number;
     averageOrderValue: DecimalString;
@@ -392,6 +402,10 @@ export type PosSalesAnalyticsReport = {
   summary: {
     grossSales: DecimalString;
     netSales: DecimalString;
+    taxes: DecimalString;
+    cogs: DecimalString;
+    grossMargin: DecimalString;
+    collectedAmount: DecimalString;
     discounts: DecimalString;
     refunds: DecimalString;
     transactionCount: number;
@@ -415,6 +429,10 @@ export type PosSalesAnalyticsReport = {
     label: string;
     grossSales: DecimalString;
     netSales: DecimalString;
+    taxes: DecimalString;
+    cogs: DecimalString;
+    grossMargin: DecimalString;
+    collectedAmount: DecimalString;
     discounts: DecimalString;
     refunds: DecimalString;
     transactionCount: number;
@@ -441,7 +459,6 @@ export type PosPaymentReportsReport = {
     cashTotal: DecimalString;
     cardTotal: DecimalString;
     ewalletTotal: DecimalString;
-    otherTotal: DecimalString;
     splitPaymentTransactionCount: number;
     splitPaymentCollected: DecimalString;
   };
@@ -683,6 +700,10 @@ export type PosStaffPerformanceReport = {
     };
     grossSales: DecimalString;
     netSales: DecimalString;
+    taxes: DecimalString;
+    cogs: DecimalString;
+    grossMargin: DecimalString;
+    collectedAmount: DecimalString;
     discounts: DecimalString;
     transactionCount: number;
     refundCount: number;
@@ -826,7 +847,7 @@ export type PosInventoryLinkedReport = {
   };
   summary: {
     salesLinkedTransactionCount: number;
-    totalMaterialConsumptionQuantity: DecimalString;
+    materialQuantitiesByUnit: ReportMaterialQuantity[];
     totalConsumptionCost: DecimalString;
     distinctMaterialsConsumed: number;
     distinctVariantsSold: number;
@@ -899,14 +920,14 @@ export type PosInventoryLinkedReport = {
     cogs: DecimalString;
     grossMargin: DecimalString;
     orderCount: number;
-    materialConsumptionQuantity: DecimalString;
+    materialQuantitiesByUnit: ReportMaterialQuantity[];
     materialConsumptionCost: DecimalString;
   }>;
   recentSalesLinkedMovements: Array<{
     transactionId: string;
     orderId: string | null;
     occurredAt: string;
-    consumedQuantity: DecimalString;
+    materialQuantitiesByUnit: ReportMaterialQuantity[];
     consumptionCost: DecimalString;
     rawMaterialCount: number;
     variantCount: number;
@@ -931,7 +952,7 @@ export type PosInventoryLinkedReport = {
       revenue: DecimalString;
       cogs: DecimalString;
       grossMargin: DecimalString;
-      materialConsumptionQuantity: DecimalString;
+      materialQuantitiesByUnit: ReportMaterialQuantity[];
       materialConsumptionCost: DecimalString;
     };
     materials: Array<{

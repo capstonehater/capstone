@@ -169,6 +169,22 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
 
   const openJourney = async () => {
     if (!journeyUrl || openingJourney) return;
+    const destination = `${lat.toFixed(6)},${lon.toFixed(6)}`;
+    // Launch directly from the click so mobile browsers retain user activation.
+    // No Android package is specified: the device chooses its preferred map app.
+    if (/Android/i.test(navigator.userAgent)) {
+      window.location.assign(`geo:${destination}?q=${encodeURIComponent(destination)}`);
+      return;
+    }
+    if (/iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
+      const params = new URLSearchParams({ daddr: destination, dirflg: "d" });
+      if (isFreshPosition(currentPosition)) {
+        params.set("saddr", `${currentPosition.coords.latitude},${currentPosition.coords.longitude}`);
+      }
+      window.location.assign(`https://maps.apple.com/?${params}`);
+      return;
+    }
     if (!window.isSecureContext || !navigator.geolocation) {
       setLocationStatus("Enable location access on HTTPS to start driving from your live coordinates.");
       return;
@@ -391,7 +407,7 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
                 <Navigation aria-hidden="true" className="h-5 w-5" />
               </span>
               <div className="min-w-0">
-                <h4 id="supplier-journey-title" className="text-sm font-semibold leading-5 text-slate-900">Google Maps journey</h4>
+                <h4 id="supplier-journey-title" className="text-sm font-semibold leading-5 text-slate-900">Maps journey</h4>
                 <p className="mt-1 text-xs leading-5 text-slate-600">Drive from your current location to the selected supplier.</p>
               </div>
             </div>
@@ -407,7 +423,7 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
               <button type="button" onClick={() => void openJourney()} disabled={openingJourney}
                 className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-transparent bg-[#232d46] px-3 py-3 text-center text-sm font-semibold leading-5 text-white !no-underline transition hover:bg-[#1b2438] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#232d46] focus-visible:ring-offset-2 disabled:opacity-50">
                 <ExternalLink aria-hidden="true" className="h-4 w-4 shrink-0" />
-                <span>{openingJourney ? "Locating you..." : "Open Google Maps"}</span>
+                <span>{openingJourney ? "Locating you..." : "Open Maps"}</span>
               </button>
               <button type="button" onClick={() => void copyJourneyLink()} disabled={!currentPosition || openingJourney}
                 className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 text-center text-sm font-semibold leading-5 text-slate-700 transition hover:border-[#232d46] hover:bg-[#f5f5f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#232d46] focus-visible:ring-offset-2 disabled:opacity-50">

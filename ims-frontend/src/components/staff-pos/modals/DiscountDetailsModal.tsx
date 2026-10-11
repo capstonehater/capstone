@@ -24,20 +24,25 @@ export default function DiscountDetailsModal({ discount, initialDetails, onClose
   const idMissing = attempted && !idNumber.trim();
   const title = discount === "senior" ? "Senior Citizen" : "PWD";
   const idLabel = discount === "senior" ? "Senior Citizen ID No." : "ID No.";
+  const applyDiscount = () => {
+    setAttempted(true);
+    if (!name.trim() || !idNumber.trim()) {
+      (!name.trim() ? nameInput : idInput).current?.focus();
+      return;
+    }
+    onSubmit({ name: name.trim(), idNumber: idNumber.trim() });
+  };
 
   return <Modal title={title + " Discount Details"} onClose={onClose} panelClassName={styles.panel} footer={
     <div className={styles.footer}>
-      <button type="submit" form={id + "-form"}>Apply Discount</button>
+      <button type="button" onClick={applyDiscount}>Apply Discount</button>
     </div>
   }>
-    <form id={id + "-form"} noValidate className={styles.form} onSubmit={event => {
+    <div className={styles.form} onKeyDown={event => {
+      if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
       event.preventDefault();
-      setAttempted(true);
-      if (!name.trim() || !idNumber.trim()) {
-        (!name.trim() ? nameInput : idInput).current?.focus();
-        return;
-      }
-      onSubmit({ name: name.trim(), idNumber: idNumber.trim() });
+      event.stopPropagation();
+      applyDiscount();
     }}>
       <p>Enter the customer details shown on their {title} ID. Both fields are required.</p>
       <label htmlFor={id + "-name"}>Name <span className={styles.required} aria-hidden="true">*</span></label>
@@ -52,6 +57,6 @@ export default function DiscountDetailsModal({ discount, initialDetails, onClose
         aria-invalid={idMissing} aria-describedby={idMissing ? id + "-number-error" : undefined}
         placeholder={idLabel} />
       {idMissing && <p id={id + "-number-error"} className={styles.error} role="alert">{idLabel} is required.</p>}
-    </form>
+    </div>
   </Modal>;
 }

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- Node loader for application TypeScript. */
+require('./helpers/register.cjs');
 const {test, beforeEach} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -290,7 +291,7 @@ test('legacy adapters redirect directly and preserve supported query data',async
  }
 });
 
-test('inventory canonical query views, actions, fallback, draft and remount key stay unchanged',async()=>{
+test('inventory query views, actions, fallback and remount key include material and batch',async()=>{
  const InventoryPage=require('../src/app/(protected)/inventory/page.tsx').default;
  const views=['overview','materials','stock-runs','low-stock','near-expiry','waste','value','supplier'];
  signIn(['inventory.view']);
@@ -303,11 +304,15 @@ test('inventory canonical query views, actions, fallback, draft and remount key 
   assert.equal(element.props.searchParams.action,action);
   // Canonical adapter passes query state through to the unchanged workspace.
   const feature=require('../src/features/inventory/InventoryFeature.tsx').default;
-  const rendered=feature({searchParams:{view,action,draft}});
+  const material='material /?&';
+  const batch='batch #+';
+  const rendered=feature({searchParams:{view,action,draft,material,batch}});
   assert.equal(rendered.props.initialView,expectedView);
   assert.equal(rendered.props.initialAction,expectedAction);
   assert.equal(rendered.props.initialDraftId,draft);
-  assert.equal(rendered.key,`${expectedView}:${draft}:${expectedAction??''}`);
+  assert.equal(rendered.props.initialMaterialId,material);
+  assert.equal(rendered.props.initialBatchId,batch);
+  assert.equal(rendered.key,`${expectedView}:${draft}:${expectedAction??''}:${material}:${batch}`);
   const url=new URL('/inventory?'+new URLSearchParams({view:view??'',action:action??'',draft}),'http://localhost');
   assert.equal(nav.getRouteAccess(url.pathname,useAuthStore.getState()),true);
  }
@@ -345,5 +350,5 @@ test('existing page titles and staff presentation metadata remain distinct',()=>
  assert.equal(pageMetadata['legacy.inventory.materials.add'].label,'Add Raw Material');
  assert.equal(nav.getAdminPageInfo('/admin/inventory/materials'),undefined);
  assert.equal(nav.staffPageInfo['/pos'].label,'Staff POS');
- assert.equal(nav.staffPageInfo['/settings'].label,'Account Settings');
+ assert.equal(nav.staffPageInfo['/settings'].label,'Settings');
 });

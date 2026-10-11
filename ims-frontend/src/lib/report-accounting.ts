@@ -1,0 +1,1 @@
+export const reportAccountingNote = 'Sales figures exclude VAT. Gross sales are before discounts; net sales = gross sales - discounts - sales refunds. Gross profit = net sales - COGS. Payment and refund/void payment amounts include VAT. Sales use checkout dates; reversals use their reversal dates.';

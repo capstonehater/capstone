@@ -4,6 +4,10 @@ import { IsBooleanString, IsDateString, IsNumber, IsOptional, Max, Min } from 'c
 export class ReportFiltersDto {
   @IsOptional()
   @IsBooleanString()
+  includeAllOrders?: string;
+
+  @IsOptional()
+  @IsBooleanString()
   includeAllGroups?: string;
 
   @IsOptional()

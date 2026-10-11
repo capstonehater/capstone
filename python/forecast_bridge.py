@@ -15,7 +15,10 @@ import numpy as np
 import pandas as pd
 import SARIMA
 from InventoryRecommendation import build_report
+from catalog_reference import CATALOG_FILE, load_catalog, inventory_reference, validate_history
 from pos_history import merge_pos_history
+from forecast_insights import build_insights
+from forecast_progress import ForecastProgress
 
 HERE = Path(__file__).resolve().parent
 SCALES = {"g": ("mass", 1), "kg": ("mass", 1000), "ml": ("volume", 1),
@@ -35,6 +38,15 @@ def forecast_calendar_days(start, days=7):
 
 def seven_calendar_days(start):
     return forecast_calendar_days(start, 7)
+
+
+def validate_history_gap(start, last):
+    """Reject long unobserved gaps by default; explicit deployments may override."""
+    maximum = int(os.environ.get('FORECAST_MAX_HISTORY_GAP_DAYS', '30'))
+    distance = (pd.Timestamp(start) - pd.Timestamp(last)).days
+    if maximum < 1 or distance > maximum:
+        raise ValueError(f'Latest history is {pd.Timestamp(last).date()}; add recent records or configure FORECAST_MAX_HISTORY_GAP_DAYS (currently {maximum}).')
+    return max(0, distance - 1)
 
 
 def match_material(rows, materials):
@@ -67,6 +79,7 @@ def select_stable_forecast(stationary, training, horizon, dates):
             future['Upper95'] = np.maximum(future['Upper95'], future['Forecast'])
             selected['range_rejections'] = rejected
             selected['range_ceiling'] = ceiling
+            selected['_operational_model'] = model
             return selected, future
         except Exception as exc:
             rejected.append({'order': list(candidate['order']), 'seasonal': list(candidate['seasonal']), 'reason': str(exc)})
@@ -74,37 +87,56 @@ def select_stable_forecast(stationary, training, horizon, dates):
 
 
 def generate(request):
+    progress = ForecastProgress(request.get("progressFile"))
     forecast_days = SARIMA.validate_forecast_days(request.get('forecastDays', 7))
-    source = HERE / 'cafe_raw_material_daily_consumption.csv'
-    history = pd.read_csv(source)
+    source = HERE / SARIMA.CONFIG['DATASET']
+    training_source = os.environ.get('FORECAST_TRAINING_SOURCE', 'pos').lower()
+    if training_source not in ('pos', 'mixed'):
+        raise ValueError('FORECAST_TRAINING_SOURCE must be pos or mixed (development comparison).')
+    catalog = load_catalog()
+    if training_source == 'pos':
+        from operational_history import build_pos_history
+        history, policy_map, merge_notes = build_pos_history(request, catalog, conversion)
+    else:
+        history = pd.read_csv(source)
+    if history.empty:
+        raise ValueError('No compatible completed POS history is available' if training_source == 'pos' else 'Historical CSV contains no usage rows')
     required = {'date', 'product', 'raw_material', 'item_code', 'quantity_used', 'unit', 'holiday'}
     if not required.issubset(history.columns):
         raise ValueError('Historical CSV is missing required columns')
+    catalog = load_catalog()
+    if training_source == 'mixed':
+        validate_history(history, catalog)
     history['date'] = pd.to_datetime(history['date'], errors='raise').dt.normalize()
     history['quantity_used'] = pd.to_numeric(history['quantity_used'], errors='raise')
     if not np.isfinite(history['quantity_used']).all() or (history['quantity_used'] < 0).any():
         raise ValueError('History contains invalid or negative usage')
-    history, policy_map, merge_notes = merge_pos_history(history, request, match_material, conversion)
+    if training_source == 'mixed':
+        history, policy_map, merge_notes = merge_pos_history(history, request, match_material, conversion)
     if history.empty:
         raise ValueError('No compatible CSV or POS history is available')
     start = pd.Timestamp(request['startDate'])
     last = history['date'].max()
     if start <= last:
         raise ValueError(f'Start date must be after {last.date()}; forecast dates cannot be used for training.')
-    max_gap = int(os.environ.get('FORECAST_MAX_HISTORY_GAP_DAYS', '365'))
-    if max_gap < 1 or (start - last).days > max_gap:
-        raise ValueError(f'Latest history is {last.date()}; add recent records or configure FORECAST_MAX_HISTORY_GAP_DAYS (currently {max_gap}).')
+    validate_history_gap(start, last)
     # This store operates every day. Missing weekend rows do not mean it is closed.
     business_days_only = False
     date_range = pd.bdate_range if business_days_only else pd.date_range
     dates = forecast_calendar_days(start, forecast_days)
-    # Compare 12 candidates, including up to two autoregressive terms and both differencing choices.
-    SARIMA.CONFIG.update(FORECAST_DAYS=forecast_days, P=[0, 1, 2], D=[0, 1], Q=[0, 1], SP=[1], SD=[0], SQ=[0], CV_FOLDS=3, BOXCOX_LAMBDA=0, BUSINESS_DAYS_ONLY=business_days_only, SEASON_LENGTH=7)
+    # Compare 18 candidates, including validated weekday effects and both transforms.
+    SARIMA.CONFIG.update(FORECAST_DAYS=forecast_days, P=[0, 1, 2], D=[0, 1], Q=[0, 1], SP=[1], SD=[0], SQ=[0], CV_FOLDS=3, BOXCOX_LAMBDA=0, BUSINESS_DAYS_ONLY=business_days_only, SEASON_LENGTH=7, CONSTRAINED_SELECTION=True)
     warnings = ['Training source: completed POS ingredient consumption with CSV history on uncovered dates; stock source: live inventory snapshot.',
                 'Store operates daily, 1 PM–10 PM (Asia/Manila): SARIMA uses daily totals and seven-day seasonality, not hourly forecasts.',
                 'Product filters show store-wide ingredient demand, not predicted product sales.']
-    warnings.append('SARIMA uses log1p (Box-Cox lambda 0) to support zero-demand days without invalid inverse-transform bounds.')
+    warnings.append('SARIMA compares log1p and scaled raw usage, recent/full history, Philippine holidays and weekday effects. Selection targets period usage error within a 10% MAE guard and 10% MAPE/RMSE limits relative to the reference MAPE objective. Zeros remain in absolute errors; undefined percentage errors are null.')
+    warnings.append('Daily intervals target 95% coverage with up to 12 calibration periods and five later test periods excluded from the earlier model selection. A positive-usage tail guard protects against spikes; fewer than 19 positive calibration samples use the observed maximum, not a validated 95% positive-demand quantile. Measured coverage is reported separately; daily bounds are not simultaneous weekly bounds.')
     warnings.extend(merge_notes)
+    warnings[0] = ('Training source: completed POS ingredient consumption only; generated CSV is development-only; stock source: live inventory snapshot.' if training_source == 'pos' else warnings[0])
+    if training_source == 'pos' and any(not row.get('sourceUnit') for row in request.get('posHistory', [])):
+        warnings.append('Some legacy POS consumption records lack a unit snapshot. Their units are assumed from the catalog; incompatible current inventory units are excluded. Verify these units before relying on estimates.')
+    if training_source == 'pos' and os.environ.get('FORECAST_PORTFOLIO', 'auto') != 'off':
+        warnings.append('Portfolio-enabled ingredients use chronological method selection by daily and period absolute error, separate residual calibration, and a later promotion check. Older SARIMA-only selection and interval rules above apply to legacy or constant-history fallbacks. Portfolio promotion tests are not an untouched deployment holdout. Supplier facts and service-level targets require review.')
     if (start - last).days > 1:
         warnings.append(f'Historical data ends {last.date()}; forecasting bridges a {(start-last).days - 1}-day gap.')
     if (start - last).days > 30:
@@ -112,11 +144,17 @@ def generate(request):
     training_limit = int(os.environ.get('FORECAST_TRAINING_DAYS', '0'))
     if training_limit != 0 and training_limit < SARIMA.CONFIG['MIN_HISTORY']:
         raise ValueError('FORECAST_TRAINING_DAYS must be 0 (all history) or at least 60.')
-    policies = pd.read_csv(HERE / 'current_inventory.csv')
-    warnings.append('Lead time and safety stock use current_inventory.csv policies in the matching historical unit. Its CurrentStock values are not used.')
+    policies = inventory_reference(catalog)
+    policy_file = Path(os.environ.get('FORECAST_INVENTORY_POLICY_FILE', str(HERE / 'inventory_policy.json')))
+    configured_policies = json.loads(policy_file.read_text(encoding='utf-8')) if policy_file.exists() else {}
+    warnings.append('Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero.')
     results = []
     used = set()
-    for (name, source_unit), group in history.groupby(['raw_material', 'unit']):
+    groups = history.groupby(['raw_material', 'unit'])
+    progress.training(groups.ngroups)
+    for (name, source_unit), group in groups:
+        progress.begin(name)
+        successful = False
         try:
             material = match_material(group, request['materials'])
             if material['id'] in used:
@@ -129,38 +167,83 @@ def generate(request):
             daily = SARIMA.aggregate_daily_sales(raw)
             lookup = SARIMA.build_holiday_lookup(raw)
             series = SARIMA.build_daily_series(daily, name, material['unit'], lookup)
+            if 'is_observed' in group:
+                coverage = group.groupby('date').is_observed.all()
+                series['is_observed'] = series.Date.map(coverage).fillna(False)
             if len(series) < SARIMA.CONFIG['MIN_HISTORY']:
                 raise ValueError('At least 60 daily observations of history are required')
+            if 'is_observed' in series and int(series.is_observed.sum()) < SARIMA.CONFIG['MIN_HISTORY']:
+                raise ValueError('At least 60 covered POS days are required; imputed calendar days cannot satisfy the training minimum')
             # Keep the complete uploaded history unless an explicit window is configured.
             available_days = len(series)
+            from data_quality import assess
+            quality = assess(series, request.get('stockoutDates', {}).get(material['id'], []))
+            if quality['verifiedStockoutDates']:
+                raise ValueError('Verified stockout-censored history requires reconciliation before demand forecasts; do not train on these zeros as true demand')
             if training_limit:
                 series = series.tail(training_limit).reset_index(drop=True)
-            if series['qty'].nunique() < 2:
+            if series['qty'].nunique() < 2 and training_source != 'pos':
                 raise ValueError('Constant history cannot be fitted with the Box-Cox SARIMA pipeline')
-            stationary = SARIMA.make_stationary(series)
+            stationary = {'series': series} if series['qty'].nunique() < 2 else SARIMA.make_stationary(series)
             horizon = len(date_range(series['Date'].max() + pd.Timedelta(days=1), dates[-1]))
+            material_policy = configured_policies.get(material['sku'], {})
+            if material_policy.get('leadTimeDays') is not None:
+                required = int(material_policy['leadTimeDays']) + int(material_policy.get('reviewPeriodDays', forecast_days))
+                horizon = max(horizon, (start - series.Date.max()).days - 1 + required)
+                if horizon > 31:
+                    raise ValueError('Configured lead time and review period exceed the supported 31-day prediction distance')
             # Check the actual prediction distance, including unobserved gap days.
             SARIMA.CONFIG['CV_HORIZON'] = horizon
             with contextlib.redirect_stdout(sys.stderr):
-                training = SARIMA.train_sarima(stationary)
-                training, future = select_stable_forecast(stationary, training, horizon, dates)
+                if training_source == 'pos':
+                    from operational_forecast import forecast
+                    try:
+                        training, future = forecast(stationary, material, horizon, dates, select_stable_forecast)
+                    except (ValueError, np.linalg.LinAlgError):
+                        from model_store import load
+                        if load(material['id'], material['unit']) is None:
+                            raise
+                        # New observations can invalidate an otherwise intact saved
+                        # configuration. Try a fresh validated search once.
+                        previous_force = os.environ.get('FORECAST_FORCE_FULL_RETRAIN')
+                        os.environ['FORECAST_FORCE_FULL_RETRAIN'] = '1'
+                        try:
+                            training, future = forecast(stationary, material, horizon, dates, select_stable_forecast)
+                            training['modelLifecycle']['reason'] = 'Saved configuration failed the forecast checks; a fresh validated search was used.'
+                        finally:
+                            if previous_force is None:
+                                os.environ.pop('FORECAST_FORCE_FULL_RETRAIN', None)
+                            else:
+                                os.environ['FORECAST_FORCE_FULL_RETRAIN'] = previous_force
+                else:
+                    training = SARIMA.train_sarima(stationary)
+                    training, future = select_stable_forecast(stationary, training, horizon, dates)
+            model_history = series.tail(training['window']).reset_index(drop=True) if training.get('window') else series
             metrics = training['metrics']
+            interval = training.get('interval_calibration')
+            if interval and not training.get('portfolio'):
+                from interval_calibration import requested_validation
+                interval['requestedValidation'] = requested_validation(interval, (start - last).days, horizon)
             recommendation_input = future.reset_index(names='Date')
             recommendation_input['Product'] = material['name']
             recommendation_input['RawMaterial'] = material['name']
             recommendation_input['Unit'] = material['unit']
             for key in ['MAE', 'RMSE', 'MAPE', 'SMAPE']:
                 recommendation_input[key] = metrics[key.lower()]
-            policy = policies[policies['Product'].str.casefold() == str(policy_info['name']).casefold()] if policy_info else policies.iloc[0:0]
+            policy = policies[policies['ItemCode'].str.casefold() == str(material['sku']).casefold()]
+            policy_factor = conversion(policy.iloc[0]['Unit'], material['unit']) if len(policy) == 1 else 1
             stock_rows = []
-            if material['currentStock'] is not None:
-                stock_rows.append({'Product': material['name'], 'CurrentStock': material['currentStock'],
-                                   'SafetyStock': float(policy.iloc[0]['SafetyStock']) * policy_info['factor'] if len(policy) == 1 else 0,
-                                   'LeadTime': float(policy.iloc[0]['LeadTime']) if len(policy) == 1 else 0})
-            report = build_report(recommendation_input, pd.DataFrame(stock_rows, columns=['Product', 'CurrentStock', 'SafetyStock', 'LeadTime']))
+            stock_rows.append({'Product': material['name'], 'CurrentStock': material['currentStock'],
+                                   'SafetyStock': float(policy.iloc[0]['SafetyStock']) * policy_factor if len(policy) == 1 else 0,
+                                   'LeadTime': float(policy.iloc[0]['LeadTime']) if len(policy) == 1 else 0,
+                                   'CatalogReorderPoint': float(policy.iloc[0]['CatalogReorderPoint']) * policy_factor if len(policy) == 1 else 0})
+            report = build_report(recommendation_input, pd.DataFrame(stock_rows, columns=['Product', 'CurrentStock', 'SafetyStock', 'LeadTime', 'CatalogReorderPoint']))
             recommendation = json.loads(report.to_json(orient='records'))[0]
             recommendation['stockSource'] = 'live inventory snapshot'
-            recommendation['policySource'] = 'current_inventory.csv' if len(policy) == 1 else 'No policy: zero lead time and safety stock'
+            if training.get('portfolio'):
+                from inventory_policy import recommend
+                recommendation = recommend(recommendation, training.get('_forecast_paths'), material_policy)
+            recommendation['policySource'] = 'raw-materials-and-products.csv' if len(policy) == 1 else 'No catalog policy: zero reorder point, lead time and safety stock'
             if material['currentStock'] is None:
                 recommendation['RecommendedPurchase'] = None
                 recommendation['BuyOnNextRun'] = 'No Data'
@@ -169,15 +252,34 @@ def generate(request):
             results.append({
                 'materialId': material['id'], 'name': material['name'], 'unit': material['unit'],
                 'points': [{'date': day.strftime('%Y-%m-%d'), 'forecast': float(row.Forecast), 'lower95': float(row.Lower95), 'upper95': float(row.Upper95)} for day, row in future.iterrows()],
-                'metadata': {'model': 'SARIMA', 'order': list(training['order']), 'seasonalOrder': list(training['seasonal']),
+                'metadata': {'dataQuality': quality, 'portfolio': training.get('portfolio'), 'model': training.get('model_label', 'SARIMA'), 'modelLifecycle': training.get('modelLifecycle'), 'order': list(training['order']), 'seasonalOrder': list(training['seasonal']),
                              'metrics': {k: float(v) if np.isfinite(v) else None for k, v in metrics.items()},
-                             'trainingDays': len(series), 'transformation': 'log1p (Box-Cox lambda 0)',
+                             'trainingDays': len(model_history), 'transformation': training.get('transform', 'log1p'),
+                             'trainingWindowDays': training.get('window'),
+                             'calendarFeatures': training.get('features', 'level'),
+                             'predictionInterval': interval,
+                             'insights': build_insights(series, training, future, material['currentStock'], {
+                                 'minimumTestDays': SARIMA.CONFIG['INSIGHT_MIN_TEST_DAYS'],
+                                 'minimumPositiveDays': SARIMA.CONFIG['INSIGHT_MIN_POSITIVE_DAYS'],
+                                 'maximumWAPE': SARIMA.CONFIG['INSIGHT_MAX_WAPE'],
+                                 'maximumHistoryGapDays': SARIMA.CONFIG['INSIGHT_MAX_HISTORY_GAP_DAYS'],
+                                 'minimumPeriodCoverage': SARIMA.CONFIG['INSIGHT_MIN_PERIOD_COVERAGE']}),
+                             'trend': training.get('trend', 'n'),
+                             'selectionMetric': training.get('selection_metric'),
+                             'selectionMAPE': float(training['selection_mape']) if np.isfinite(training.get('selection_mape', np.nan)) else None,
+                             'constraints': {'maeTolerance': SARIMA.CONFIG.get('MAE_TOLERANCE', .10),
+                                 'bestValidationMAE': training.get('best_validation_mae'),
+                                 'maeGuardLimit': training.get('mae_guard_limit'),
+                                 'operationalGuards': training.get('operational_guards'),
+                                 'rejectedByMAEGuard': training.get('rejected_by_mae_guard'),
+                                 'requiresConvergence': bool(training.get('constrained')),
+                                 'stationarity': True, 'invertibility': True},
                              'availableTrainingDays': available_days,
                              'candidateCount': training.get('candidate_count'),
                              'validationFolds': len(training['fold_metrics']) if 'fold_metrics' in training else None,
-                             'audit': training_audit(series, group, training, start, business_days_only),
+                             'audit': training_audit(model_history, group, training, start, business_days_only),
                              'historicalProducts': sorted(group['product'].unique().tolist()), 'sourceUnit': policy_info['unit'] if policy_info else source_unit,
-                             'trainingSource': 'POS + CSV' if request.get('posDates') else 'CSV',
+                             'trainingSource': 'POS-only' if training_source == 'pos' else ('POS + CSV (development)' if request.get('posDates') else 'CSV (development)'),
                              'posSnapshotAt': request.get('capturedAt'),
                              'posMaterialDays': sum(item['materialId'] == material['id'] for item in request.get('posHistory', [])),
                              'conversionFactor': policy_info['factor'] if policy_info else 1,
@@ -186,13 +288,20 @@ def generate(request):
                 'recommendation': recommendation,
             })
             used.add(material['id'])
+            successful = True
             print(f'Completed {name}', file=sys.stderr, flush=True)
         except Exception as exc:
             warnings.append(f'{name} ({source_unit}): {exc}')
             print(warnings[-1], file=sys.stderr, flush=True)
+        finally:
+            progress.complete(successful)
+    progress.finalizing()
     if not results:
         raise ValueError('No forecasts could be generated. ' + ' '.join(warnings[-5:]))
-    return {'historyEnd': str(last.date()), 'sourceHash': hashlib.sha256(source.read_bytes() + json.dumps({'posHistory': request.get('posHistory', []), 'posDates': request.get('posDates', [])}, sort_keys=True).encode()).hexdigest(), 'warnings': warnings, 'series': results}
+    if training_source == 'pos':
+        from model_store import fingerprint
+    source_bytes = source.read_bytes() if training_source == 'mixed' else ('POS-only-v1:' + fingerprint()).encode()
+    return {'historyEnd': str(last.date()), 'sourceHash': hashlib.sha256(source_bytes + CATALOG_FILE.read_bytes() + json.dumps({'posHistory': request.get('posHistory', []), 'posDates': request.get('posDates', [])}, sort_keys=True).encode()).hexdigest(), 'warnings': warnings, 'series': results}
 
 
 def training_audit(series, history, training, start, business_days_only):
@@ -207,11 +316,13 @@ def training_audit(series, history, training, start, business_days_only):
         'csvDays': int(retained.loc[sources == 'CSV', 'date'].nunique()) if sources is not None else None,
         'posDays': int(retained.loc[sources == 'POS', 'date'].nunique()) if sources is not None else None,
         'zeroFilledDays': int((~dates.isin(retained['date'])).sum()),
+        'imputedDays': int(retained.loc[sources == 'IMPUTED', 'date'].nunique()) if sources is not None else 0,
         'zeroDemandDays': int((series['qty'] == 0).sum()),
         'bridgeCalendarDays': max(0, (start - dates.max()).days - 1),
         'weekdaysOnly': bool(business_days_only),
         'successfulCandidates': training.get('successful_candidates'),
         'selectionMetric': training.get('selection_metric'),
+        'selectionMAPE': float(training['selection_mape']) if np.isfinite(training.get('selection_mape', np.nan)) else None,
         'rangeRejections': training.get('range_rejections', []),
         'rangeCeiling': training.get('range_ceiling'),
         'validationMethod': ('rolling windows' if training['used_cv'] else 'single holdout') if 'used_cv' in training else None,

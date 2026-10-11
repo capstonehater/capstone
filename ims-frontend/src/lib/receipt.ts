@@ -54,6 +54,11 @@ export function openReceipt(order: PosOrder) {
     new URL("/cs-receipt.svg", window.location.origin).href,
     new URL("/bottom-header.svg", window.location.origin).href));
   receiptWindow.document.close();
+  if (order.status === "COMPLETED") {
+    window.setTimeout(() => {
+      if (!receiptWindow.closed) receiptWindow.close();
+    }, 5_000);
+  }
   const doc = receiptWindow.document;
   doc.getElementById("paper")?.addEventListener("change", (event) => {
     let style = doc.getElementById("paper-size");

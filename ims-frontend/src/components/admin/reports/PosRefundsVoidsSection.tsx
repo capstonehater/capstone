@@ -4,9 +4,11 @@ import ActionAlert from "@/components/feedback/ActionAlert";
 
 import ReportColumns from "./ReportColumns";
 import SearchInput from "@/components/ui/SearchInput";
+import ReportSearchField from "./ReportSearchField";
+import useReportSearch from "./useReportSearch";
 import PosReportEmpty from "./PosReportEmpty";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FileSpreadsheet, FileText } from "lucide-react";
 import styles from "./PosReports.module.css";
 import SummaryCard from "./PosReportMetric";
@@ -19,7 +21,7 @@ import {
   fetchPosRefundsVoids,
   type PosRefundsVoidsReport,
 } from "@/lib/reports";
-import { formatDateTime, formatPeso } from "@/lib/pos-utils";
+import { formatDateTime, formatOrderReference, formatPeso } from "@/lib/pos-utils";
 
 type Props = {
   active: boolean;
@@ -48,28 +50,33 @@ export default function PosRefundsVoidsSection({
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<PosRefundsVoidsReport | null>(null);
   const [staffSearch, setStaffSearch] = useState("");
+  const staffSearchQuery = useReportSearch(staffSearch);
   const [exportingFormat, setExportingFormat] = useState<"excel" | "pdf" | null>(null);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
+  const searchRequest = useRef(0);
   const loadReport = async () => {
+    const request = ++searchRequest.current;
     setLoading(true);
     try {
       const nextReport = await fetchPosRefundsVoids({
         from: fromIso,
         to: toIso,
-        staffSearch: staffSearch.trim() || undefined,
+        staffSearch: staffSearchQuery || undefined,
       });
+      if (request !== searchRequest.current) return;
       setReport(nextReport);
       setError(null);
     } catch (nextError) {
+      if (request !== searchRequest.current) return;
       setError(
         nextError instanceof Error
           ? nextError.message
           : "Failed to load refunds and voids report",
       );
     } finally {
-      setLoading(false);
+      if (request === searchRequest.current) setLoading(false);
     }
   };
 
@@ -79,7 +86,7 @@ export default function PosRefundsVoidsSection({
     }
 
     void loadReport();
-  }, [active, fromIso, toIso, staffSearch, refreshToken]);
+  }, [active, fromIso, toIso, staffSearchQuery, refreshToken]);
 
   if (!active) {
     return null;
@@ -99,7 +106,7 @@ export default function PosRefundsVoidsSection({
         filters: {
           from,
           to,
-          staffSearch: staffSearch.trim() || undefined,
+          staffSearch: staffSearchQuery || undefined,
         },
         report,
       };
@@ -148,15 +155,14 @@ export default function PosRefundsVoidsSection({
           </div>
 
           <div className={`${styles.peakControls} ${styles.refundControls}`}>
-            <label className="text-sm font-medium text-neutral-700">
-              <span className="mb-1 block">Responsible Staff</span>
+            <ReportSearchField label="Responsible Staff">
               <SearchInput
                 value={staffSearch}
                 onChange={(event) => setStaffSearch(event.target.value)}
                 placeholder="Ex. Robert (name of employee)"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
               />
-            </label>
+            </ReportSearchField>
             <PermissionAction permissions={["reports.view", "reports.export.excel"]}><button
               type="button"
               disabled={loading || exportingFormat !== null}
@@ -182,15 +188,15 @@ export default function PosRefundsVoidsSection({
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <SummaryCard
           title="Refund Count"
-          value={loading ? "..." : report?.summary.refundCount ?? 0}
+          value={loading && !report ? "..." : report?.summary.refundCount ?? 0}
         />
         <SummaryCard
           title="Refunded Amount"
-          value={loading ? "..." : formatPeso(report?.summary.refundedAmount ?? "0")}
+          value={loading && !report ? "..." : formatPeso(report?.summary.refundedAmount ?? "0")}
         />
         <SummaryCard
           title="Total Reversals"
-          value={loading ? "..." : report?.summary.totalReversalCount ?? 0}
+          value={loading && !report ? "..." : report?.summary.totalReversalCount ?? 0}
         />
       </section>
 
@@ -204,7 +210,7 @@ export default function PosRefundsVoidsSection({
               <span>Amount</span>
             </div>
             <div className="max-h-[24rem] overflow-y-auto">
-              {loading ? (
+              {loading && !report ? (
                 <div className="px-4 py-6 text-sm text-slate-500">
                   Loading reversal reasons...
                 </div>
@@ -244,7 +250,7 @@ export default function PosRefundsVoidsSection({
               <span>Voided</span>
             </div>
             <div className="max-h-[24rem] overflow-y-auto">
-              {loading ? (
+              {loading && !report ? (
                 <div className="px-4 py-6 text-sm text-slate-500">
                   Loading staff reversal activity...
                 </div>
@@ -291,8 +297,8 @@ export default function PosRefundsVoidsSection({
               <span>Approved By</span>
               <span>Amount</span>
             </div>
-            <div className="max-h-[32rem] overflow-y-auto">
-              {loading ? (
+            <div className="min-h-[24rem] max-h-[32rem] overflow-y-auto" aria-busy={loading}>
+              {loading && !report ? (
                 <div className="px-4 py-6 text-sm text-slate-500">
                   Loading reversal events...
                 </div>
@@ -305,7 +311,7 @@ export default function PosRefundsVoidsSection({
                     className="grid grid-cols-[1fr_0.8fr_1fr_1fr_1fr_0.9fr_1fr_1fr_1fr] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
                   >
                     <div>
-                      <div className="font-semibold text-slate-900">{reversal.orderId}</div>
+                      <div className="font-semibold text-slate-900">{formatOrderReference({ id: reversal.orderId })}</div>
                       <div className="mt-1 text-xs text-slate-500">{reversal.orderStatus}</div>
                     </div>
                     <div>

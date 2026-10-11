@@ -40,6 +40,7 @@ const authUserSelect = {
 
 const userSummarySelect = {
   id: true,
+  employeeId: true,
   email: true,
   firstName: true,
   middleInitial: true,
@@ -164,6 +165,7 @@ function buildUserSearchWhere(search?: string): Prisma.UserWhereInput[] {
         { lastName: { contains: normalized, mode: 'insensitive' } },
         { email: { contains: normalized, mode: 'insensitive' } },
         { id: normalized },
+        { employeeId: { contains: normalized, mode: 'insensitive' } },
         ...(tokenFilters.length > 0 ? [{ AND: tokenFilters }] : []),
       ],
     },
@@ -175,6 +177,7 @@ function mapUserSummary(
   lastActive: Date | null,
 ): {
   id: string;
+  employeeId: string;
   name: string;
   email: string;
   role: Role;
@@ -186,6 +189,7 @@ function mapUserSummary(
 } {
   return {
     id: user.id,
+    employeeId: user.employeeId,
     name: buildUserName(user),
     email: user.email,
     role: user.role,
@@ -202,6 +206,7 @@ function mapUserDetail(
   lastActive: Date | null,
 ): {
   id: string;
+  employeeId: string;
   firstName: string;
   middleInitial: string | null;
   lastName: string;
@@ -217,6 +222,7 @@ function mapUserDetail(
 } {
   return {
     id: user.id,
+    employeeId: user.employeeId,
     firstName: user.firstName,
     middleInitial: user.middleInitial,
     lastName: user.lastName,
@@ -1015,7 +1021,9 @@ export class UsersService {
         if (blockers.length > 0) {
           throw new ConflictException({
             message:
-              'Cannot delete user with historical records. Set the account to INACTIVE instead.',
+              user.accountStatus === AccountStatus.INACTIVE
+                ? 'This account is already inactive and cannot be permanently deleted because it has historical records.'
+                : 'Cannot delete user with historical records. Set the account to INACTIVE instead.',
             blockers,
           });
         }

@@ -1,0 +1,52 @@
+Product,Unit,Forecast7Days,DailyDemand,MAE,RMSE,MAPE,SMAPE,CurrentStock,LeadTime,SafetyStock,HasInventoryData,LeadTimeDemand,ReorderPoint,DaysRemaining,StockoutDay,RecommendedPurchase,BuyOnNextRun,ProjectedRemaining,Priority,Recommendation
+Mozzarella Cheese,g,9830.75,1404.39,369.77,469.49,31.4,26.27,95,2,25,True,2808.78,2833.78,0.1,1.0,9761,Yes,25.25,Critical,Restock 9761 g on the next stock run; current stock reaches zero by forecast day 1.
+Cheddar Cheese,g,6380.21,911.46,160.88,219.13,22.02,24.43,44,3,20,True,2734.38,2754.38,0.0,1.0,6357,Yes,20.79,Critical,Restock 6357 g on the next stock run; current stock reaches zero by forecast day 1.
+Whipped Cream,g,4180.79,597.26,65.62,86.39,9.64,10.02,20,5,20,True,2986.3,3006.3,0.0,1.0,4181,Yes,20.21,Critical,Restock 4181 g on the next stock run; current stock reaches zero by forecast day 1.
+Lemon Syrup,ml,2903.89,414.84,133.62,167.21,40.55,31.5,26,3,12,True,1244.52,1256.52,0.1,1.0,2890,Yes,12.11,Critical,Restock 2890 ml on the next stock run; current stock reaches zero by forecast day 1.
+Strawberry Syrup,ml,2803.39,400.48,101.43,128.59,43.82,41.57,40,3,20,True,1201.44,1221.44,0.1,1.0,2784,Yes,20.61,Critical,Restock 2784 ml on the next stock run; current stock reaches zero by forecast day 1.
+Chocolate Powder,g,2210.46,315.78,86.22,110.78,29.95,26.91,40,3,20,True,947.34,967.34,0.1,1.0,2191,Yes,20.54,Critical,Restock 2191 g on the next stock run; current stock reaches zero by forecast day 1.
+Garlic Parmesan Sauce,ml,2026.62,289.52,80.08,97.18,56.83,28.57,24,4,15,True,1158.08,1173.08,0.1,1.0,2018,Yes,15.38,Critical,Restock 2018 ml on the next stock run; current stock reaches zero by forecast day 1.
+Oreo Crumbs,g,1976.25,282.32,106.38,132.44,39.07,32.76,36,3,15,True,846.96,861.96,0.1,1.0,1956,Yes,15.75,Critical,Restock 1956 g on the next stock run; current stock reaches zero by forecast day 1.
+Pepperoni,g,1928.31,275.47,132.81,146.2,51.57,47.89,32,4,18,True,1101.88,1119.88,0.1,1.0,1915,Yes,18.69,Critical,Restock 1915 g on the next stock run; current stock reaches zero by forecast day 1.
+Salted Egg Sauce,ml,1843.24,263.32,140.51,174.52,50.97,44.07,27,4,18,True,1053.28,1071.28,0.1,1.0,1835,Yes,18.76,Critical,Restock 1835 ml on the next stock run; current stock reaches zero by forecast day 1.
+Siracha Sauce,ml,1738.37,248.34,90.16,110.54,29.2,29.53,31,4,18,True,993.36,1011.36,0.1,1.0,1726,Yes,18.63,Critical,Restock 1726 ml on the next stock run; current stock reaches zero by forecast day 1.
+Caramel Syrup,ml,1719.34,245.62,79.67,93.17,33.13,30.43,31,4,18,True,982.48,1000.48,0.1,1.0,1707,Yes,18.66,Critical,Restock 1707 ml on the next stock run; current stock reaches zero by forecast day 1.
+KBBQ Sauce,ml,1678.46,239.78,110.62,127.08,82.3,45.65,16,4,10,True,959.12,969.12,0.1,1.0,1673,Yes,10.54,Critical,Restock 1673 ml on the next stock run; current stock reaches zero by forecast day 1.
+Mango Syrup,ml,1562.3999999999999,223.2,106.01,122.44,54.43,61.74,28,3,15,True,669.6,684.6,0.1,1.0,1550,Yes,15.6,Critical,Restock 1550 ml on the next stock run; current stock reaches zero by forecast day 1.
+Strawberries,g,1566.82,223.83,70.08,97.68,23.16,32.34,75,2,18,True,447.66,465.66,0.3,1.0,1510,Yes,18.18,Critical,Restock 1510 g on the next stock run; current stock reaches zero by forecast day 1.
+Passion Fruit Syrup,ml,1525.7,217.96,85.16,103.64,34.35,33.13,45,3,20,True,653.88,673.88,0.2,1.0,1501,Yes,20.3,Critical,Restock 1501 ml on the next stock run; current stock reaches zero by forecast day 1.
+Parmesan Cheese,g,1487.87,212.55,63.86,70.53,29.83,27.51,33,3,18,True,637.65,655.65,0.2,1.0,1473,Yes,18.13,Critical,Restock 1473 g on the next stock run; current stock reaches zero by forecast day 1.
+Condensed Milk,ml,1305.7,186.53,57.89,67.32,60.52,49.87,50,3,20,True,559.59,579.59,0.3,1.0,1276,Yes,20.3,Critical,Restock 1276 ml on the next stock run; current stock reaches zero by forecast day 1.
+Hazelnut Syrup,ml,1240.79,177.26,56.16,66.01,42.95,32.76,22,4,10,True,709.04,719.04,0.1,1.0,1229,Yes,10.21,Critical,Restock 1229 ml on the next stock run; current stock reaches zero by forecast day 1.
+Matcha Powder,g,1008.43,144.06,43.52,50.33,58.85,50.23,120,1,30,True,144.06,174.06,0.8,1.0,919,Yes,30.57,Critical,Restock 919 g on the next stock run; current stock reaches zero by forecast day 1.
+Brown Sugar Syrup,ml,922.1600000000001,131.74,47.33,59.59,39.22,32.67,27,4,18,True,526.96,544.96,0.2,1.0,914,Yes,18.84,Critical,Restock 914 ml on the next stock run; current stock reaches zero by forecast day 1.
+Marshmallows,g,900.19,128.6,42.53,50.79,44.3,55.5,21,3,12,True,385.8,397.8,0.2,1.0,892,Yes,12.81,Critical,Restock 892 g on the next stock run; current stock reaches zero by forecast day 1.
+Biscoff Spread,g,914.65,130.66,56.23,72.92,38.96,43.56,80,2,15,True,261.32,276.32,0.6,1.0,850,Yes,15.35,Critical,Restock 850 g on the next stock run; current stock reaches zero by forecast day 1.
+Egg,pcs,243.23000000000002,34.75,6.26,7.14,16.17,16.75,15,5,22,True,173.75,195.75,0.4,1.0,251,Yes,22.77,Critical,Restock 251 pcs on the next stock run; current stock reaches zero by forecast day 1.
+Pizza Dough,pcs,77.08,11.01,3.54,4.94,36.01,42.42,18,5,20,True,55.05,75.05,1.6,2.0,80,Yes,20.92,Critical,Restock 80 pcs on the next stock run; current stock reaches zero by forecast day 2.
+Fresh Milk,L,71.9,10.27,1.87,2.39,15.11,15.73,30,3,15,True,30.81,45.81,2.9,4.0,57,Yes,15.1,High,Restock 57 L on the next stock run; current stock reaches zero by forecast day 4.
+Bottled Water,pcs,57.0,8.14,3.33,3.75,59.19,39.38,38,3,16,True,24.42,40.42,4.7,5.0,35,Yes,16.0,Medium,Restock 35 pcs on the next stock run; current stock reaches zero by forecast day 5.
+Rice,kg,43.64,6.23,1.21,1.44,18.72,17.75,38,3,16,True,18.69,34.69,6.1,7.0,22,Yes,16.36,Medium,Restock 22 kg on the next stock run; current stock reaches zero by forecast day 7.
+Tortilla,pcs,28.57,4.08,1.69,2.0,28.66,46.35,35,5,18,True,20.4,38.4,8.6,,12,Yes,18.43,Low,Restock 12 pcs on the next stock run to cover the forecast and safety stock.
+Crepe Batter,kg,10.6,1.51,0.42,0.52,31.0,32.7,20,5,20,True,7.55,27.55,13.2,,11,Yes,20.4,Low,Restock 11 kg on the next stock run to cover the forecast and safety stock.
+Tomato Sauce,L,15.39,2.2,0.47,0.55,27.93,25.55,28,4,18,True,8.8,26.8,12.7,,6,Yes,18.61,Low,Restock 6 L on the next stock run to cover the forecast and safety stock.
+Ground Beef,kg,9.1,1.3,0.43,0.49,33.77,30.1,18,5,12,True,6.5,18.5,13.8,,4,Yes,12.9,Low,Restock 4 kg on the next stock run to cover the forecast and safety stock.
+Butterfly Pea Tea,L,3.11,0.44,0.12,0.13,54.83,53.76,22,5,20,True,2.2,22.2,50.0,,2,Yes,20.89,Low,Restock 2 L on the next stock run to cover the forecast and safety stock.
+Mango,kg,4.2,0.6,0.24,0.3,49.16,35.62,18,4,15,True,2.4,17.4,30.0,,2,Yes,15.8,Low,Restock 2 kg on the next stock run to cover the forecast and safety stock.
+Beef Tapa,kg,0.8,0.11,0.24,0.31,31.86,27.06,25,4,18,True,0.44,18.44,227.3,,0,No,24.2,Healthy,Inventory is sufficient.
+Chicken Breast,kg,7.19,1.03,0.3,0.39,32.31,27.63,60,2,15,True,2.06,17.06,58.3,,0,No,52.81,Healthy,Inventory is sufficient.
+Chicken Wings,kg,31.29,4.47,1.07,1.26,25.91,22.96,75,2,18,True,8.94,26.94,16.8,,0,No,43.71,Healthy,Inventory is sufficient.
+Coffee Beans,kg,5.04,0.72,0.11,0.14,14.69,13.85,28,4,18,True,2.88,20.88,38.9,,0,No,22.96,Healthy,Inventory is sufficient.
+Cold Brew Concentrate,L,6.619999999999999,0.95,0.38,0.47,40.93,35.35,35,5,18,True,4.75,22.75,36.8,,0,No,28.38,Healthy,Inventory is sufficient.
+Cream,L,2.31,0.33,0.11,0.13,38.91,32.57,41,3,18,True,0.99,18.99,124.2,,0,No,38.69,Healthy,Inventory is sufficient.
+Lasagna Sheets,kg,2.15,0.31,0.16,0.19,45.15,35.04,40,2,12,True,0.62,12.62,129.0,,0,No,37.85,Healthy,Inventory is sufficient.
+Longganisa,kg,7.08,1.01,0.3,0.35,31.7,31.69,35,3,15,True,3.03,18.03,34.7,,0,No,27.92,Healthy,Inventory is sufficient.
+Nacho Chips,kg,5.12,0.73,0.36,0.43,56.0,69.28,45,3,18,True,2.19,20.19,61.6,,0,No,39.88,Healthy,Inventory is sufficient.
+Pesto Sauce,L,1.75,0.25,0.08,0.1,38.98,33.43,55,3,22,True,0.75,22.75,220.0,,0,No,53.25,Healthy,Inventory is sufficient.
+Pork Tocino,kg,6.58,0.94,0.29,0.33,42.92,39.38,25,4,18,True,3.76,21.76,26.6,,0,No,18.42,Healthy,Inventory is sufficient.
+Potatoes,kg,8.969999999999999,1.28,0.27,0.35,20.75,19.63,80,2,15,True,2.56,17.56,62.5,,0,No,71.03,Healthy,Inventory is sufficient.
+Shrimp,kg,1.41,0.2,0.09,0.1,30.84,47.28,22,5,20,True,1.0,21.0,110.0,,0,No,20.59,Healthy,Inventory is sufficient.
+Spaghetti Pasta,kg,10.85,1.55,0.58,0.65,41.84,34.67,44,3,20,True,4.65,24.65,28.4,,0,No,33.15,Healthy,Inventory is sufficient.
+Spanish Sardines,kg,1.4000000000000001,0.2,0.12,0.13,54.68,64.21,60,2,15,True,0.4,15.4,300.0,,0,No,58.6,Healthy,Inventory is sufficient.
+Tuna Flakes,kg,2.39,0.34,0.15,0.17,41.29,44.13,50,3,20,True,1.02,21.02,147.1,,0,No,47.61,Healthy,Inventory is sufficient.
+Waffle Batter,kg,4.49,0.64,0.22,0.31,23.62,33.75,41,3,18,True,1.92,19.92,64.1,,0,No,36.51,Healthy,Inventory is sufficient.

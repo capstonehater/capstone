@@ -139,7 +139,7 @@ export default function AccountSettingsCard({
           <DetailRow
             icon={<UserRound className="h-4 w-4" />}
             label="Employee ID"
-            value={account.id}
+            value={account.employeeId}
           />
         </div>
       </div>

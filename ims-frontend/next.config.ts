@@ -14,7 +14,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [profilePictureOrigin],
     // Local self-hosting uses the backend on loopback. External deployments
     // retain Next's private-IP protection; redirects are always disabled.
-    dangerouslyAllowLocalIP: ["localhost", "127.0.0.1", "[::1]"].includes(profilePictureOrigin.hostname),
+    // The Compose edge is a trusted internal image upstream, like loopback.
+    dangerouslyAllowLocalIP: ["localhost", "127.0.0.1", "[::1]", "edge"].includes(profilePictureOrigin.hostname),
     maximumRedirects: 0,
     imageSizes: [32, 40, 48, 64, 80, 96, 128, 256, 384],
   },

@@ -1,7 +1,7 @@
 import { apiJsonFetch } from "./api";
 
 export type DecimalString = string;
-export type PaymentMethod = "CASH" | "GCASH" | "MAYA" | "CARD" | "OTHER";
+export type PaymentMethod = "CASH" | "GCASH" | "MAYA" | "CARD";
 export type OrderStatus = "COMPLETED" | "REFUNDED";
 export type AvailabilityBlockingReason =
   | "NONE"
@@ -236,12 +236,12 @@ export type ReverseOrderPayload = {
   paymentReference?: string;
 };
 
-function toQueryString(params: Record<string, string | undefined | null>) {
+function toQueryString(params: Record<string, string | number | undefined | null>) {
   const searchParams = new URLSearchParams();
 
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== null && value !== "") {
-      searchParams.set(key, value);
+      searchParams.set(key, String(value));
     }
   }
 
@@ -270,7 +270,7 @@ export async function updateCashPayment(orderId: string, amount: number, expecte
   return response.order;
 }
 
-export async function fetchOrders(params: {
+export type OrderListFilters = {
   from?: string;
   to?: string;
   createdByUserId?: string;
@@ -278,10 +278,25 @@ export async function fetchOrders(params: {
   productVariantId?: string;
   status?: OrderStatus;
   search?: string;
-} = {}) {
+  page?: number;
+  pageSize?: number;
+  cursor?: string;
+};
+
+export type OrderPagination = {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
+export async function fetchOrdersPage(params: OrderListFilters = {}) {
   const query = toQueryString(params);
-  const response = await apiJsonFetch<{ orders: PosOrder[] }>(`/orders${query}`);
-  return response.orders;
+  return apiJsonFetch<{ orders: PosOrder[]; pagination: OrderPagination }>(`/orders${query}`);
+}
+
+export async function fetchOrders(params: OrderListFilters = {}) {
+  return (await fetchOrdersPage(params)).orders;
 }
 
 export async function fetchOrder(orderId: string) {

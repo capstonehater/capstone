@@ -4,10 +4,12 @@ import ActionAlert from "@/components/feedback/ActionAlert";
 
 import ReportColumns from "./ReportColumns";
 import SearchInput from "@/components/ui/SearchInput";
+import ReportSearchField from "./ReportSearchField";
+import useReportSearch from "./useReportSearch";
 import PosReportEmpty from "./PosReportEmpty";
 import AdminSelect from "@/components/admin/AdminSelect";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FileSpreadsheet, FileText } from "lucide-react";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
@@ -62,7 +64,7 @@ export default function PosTransactionHistorySection({
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<PosTransactionHistoryReport | null>(null);
   const [search, setSearch] = useState("");
-  const [staffSearch, setStaffSearch] = useState("");
+  const searchQuery = useReportSearch(search);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
   const [status, setStatus] = useState<OrderStatus | "">("");
   const [page, setPage] = useState(1);
@@ -73,7 +75,9 @@ export default function PosTransactionHistorySection({
   const [selectedOrder, setSelectedOrder] =
     useState<PosTransactionHistoryReport["orders"][number] | null>(null);
 
+  const searchRequest = useRef(0);
   const loadHistory = async () => {
+    const request = ++searchRequest.current;
     setLoading(true);
     try {
       const nextHistory = await fetchPosTransactionHistory({
@@ -81,21 +85,22 @@ export default function PosTransactionHistorySection({
         to: toIso,
         page,
         pageSize: PAGE_SIZE,
-        search: search.trim() || undefined,
-        staffSearch: staffSearch.trim() || undefined,
+        search: searchQuery || undefined,
         paymentMethod: paymentMethod || undefined,
         status: status || undefined,
       });
+      if (request !== searchRequest.current) return;
       setReport(nextHistory);
       setError(null);
     } catch (nextError) {
+      if (request !== searchRequest.current) return;
       setError(
         nextError instanceof Error
           ? nextError.message
           : "Failed to load transaction history",
       );
     } finally {
-      setLoading(false);
+      if (request === searchRequest.current) setLoading(false);
     }
   };
 
@@ -110,8 +115,7 @@ export default function PosTransactionHistorySection({
     fromIso,
     toIso,
     page,
-    search,
-    staffSearch,
+    searchQuery,
     paymentMethod,
     status,
     refreshToken,
@@ -155,9 +159,8 @@ export default function PosTransactionHistorySection({
         filters: {
           from,
           to,
-          search: search.trim() || undefined,
-          staffSearch: staffSearch.trim() || undefined,
-          paymentMethod: paymentMethod || undefined,
+          search: searchQuery || undefined,
+            paymentMethod: paymentMethod || undefined,
           status: status || undefined,
           page,
           pageSize: report.pagination.pageSize,
@@ -202,42 +205,29 @@ export default function PosTransactionHistorySection({
           <div>
             <h3 className="text-xl font-semibold text-neutral-900">Transaction History</h3>
             <p className="mt-2 text-sm text-neutral-600">
-              Search transactions by order reference, payment method, status, or staff. Open an order to view its receipt and full amount breakdown.
+              Search transactions by Order ID or staff name, or filter by payment method and status. Open an order to view its receipt and full amount breakdown.
             </p>
           </div>
 
-          <div className="pos-history-filters">
-            <label className="text-sm font-medium text-neutral-700">
-              <span className="mb-1 block">Order Number / UUID</span>
+          <div className="pos-history-filters report-search-controls">
+            <ReportSearchField label="Order ID / Name of Staff">
               <SearchInput
                 value={search}
                 onChange={(event) => {
                   setSearch(event.target.value);
                   setPage(1);
                 }}
-                placeholder="Ex. ORD-XXXXXX"
+                placeholder="Ex. ORD-XXXXX/ Name of Staff"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
               />
-            </label>
-            <label className="text-sm font-medium text-neutral-700">
-              <span className="mb-1 block">Cashier / Staff</span>
-              <SearchInput
-                value={staffSearch}
-                onChange={(event) => {
-                  setStaffSearch(event.target.value);
-                  setPage(1);
-                }}
-                placeholder="Ex. Robert (name of employee)"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
-              />
-            </label>
+            </ReportSearchField>
             <div className="pos-history-select">
               <AdminSelect
                 label="Payment Method"
                 value={paymentMethod}
                 onChange={(value) => {
                   setPaymentMethod(value as PaymentMethod | "");
-                  setPage(1);
+                    setPage(1);
                 }}
                 options={[{ value: "", label: "All methods" }, ...POS_PAYMENT_METHOD_OPTIONS]}
               />
@@ -248,7 +238,7 @@ export default function PosTransactionHistorySection({
                 value={status}
                 onChange={(value) => {
                   setStatus(value as OrderStatus | "");
-                  setPage(1);
+                    setPage(1);
                 }}
                 options={[{ value: "", label: "All statuses" }, ...POS_STATUS_OPTIONS]}
               />
@@ -278,7 +268,8 @@ export default function PosTransactionHistorySection({
       </section>
 
       <WidgetCard title="Transactions">
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
+          {loading && report ? <p role="status" className="absolute right-3 top-14 z-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500 shadow-sm">Searching transactions...</p> : null}
           <ReportColumns columns={["Order","Date & Time","Staff","Items & Qty","Total","Payment","Status","Action"]} gridTemplate="1.1fr_1fr_1fr_1.6fr_0.8fr_0.9fr_0.8fr_70px"><div className="min-w-[58rem] overflow-hidden rounded-2xl border border-slate-200">
             <div className="grid grid-cols-[1.1fr_1fr_1fr_1.6fr_0.8fr_0.9fr_0.8fr_70px] gap-3 border-b bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Order</span>
@@ -291,8 +282,8 @@ export default function PosTransactionHistorySection({
               <span className="text-right">Action</span>
             </div>
 
-            <div className="max-h-[32rem] overflow-y-auto">
-              {loading ? (
+            <div className="min-h-[24rem] max-h-[32rem] overflow-y-auto" aria-busy={loading}>
+              {loading && !report ? (
                 <div className="px-4 py-6 text-sm text-slate-500">
                   Loading transaction history...
                 </div>

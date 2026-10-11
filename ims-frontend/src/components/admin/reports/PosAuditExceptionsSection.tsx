@@ -4,9 +4,11 @@ import ActionAlert from "@/components/feedback/ActionAlert";
 
 import ReportColumns from "./ReportColumns";
 import SearchInput from "@/components/ui/SearchInput";
+import ReportSearchField from "./ReportSearchField";
+import useReportSearch from "./useReportSearch";
 import AdminSelect from "@/components/admin/AdminSelect";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SummaryCard from "@/components/dashboard/SummaryCard";
 import WidgetCard from "@/components/dashboard/WidgetCard";
 import {
@@ -19,7 +21,7 @@ import {
   type PosAuditExceptionsReport,
 } from "@/lib/reports";
 import type { OrderStatus } from "@/lib/pos";
-import { formatDateTime, formatPeso } from "@/lib/pos-utils";
+import { formatDateTime, formatOrderReference, formatPeso } from "@/lib/pos-utils";
 import { POS_STATUS_OPTIONS, statusTone } from "./pos-report-shared";
 
 type Props = {
@@ -97,7 +99,9 @@ export default function PosAuditExceptionsSection({
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<PosAuditExceptionsReport | null>(null);
   const [staffSearch, setStaffSearch] = useState("");
+  const staffSearchQuery = useReportSearch(staffSearch);
   const [reasonSearch, setReasonSearch] = useState("");
+  const reasonSearchQuery = useReportSearch(reasonSearch);
   const [status, setStatus] = useState<OrderStatus | "">("");
   const [exceptionType, setExceptionType] = useState<"ALL" | PosAuditExceptionKind>("ALL");
   const [page, setPage] = useState(1);
@@ -105,7 +109,9 @@ export default function PosAuditExceptionsSection({
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
+  const searchRequest = useRef(0);
   const loadReport = async () => {
+    const request = ++searchRequest.current;
     setLoading(true);
     try {
       const nextReport = await fetchPosAuditExceptions({
@@ -113,21 +119,23 @@ export default function PosAuditExceptionsSection({
         to: toIso,
         page,
         pageSize: PAGE_SIZE,
-        staffSearch: staffSearch.trim() || undefined,
-        reasonSearch: reasonSearch.trim() || undefined,
+        staffSearch: staffSearchQuery || undefined,
+        reasonSearch: reasonSearchQuery || undefined,
         status: status || undefined,
         exceptionType,
       });
+      if (request !== searchRequest.current) return;
       setReport(nextReport);
       setError(null);
     } catch (nextError) {
+      if (request !== searchRequest.current) return;
       setError(
         nextError instanceof Error
           ? nextError.message
           : "Failed to load audit and exceptions report",
       );
     } finally {
-      setLoading(false);
+      if (request === searchRequest.current) setLoading(false);
     }
   };
 
@@ -142,8 +150,8 @@ export default function PosAuditExceptionsSection({
     fromIso,
     toIso,
     page,
-    staffSearch,
-    reasonSearch,
+    staffSearchQuery,
+    reasonSearchQuery,
     status,
     exceptionType,
     refreshToken,
@@ -176,8 +184,8 @@ export default function PosAuditExceptionsSection({
         filters: {
           from,
           to,
-          staffSearch: staffSearch.trim() || undefined,
-          reasonSearch: reasonSearch.trim() || undefined,
+          staffSearch: staffSearchQuery || undefined,
+          reasonSearch: reasonSearchQuery || undefined,
           status: status || undefined,
           exceptionType,
           page,
@@ -229,31 +237,29 @@ export default function PosAuditExceptionsSection({
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
-            <label className="text-sm font-medium text-neutral-700">
-              <span className="mb-1 block">Staff / User</span>
+          <div className="report-search-controls">
+            <ReportSearchField label="Staff / User">
               <SearchInput
                 value={staffSearch}
                 onChange={(event) => {
-                  setStaffSearch(event.target.value);
-                  setPage(1);
+                setStaffSearch(event.target.value);
+                setPage(1);
                 }}
                 placeholder="Responsible, requester, approver"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
               />
-            </label>
-            <label className="text-sm font-medium text-neutral-700">
-              <span className="mb-1 block">Reason / Discount</span>
+            </ReportSearchField>
+            <ReportSearchField label="Reason / Discount">
               <SearchInput
                 value={reasonSearch}
                 onChange={(event) => {
-                  setReasonSearch(event.target.value);
-                  setPage(1);
+                setReasonSearch(event.target.value);
+                setPage(1);
                 }}
                 placeholder="Reason, discount, customer name or ID"
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#f45a1f]"
               />
-            </label>
+            </ReportSearchField>
             <AdminSelect
               label="Order Status"
               value={status}
@@ -301,27 +307,27 @@ export default function PosAuditExceptionsSection({
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
         <SummaryCard
           title="Total Exceptions"
-          value={loading ? "..." : report?.summary.totalExceptions ?? 0}
+          value={loading && !report ? "..." : report?.summary.totalExceptions ?? 0}
         />
         <SummaryCard
           title="Refund Count"
-          value={loading ? "..." : report?.summary.refundCount ?? 0}
+          value={loading && !report ? "..." : report?.summary.refundCount ?? 0}
         />
         <SummaryCard
           title="Refunded Amount"
-          value={loading ? "..." : formatPeso(report?.summary.refundedAmount ?? "0")}
+          value={loading && !report ? "..." : formatPeso(report?.summary.refundedAmount ?? "0")}
         />
         <SummaryCard
           title="Void Count"
-          value={loading ? "..." : report?.summary.voidCount ?? 0}
+          value={loading && !report ? "..." : report?.summary.voidCount ?? 0}
         />
         <SummaryCard
           title="Discount Count"
-          value={loading ? "..." : report?.summary.discountCount ?? 0}
+          value={loading && !report ? "..." : report?.summary.discountCount ?? 0}
         />
         <SummaryCard
           title="Discounted Amount"
-          value={loading ? "..." : formatPeso(report?.summary.discountedAmount ?? "0")}
+          value={loading && !report ? "..." : formatPeso(report?.summary.discountedAmount ?? "0")}
         />
       </section>
 
@@ -344,8 +350,8 @@ export default function PosAuditExceptionsSection({
               <span>Note</span>
             </div>
 
-            <div className="max-h-[32rem] overflow-y-auto">
-              {loading ? (
+            <div className="min-h-[24rem] max-h-[32rem] overflow-y-auto" aria-busy={loading}>
+              {loading && !report ? (
                 <div className="px-4 py-6 text-sm text-slate-500">
                   Loading audit and exception events...
                 </div>
@@ -368,7 +374,7 @@ export default function PosAuditExceptionsSection({
                       </span>
                     </div>
                     <div>
-                      <div className="font-semibold text-slate-900">{row.orderId}</div>
+                      <div className="font-semibold text-slate-900">{formatOrderReference({ id: row.orderId })}</div>
                     </div>
                     <div>
                       <span

@@ -14,6 +14,44 @@ const number = (value: number) => value.toLocaleString('en-PH', { maximumFractio
 const dateLabel = (value: string) => new Date(`${value.slice(0, 10)}T12:00:00Z`).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 type Period = ForecastResponse['periods'][number];
 
+function AccuracyDetails({ series }: { series: ForecastSeries }) {
+  const interval = series.metadata.predictionInterval;
+  const validation = interval?.requestedValidation ?? interval?.validation;
+  const insights = series.metadata.insights;
+  const insightValidation = insights?.validation;
+  return <><p>
+    <strong>{series.name}.</strong> {interval ? <>Daily interval target: {number(interval.targetCoverage * 100)}%.</> : <>No calibrated coverage target is recorded for this saved range.</>}
+    {validation ? <> Actual usage fell within the tested intervals on {validation.coveredDays} of {validation.days} held-out days ({number(validation.coverage * 100)}%), from {dateLabel(validation.start)} to {dateLabel(validation.end)}.
+      {validation.positiveDemandCoverage != null && <> Coverage on days with usage: {number(validation.positiveDemandCoverage * 100)}% ({validation.positiveDemandDays} days).</>}
+      {validation.positiveDemandDays === 0 && <> Every test day had zero usage; coverage of demand spikes was not tested.</>}
+      {interval?.calibrationDays != null && <> The range was calibrated using {interval.calibrationDays} earlier forecast errors.</>}
+    </> : <> Held-out interval coverage is unavailable for this saved forecast.</>}
+    {interval?.requestedValidation && <> These tests match forecast days {interval.requestedValidation.horizonStart} through {interval.requestedValidation.horizonEnd} after the last recorded usage.</>}
+    {validation && validation.days < 30 && <> This is a small test sample; the coverage percentage can change substantially with a few missed days.</>}
+    {validation && <> The current model uses newer completed history than this earlier forecasting test.</>}
+    {' '}Historical volume error (WAPE): {series.metadata.metrics.wape == null ? 'N/A' : `${number(series.metadata.metrics.wape)}%`}.
+    {' '}Scaled error (MASE): {series.metadata.metrics.mase == null ? 'N/A' : number(series.metadata.metrics.mase)}.
+    {series.metadata.portfolio && <> The chronological tests also informed model promotion; they are not an untouched final holdout. Confirm performance on later real sales.</>}
+    {series.recommendation?.data.quantilePolicy && <> Purchasing policy: {series.recommendation.data.quantilePolicy.status.replaceAll('_', ' ')}.
+      {series.recommendation.data.quantilePolicy.manualReviewRequired && <> Confirm supplier timing and missing constraints before ordering.</>}
+    </>}
+    {' '}Past coverage is not a guarantee for future demand. Each range applies to one day; adding daily bounds does not give a 95% interval for total usage.
+    {interval?.positiveDemandGuard && <> The upper range also accounts for earlier spikes on days with usage; this can widen the range.</>}
+  </p>{insights && <p>
+    <strong>{insights.evidenceStatus === 'supported' ? 'Meets configured evidence checks' : insights.evidenceStatus === 'limited' ? 'Limited evidence' : 'Planning caution'}.</strong>
+    {' '}Usage occurred on {insights.recentPositiveDays} of the last {insights.recentDays} recorded days.
+    {insightValidation?.wape != null && <> Volume-weighted daily error in the earlier test was {number(insightValidation.wape)}%.</>}
+    {insightValidation?.biasPercent != null && <> The tested forecasts were {number(Math.abs(insightValidation.biasPercent))}% {insightValidation.biasPercent < 0 ? 'below' : 'above'} actual total usage.</>}
+    {insightValidation?.seasonalNaiveSkill != null && <> Daily absolute error was {number(Math.abs(insightValidation.seasonalNaiveSkill) * 100)}% {insightValidation.seasonalNaiveSkill > 0 ? 'lower' : 'higher'} than repeating the previous week.</>}
+    {insightValidation?.minimumPeriodCoverage != null && <> The weakest tested period covered {number(insightValidation.minimumPeriodCoverage * 100)}% of days; {insightValidation.periodsAtTarget} of {insightValidation.folds} periods met the daily coverage target.</>}
+    {' '}Estimated period usage: {number(insights.estimatedTotalUsage)} {formatUnit(series.unit)}.
+    {insights.estimatedShortfall != null && <> Estimated shortage against current stock: {number(insights.estimatedShortfall)} {formatUnit(series.unit)}.</>}
+    {' '}Adding daily upper ranges gives a stock stress scenario of {number(insights.dailyUpperStressTotal)} {formatUnit(series.unit)}; it is not a 95% interval for period usage.
+    {insights.stressShortfall != null && <> Stock shortage in that scenario: {number(insights.stressShortfall)} {formatUnit(series.unit)}.</>}
+    {' '}{insights.reasons.join(' ')}
+  </p>}</>;
+}
+
 function PeriodChart({ run, series, scale }: { run: ForecastRun | null; series?: ForecastSeries; scale: number }) {
   const tooltipId = useId();
   const chartRef = useRef<HTMLDivElement>(null);
@@ -81,7 +119,7 @@ function PeriodChart({ run, series, scale }: { run: ForecastRun | null; series?:
       <strong>{dateLabel(activePoint.date)}</strong>
       <span>Expected usage</span>
       <b>{number(Number(activePoint.forecast))} {formatUnit(series.unit)}</b>
-      <small>95% range: {number(Number(activePoint.lower95))} ? {number(Number(activePoint.upper95))} {formatUnit(series.unit)}</small>
+      <small>{series.metadata.predictionInterval ? '95% target range' : 'Possible range'}: {number(Number(activePoint.lower95))} to {number(Number(activePoint.upper95))} {formatUnit(series.unit)}</small>
     </div>, document.body)}
     {rangeExceedsScale && <p className={styles.graphRangeNote}>The possible range extends above the chart. Its full values remain in the saved forecast.</p>}
     <p className={styles.graphTotal}>{forecastPeriodDays(run)}-day expected usage: <strong>{number(forecastTotal(series))} {formatUnit(series.unit)}</strong></p>
@@ -180,6 +218,10 @@ export default function ForecastGraph({ periods, currentRun, productId, material
     {mode === 'compare' && leftRun && <ForecastNotes key={`left-${leftRun.id}`} run={leftRun} />}
     {mode === 'compare' && rightRun && rightRun.id !== leftRun?.id && <ForecastNotes key={`right-${rightRun.id}`} run={rightRun} />}
     <p className={styles.message}>The green line shows expected usage in {formatUnit(selected.unit)}. The shaded area shows a possible range; wider means less certain.{mode === 'compare' ? ' Both graphs use the same scale.' : ''}</p>
-    <details className={styles.dataNotes}><summary>Technical accuracy details</summary><p>Shading represents the model’s 95% forecast interval.{mode === 'single' && singleSeries ? ` Historical validation error (MAPE): ${singleSeries.metadata.metrics.mape == null ? 'N/A' : `${number(singleSeries.metadata.metrics.mape)}%`}.` : ''} This measures past prediction error, not guaranteed future accuracy.</p></details>
+    {selected.metadata.insights && <p className={styles.message}>
+      Forecast evidence: {selected.metadata.insights.evidenceStatus === 'supported' ? 'meets configured checks' : selected.metadata.insights.evidenceStatus === 'limited' ? 'limited' : 'use caution'}.
+      {' '}{selected.metadata.insights.reasons[0] ?? 'Review the tested errors and stock scenarios before planning purchases.'}
+    </p>}
+    <details className={styles.dataNotes}><summary>Forecast reliability and stock insights</summary>{shown.map((series, index) => series && <AccuracyDetails key={`${series.id}:${index}`} series={series} />)}</details>
   </section>;
 }

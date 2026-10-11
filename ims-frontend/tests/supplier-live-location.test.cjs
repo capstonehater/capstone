@@ -119,7 +119,7 @@ test('live pin, coordinates, copied directions and driving origin follow device 
     await click('Copy journey link');
     assert.equal(new URL(copiedUrl).searchParams.get('origin'), '14.31,120.91');
     navigationFix = fix(14.32, 120.92, 80);
-    await click('Open Google Maps');
+    await click('Open Maps');
     assert.equal(locationRequests, 0, 'recent live coordinates should open directions without another GPS request');
     assert.equal(document.querySelector('dialog').hasAttribute('open'), false);
     const route = new URL(navigatedUrl);
@@ -136,7 +136,7 @@ test('live pin, coordinates, copied directions and driving origin follow device 
     delayLocation = true;
     const previousRoute = navigatedUrl;
     const previousTabs = openedTabs;
-    await click('Open Google Maps');
+    await click('Open Maps');
     assert.equal(locationRequests, 1);
     assert.equal(document.querySelector('dialog').hasAttribute('open'), true);
     assert.match(document.querySelector('dialog').textContent, /up to 5 seconds/);
@@ -147,7 +147,7 @@ test('live pin, coordinates, copied directions and driving origin follow device 
     assert.equal(openedTabs, previousTabs, 'denied or timed-out location must not open a tab');
     assert.equal(navigatedUrl, previousRoute);
     assert.match(document.body.textContent, /No fresh coordinates available/);
-    await click('Open Google Maps');
+    await click('Open Maps');
     assert.equal(document.querySelector('dialog').hasAttribute('open'), true);
     assert.equal(openedTabs, previousTabs);
     await React.act(async () => pendingLocation.success(fix(14.32, 120.92, 20)));

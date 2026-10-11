@@ -1,4 +1,5 @@
 "use client";
+import { formatStockQuantity } from "@/lib/inventory-quantity";
 
 import { formatUnit } from "@/lib/units";
 
@@ -72,9 +73,9 @@ export default function LowStockPanel({ embedded = false }: { embedded?: boolean
                       <th scope="row" className="px-5 py-4 text-left font-medium">{material.name}<span className="mt-1 block text-xs font-normal text-slate-500">{material.sku}</span></th>
                       <td className="px-5 py-4"><span className="whitespace-nowrap rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Low Stock</span></td>
                       <td className="px-5 py-4">{formatUnit(material.unit.code)}</td>
-                      <td className="px-5 py-4 text-right tabular-nums">{quantity.format(Number(material.summary.onHandQuantity))}</td>
-                      <td className="px-5 py-4 text-right font-semibold tabular-nums text-amber-700">{quantity.format(Number(material.summary.usableQuantity))}</td>
-                      <td className="px-5 py-4 text-right tabular-nums">{quantity.format(Number(material.reorderPoint))}</td>
+                      <td className="px-5 py-4 text-right tabular-nums">{formatStockQuantity(material.summary.onHandQuantity)}</td>
+                      <td className="px-5 py-4 text-right font-semibold tabular-nums text-amber-700">{formatStockQuantity(material.summary.usableQuantity)}</td>
+                      <td className="px-5 py-4 text-right tabular-nums">{quantity.format(Number(material.reorderPoint))} {formatUnit(material.unit.code)}</td>
                       <td className="px-5 py-4 text-right tabular-nums">{currency.format(Number(material.inventoryValue))}</td>
                     </tr>
                   ))}

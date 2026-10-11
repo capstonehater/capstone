@@ -1,4 +1,5 @@
 "use client";
+import styles from "./ProductDetailTabs.module.css";
 
 type DetailTab = "overview" | "variants" | "usage";
 
@@ -15,7 +16,7 @@ const tabs: Array<{ value: DetailTab; label: string }> = [
 
 export default function ProductDetailTabs({ activeTab, onChange }: Props) {
   return (
-    <div className="flex flex-wrap gap-y-1 border-b border-slate-200">
+    <div className={styles.tabs}>
       {tabs.map((tab) => (
         <button
           key={tab.value}

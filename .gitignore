@@ -5,6 +5,7 @@ dist/
 build/
 out/
 coverage/
+.release-output/
 *.tsbuildinfo
 __pycache__/
 *.py[cod]

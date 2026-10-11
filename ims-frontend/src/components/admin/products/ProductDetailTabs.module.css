@@ -1,0 +1,6 @@
+.tabs { display:flex; min-width:0; border-bottom:1px solid #e2e8f0; }
+.tabs button { min-width:0; }
+@media (max-width:640px) {
+  .tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .tabs button { padding:8px 4px; font-size:13px !important; line-height:1.4; overflow-wrap:anywhere; }
+}

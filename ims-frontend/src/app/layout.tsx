@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import AuthBootstrap from "@/components/auth/AuthBootstrap";
+import PageScrollReset from "@/components/layout/PageScrollReset";
 
 export const metadata: Metadata = {
   title: "Inventory Management System",
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <PageScrollReset />
         <AuthBootstrap />
         {children}
       </body>

@@ -1,3 +1,4 @@
+import { groupMaterialQuantities, itemNetRevenue, summarizeSales, type SalesAmounts } from './report-accounting';
 import { withHistoricalMaterial } from '../inventory/material-history-snapshot';
 import { Injectable } from '@nestjs/common';
 import {
@@ -24,6 +25,7 @@ import { OrdersService } from '../orders/orders.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { PosAuditExceptionsDto } from './dto/pos-audit-exceptions.dto';
 import { PosInventoryLinkedDto } from './dto/pos-inventory-linked.dto';
+import { SalesReportQueries } from './sales-report.queries';
 import { PosPeakHoursDto } from './dto/pos-peak-hours.dto';
 import { CAFE_OPERATING_HOURS, isCafeOperatingHour } from '../common/utils/cafe-operating-hours';
 import { PosProductPerformanceDto } from './dto/pos-product-performance.dto';
@@ -39,100 +41,73 @@ const PAYMENT_METHODS: PaymentMethod[] = [
   PaymentMethod.CARD,
   PaymentMethod.GCASH,
   PaymentMethod.MAYA,
-  PaymentMethod.OTHER,
 ];
 
 @Injectable()
 export class ReportsService {
+  private readonly salesQueries: SalesReportQueries;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly inventoryService: InventoryService,
     private readonly ordersService: OrdersService,
-  ) {}
+  ) {
+    this.salesQueries = new SalesReportQueries(prisma);
+  }
 
   async getSalesOverview(filters: ReportFiltersDto) {
     const where = this.buildCompletedOrderWhere(filters);
     const limit = this.normalizeLimit(filters.limit);
 
-    const orders = await this.prisma.order.findMany({
-      where,
-      orderBy: { completedAt: 'desc' },
-      include: {
-        createdBy: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
+    const [totals, payments, variants, orders] = await Promise.all([
+      this.salesQueries.totals({
+        from: filters.from ? new Date(filters.from) : new Date(0),
+        to: filters.to ? new Date(filters.to) : new Date(),
+      }),
+      this.getPosPaymentReports({
+        from: filters.from ?? new Date(0).toISOString(),
+        to: filters.to ?? new Date().toISOString(),
+      }),
+      this.salesQueries.variantMargins(filters, limit, 'revenue'),
+      this.prisma.order.findMany({
+        where,
+        orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
+        take: limit,
+        select: {
+          id: true,
+          completedAt: true,
+          totalAmount: true,
+          totalCogsAmount: true,
+          items: {
+            select: {
+              inventoryLines: {
+                where: {
+                  inventoryTransaction: {
+                    type: InventoryTransactionType.CHECKOUT,
+                    sourceType: InventorySourceType.ORDER,
+                  },
+                },
+                select: { totalCostDelta: true },
+              },
+            },
+          },
+          createdBy: {
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
         },
-        items: true,
-        payments: true,
-      },
-    });
-
-    const orderCount = orders.length;
-    const totalSales = sumDecimals(orders.map((order) => order.totalAmount));
-    const totalDiscounts = sumDecimals(
-      orders.map((order) => order.discountAmount),
+      }),
+    ]);
+    const financial = summarizeSales(totals);
+    const orderCount = financial.transactionCount;
+    const totalSales = financial.netSales;
+    const totalDiscounts = financial.discounts;
+    const totalTax = financial.taxes;
+    const totalCogs = financial.cogs;
+    const grossMargin = financial.grossMargin;
+    const averageOrderValue = financial.averageOrderValue;
+    const topVariants = variants.map((variant) =>
+      this.withVariantMargin(variant),
     );
-    const totalTax = sumDecimals(orders.map((order) => order.taxAmount));
-    const totalCogs = sumDecimals(orders.map((order) => order.totalCogsAmount));
-    const grossMargin = totalSales.minus(totalCogs);
-    const averageOrderValue =
-      orderCount > 0 ? totalSales.dividedBy(orderCount) : ZERO;
-
-    const paymentMap = new Map<string, Prisma.Decimal>();
-    const variantMap = new Map<
-      string,
-      {
-        productVariantId: string;
-        productName: string;
-        variantName: string;
-        sku: string;
-        quantitySold: number;
-        revenue: Prisma.Decimal;
-        cogs: Prisma.Decimal;
-      }
-    >();
-
-    for (const order of orders) {
-      for (const payment of order.payments) {
-        const current = paymentMap.get(payment.method) ?? ZERO;
-        paymentMap.set(payment.method, current.plus(payment.amount));
-      }
-
-      for (const item of order.items) {
-        const current = variantMap.get(item.productVariantId ?? `deleted:${item.skuSnapshot}`) ?? {
-          productVariantId: item.productVariantId ?? `deleted:${item.skuSnapshot}`,
-          productName: item.productNameSnapshot,
-          variantName: item.variantNameSnapshot,
-          sku: item.skuSnapshot,
-          quantitySold: 0,
-          revenue: ZERO,
-          cogs: ZERO,
-        };
-
-        current.quantitySold += item.quantity;
-        current.revenue = current.revenue.plus(item.lineSubtotal);
-        current.cogs = current.cogs.plus(item.lineCogsAmount);
-        variantMap.set(item.productVariantId ?? `deleted:${item.skuSnapshot}`, current);
-      }
-    }
-
-    const topVariants = [...variantMap.values()]
-      .map((item) => {
-        const grossMarginValue = item.revenue.minus(item.cogs);
-        return {
-          ...item,
-          grossMargin: grossMarginValue,
-          marginRate: item.revenue.greaterThan(0)
-            ? grossMarginValue.dividedBy(item.revenue).toNumber()
-            : 0,
-        };
-      })
-      .sort((left, right) => right.revenue.comparedTo(left.revenue))
-      .slice(0, limit);
 
     return {
       period: {
@@ -148,77 +123,39 @@ export class ReportsService {
         grossMargin,
         averageOrderValue,
       },
-      paymentBreakdown: [...paymentMap.entries()].map(([method, amount]) => ({
-        method,
-        amount,
+      paymentBreakdown: payments.breakdown.map((payment) => ({
+        method: payment.method,
+        amount: payment.amount,
       })),
       topVariants,
       recentOrders: orders.slice(0, limit).map((order) => ({
         id: order.id,
         completedAt: order.completedAt,
         totalAmount: order.totalAmount,
-        totalCogsAmount: order.totalCogsAmount,
+        totalCogsAmount: order.items.some((item) => item.inventoryLines.length)
+          ? sumDecimals(
+              order.items
+                .flatMap((item) => item.inventoryLines)
+                .map((line) => toDecimal(line.totalCostDelta).negated()),
+            )
+          : order.totalCogsAmount,
         createdBy: order.createdBy,
       })),
     };
   }
 
   async getVariantMargin(filters: ReportFiltersDto) {
-    const items = await this.prisma.orderItem.findMany({
-      where: {
-        order: this.buildCompletedOrderWhere(filters),
-      },
-      include: {
-        order: {
-          select: {
-            completedAt: true,
-          },
-        },
-      },
-    });
-
-    const variantMap = new Map<
-      string,
-      {
-        productVariantId: string;
-        productName: string;
-        variantName: string;
-        sku: string;
-        quantitySold: number;
-        revenue: Prisma.Decimal;
-        cogs: Prisma.Decimal;
-      }
-    >();
-
-    for (const item of items) {
-      const current = variantMap.get(item.productVariantId ?? `deleted:${item.skuSnapshot}`) ?? {
-        productVariantId: item.productVariantId ?? `deleted:${item.skuSnapshot}`,
-        productName: item.productNameSnapshot,
-        variantName: item.variantNameSnapshot,
-        sku: item.skuSnapshot,
-        quantitySold: 0,
-        revenue: ZERO,
-        cogs: ZERO,
-      };
-
-      current.quantitySold += item.quantity;
-      current.revenue = current.revenue.plus(item.lineSubtotal);
-      current.cogs = current.cogs.plus(item.lineCogsAmount);
-      variantMap.set(item.productVariantId ?? `deleted:${item.skuSnapshot}`, current);
-    }
-
-    const variants = [...variantMap.values()]
-      .map((variant) => {
-        const grossMargin = variant.revenue.minus(variant.cogs);
-        return {
-          ...variant,
-          grossMargin,
-          marginRate: variant.revenue.greaterThan(0)
-            ? grossMargin.dividedBy(variant.revenue).toNumber()
-            : 0,
-        };
-      })
-      .sort((left, right) => right.grossMargin.comparedTo(left.grossMargin));
+    const [totals, rows] = await Promise.all([
+      this.salesQueries.variantTotals(filters),
+      this.salesQueries.variantMargins(
+        filters,
+        this.normalizeLimit(filters.limit) * 3,
+        'margin',
+      ),
+    ]);
+    const variants = rows.map((variant) => this.withVariantMargin(variant));
+    const revenue = totals[0]?.revenue ?? ZERO;
+    const cogs = totals[0]?.cogs ?? ZERO;
 
     return {
       period: {
@@ -226,15 +163,12 @@ export class ReportsService {
         to: filters.to ?? null,
       },
       totals: {
-        quantitySold: variants.reduce(
-          (sum, item) => sum + item.quantitySold,
-          0,
-        ),
-        revenue: sumDecimals(variants.map((item) => item.revenue)),
-        cogs: sumDecimals(variants.map((item) => item.cogs)),
-        grossMargin: sumDecimals(variants.map((item) => item.grossMargin)),
+        quantitySold: totals[0]?.quantitySold ?? 0,
+        revenue,
+        cogs,
+        grossMargin: revenue.minus(cogs),
       },
-      variants: variants.slice(0, this.normalizeLimit(filters.limit) * 3),
+      variants,
     };
   }
 
@@ -262,6 +196,7 @@ export class ReportsService {
                 id: true,
                 name: true,
                 sku: true,
+                unit: true,
               },
             },
           },
@@ -269,7 +204,21 @@ export class ReportsService {
       },
     });
 
-    const reasonMaterials = new Map<string, Map<string, { rawMaterialId: string; name: string; sku: string; quantity: Prisma.Decimal; cost: Prisma.Decimal; eventCount: number }>>();
+    const reasonMaterials = new Map<
+      string,
+      Map<
+        string,
+        {
+          rawMaterialId: string;
+          name: string;
+          sku: string;
+          unitCode: string;
+          quantity: Prisma.Decimal;
+          cost: Prisma.Decimal;
+          eventCount: number;
+        }
+      >
+    >();
     const reasonMap = new Map<
       string,
       {
@@ -285,6 +234,7 @@ export class ReportsService {
         rawMaterialId: string;
         name: string;
         sku: string;
+        unitCode: string;
         quantity: Prisma.Decimal;
         cost: Prisma.Decimal;
         eventCount: number;
@@ -315,10 +265,23 @@ export class ReportsService {
       for (const record of transaction.lines) {
         const line = withHistoricalMaterial(record);
         const materials = reasonMaterials.get(reasonCode) ?? new Map();
-        const reasonMaterial = materials.get(line.rawMaterialId) ?? { rawMaterialId: line.rawMaterialId, name: line.rawMaterial.name, sku: line.rawMaterial.sku, quantity: ZERO, cost: ZERO, eventCount: 0 };
-        reasonMaterial.quantity = reasonMaterial.quantity.plus(toDecimal(line.quantityDelta).abs());
-        reasonMaterial.cost = reasonMaterial.cost.plus(toDecimal(line.totalCostDelta).abs());
-        if (!countedMaterials.has(line.rawMaterialId)) reasonMaterial.eventCount += 1;
+        const reasonMaterial = materials.get(line.rawMaterialId) ?? {
+          rawMaterialId: line.rawMaterialId,
+          name: line.rawMaterial.name,
+          sku: line.rawMaterial.sku,
+          unitCode: line.rawMaterial.unit.code,
+          quantity: ZERO,
+          cost: ZERO,
+          eventCount: 0,
+        };
+        reasonMaterial.quantity = reasonMaterial.quantity.plus(
+          toDecimal(line.quantityDelta).abs(),
+        );
+        reasonMaterial.cost = reasonMaterial.cost.plus(
+          toDecimal(line.totalCostDelta).abs(),
+        );
+        const firstMaterialInEvent = !countedMaterials.has(line.rawMaterialId);
+        if (firstMaterialInEvent) reasonMaterial.eventCount += 1;
         countedMaterials.add(line.rawMaterialId);
         materials.set(line.rawMaterialId, reasonMaterial);
         reasonMaterials.set(reasonCode, materials);
@@ -326,6 +289,7 @@ export class ReportsService {
           rawMaterialId: line.rawMaterialId,
           name: line.rawMaterial.name,
           sku: line.rawMaterial.sku,
+          unitCode: line.rawMaterial.unit.code,
           quantity: ZERO,
           cost: ZERO,
           eventCount: 0,
@@ -336,10 +300,21 @@ export class ReportsService {
         material.cost = material.cost.plus(
           toDecimal(line.totalCostDelta).abs(),
         );
-        material.eventCount += 1;
+        if (firstMaterialInEvent) material.eventCount += 1;
         materialMap.set(line.rawMaterialId, material);
       }
     }
+
+    const wasteGroups = (
+      materials: Array<{ unitCode: string; quantity: Prisma.Decimal }>,
+    ) =>
+      groupMaterialQuantities(
+        materials.map((material) => ({
+          rawMaterial: { unit: { code: material.unitCode } },
+          consumedQuantity: material.quantity,
+        })),
+      );
+    const allGroups = wasteGroups([...materialMap.values()]);
 
     return {
       period: {
@@ -348,15 +323,29 @@ export class ReportsService {
       },
       totals: {
         eventCount: transactions.length,
-        quantity: sumDecimals(
-          [...reasonMap.values()].map((item) => item.quantity),
-        ),
+        quantity:
+          allGroups.length > 1 ? null : (allGroups[0]?.quantity ?? ZERO),
+        quantitiesByUnit: allGroups,
         cost: sumDecimals([...reasonMap.values()].map((item) => item.cost)),
       },
       byReason: [...reasonMap.values()]
         .sort((left, right) => right.cost.comparedTo(left.cost))
         .slice(0, filters.includeAllGroups === 'true' ? undefined : limit)
-        .map(item => ({ ...item, materials: [...(reasonMaterials.get(item.reasonCode)?.values() ?? [])].sort((left, right) => left.name.localeCompare(right.name)) })),
+        .map((item) => {
+          const materials = [
+            ...(reasonMaterials.get(item.reasonCode)?.values() ?? []),
+          ].sort((left, right) => left.name.localeCompare(right.name));
+          const quantitiesByUnit = wasteGroups(materials);
+          return {
+            ...item,
+            quantity:
+              quantitiesByUnit.length > 1
+                ? null
+                : (quantitiesByUnit[0]?.quantity ?? ZERO),
+            quantitiesByUnit,
+            materials,
+          };
+        }),
       byMaterial: [...materialMap.values()]
         .sort((left, right) => right.cost.comparedTo(left.cost))
         .slice(0, limit),
@@ -366,8 +355,14 @@ export class ReportsService {
         reasonCode: transaction.reasonCode,
         note: transaction.note,
         actorUser: transaction.actorUser,
-        quantity: sumDecimals(
-          transaction.lines.map((line) => toDecimal(line.quantityDelta).abs()),
+        quantitiesByUnit: groupMaterialQuantities(
+          transaction.lines.map((record) => {
+            const line = withHistoricalMaterial(record);
+            return {
+              rawMaterial: line.rawMaterial,
+              consumedQuantity: toDecimal(line.quantityDelta).abs(),
+            };
+          }),
         ),
         cost: sumDecimals(
           transaction.lines.map((line) => toDecimal(line.totalCostDelta).abs()),
@@ -561,13 +556,7 @@ export class ReportsService {
 
     const [orderTotals, inventoryUsageLines, inventorySnapshotTotals] =
       await Promise.all([
-        this.prisma.order.aggregate({
-          where: this.buildCompletedOrderWhereForRange(currentRange),
-          _sum: {
-            totalAmount: true,
-            totalCogsAmount: true,
-          },
-        }),
+        this.salesQueries.totals(currentRange),
         this.prisma.inventoryTransactionLine.findMany({
           where: {
             inventoryTransaction: {
@@ -575,6 +564,8 @@ export class ReportsService {
                 in: [
                   InventoryTransactionType.CHECKOUT,
                   InventoryTransactionType.WASTE,
+                  InventoryTransactionType.REFUND,
+                  InventoryTransactionType.VOID,
                 ],
               },
               occurredAt: {
@@ -613,11 +604,9 @@ export class ReportsService {
     let wasteCost = ZERO;
 
     for (const line of inventoryUsageLines) {
-      const lineCost = toDecimal(line.totalCostDelta).abs();
+      const lineCost = toDecimal(line.totalCostDelta).negated();
 
-      if (
-        line.inventoryTransaction.type === InventoryTransactionType.CHECKOUT
-      ) {
+      if (line.inventoryTransaction.type !== InventoryTransactionType.WASTE) {
         checkoutCost = checkoutCost.plus(lineCost);
       } else if (
         line.inventoryTransaction.type === InventoryTransactionType.WASTE
@@ -626,8 +615,9 @@ export class ReportsService {
       }
     }
 
-    const totalAmount = orderTotals._sum.totalAmount ?? ZERO;
-    const totalCogsAmount = orderTotals._sum.totalCogsAmount ?? ZERO;
+    const sales = summarizeSales(orderTotals);
+    const totalAmount = sales.netSales;
+    const totalCogsAmount = sales.cogs;
     const totalInventoryUsedCost = checkoutCost.plus(wasteCost);
     const snapshotTotals = inventorySnapshotTotals.map(
       (snapshot) => snapshot._sum.inventoryValue ?? ZERO,
@@ -672,93 +662,109 @@ export class ReportsService {
     const currentRange = this.resolveDateRange(filters);
     const rangeDurationMs = this.getRangeLengthMs(currentRange);
 
-    const [activeRawMaterials, activeVariants, topSellingOrderItems] =
-      await Promise.all([
-        this.prisma.rawMaterial.findMany({
-          where: {
-            isActive: true,
-          },
-          select: {
-            id: true,
-            name: true,
-            sku: true,
-            unit: true,
-          },
-          orderBy: {
-            name: 'asc',
-          },
-        }),
-        this.prisma.productVariant.findMany({
-          where: {
+    const [
+      activeRawMaterials,
+      activeVariants,
+      topSellingOrderItems,
+      variantFinancials,
+    ] = await Promise.all([
+      this.prisma.rawMaterial.findMany({
+        where: {
+          isActive: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          sku: true,
+          unit: true,
+        },
+        orderBy: {
+          name: 'asc',
+        },
+      }),
+      this.prisma.productVariant.findMany({
+        where: {
+          isEnabled: true,
+          product: {
             isEnabled: true,
-            product: {
-              isEnabled: true,
-            },
           },
-          select: {
-            id: true,
-            name: true,
-            sku: true,
-            product: {
-              select: {
-                id: true,
-                name: true,
-                category: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
+        },
+        select: {
+          id: true,
+          name: true,
+          sku: true,
+          product: {
+            select: {
+              id: true,
+              name: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true,
                 },
               },
             },
           },
-          orderBy: [
-            {
-              product: {
-                name: 'asc',
-              },
-            },
-            {
+        },
+        orderBy: [
+          {
+            product: {
               name: 'asc',
             },
-          ],
-        }),
-        this.prisma.orderItem.findMany({
-          where: {
-            order: {
-              status: OrderStatus.COMPLETED,
-              completedAt: {
-                gte: currentRange.from,
-                lte: currentRange.to,
-              },
-            },
           },
-          select: {
-            productVariantId: true,
-            quantity: true,
-            lineSubtotal: true,
-            productVariant: {
-              select: {
-                id: true,
-                name: true,
-                sku: true,
-                product: {
-                  select: {
-                    id: true,
-                    name: true,
-                    category: {
-                      select: {
-                        id: true,
-                        name: true,
-                      },
+          {
+            name: 'asc',
+          },
+        ],
+      }),
+      this.prisma.orderItem.findMany({
+        where: {
+          order: {
+            OR: [
+              { completedAt: { gte: currentRange.from, lte: currentRange.to } },
+              {
+                reversal: {
+                  occurredAt: { gte: currentRange.from, lte: currentRange.to },
+                },
+              },
+            ],
+          },
+        },
+        select: {
+          id: true,
+          productVariantId: true,
+          quantity: true,
+          lineSubtotal: true,
+          productVariant: {
+            select: {
+              id: true,
+              name: true,
+              sku: true,
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  category: {
+                    select: {
+                      id: true,
+                      name: true,
                     },
                   },
                 },
               },
             },
           },
-        }),
-      ]);
+        },
+      }),
+      this.salesQueries.variantMargins(
+        {
+          from: currentRange.from.toISOString(),
+          to: currentRange.to.toISOString(),
+        },
+        2147483647,
+        'revenue',
+      ),
+    ]);
 
     const rawMaterialIds = activeRawMaterials.map((material) => material.id);
     const topSellerMap = new Map<
@@ -783,8 +789,12 @@ export class ReportsService {
         revenue: ZERO,
       };
 
-      current.quantitySold += orderItem.quantity;
-      current.revenue = current.revenue.plus(orderItem.lineSubtotal);
+      const financial = variantFinancials.find(
+        (row) => row.productVariantId === orderItem.productVariantId,
+      );
+      if (!financial || financial.quantitySold <= 0) continue;
+      current.quantitySold = financial.quantitySold;
+      current.revenue = financial.revenue;
       topSellerMap.set(orderItem.productVariantId, current);
     }
 
@@ -1091,6 +1101,7 @@ export class ReportsService {
 
   async getPosDashboard(filters: ReportFiltersDto) {
     const limit = this.normalizeLimit(filters.limit);
+    const includeAllOrders = filters.includeAllOrders === 'true';
     const currentRange = this.resolveDateRange(filters);
     const previousRange = this.shiftRange(
       currentRange,
@@ -1101,89 +1112,74 @@ export class ReportsService {
       -7 * 24 * 60 * 60 * 1000,
     );
 
-    const [currentOrders, recentOrders, previousOrders, sameWeekOrders] =
-      await Promise.all([
-        this.prisma.order.findMany({
-          where: {
-            status: OrderStatus.COMPLETED,
-            completedAt: {
-              gte: currentRange.from,
-              lte: currentRange.to,
+    const [
+      currentSummary,
+      recentOrders,
+      previousSummary,
+      sameWeekSummary,
+      hourRows,
+      topProducts,
+    ] = await Promise.all([
+      this.aggregateOrderSummary(currentRange),
+      this.prisma.order.findMany({
+        where: {
+          status: OrderStatus.COMPLETED,
+          completedAt: {
+            gte: currentRange.from,
+            lte: currentRange.to,
+          },
+        },
+        orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
+        include: {
+          createdBy: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
             },
           },
-          orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
-          select: {
-            subtotalAmount: true,
-            discountAmount: true,
-            totalAmount: true,
-            completedAt: true,
-            items: {
-              select: {
-                productNameSnapshot: true,
-                quantity: true,
-                lineSubtotal: true,
-              },
-            },
-          },
-        }),
-        this.prisma.order.findMany({
-          where: {
-            status: OrderStatus.COMPLETED,
-            completedAt: {
-              gte: currentRange.from,
-              lte: currentRange.to,
-            },
-          },
-          orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
-          include: {
-            createdBy: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-              },
-            },
-            items: true,
-            payments: true,
-          },
-          take: Math.max(limit, 10),
-        }),
-        this.prisma.order.findMany({
-          where: {
-            status: OrderStatus.COMPLETED,
-            completedAt: {
-              gte: previousRange.from,
-              lte: previousRange.to,
-            },
-          },
-          select: {
-            subtotalAmount: true,
-            discountAmount: true,
-            totalAmount: true,
-          },
-        }),
-        this.prisma.order.findMany({
-          where: {
-            status: OrderStatus.COMPLETED,
-            completedAt: {
-              gte: samePeriodLastWeek.from,
-              lte: samePeriodLastWeek.to,
-            },
-          },
-          select: {
-            subtotalAmount: true,
-            discountAmount: true,
-            totalAmount: true,
-          },
-        }),
-      ]);
+          items: true,
+          payments: true,
+        },
+        ...(includeAllOrders ? {} : { take: Math.max(limit, 10) }),
+      }),
+      this.aggregateOrderSummary(previousRange),
+      this.aggregateOrderSummary(samePeriodLastWeek),
+      this.salesQueries.hourlySales(currentRange),
+      this.salesQueries.productSales(currentRange),
+    ]);
 
-    const currentSummary = this.summarizeOrders(currentOrders);
-    const previousSummary = this.summarizeOrders(previousOrders);
-    const sameWeekSummary = this.summarizeOrders(sameWeekOrders);
-    const topProduct = this.getTopProduct(currentOrders);
-    const trend = this.buildDashboardTrend(currentRange, currentOrders);
+    const topProduct = this.getTopProduct(
+      topProducts.map((row) => ({
+        items: [
+          {
+            productNameSnapshot: row.productName,
+            quantity: row.quantitySold,
+            lineSubtotal: row.revenue,
+          },
+        ],
+      })),
+    );
+    const trend = {
+      granularity: 'hourly' as const,
+      points: Array.from(
+        {
+          length:
+            CAFE_OPERATING_HOURS.closingHour - CAFE_OPERATING_HOURS.openingHour,
+        },
+        (_, index) => {
+          const hour = index + CAFE_OPERATING_HOURS.openingHour;
+          const row = hourRows.find((item) => item.hour === hour);
+          return {
+            bucketKey: `hour:${hour}`,
+            label: this.formatHourLabel(hour),
+            netSales: row?.netSales ?? ZERO,
+            transactionCount: row?.transactionCount ?? 0,
+          };
+        },
+      ),
+    };
 
     return {
       period: {
@@ -1213,21 +1209,28 @@ export class ReportsService {
       },
       topProduct,
       trend,
-      recentOrders: recentOrders.slice(0, limit).map((order) => ({
-        id: order.id,
-        displayOrderNumber: this.ordersService.getDisplayOrderNumber(order.id),
-        completedAt: order.completedAt,
-        totalAmount: order.totalAmount,
-        subtotalAmount: order.subtotalAmount,
-        discountAmount: order.discountAmount,
-        taxAmount: order.taxAmount,
-        createdBy: order.createdBy,
-        itemCount: order.items.length,
-        quantitySold: order.items.reduce((sum, item) => sum + item.quantity, 0),
-        paymentMethods: [
-          ...new Set(order.payments.map((payment) => payment.method)),
-        ],
-      })),
+      recentOrders: recentOrders
+        .slice(0, includeAllOrders ? undefined : limit)
+        .map((order) => ({
+          id: order.id,
+          displayOrderNumber: this.ordersService.getDisplayOrderNumber(
+            order.id,
+          ),
+          completedAt: order.completedAt,
+          totalAmount: order.totalAmount,
+          subtotalAmount: order.subtotalAmount,
+          discountAmount: order.discountAmount,
+          taxAmount: order.taxAmount,
+          createdBy: order.createdBy,
+          itemCount: order.items.length,
+          quantitySold: order.items.reduce(
+            (sum, item) => sum + item.quantity,
+            0,
+          ),
+          paymentMethods: [
+            ...new Set(order.payments.map((payment) => payment.method)),
+          ],
+        })),
     };
   }
 
@@ -1239,6 +1242,7 @@ export class ReportsService {
       {
         page,
         pageSize,
+        orderIdOrStaffName: true,
       },
     );
 
@@ -1266,71 +1270,19 @@ export class ReportsService {
       -this.getRangeLengthMs(currentRange),
     );
 
-    const [currentOrders, previousOrders, currentRefunds, previousRefunds] =
-      await Promise.all([
-        this.prisma.order.findMany({
-          where: this.buildCompletedOrderWhereForRange(currentRange, {
-            staffSearch: filters.staffSearch,
-            paymentMethod: filters.paymentMethod,
-          }),
-          select: {
-            id: true,
-            subtotalAmount: true,
-            discountAmount: true,
-            totalAmount: true,
-            completedAt: true,
-          },
-          orderBy: [{ completedAt: 'asc' }, { id: 'asc' }],
-        }),
-        this.prisma.order.findMany({
-          where: this.buildCompletedOrderWhereForRange(previousRange, {
-            staffSearch: filters.staffSearch,
-            paymentMethod: filters.paymentMethod,
-          }),
-          select: {
-            id: true,
-            subtotalAmount: true,
-            discountAmount: true,
-            totalAmount: true,
-            completedAt: true,
-          },
-        }),
-        this.prisma.orderReversal.findMany({
-          where: this.buildRefundWhereForRange(currentRange, {
-            staffSearch: filters.staffSearch,
-            paymentMethod: filters.paymentMethod,
-          }),
-          select: {
-            id: true,
-            amount: true,
-            occurredAt: true,
-          },
-          orderBy: [{ occurredAt: 'asc' }, { id: 'asc' }],
-        }),
-        this.prisma.orderReversal.findMany({
-          where: this.buildRefundWhereForRange(previousRange, {
-            staffSearch: filters.staffSearch,
-            paymentMethod: filters.paymentMethod,
-          }),
-          select: {
-            id: true,
-            amount: true,
-            occurredAt: true,
-          },
-        }),
-      ]);
-
-    const refundTotal = sumDecimals(
-      currentRefunds.map((refund) => refund.amount),
-    );
-    const previousRefundTotal = sumDecimals(
-      previousRefunds.map((refund) => refund.amount),
-    );
-    const summary = this.summarizeSalesAnalytics(currentOrders, refundTotal);
-    const previousPeriod = this.summarizeSalesAnalytics(
-      previousOrders,
-      previousRefundTotal,
-    );
+    const queryFilters = {
+      staffSearch: filters.staffSearch,
+      paymentMethod: filters.paymentMethod,
+    };
+    const [currentOrders, previousPeriodSummary] = await Promise.all([
+      this.salesQueries.dailySales(currentRange, queryFilters),
+      this.aggregateOrderSummary(previousRange, queryFilters),
+    ]);
+    const summary = this.summarizeSalesAnalytics(currentOrders);
+    const previousPeriod = {
+      ...previousPeriodSummary,
+      averageTicketSize: previousPeriodSummary.averageOrderValue,
+    };
 
     return {
       period: {
@@ -1354,7 +1306,7 @@ export class ReportsService {
           ),
         },
       },
-      groups: this.groupSalesAnalytics(groupBy, currentOrders, currentRefunds),
+      groups: this.groupSalesAnalytics(groupBy, currentOrders),
     };
   }
 
@@ -1362,9 +1314,19 @@ export class ReportsService {
     const currentRange = this.resolveDateRange(filters);
     const limit = this.normalizeLimit(filters.limit);
     const orders = await this.prisma.order.findMany({
-      where: this.buildCompletedOrderWhereForRange(currentRange),
+      where: {
+        OR: [
+          { completedAt: { gte: currentRange.from, lte: currentRange.to } },
+          {
+            reversal: {
+              occurredAt: { gte: currentRange.from, lte: currentRange.to },
+            },
+          },
+        ],
+      },
       orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
       include: {
+        reversal: true,
         createdBy: {
           select: {
             id: true,
@@ -1406,36 +1368,62 @@ export class ReportsService {
     let splitPaymentTransactionCount = 0;
     let splitPaymentCollected = ZERO;
 
+    const collectionFactor = (order: (typeof orders)[number]) => {
+      if (!order.reversal) return new Prisma.Decimal(1);
+      const soldInRange =
+        order.completedAt >= currentRange.from &&
+        order.completedAt <= currentRange.to;
+      const reversedInRange =
+        order.reversal.occurredAt >= currentRange.from &&
+        order.reversal.occurredAt <= currentRange.to;
+      return new Prisma.Decimal(soldInRange ? 1 : 0).minus(
+        reversedInRange && order.totalAmount.greaterThan(0)
+          ? order.reversal.amount.dividedBy(order.totalAmount)
+          : ZERO,
+      );
+    };
+
     for (const order of orders) {
+      const factor = collectionFactor(order);
       if (order.payments.length > 1) {
-        splitPaymentTransactionCount += 1;
-        splitPaymentCollected = splitPaymentCollected.plus(order.totalAmount);
+        if (
+          order.completedAt >= currentRange.from &&
+          order.completedAt <= currentRange.to
+        )
+          splitPaymentTransactionCount += 1;
+        splitPaymentCollected = splitPaymentCollected.plus(
+          order.totalAmount.mul(factor),
+        );
       }
 
       // Payment rows store tendered amounts. Attribute only the amount kept:
       // change is returned from cash first, including split-payment orders.
       let change = Prisma.Decimal.max(
-        sumDecimals(order.payments.map((payment) => payment.amount)).minus(order.totalAmount),
+        sumDecimals(order.payments.map((payment) => payment.amount)).minus(
+          order.totalAmount,
+        ),
         ZERO,
       );
-      const payments = [...order.payments].sort((a, b) =>
-        Number(b.method === PaymentMethod.CASH) - Number(a.method === PaymentMethod.CASH),
+      const payments = [...order.payments].sort(
+        (a, b) =>
+          Number(b.method === PaymentMethod.CASH) -
+          Number(a.method === PaymentMethod.CASH),
       );
       for (const payment of payments) {
         const returned = Prisma.Decimal.min(change, payment.amount);
         const collected = payment.amount.minus(returned);
         change = change.minus(returned);
         const current = breakdownMap.get(payment.method)!;
-        current.amount = current.amount.plus(collected);
+        current.amount = current.amount.plus(collected.mul(factor));
         current.paymentCount += 1;
         current.orderIds.add(order.id);
       }
     }
 
     const totalCollected = sumDecimals(
-      orders.map((order) => order.totalAmount),
+      orders.map((order) => order.totalAmount.mul(collectionFactor(order))),
     );
-    const breakdown = PAYMENT_METHODS.filter((method) => method !== PaymentMethod.OTHER).map((method) => {
+    const breakdown = PAYMENT_METHODS.map((method) => {
       const item = breakdownMap.get(method)!;
       return {
         method,
@@ -1454,14 +1442,17 @@ export class ReportsService {
         to: currentRange.to.toISOString(),
       },
       summary: {
-        completedTransactionCount: orders.length,
+        completedTransactionCount: orders.filter(
+          (order) =>
+            order.completedAt >= currentRange.from &&
+            order.completedAt <= currentRange.to,
+        ).length,
         totalCollected,
         cashTotal: breakdownMap.get(PaymentMethod.CASH)?.amount ?? ZERO,
         cardTotal: breakdownMap.get(PaymentMethod.CARD)?.amount ?? ZERO,
         ewalletTotal: (
           breakdownMap.get(PaymentMethod.GCASH)?.amount ?? ZERO
         ).plus(breakdownMap.get(PaymentMethod.MAYA)?.amount ?? ZERO),
-        otherTotal: breakdownMap.get(PaymentMethod.OTHER)?.amount ?? ZERO,
         splitPaymentTransactionCount,
         splitPaymentCollected,
       },
@@ -1710,47 +1701,37 @@ export class ReportsService {
 
   async getPosProductPerformance(filters: PosProductPerformanceDto) {
     const currentRange = this.resolveDateRange(filters);
-    const products = await this.prisma.product.findMany({
-      where: {
-        categoryId: filters.categoryId,
-      },
-      orderBy: [{ name: 'asc' }],
-      include: {
-        category: true,
-        variants: {
-          include: {
-            orderItems: {
-              where: {
-                order: {
-                  status: OrderStatus.COMPLETED,
-                  completedAt: {
-                    gte: currentRange.from,
-                    lte: currentRange.to,
-                  },
-                },
-              },
-              select: {
-                orderId: true,
-                quantity: true,
-                lineSubtotal: true,
-                lineCogsAmount: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const [products, financialRows] = await Promise.all([
+      this.prisma.product.findMany({
+        where: { categoryId: filters.categoryId },
+        orderBy: [{ name: 'asc' }],
+        include: { category: true, variants: true },
+      }),
+      this.salesQueries.productSales(currentRange),
+    ]);
+
+    const knownProducts = new Set(products.map((product) => product.id));
+    for (const row of financialRows) {
+      if (knownProducts.has(row.productId) || filters.categoryId) continue;
+      products.push({
+        id: row.productId,
+        name: row.productName,
+        category: { id: 'historical', name: 'Historical / deleted products' },
+        variants: [],
+      } as unknown as (typeof products)[number]);
+      knownProducts.add(row.productId);
+    }
 
     const productRows = products.map((product) => {
-      const itemRows = product.variants.flatMap(
-        (variant) => variant.orderItems,
+      const itemRows = financialRows.filter(
+        (row) => row.productId === product.id,
       );
       const quantitySold = itemRows.reduce(
-        (sum, item) => sum + item.quantity,
+        (sum, item) => sum + item.quantitySold,
         0,
       );
-      const revenue = sumDecimals(itemRows.map((item) => item.lineSubtotal));
-      const cogs = sumDecimals(itemRows.map((item) => item.lineCogsAmount));
+      const revenue = sumDecimals(itemRows.map((item) => item.revenue));
+      const cogs = sumDecimals(itemRows.map((item) => item.cogs));
       const grossMargin = revenue.minus(cogs);
       const orderCount = new Set(itemRows.map((item) => item.orderId)).size;
 
@@ -1877,7 +1858,7 @@ export class ReportsService {
 
   async getPosStaffPerformance(filters: ReportFiltersDto) {
     const currentRange = this.resolveDateRange(filters);
-    const [orders, reversals] = await Promise.all([
+    const [orders, reversals, financialRows] = await Promise.all([
       this.prisma.order.findMany({
         where: {
           status: OrderStatus.COMPLETED,
@@ -1910,6 +1891,18 @@ export class ReportsService {
         },
         select: {
           actorUserId: true,
+          order: {
+            select: {
+              createdBy: {
+                select: {
+                  id: true,
+                  email: true,
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
           type: true,
           amount: true,
           actorUser: {
@@ -1922,6 +1915,7 @@ export class ReportsService {
           },
         },
       }),
+      this.salesQueries.staffSales(currentRange),
     ]);
 
     const staffMap = new Map<
@@ -1987,9 +1981,51 @@ export class ReportsService {
       staffMap.set(reversal.actorUserId, current);
     }
 
+    for (const financial of financialRows) {
+      const person = {
+        id: financial.createdByUserId,
+        email: financial.email,
+        firstName: financial.firstName,
+        lastName: financial.lastName,
+      };
+      const entry = staffMap.get(person.id) ?? {
+        staff: person,
+        grossSales: ZERO,
+        netSales: ZERO,
+        discounts: ZERO,
+        transactionCount: 0,
+        refundCount: 0,
+        refundedAmount: ZERO,
+        voidCount: 0,
+        voidedAmount: ZERO,
+      };
+      entry.grossSales = financial.subtotalAmount;
+      entry.netSales = financial.totalAmount;
+      entry.discounts = financial.discountAmount;
+      entry.transactionCount = financial.transactionCount;
+      staffMap.set(person.id, entry);
+    }
+
     const rows = [...staffMap.values()]
       .map((row) => ({
         ...row,
+        taxes:
+          financialRows.find(
+            (financial) => financial.createdByUserId === row.staff.id,
+          )?.taxAmount ?? ZERO,
+        cogs:
+          financialRows.find(
+            (financial) => financial.createdByUserId === row.staff.id,
+          )?.cogs ?? ZERO,
+        collectedAmount:
+          financialRows.find(
+            (financial) => financial.createdByUserId === row.staff.id,
+          )?.collectedAmount ?? ZERO,
+        grossMargin: row.netSales.minus(
+          financialRows.find(
+            (financial) => financial.createdByUserId === row.staff.id,
+          )?.cogs ?? ZERO,
+        ),
         averageOrderValue:
           row.transactionCount > 0
             ? row.netSales.dividedBy(row.transactionCount)
@@ -2041,20 +2077,7 @@ export class ReportsService {
   async getPosPeakHours(filters: PosPeakHoursDto) {
     const currentRange = this.resolveDateRange(filters);
     const dayType = filters.dayType ?? 'all';
-    const orders = await this.prisma.order.findMany({
-      where: {
-        status: OrderStatus.COMPLETED,
-        completedAt: {
-          gte: currentRange.from,
-          lte: currentRange.to,
-        },
-      },
-      select: {
-        completedAt: true,
-        subtotalAmount: true,
-        totalAmount: true,
-      },
-    });
+    const hourRows = await this.salesQueries.hourlySales(currentRange, dayType);
 
     const buckets = Array.from({ length: 24 }, (_, hour) => ({
       hour,
@@ -2064,19 +2087,11 @@ export class ReportsService {
       transactionCount: 0,
     }));
 
-    for (const order of orders) {
-      if (
-        dayType !== 'all' &&
-        !this.matchesPeakDayType(order.completedAt, dayType)
-      ) {
-        continue;
-      }
-
-      const hour = this.getManilaHour(order.completedAt);
-      const bucket = buckets[hour];
-      bucket.grossSales = bucket.grossSales.plus(order.subtotalAmount);
-      bucket.netSales = bucket.netSales.plus(order.totalAmount);
-      bucket.transactionCount += 1;
+    for (const row of hourRows) {
+      const bucket = buckets[row.hour];
+      bucket.grossSales = row.grossSales;
+      bucket.netSales = row.netSales;
+      bucket.transactionCount = row.transactionCount;
     }
 
     const hourly = buckets.map((bucket) => ({
@@ -2140,8 +2155,20 @@ export class ReportsService {
     if (materialSearch) {
       lineConditions.push({
         OR: [
-          { rawMaterialSnapshot: { path: ["name"], string_contains: materialSearch, mode: "insensitive" } },
-          { rawMaterialSnapshot: { path: ["sku"], string_contains: materialSearch, mode: "insensitive" } },
+          {
+            rawMaterialSnapshot: {
+              path: ['name'],
+              string_contains: materialSearch,
+              mode: 'insensitive',
+            },
+          },
+          {
+            rawMaterialSnapshot: {
+              path: ['sku'],
+              string_contains: materialSearch,
+              mode: 'insensitive',
+            },
+          },
           {
             rawMaterial: {
               name: {
@@ -2219,63 +2246,96 @@ export class ReportsService {
       });
     }
 
-    const lines = (await this.prisma.inventoryTransactionLine.findMany({
-      where: {
-        inventoryTransaction: {
-          type: InventoryTransactionType.CHECKOUT,
-          sourceType: InventorySourceType.ORDER,
-          occurredAt: {
-            gte: currentRange.from,
-            lte: currentRange.to,
+    const lines = (
+      await this.prisma.inventoryTransactionLine.findMany({
+        where: {
+          inventoryTransaction: {
+            type: {
+              in: [
+                InventoryTransactionType.CHECKOUT,
+                InventoryTransactionType.REFUND,
+                InventoryTransactionType.VOID,
+              ],
+            },
+            sourceType: {
+              in: [
+                InventorySourceType.ORDER,
+                InventorySourceType.ORDER_REFUND,
+                InventorySourceType.ORDER_VOID,
+              ],
+            },
+            occurredAt: {
+              gte: currentRange.from,
+              lte: currentRange.to,
+            },
           },
+          AND: lineConditions.length > 0 ? lineConditions : undefined,
         },
-        AND: lineConditions.length > 0 ? lineConditions : undefined,
-      },
-      include: {
-        inventoryTransaction: {
-          select: {
-            id: true,
-            sourceId: true,
-            occurredAt: true,
+        include: {
+          inventoryTransaction: {
+            select: {
+              id: true,
+              sourceId: true,
+              occurredAt: true,
+              type: true,
+              metadata: true,
+            },
           },
-        },
-        rawMaterial: {
-          include: {
-            unit: true,
-            summary: true,
+          rawMaterial: {
+            include: {
+              unit: true,
+              summary: true,
+            },
           },
-        },
-        productVariant: {
-          include: {
-            product: {
-              include: {
-                category: true,
+          productVariant: {
+            include: {
+              product: {
+                include: {
+                  category: true,
+                },
               },
             },
           },
-        },
-        orderItem: {
-          select: {
-            id: true,
-            orderId: true,
-            quantity: true,
-            lineSubtotal: true,
-            lineCogsAmount: true,
-            productNameSnapshot: true,
-            variantNameSnapshot: true,
-            skuSnapshot: true,
+          orderItem: {
+            select: {
+              id: true,
+              orderId: true,
+              quantity: true,
+              lineSubtotal: true,
+              order: {
+                select: {
+                  subtotalAmount: true,
+                  totalAmount: true,
+                  taxAmount: true,
+                  items: { select: { id: true, lineSubtotal: true } },
+                },
+              },
+              lineCogsAmount: true,
+              inventoryLines: {
+                where: {
+                  inventoryTransaction: {
+                    type: InventoryTransactionType.CHECKOUT,
+                    sourceType: InventorySourceType.ORDER,
+                  },
+                },
+                select: { totalCostDelta: true },
+              },
+              productNameSnapshot: true,
+              variantNameSnapshot: true,
+              skuSnapshot: true,
+            },
           },
         },
-      },
-      orderBy: [
-        {
-          inventoryTransaction: {
-            occurredAt: 'desc',
+        orderBy: [
+          {
+            inventoryTransaction: {
+              occurredAt: 'desc',
+            },
           },
-        },
-        { createdAt: 'desc' },
-      ],
-    })).map(withHistoricalMaterial);
+          { createdAt: 'desc' },
+        ],
+      })
+    ).map(withHistoricalMaterial);
 
     const materialIds = [...new Set(lines.map((line) => line.rawMaterialId))];
     const activeLowStockAlerts = materialIds.length
@@ -2357,7 +2417,6 @@ export class ReportsService {
             category: { id: string; name: string } | null;
           };
         };
-        materialConsumptionQuantity: Prisma.Decimal;
         materialConsumptionCost: Prisma.Decimal;
       }
     >();
@@ -2368,7 +2427,6 @@ export class ReportsService {
         transactionId: string;
         orderId: string | null;
         occurredAt: Date;
-        consumedQuantity: Prisma.Decimal;
         consumptionCost: Prisma.Decimal;
         materialIds: Set<string>;
         variantIds: Set<string>;
@@ -2377,8 +2435,13 @@ export class ReportsService {
     >();
 
     for (const line of lines) {
-      const quantityUsed = toDecimal(line.quantityDelta).abs();
-      const costUsed = toDecimal(line.totalCostDelta).abs();
+      const lineOrderId =
+        line.orderItem?.orderId ??
+        (line.inventoryTransaction.type === InventoryTransactionType.CHECKOUT
+          ? line.inventoryTransaction.sourceId
+          : this.getJsonString(line.inventoryTransaction.metadata, 'orderId'));
+      const quantityUsed = toDecimal(line.quantityDelta).negated();
+      const costUsed = toDecimal(line.totalCostDelta).negated();
       const summary = line.rawMaterial.summary;
       const currentOnHandQuantity = summary?.onHandQuantity ?? ZERO;
       const currentUsableQuantity = summary?.usableQuantity ?? ZERO;
@@ -2411,8 +2474,8 @@ export class ReportsService {
       materialEntry.consumptionCost =
         materialEntry.consumptionCost.plus(costUsed);
       materialEntry.movementLineCount += 1;
-      if (line.inventoryTransaction.sourceId) {
-        materialEntry.orderIds.add(line.inventoryTransaction.sourceId);
+      if (lineOrderId) {
+        materialEntry.orderIds.add(lineOrderId);
       }
       if (line.productVariantId) {
         materialEntry.variantIds.add(line.productVariantId);
@@ -2420,9 +2483,14 @@ export class ReportsService {
       materialMap.set(line.rawMaterialId, materialEntry);
 
       if (line.orderItem) {
-        const existingOrderItem = orderItemMap.get(line.orderItem.id);
+        const eventItemId = `${line.inventoryTransactionId}:${line.orderItem.id}`;
+        const sign =
+          line.inventoryTransaction.type === InventoryTransactionType.CHECKOUT
+            ? 1
+            : -1;
+        const existingOrderItem = orderItemMap.get(eventItemId);
         if (!existingOrderItem) {
-          orderItemMap.set(line.orderItem.id, {
+          orderItemMap.set(eventItemId, {
             id: line.orderItem.id,
             orderId: line.orderItem.orderId,
             productVariantId: line.productVariantId,
@@ -2436,9 +2504,19 @@ export class ReportsService {
               'Unknown variant',
             sku:
               line.orderItem.skuSnapshot ?? line.productVariant?.sku ?? 'N/A',
-            quantity: line.orderItem.quantity,
-            lineSubtotal: line.orderItem.lineSubtotal,
-            lineCogsAmount: line.orderItem.lineCogsAmount,
+            quantity: line.orderItem.quantity * sign,
+            lineSubtotal: itemNetRevenue(
+              line.orderItem.id,
+              line.orderItem.order,
+            ).mul(sign),
+            lineCogsAmount: (line.orderItem.inventoryLines.length
+              ? sumDecimals(
+                  line.orderItem.inventoryLines.map((stock) =>
+                    toDecimal(stock.totalCostDelta).negated(),
+                  ),
+                )
+              : line.orderItem.lineCogsAmount
+            ).mul(sign),
             category: line.productVariant?.product.category
               ? {
                   id: line.productVariant.product.category.id,
@@ -2468,11 +2546,8 @@ export class ReportsService {
                 : null,
             },
           },
-          materialConsumptionQuantity: ZERO,
           materialConsumptionCost: ZERO,
         };
-        variantEntry.materialConsumptionQuantity =
-          variantEntry.materialConsumptionQuantity.plus(quantityUsed);
         variantEntry.materialConsumptionCost =
           variantEntry.materialConsumptionCost.plus(costUsed);
         variantConsumptionMap.set(line.productVariant.id, variantEntry);
@@ -2482,16 +2557,13 @@ export class ReportsService {
         line.inventoryTransactionId,
       ) ?? {
         transactionId: line.inventoryTransaction.id,
-        orderId: line.inventoryTransaction.sourceId ?? null,
+        orderId: lineOrderId ?? null,
         occurredAt: line.inventoryTransaction.occurredAt,
-        consumedQuantity: ZERO,
         consumptionCost: ZERO,
         materialIds: new Set<string>(),
         variantIds: new Set<string>(),
         movementLineCount: 0,
       };
-      transactionEntry.consumedQuantity =
-        transactionEntry.consumedQuantity.plus(quantityUsed);
       transactionEntry.consumptionCost =
         transactionEntry.consumptionCost.plus(costUsed);
       transactionEntry.materialIds.add(line.rawMaterialId);
@@ -2562,8 +2634,16 @@ export class ReportsService {
           cogs: variant.cogs,
           grossMargin: variant.revenue.minus(variant.cogs),
           orderCount: variant.orderIds.size,
-          materialConsumptionQuantity:
-            consumption?.materialConsumptionQuantity ?? ZERO,
+          materialQuantitiesByUnit: groupMaterialQuantities(
+            lines
+              .filter(
+                (line) => line.productVariantId === variant.productVariant.id,
+              )
+              .map((line) => ({
+                rawMaterial: line.rawMaterial,
+                consumedQuantity: toDecimal(line.quantityDelta).negated(),
+              })),
+          ),
           materialConsumptionCost: consumption?.materialConsumptionCost ?? ZERO,
         };
       })
@@ -2605,16 +2685,9 @@ export class ReportsService {
             : null,
         };
       })
-      .sort((left, right) => {
-        const quantityComparison = right.consumedQuantity.comparedTo(
-          left.consumedQuantity,
-        );
-        if (quantityComparison !== 0) {
-          return quantityComparison;
-        }
-
-        return right.consumptionCost.comparedTo(left.consumptionCost);
-      });
+      .sort((left, right) =>
+        right.consumptionCost.comparedTo(left.consumptionCost),
+      );
 
     const lowStockMaterials = materials
       .filter((material) => material.isLowStock || material.activeLowStockAlert)
@@ -2637,7 +2710,17 @@ export class ReportsService {
         transactionId: transaction.transactionId,
         orderId: transaction.orderId,
         occurredAt: transaction.occurredAt,
-        consumedQuantity: transaction.consumedQuantity,
+        materialQuantitiesByUnit: groupMaterialQuantities(
+          lines
+            .filter(
+              (line) =>
+                line.inventoryTransactionId === transaction.transactionId,
+            )
+            .map((line) => ({
+              rawMaterial: line.rawMaterial,
+              consumedQuantity: toDecimal(line.quantityDelta).negated(),
+            })),
+        ),
         consumptionCost: transaction.consumptionCost,
         rawMaterialCount: transaction.materialIds.size,
         variantCount: transaction.variantIds.size,
@@ -2658,8 +2741,8 @@ export class ReportsService {
             revenue: selectedVariantRow.revenue,
             cogs: selectedVariantRow.cogs,
             grossMargin: selectedVariantRow.grossMargin,
-            materialConsumptionQuantity:
-              selectedVariantRow.materialConsumptionQuantity,
+            materialQuantitiesByUnit:
+              selectedVariantRow.materialQuantitiesByUnit,
             materialConsumptionCost: selectedVariantRow.materialConsumptionCost,
           },
           materials: [...materialMap.values()]
@@ -2718,9 +2801,7 @@ export class ReportsService {
       },
       summary: {
         salesLinkedTransactionCount: transactionMap.size,
-        totalMaterialConsumptionQuantity: sumDecimals(
-          materials.map((material) => material.consumedQuantity),
-        ),
+        materialQuantitiesByUnit: groupMaterialQuantities(materials),
         totalConsumptionCost: sumDecimals(
           materials.map((material) => material.consumptionCost),
         ),
@@ -3224,43 +3305,29 @@ export class ReportsService {
     return Math.max(range.to.getTime() - range.from.getTime() + 1, 1);
   }
 
-  private summarizeOrders(
-    orders: Array<{
-      subtotalAmount: Prisma.Decimal;
-      discountAmount: Prisma.Decimal;
-      totalAmount: Prisma.Decimal;
-    }>,
-  ) {
-    const transactionCount = orders.length;
-    const grossSales = sumDecimals(orders.map((order) => order.subtotalAmount));
-    const discounts = sumDecimals(orders.map((order) => order.discountAmount));
-    const netSales = sumDecimals(orders.map((order) => order.totalAmount));
-    const averageOrderValue =
-      transactionCount > 0 ? netSales.dividedBy(transactionCount) : ZERO;
-
+  private withVariantMargin<T extends { revenue: Prisma.Decimal; cogs: Prisma.Decimal }>(variant: T) {
+    const grossMargin = variant.revenue.minus(variant.cogs);
     return {
-      grossSales,
-      netSales,
-      discounts,
-      transactionCount,
-      averageOrderValue,
+      ...variant,
+      grossMargin,
+      marginRate: variant.revenue.greaterThan(0) ? grossMargin.dividedBy(variant.revenue).toNumber() : 0,
     };
   }
 
-  private summarizeSalesAnalytics(
-    orders: Array<{
-      subtotalAmount: Prisma.Decimal;
-      discountAmount: Prisma.Decimal;
-      totalAmount: Prisma.Decimal;
-    }>,
-    refunds: Prisma.Decimal,
+  private async aggregateOrderSummary(
+    range: { from: Date; to: Date },
+    filters: { staffSearch?: string; paymentMethod?: PaymentMethod } = {},
   ) {
+    return summarizeSales(await this.salesQueries.totals(range, filters));
+  }
+
+  private summarizeOrders(orders: SalesAmounts[]) {
+    return summarizeSales(orders);
+  }
+
+  private summarizeSalesAnalytics(orders: SalesAmounts[]) {
     const summary = this.summarizeOrders(orders);
-    return {
-      ...summary,
-      refunds,
-      averageTicketSize: summary.averageOrderValue,
-    };
+    return { ...summary, averageTicketSize: summary.averageOrderValue };
   }
 
   private buildDashboardTrend(
@@ -3308,77 +3375,32 @@ export class ReportsService {
 
   private groupSalesAnalytics(
     groupBy: 'daily' | 'weekly' | 'monthly',
-    orders: Array<{
-      subtotalAmount: Prisma.Decimal;
-      discountAmount: Prisma.Decimal;
-      totalAmount: Prisma.Decimal;
-      completedAt: Date;
-    }>,
-    refunds: Array<{
-      amount: Prisma.Decimal;
-      occurredAt: Date;
-    }>,
+    orders: Array<SalesAmounts & { completedAt: Date }>,
   ) {
-    const bucketMap = new Map<
+    const buckets = new Map<
       string,
       {
-        bucketKey: string;
-        label: string;
-        sortKey: string;
-        grossSales: Prisma.Decimal;
-        netSales: Prisma.Decimal;
-        discounts: Prisma.Decimal;
-        refunds: Prisma.Decimal;
-        transactionCount: number;
+        bucket: ReturnType<ReportsService['getSalesBucket']>;
+        rows: SalesAmounts[];
       }
     >();
-
     for (const order of orders) {
       const bucket = this.getSalesBucket(order.completedAt, groupBy);
-      const current = bucketMap.get(bucket.bucketKey) ?? {
-        ...bucket,
-        grossSales: ZERO,
-        netSales: ZERO,
-        discounts: ZERO,
-        refunds: ZERO,
-        transactionCount: 0,
-      };
-      current.grossSales = current.grossSales.plus(order.subtotalAmount);
-      current.netSales = current.netSales.plus(order.totalAmount);
-      current.discounts = current.discounts.plus(order.discountAmount);
-      current.transactionCount += 1;
-      bucketMap.set(bucket.bucketKey, current);
+      const entry = buckets.get(bucket.bucketKey) ?? { bucket, rows: [] };
+      entry.rows.push(order);
+      buckets.set(bucket.bucketKey, entry);
     }
-
-    for (const refund of refunds) {
-      const bucket = this.getSalesBucket(refund.occurredAt, groupBy);
-      const current = bucketMap.get(bucket.bucketKey) ?? {
-        ...bucket,
-        grossSales: ZERO,
-        netSales: ZERO,
-        discounts: ZERO,
-        refunds: ZERO,
-        transactionCount: 0,
-      };
-      current.refunds = current.refunds.plus(refund.amount);
-      bucketMap.set(bucket.bucketKey, current);
-    }
-
-    return [...bucketMap.values()]
-      .sort((left, right) => left.sortKey.localeCompare(right.sortKey))
-      .map((bucket) => ({
-        bucketKey: bucket.bucketKey,
-        label: bucket.label,
-        grossSales: bucket.grossSales,
-        netSales: bucket.netSales,
-        discounts: bucket.discounts,
-        refunds: bucket.refunds,
-        transactionCount: bucket.transactionCount,
-        averageTicketSize:
-          bucket.transactionCount > 0
-            ? bucket.netSales.dividedBy(bucket.transactionCount)
-            : ZERO,
-      }));
+    return [...buckets.values()]
+      .sort((a, b) => a.bucket.sortKey.localeCompare(b.bucket.sortKey))
+      .map(({ bucket, rows }) => {
+        const summary = summarizeSales(rows);
+        return {
+          bucketKey: bucket.bucketKey,
+          label: bucket.label,
+          ...summary,
+          averageTicketSize: summary.averageOrderValue,
+        };
+      });
   }
 
   private getTopProduct(

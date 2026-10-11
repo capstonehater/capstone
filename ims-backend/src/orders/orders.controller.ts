@@ -34,9 +34,7 @@ export class OrdersController {
   @Get('orders')
   @RequirePermission('pos.orders.view')
   async listOrders(@Query() filters: ListOrdersDto) {
-    return {
-      orders: await this.ordersService.listOrders(filters),
-    };
+    return this.ordersService.listOrders(filters);
   }
 
   @Get('orders/:id')

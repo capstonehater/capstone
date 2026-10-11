@@ -31,6 +31,18 @@ export function getTodayDateInput() {
   return formatDateInput(new Date());
 }
 
+export function getManilaDatesInRange(fromIso: string, toIso: string): string[] {
+  const from = new Date(fromIso);
+  const to = new Date(toIso);
+  if (!Number.isFinite(from.getTime()) || !Number.isFinite(to.getTime()) || from > to) return [];
+  const last = formatDateInput(to);
+  const dates: string[] = [];
+  for (let day = formatDateInput(from); day <= last; day = shiftDateInput(day, 1)) {
+    dates.push(day);
+  }
+  return dates;
+}
+
 export function shiftManilaDateInput(value: string, offsetDays: number) {
   return shiftDateInput(value, offsetDays);
 }

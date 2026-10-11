@@ -1,0 +1,62 @@
+name: Scaling deployment validation
+on:
+  pull_request:
+    paths:
+      - 'deploy/**'
+      - '**/Dockerfile'
+      - '.dockerignore'
+      - 'ims-backend/**'
+      - 'ims-frontend/**'
+      - 'python/**'
+      - 'AI-Store Reco/**'
+      - 'scripts/smoke-scaling.py'
+      - '.github/workflows/scaling.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      COMPOSE_FILE: deploy/compose.yml:deploy/compose.ci.yml
+      COMPOSE_ENV_FILES: deploy/.env
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Configure disposable stack
+        run: |
+          cat > deploy/.env <<'EOF'
+          DATABASE_URL=postgresql://ci:ci@database:5432/ims_ci?schema=public&connection_limit=5&pool_timeout=10
+          SESSION_TOKEN_SECRET=ci-only-session-secret
+          RESET_TOKEN_SECRET=ci-only-reset-secret
+          FRONTEND_ORIGIN=http://localhost:8080
+          FRONTEND_APP_URL=http://localhost:8080
+          AUTH_COOKIE_SECURE=false
+          EOF
+      - run: docker compose config --quiet
+      - run: docker compose build api web
+      - run: docker compose up -d --wait database
+      - run: docker compose run --rm migrate
+      - name: Boot API and frontend replicas
+        # Avoid starting automatic production jobs on the test database.
+        run: docker compose up -d --wait --wait-timeout 180 api web edge
+      - name: Validate Nginx and distribution
+        run: |
+          docker compose exec -T edge nginx -t
+          python scripts/smoke-scaling.py
+      - name: Scale to three API instances
+        run: |
+          docker compose up -d --wait --wait-timeout 180 --scale api=3 api
+          sleep 10
+          python scripts/smoke-scaling.py --min-api-instances 3
+      - name: Show diagnostics on failure
+        if: failure()
+        run: docker compose logs --tail=80
+      - name: Remove disposable stack
+        if: always()
+        run: docker compose down --volumes

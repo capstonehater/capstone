@@ -34,6 +34,42 @@ describe('StoreAvailabilityService', () => {
     ]);
   });
 
+  it('requires both coordinates before starting a live-location search', async () => {
+    await expect(service.start('material', { latitude: 14 })).rejects.toThrow(
+      'Provide both latitude and longitude.',
+    );
+    expect(prisma.storeAvailabilitySearch.create).not.toHaveBeenCalled();
+  });
+
+  it('forwards the same live origin to collection and persisted ranking', async () => {
+    const internals = service as unknown as {
+      runPython: (input: unknown) => Promise<unknown[]>;
+      execute: (
+        id: string,
+        product: string,
+        stores: unknown[],
+        origin: { latitude: number; longitude: number },
+      ) => Promise<void>;
+    };
+    const origin = { latitude: 0, longitude: 0 };
+    const spy = jest
+      .spyOn(internals, 'runPython')
+      .mockResolvedValueOnce([{ store_name: 'Shop', price: 100 }])
+      .mockResolvedValueOnce([
+        { store_name: 'Shop', price: 100, recommendation: { rank: 1 } },
+      ]);
+    await internals.execute('search', 'Rice', [], origin);
+    expect(spy).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ origin, collect_only: true }),
+    );
+    expect(spy).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ origin, persisted: true }),
+    );
+    spy.mockRestore();
+  });
+
   it('reuses a pending search without starting another worker', async () => {
     prisma.rawMaterial.findUnique.mockResolvedValue({
       id: 'material',

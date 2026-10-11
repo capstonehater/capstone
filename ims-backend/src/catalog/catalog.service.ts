@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { isContainerCategory } from './container-category';
 
 @Injectable()
 export class CatalogService {
@@ -58,7 +59,7 @@ export class CatalogService {
   }
 
   async getPosMenu() {
-    const products = await this.prisma.product.findMany({
+    const catalogProducts = await this.prisma.product.findMany({
       where: {
         archivedAt: null,
       },
@@ -90,7 +91,12 @@ export class CatalogService {
       },
     });
 
-    const categories = await this.listCategories();
+    const products = catalogProducts.filter(
+      (product) => !isContainerCategory(product.category.name),
+    );
+    const categories = (await this.listCategories()).filter(
+      (category) => !isContainerCategory(category.name),
+    );
     const rawMaterialIds = [
       ...new Set(
         products.flatMap((product) =>

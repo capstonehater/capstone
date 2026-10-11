@@ -8,15 +8,19 @@ type WidgetCardProps = {
   title: string;
   children: ReactNode;
   className?: string;
+  headerAction?: ReactNode;
 };
 
-export default function WidgetCard({ title, children, className = "" }: WidgetCardProps) {
+export default function WidgetCard({ title, children, className = "", headerAction }: WidgetCardProps) {
   const [columnControls, setColumnControls] = useState<HTMLDivElement | null>(null);
   return (
     <section className={`min-w-0 rounded-2xl bg-white p-4 shadow-sm ${className}`}>
       <div className="widget-card-header mb-4 flex items-center justify-between gap-3">
         <h2 className="min-w-0 text-lg font-semibold text-neutral-900">{title}</h2>
-        <div ref={setColumnControls} className="flex shrink-0 items-center gap-2 print:hidden" />
+        <div className="flex shrink-0 items-center gap-2 print:hidden">
+          {headerAction}
+          <div ref={setColumnControls} className="flex items-center gap-2" />
+        </div>
       </div>
       <ReportColumnsHeaderContext.Provider value={columnControls}>
         {children}

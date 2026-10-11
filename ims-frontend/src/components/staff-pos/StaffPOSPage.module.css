@@ -312,6 +312,38 @@
 .quantityControl button:disabled { background: #f1f5f9; color: #a8b3c3; cursor: not-allowed; opacity: .65; }
 .quantityControl button:disabled:hover { background: #f1f5f9; }
 
+.productHeading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 12px; }
+.productHeading h2 { min-width: 0; overflow-wrap: anywhere; }
+.productHeading > span { flex-shrink: 0; }
+.productCategory { min-width: 0; overflow-wrap: anywhere; }
+.productAdd { flex-shrink: 0; }
+
+/* Keep the cart usable beside the catalogue on portrait and landscape tablets. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .orderWorkspace { grid-template-columns: minmax(0, 1fr) clamp(300px, 34vw, 360px); gap: 16px; align-items: start; }
+  .posPage .cart { padding: 16px; }
+  .posPage:not([data-focus-mode="true"]) .cart { position: sticky; top: 16px; max-height: calc(100dvh - 32px); overflow-y: auto; }
+  .productGrid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: 12px; }
+  .productCardBody { padding: 14px; }
+  .productName { font-size: 18px; }
+  .productPrice strong { font-size: 21px; white-space: normal; overflow-wrap: anywhere; }
+  .cart h2 { font-size: 20px; }
+  .cartSummary { padding: 12px; }
+  .cartItemHeader > div:first-child { flex-basis: 140px; }
+  .posPage .cartSummary textarea, .posPage .cartSummary button[aria-haspopup="listbox"] { font-size: 16px; }
+  .posPage[data-focus-mode="true"] .cartActions { display: flex; flex-direction: column; }
+  .posPage[data-focus-mode="true"] .cartActions button:last-child { order: -1; }
+}
+
+@media (max-width: 767px) {
+  .posPage:not([data-focus-mode="true"]) { padding-bottom: 88px; }
+  .productPanel { padding: 12px; }
+  .productGrid { gap: 12px; }
+  .productCardBody { padding: 14px; }
+  .productSearch input, .posPage .cartSummary textarea, .posPage .cartSummary button[aria-haspopup="listbox"] { font-size: 16px; }
+  .cartHeader h2 { overflow-wrap: anywhere; }
+}
+
 @media (max-width:767px) {
   .posPage[data-focus-mode="true"] .categoryPanel { padding:0 2px 4px; }
   .posPage[data-focus-mode="true"] .categoryPanel > div:first-child { margin-bottom:12px; }

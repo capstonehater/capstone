@@ -5,6 +5,10 @@ const fs = require('node:fs');
 const ts = require('typescript');
 const { DOMParser } = require('linkedom');
 require.extensions['.ts'] = (module, filename) => {
+  const originalRequire = module.require.bind(module);
+  module.require = name => name === './report-export-access'
+    ? { authorizeReportExport: async () => {} }
+    : originalRequire(name);
   module._compile(ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText, filename);
@@ -21,7 +25,7 @@ function fixture(count = 1) {
     activeLowStockAlert: { severity: 'HIGH', title: 'Reorder rice', message: 'Stock is below reorder point' },
   };
   const productVariant = { name: 'Regular', product: { name: 'Rice Bowl', category: { name: 'Meals' } } };
-  const summary = { quantitySold: 6, revenue: '900', cogs: '360', grossMargin: '540', materialConsumptionQuantity: '12', materialConsumptionCost: '360' };
+  const summary = { quantitySold: 6, revenue: '900', cogs: '360', grossMargin: '540', materialQuantitiesByUnit: [{ unit: 'kg', quantity: '12' }], materialConsumptionCost: '360' };
   return {
     filters: { from: '2026-10-01', to: '2026-10-06' },
     kpiSummary: {
@@ -37,11 +41,11 @@ function fixture(count = 1) {
     inventoryLinked: {
       filters: { from: '2026-10-01', to: '2026-10-06', materialSearch: 'Rice', drilldownVariantName: 'Rice Bowl - Regular' },
       report: {
-        summary: { salesLinkedTransactionCount: 4, totalMaterialConsumptionQuantity: '12', totalConsumptionCost: '360', distinctMaterialsConsumed: 1, distinctVariantsSold: 1, lowStockConsumedMaterialCount: 1 },
+        summary: { salesLinkedTransactionCount: 4, materialQuantitiesByUnit: [{ unit: 'kg', quantity: '12' }], totalConsumptionCost: '360', distinctMaterialsConsumed: 1, distinctVariantsSold: 1, lowStockConsumedMaterialCount: 1 },
         materials: Array.from({ length: count }, (_, i) => ({ ...material, rawMaterial: { ...material.rawMaterial, sku: `RICE-${i}` } })),
         lowStockMaterials: Array.from({ length: 12 }, () => material),
         variants: [{ productVariant, ...summary, orderCount: 4 }],
-        recentSalesLinkedMovements: [{ transactionId: 'TX-1', orderId: 'ORDER-1', occurredAt: '2026-10-06T02:00:00Z', movementLineCount: 1, rawMaterialCount: 1, variantCount: 1, consumedQuantity: '12', consumptionCost: '360' }],
+        recentSalesLinkedMovements: [{ transactionId: 'TX-1', orderId: 'ORDER-1', occurredAt: '2026-10-06T02:00:00Z', movementLineCount: 1, rawMaterialCount: 1, variantCount: 1, materialQuantitiesByUnit: [{ unit: 'kg', quantity: '12' }], consumptionCost: '360' }],
         selectedVariantBreakdown: { productVariant, summary, materials: [material] },
       },
     },
@@ -66,9 +70,12 @@ test('PDF content includes every report section, filters, totals, alerts and all
   assert.equal(usage.headers.length, usage.rows[0].length);
   assert.ok(usage.rows[0].at(-1).includes('HIGH: Reorder rice'));
   assert.equal(section('Low-Stock or Reorder-Oriented Materials').rows.length, 12);
-  assert.equal(section('Recent Sales-Linked Stock Movements').rows[0][0], 'TX-1');
+  assert.equal(section('Recent Sales-Linked Stock Movements').rows[0][1], 'TX-1');
   assert.ok(section('Selected Variant Summary').rows.some(row => row[1] === 'Rice Bowl - Regular'));
   assert.equal(section('Selected Variant Material Breakdown').rows.length, 1);
+  assert.ok(html.includes('@page { size: A4 landscape;'));
+  assert.ok(html.includes('thead { display: table-header-group; }'));
+  assert.ok(!html.includes('border-radius: 10px'));
 });
 
 test('actual PDF paginates a large report, repeats headings, retains the final row and labels PHP', () => {

@@ -1,4 +1,5 @@
 "use client";
+import { formatStockQuantity } from "@/lib/inventory-quantity";
 
 import { formatUnit } from "@/lib/units";
 
@@ -92,7 +93,7 @@ export default function InventoryInsightPage({ kind, embedded = false }: { kind:
                     <th scope="row" className="px-5 py-4 text-left font-medium">{row.name}{row.detail ? <span className="mt-1 block text-xs font-normal text-slate-500">{row.detail}</span> : null}</th>
                     {kind === "waste" ? <td className="px-5 py-4 text-left"><span className="block break-words">{row.materialName}<span className="block text-xs text-slate-500">{row.materialSku}</span></span></td> : null}
                     {kind === "waste" ? <td className="px-5 py-4 text-right tabular-nums">{quantityFormat.format(row.events ?? 0)}</td> : null}
-                    <td className="px-5 py-4 text-right tabular-nums">{quantityFormat.format(row.quantity)}</td>
+                    <td className="px-5 py-4 text-right tabular-nums">{kind === "value" ? formatStockQuantity(row.quantity) : quantityFormat.format(row.quantity)}</td>
                     {kind === "value" ? <td className="px-5 py-4 text-left">{row.unit}</td> : null}
                     <td className="px-5 py-4 text-right font-semibold tabular-nums">{moneyFormat.format(row.amount)}</td>
                   </tr>

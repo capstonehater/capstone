@@ -30,12 +30,34 @@ if ((Test-Path -LiteralPath $pgCtl) -and (Test-Path -LiteralPath "$data/PG_VERSI
     Write-Host 'Using PostgreSQL configured in ims-backend/.env. Its service must be running.'
 }
 
+function Wait-AppReady($name, $port, $process = $null) {
+    $deadline = [DateTime]::UtcNow.AddSeconds(45)
+    do {
+        if ($process) {
+            $process.Refresh()
+            if ($process.HasExited) {
+                throw "$name exited during startup. See .local/$name-error.log."
+            }
+        }
+        $probe = New-Object Net.Sockets.TcpClient
+        try {
+            $connection = $probe.ConnectAsync('127.0.0.1', $port)
+            if ($connection.Wait(500) -and $probe.Connected) { return }
+        } catch {
+            # Retry while the application is initializing.
+        } finally { $probe.Dispose() }
+        Start-Sleep -Milliseconds 500
+    } while ([DateTime]::UtcNow -lt $deadline)
+    throw "$name did not become ready on port $port. See .local/$name.log and .local/$name-error.log."
+}
+
 function Start-App($name, $directory, $arguments, $port) {
     $pidFile = Join-Path $local "$name.pid"
     if (Test-Path $pidFile) {
         $saved = Get-Content $pidFile | ConvertFrom-Json
         $running = Get-Process -Id $saved.id -ErrorAction SilentlyContinue
         if ($running -and $running.StartTime.ToUniversalTime().ToString('o') -eq $saved.started) {
+            Wait-AppReady $name $port $running
             Write-Host "$name is already running."
             return
         }
@@ -43,12 +65,26 @@ function Start-App($name, $directory, $arguments, $port) {
     $probe = New-Object Net.Sockets.TcpClient
     try {
         $probe.Connect('127.0.0.1', $port)
+        if ($name -eq 'backend') {
+            try {
+                $response = Invoke-WebRequest -Uri "http://127.0.0.1:$port/auth/me" -UseBasicParsing -TimeoutSec 5
+                $status = [int]$response.StatusCode
+            } catch {
+                if (!$_.Exception.Response) { throw }
+                $status = [int]$_.Exception.Response.StatusCode
+            }
+            if ($status -eq 200 -or $status -eq 401) {
+                Write-Host 'backend is already responding.'
+                return
+            }
+        }
         throw "Port $port is already occupied. Stop the application using it before starting $name."
     } catch [Net.Sockets.SocketException] {
         # An unused port is expected.
     } finally { $probe.Dispose() }
     $process = Start-Process -FilePath $node -ArgumentList $arguments -WorkingDirectory $directory -WindowStyle Hidden -RedirectStandardOutput "$local/$name.log" -RedirectStandardError "$local/$name-error.log" -PassThru
     @{ id = $process.Id; started = $process.StartTime.ToUniversalTime().ToString('o') } | ConvertTo-Json | Set-Content $pidFile
+    Wait-AppReady $name $port $process
     Write-Host "Started $name (PID $($process.Id))."
 }
 

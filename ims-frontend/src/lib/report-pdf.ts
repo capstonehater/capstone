@@ -46,9 +46,10 @@ export function buildReportPdfDocument(content: {
   const printable = (value: string) => value.replaceAll("₱", "PHP ").replaceAll("\u00a0", " ");
   let y = 20;
   pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(19);
-  pdf.text(content.title, margin, y);
-  y += 8;
+  pdf.setFontSize(16);
+  const titleLines: string[] = pdf.splitTextToSize(content.title, width - margin * 2);
+  pdf.text(titleLines, margin, y);
+  y += titleLines.length * 6 + 3;
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9);
   for (const line of content.metadata) {
@@ -69,16 +70,24 @@ export function buildReportPdfDocument(content: {
       y = 22;
     }
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(12);
-    pdf.text(section.title, margin, y);
+    pdf.setFontSize(11);
+    const headingLines: string[] = pdf.splitTextToSize(section.title, width - margin * 2);
+    pdf.text(headingLines, margin, y);
+    y += (headingLines.length - 1) * 5;
+    const numericColumns = Object.fromEntries(section.headers.flatMap((label, index) =>
+      /cost|amount|sales|revenue|margin|quantity|qty|count|events|orders|ingredients used|material lines|product variants|percentage|rate|%/i.test(label)
+        && !/id|name|date|status|note|definition|context/i.test(label)
+        ? [[index, { halign: "right" as const }]] : []));
     autoTable(pdf, {
       startY: y + 4,
       head: [section.headers.map(printable)],
       body: section.rows.map((row) => row.map(printable)),
       margin: { top: 18, bottom: 18, left: margin, right: margin },
-      theme: "striped",
-      styles: { fontSize: 8, cellPadding: 2.5, overflow: "linebreak" },
-      headStyles: { fillColor: [22, 75, 55], fontSize: 8 },
+      theme: "plain",
+      styles: { fontSize: 8, cellPadding: 2, overflow: "linebreak", textColor: 34,
+        lineColor: 220, lineWidth: { bottom: 0.15 } },
+      headStyles: { fillColor: [238, 238, 238], textColor: 34, fontStyle: "bold", fontSize: 8 },
+      columnStyles: numericColumns,
       rowPageBreak: "avoid",
       showHead: "everyPage",
       didDrawPage: (data) => { y = data.cursor?.y ?? 22; },

@@ -1,15 +1,24 @@
 import unittest
 import contextlib
 import io
+import os
 import numpy as np
 from unittest.mock import patch
 import SARIMA
 import pandas as pd
-from forecast_bridge import conversion, seven_calendar_days, forecast_calendar_days, match_material, generate, training_audit, select_stable_forecast
+from forecast_bridge import conversion, seven_calendar_days, forecast_calendar_days, match_material, generate, training_audit, select_stable_forecast, validate_history_gap
 from InventoryRecommendation import build_report
 
 
 class ForecastBridgeTests(unittest.TestCase):
+    def test_stale_history_is_rejected_unless_explicitly_overridden(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(validate_history_gap('2026-10-14', '2026-10-06'), 7)
+            with self.assertRaisesRegex(ValueError, 'currently 30'):
+                validate_history_gap('2026-10-14', '2026-08-31')
+        with patch.dict(os.environ, {'FORECAST_MAX_HISTORY_GAP_DAYS': '365'}):
+            self.assertEqual(validate_history_gap('2026-10-14', '2026-08-31'), 43)
+
     def test_no_safe_candidate_is_excluded_instead_of_fabricated(self):
         dates = pd.date_range('2026-09-01', periods=1)
         training = {'order': (0, 1, 0), 'seasonal': (1, 0, 0, 7), 'exog_cols': []}
@@ -36,7 +45,7 @@ class ForecastBridgeTests(unittest.TestCase):
         series = pd.DataFrame({'Date': pd.date_range('2026-01-01', periods=80),
                                'qty': [10.] * 50 + [0.] * 30, 'is_holiday': 0})
         with patch.dict(SARIMA.CONFIG, {'P': [0], 'D': [1], 'Q': [0], 'SP': [1], 'SD': [0], 'SQ': [0],
-                                      'SEASON_LENGTH': 7, 'CV_FOLDS': 3, 'CV_HORIZON': 7, 'BOXCOX_LAMBDA': 0}), \
+                                      'SEASON_LENGTH': 7, 'CV_FOLDS': 3, 'CV_HORIZON': 7, 'BOXCOX_LAMBDA': 0, 'CONSTRAINED_SELECTION': False}), \
                 patch.object(SARIMA, 'SARIMAX') as model, contextlib.redirect_stdout(io.StringIO()):
             fitted = model.return_value.fit.return_value
             fitted.forecast.side_effect = lambda days, **kwargs: np.full(days, np.log1p(1.))
@@ -84,7 +93,10 @@ class ForecastBridgeTests(unittest.TestCase):
                                  'Forecast': 10., 'Lower95': 5., 'Upper95': 15.})
         for start, days in [('2026-10-01', 7), ('2026-09-26', 7)]:
             with self.subTest(start=start, days=days), patch.dict(SARIMA.CONFIG), \
-                    patch('forecast_bridge.pd.read_csv', side_effect=[history.copy(), pd.DataFrame(columns=['Product'])]), \
+                    patch.dict(os.environ, {'FORECAST_MAX_HISTORY_GAP_DAYS': '365', 'FORECAST_TRAINING_SOURCE': 'mixed'}), \
+                    patch('forecast_bridge.pd.read_csv', return_value=history.copy()), \
+                    patch('pathlib.Path.read_bytes', return_value=b'test-input'), \
+                    patch('forecast_bridge.load_catalog', return_value=pd.DataFrame([{'record_type': 'RAW_MATERIAL', 'sku': 'RM-MILK', 'name': 'Milk', 'unit_code': 'ML', 'reorder_point': 0}])), \
                     patch('forecast_bridge.merge_pos_history', return_value=(history.copy(), {}, [])), \
                     patch.object(SARIMA, 'aggregate_daily_sales'), patch.object(SARIMA, 'build_holiday_lookup'), \
                     patch.object(SARIMA, 'build_daily_series', return_value=series), \

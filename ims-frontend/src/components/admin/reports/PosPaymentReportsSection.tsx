@@ -18,7 +18,7 @@ import {
   fetchPosPaymentReports,
   type PosPaymentReportsReport,
 } from "@/lib/reports";
-import { formatDateTime, formatPeso } from "@/lib/pos-utils";
+import { formatDateTime, formatPeso, formatSplitPaymentOrderReference } from "@/lib/pos-utils";
 
 type Props = {
   active: boolean;
@@ -200,7 +200,7 @@ export default function PosPaymentReportsSection({
               ) : (report?.breakdown ?? []).length === 0 ? (
                 <PosReportEmpty message="No payment records matched the selected date range." />
               ) : (
-                report?.breakdown.filter((row) => row.method !== "OTHER").map((row) => (
+                report?.breakdown.map((row) => (
                   <div
                     key={row.method}
                     className="grid grid-cols-[1fr_1fr_0.8fr_0.8fr_0.8fr] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
@@ -243,7 +243,7 @@ export default function PosPaymentReportsSection({
                     className="grid grid-cols-[1fr_1fr_1fr_1.1fr] gap-3 border-b px-4 py-4 text-sm last:border-b-0"
                   >
                     <div>
-                      <div className="font-semibold text-slate-900">{order.id}</div>
+                      <div className="font-semibold text-slate-900">{formatSplitPaymentOrderReference(order)}</div>
                       <div className="mt-1 text-xs text-slate-500">
                         {formatPeso(order.totalAmount)}
                       </div>

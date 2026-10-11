@@ -68,7 +68,15 @@ enum PaymentMethod {
   GCASH
   MAYA
   CARD
-  OTHER
+}
+
+model PaymentMethodMigrationAudit {
+  paymentId         String   @id @map("payment_id")
+  previousMethod    String   @map("previous_method")
+  replacementMethod String   @map("replacement_method")
+  migratedAt        DateTime @default(now()) @map("migrated_at") @db.Timestamptz
+
+  @@map("payment_method_migration_audit")
 }
 
 enum AvailabilityBlockingReason {
@@ -118,6 +126,7 @@ enum OrderReversalType {
 
 model User {
   id                  String    @id @default(uuid())
+  employeeId          String    @unique @default(dbgenerated("next_employee_id()")) @map("employee_id")
   username            String?   @unique
   email               String    @unique
   passwordHash        String?   @map("password_hash")
@@ -690,6 +699,9 @@ model Order {
 
   @@index([createdByUserId, createdAt])
   @@index([status, createdAt])
+  @@index([status, completedAt, id])
+  @@index([completedAt, id])
+  @@index([createdByUserId, completedAt, id])
   @@map("orders")
 }
 

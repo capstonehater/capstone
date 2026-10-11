@@ -1,4 +1,5 @@
 "use client";
+import { formatStockQuantity } from "@/lib/inventory-quantity";
 import AdminSelect from "@/components/admin/AdminSelect";
 import { ClipboardMinus } from "lucide-react";
 import styles from "./InventoryModal.module.css";
@@ -43,7 +44,7 @@ type WasteModalProps = {
   onWasteFormChange: (next: WasteFormState | ((current: WasteFormState) => WasteFormState)) => void;
   onSubmitWaste: (event: FormEvent<HTMLFormElement>) => void;
   onSelectRawMaterial: (rawMaterialId: string) => void;
-  formatQuantity: (value: string) => string;
+
 };
 
 export default function WasteModal({
@@ -56,7 +57,7 @@ export default function WasteModal({
   onWasteFormChange,
   onSubmitWaste,
   onSelectRawMaterial,
-  formatQuantity,
+
 }: WasteModalProps) {
   const [validationAttempted, setValidationAttempted] = useState(false);
   const [previousPanel, setPreviousPanel] = useState(activePanel);
@@ -64,7 +65,8 @@ export default function WasteModal({
     setPreviousPanel(activePanel);
     setValidationAttempted(false);
   }
-  const selectedBatch = batches.find(batch => batch.id === wasteForm.batchId && batch.rawMaterialId === wasteForm.rawMaterialId);
+  const availableBatches = batches.filter(batch => batch.rawMaterialId === wasteForm.rawMaterialId && Number(batch.remainingQuantity) > 0);
+  const selectedBatch = availableBatches.find(batch => batch.id === wasteForm.batchId);
   const todayParts = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Manila", year: "numeric", month: "2-digit", day: "2-digit",
   }).formatToParts(new Date());
@@ -119,7 +121,11 @@ export default function WasteModal({
         <AdminSelect searchable required label="Raw material" value={wasteForm.rawMaterialId} onChange={(rawMaterialId) => { onWasteFormChange((current) => ({ ...current, rawMaterialId, batchId: "", quantity: "" })); onSelectRawMaterial(rawMaterialId); }} options={[{ value: "", label: "Select raw material" }, ...summaries.map((summary) => ({ value: summary.rawMaterialId, label: summary.name }))]} />
         </InventoryValidationField>
         <InventoryValidationField error={validationAttempted ? errors.batch : undefined}>
-        <AdminSelect searchable required label="Batch" value={wasteForm.batchId} onChange={(batchId) => onWasteFormChange((current) => ({ ...current, batchId, quantity: "" }))} options={[{ value: "", label: "Select batch" }, ...batches.map((batch) => ({ value: batch.id, label: `${(batch.reference ?? batch.id.slice(0, 8))} · remaining ${formatQuantity(batch.remainingQuantity)}` }))]} />
+        <AdminSelect searchable required label="Batch" value={wasteForm.batchId} onChange={(batchId) => onWasteFormChange((current) => ({ ...current, batchId, quantity: "" }))} options={[{ value: "", label: "Select batch" }, ...availableBatches.map((batch) => {
+          const expired = Boolean(batch.expirationDate && batch.expirationDate.slice(0, 10) < today);
+          return { value: batch.id, label: `${batch.reference ?? batch.id.slice(0, 8)} · remaining ${formatStockQuantity(batch.remainingQuantity)}${expired ? " · Expired" : ""}`, tone: expired ? "danger" as const : undefined };
+        })]} />
+        {wasteForm.rawMaterialId && availableBatches.length === 0 && <p role="status" className="mt-2 text-xs text-slate-600">No batches with remaining stock.</p>}
         </InventoryValidationField>
         <InventoryValidationField error={validationAttempted ? errors.quantity : undefined}>
         <InventoryField htmlFor="waste-quantity" label="Quantity" required>
@@ -141,7 +147,7 @@ export default function WasteModal({
             placeholder="1"
             className={inventoryInputClasses}
           />
-          {selectedBatchExpired && <p id="waste-expiry-note" className="mt-2 break-words text-xs leading-relaxed text-slate-600">This batch is expired. Its full remaining stock has been filled in for disposal.</p>}
+          {selectedBatchExpired && <p id="waste-expiry-note" className="mt-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs leading-relaxed text-red-700">This batch is expired. Its full remaining stock has been filled in for disposal.</p>}
         </InventoryField>
         </InventoryValidationField>
         <InventoryValidationField error={validationAttempted || invalidExpiredReason ? errors.reason : undefined}>

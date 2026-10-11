@@ -22,6 +22,7 @@ import {
 } from "@/lib/pos-offline";
 import { calculateIncludedVat, formatPeso } from "@/lib/pos-utils";
 import { remainingVariantQuantity } from "@/lib/pos-cart-availability";
+import { isContainerCategory } from "@/lib/container-category";
 import ProductImage from "@/components/ProductImage";
 import ProductConfiguratorModal from "./modals/ProductConfiguratorModal";
 import VoidConfirmationModal from "./modals/VoidConfirmationModal";
@@ -126,7 +127,8 @@ export default function StaffPOSPage() {
     const toggleButton = cartToggleRef.current;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    cartRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    cartRef.current?.scrollTo({ top: 0, behavior: "instant" });
+    cartRef.current?.querySelector<HTMLButtonElement>("button")?.focus({ preventScroll: true });
     const closeOnResize = () => { if (media.matches) setMobileCartOpen(false); };
     const handleKey = (event: KeyboardEvent) => {
       if (!cartRef.current?.contains(document.activeElement)) return;
@@ -145,20 +147,20 @@ export default function StaffPOSPage() {
       document.body.style.overflow = previousOverflow;
       media.removeEventListener("change", closeOnResize);
       document.removeEventListener("keydown", handleKey);
-      if (!media.matches) toggleButton?.focus();
+      if (!media.matches) toggleButton?.focus({ preventScroll: true });
     };
   }, [mobileCartOpen]);
 
   const discountConfig = getDiscountConfig(discount);
   // Apply admin enablement and stock availability to both live and cached menus.
   const availableProducts = useMemo(() => menuProducts
-    .filter((product) => product.isEnabled)
+    .filter((product) => product.isEnabled && !isContainerCategory(product.category.name))
     .map((product) => ({
       ...product,
       variants: product.variants.filter((variant) => variant.isEnabled && variant.availability?.isSellable === true),
     }))
     .filter((product) => product.variants.length > 0), [menuProducts]);
-  const categories = useMemo(() => ["All", ...new Set(menuCategories.map((item) => item.name))], [menuCategories]);
+  const categories = useMemo(() => ["All", ...new Set(menuCategories.filter((item) => !isContainerCategory(item.name)).map((item) => item.name))], [menuCategories]);
   const filteredProducts = useMemo(() => {
     const term = search.trim().toLowerCase();
     return availableProducts.filter((product) => {
@@ -169,8 +171,8 @@ export default function StaffPOSPage() {
   }, [category, availableProducts, search]);
   const totals = useMemo(() => {
     const subtotal = cart.reduce((sum, item) => sum + item.lineSubtotal, 0);
-    const discountAmount = subtotal * discountConfig.rate;
-    const total = subtotal - discountAmount;
+    const discountAmount = Math.round((subtotal * discountConfig.rate + Number.EPSILON) * 100) / 100;
+    const total = Math.round((subtotal - discountAmount + Number.EPSILON) * 100) / 100;
     return { subtotal, discountAmount, total, tax: calculateIncludedVat(total) };
   }, [cart, discountConfig.rate]);
 
@@ -393,7 +395,7 @@ export default function StaffPOSPage() {
               </div>
               <button type="button" onClick={() => { setMobileCartOpen(false); setChoosingCategory(true); setSearch(""); }} className="order-first inline-flex shrink-0 items-center gap-2 rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-[#232d46] hover:bg-slate-50"><ArrowLeft size={18} />Back to Categories</button>
             </div>
-            <div className="mb-3 flex items-center justify-between">
+            <div className={styles.productHeading}>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{category === "All" ? "All Products" : category}</h2>
               <span className="text-xs text-slate-400">{menuLoading ? "Loading..." : `${filteredProducts.length} products`}</span>
             </div>

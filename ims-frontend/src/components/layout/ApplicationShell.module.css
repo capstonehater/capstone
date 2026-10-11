@@ -200,3 +200,5 @@
 .materialActions { padding: 2px 0 8px 12px; }
 .materialActions[hidden] { display: none; }
 .materialActions .navSubLink { font-size: 14px; line-height: 1.5; padding-block: 8px; overflow-wrap: anywhere; }
+
+.content.contentUnpadded { padding:0; }
