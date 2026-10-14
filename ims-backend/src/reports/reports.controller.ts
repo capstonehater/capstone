@@ -20,12 +20,16 @@ export class ReportsController {
   @Get('export-access/excel')
   @CacheRead(0)
   @RequirePermission('reports.view', 'reports.export.excel')
-  authorizeExcelExport() { return { allowed: true }; }
+  authorizeExcelExport() {
+    return { allowed: true };
+  }
 
   @Get('export-access/pdf')
   @CacheRead(0)
   @RequirePermission('reports.view', 'reports.export.pdf')
-  authorizePdfExport() { return { allowed: true }; }
+  authorizePdfExport() {
+    return { allowed: true };
+  }
 
   @Get('sales-overview')
   async getSalesOverview(@Query() filters: ReportFiltersDto) {

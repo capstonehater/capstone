@@ -1,4 +1,8 @@
-import { ForecastingService, scheduledStart, nextPhilippineMidnight } from './forecasting.service';
+import {
+  ForecastingService,
+  scheduledStart,
+  nextPhilippineMidnight,
+} from './forecasting.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 const transactionMock = <T>(tx: T) =>
@@ -114,9 +118,7 @@ describe('fixed weekly forecast period', () => {
         )
         .mockResolvedValue();
       const { run } = await service.generate('2026-01-29');
-      expect(run.endDate).toEqual(
-        new Date(Date.UTC(2026, 0, 29 + 7 - 1)),
-      );
+      expect(run.endDate).toEqual(new Date(Date.UTC(2026, 0, 29 + 7 - 1)));
       expect(execute).toHaveBeenCalledWith('new', '2026-01-29', 7);
     },
   );
@@ -131,13 +133,16 @@ describe('fixed weekly forecast period', () => {
   });
 });
 
-
 describe('Philippine midnight trigger', () => {
   it('targets midnight Philippine time instead of host midnight', () => {
-    expect(nextPhilippineMidnight(Date.parse('2026-10-16T15:59:00Z'))).toBe(Date.parse('2026-10-16T16:00:00Z'));
+    expect(nextPhilippineMidnight(Date.parse('2026-10-16T15:59:00Z'))).toBe(
+      Date.parse('2026-10-16T16:00:00Z'),
+    );
   });
   it('schedules tomorrow when already at midnight', () => {
-    expect(nextPhilippineMidnight(Date.parse('2026-10-16T16:00:00Z'))).toBe(Date.parse('2026-10-17T16:00:00Z'));
+    expect(nextPhilippineMidnight(Date.parse('2026-10-16T16:00:00Z'))).toBe(
+      Date.parse('2026-10-17T16:00:00Z'),
+    );
   });
   it('triggers the scheduler at midnight and clears timers on shutdown', async () => {
     const originalBackgroundJobs = process.env.ENABLE_BACKGROUND_JOBS;
@@ -157,7 +162,8 @@ describe('Philippine midnight trigger', () => {
     } finally {
       service.onModuleDestroy();
       jest.useRealTimers();
-      if (originalBackgroundJobs === undefined) delete process.env.ENABLE_BACKGROUND_JOBS;
+      if (originalBackgroundJobs === undefined)
+        delete process.env.ENABLE_BACKGROUND_JOBS;
       else process.env.ENABLE_BACKGROUND_JOBS = originalBackgroundJobs;
     }
   });

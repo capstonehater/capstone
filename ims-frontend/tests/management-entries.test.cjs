@@ -18,8 +18,8 @@ const original = Module._load;
 Module._load = function (name, parent, main) {
   if (name.endsWith('.module.css')) return { __esModule: true, default: new Proxy({}, { get: (_, key) => String(key) }) };
   if (name === '@/components/admin/AdminDashboardLayout') return { __esModule: true, default: ({ children, showHeader }) => React.createElement('main', { 'data-header': showHeader }, children) };
-  if (name === '@/store/authStore') return { useAuthStore: selector => selector({ user: { role } }) };
-  if (name === 'next/navigation') return { usePathname: () => '/forecasting', useRouter: () => ({ push() {} }) };
+  if (name === '@/store/authStore') return { useAuthStore: selector => selector({ user: { role }, can: () => true }) };
+  if (name === 'next/navigation') return { usePathname: () => '/forecasting', useRouter: () => ({ push() {} }), useSearchParams: () => new URLSearchParams() };
   if (name === '@/components/admin/WorkspaceLoading' || name === '@/components/loading/PageSkeleton') return original.call(this, path.resolve(__dirname, '../src', name.slice(2)), parent, main);
   if (name.startsWith('@/components/') || name.startsWith('@/app/admin/forecasting/')) return { __esModule: true, default: () => null, PermissionAction: ({ children }) => children };
   if (name.startsWith('@/lib/')) return {};

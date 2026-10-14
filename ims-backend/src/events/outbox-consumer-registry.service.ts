@@ -15,7 +15,8 @@ export class OutboxConsumerRegistryService {
       'order.cash_payment_corrected': () => Promise.resolve(),
       'stock-run.posted': (payload) => this.handleOperationalRefresh(payload),
       'inventory.adjusted': (payload) => this.handleOperationalRefresh(payload),
-      'inventory.history-deleted': (payload) => this.handleOperationalRefresh(payload),
+      'inventory.history-deleted': (payload) =>
+        this.handleOperationalRefresh(payload),
       'inventory.waste-logged': (payload) =>
         this.handleOperationalRefresh(payload),
       'order.voided': (payload) => this.handleOperationalRefresh(payload),

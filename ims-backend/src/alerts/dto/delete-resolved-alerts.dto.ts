@@ -1,4 +1,11 @@
-import { ArrayMaxSize, ArrayNotEmpty, ArrayUnique, IsArray, IsString, MaxLength } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayNotEmpty,
+  ArrayUnique,
+  IsArray,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class DeleteResolvedAlertsDto {
   @IsArray()

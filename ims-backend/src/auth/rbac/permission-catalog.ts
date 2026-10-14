@@ -144,13 +144,15 @@ export const PERMISSION_CATALOG = [
     key: 'reports.export.excel',
     module: 'reports',
     label: 'Export Excel',
-    description: 'Download report data as an Excel file. Requires View reports.',
+    description:
+      'Download report data as an Excel file. Requires View reports.',
   },
   {
     key: 'reports.export.pdf',
     module: 'reports',
     label: 'Export PDF',
-    description: 'Download or print report data as a PDF file. Requires View reports.',
+    description:
+      'Download or print report data as a PDF file. Requires View reports.',
   },
   {
     key: 'forecasting.view',

@@ -7,5 +7,8 @@ export const CAFE_OPERATING_HOURS = {
 } as const;
 
 export function isCafeOperatingHour(hour: number) {
-  return hour >= CAFE_OPERATING_HOURS.openingHour && hour < CAFE_OPERATING_HOURS.closingHour;
+  return (
+    hour >= CAFE_OPERATING_HOURS.openingHour &&
+    hour < CAFE_OPERATING_HOURS.closingHour
+  );
 }

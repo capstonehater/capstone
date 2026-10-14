@@ -305,12 +305,22 @@ export class OrdersService {
 
   async listOrdersPaginated(
     filters: ListOrdersDto = {},
-    options: { page?: number; pageSize?: number; cursor?: string; orderIdOnly?: boolean; orderIdOrStaffName?: boolean } = {},
+    options: {
+      page?: number;
+      pageSize?: number;
+      cursor?: string;
+      orderIdOnly?: boolean;
+      orderIdOrStaffName?: boolean;
+    } = {},
   ) {
     const pageSize = Math.min(Math.max(options.pageSize ?? 20, 1), 100);
     const page = Math.max(options.page ?? 1, 1);
     const skip = options.cursor ? 1 : (page - 1) * pageSize;
-    const where = this.buildListOrdersWhere(filters, options.orderIdOnly || options.orderIdOrStaffName, options.orderIdOrStaffName);
+    const where = this.buildListOrdersWhere(
+      filters,
+      options.orderIdOnly || options.orderIdOrStaffName,
+      options.orderIdOrStaffName,
+    );
 
     const [total, orders] = await this.prisma.$transaction([
       this.prisma.order.count({ where }),
@@ -344,24 +354,62 @@ export class OrdersService {
     return order;
   }
 
-  async updateCashPayment(orderId: string, dto: UpdateCashPaymentDto, actorUserId: string) {
+  async updateCashPayment(
+    orderId: string,
+    dto: UpdateCashPaymentDto,
+    actorUserId: string,
+  ) {
     return this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM orders WHERE id = ${orderId} FOR UPDATE`;
-      const order = await tx.order.findUnique({ where: { id: orderId }, include: { payments: true } });
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: { payments: true },
+      });
       if (!order) throw new NotFoundException('Order not found');
-      if (order.createdByUserId !== actorUserId) throw new ForbiddenException('Only the cashier who completed this order can correct its cash payment');
-      if (order.status !== OrderStatus.COMPLETED) throw new BadRequestException('Only completed orders can have their cash payment corrected');
-      const cash = order.payments.filter(payment => payment.method === 'CASH');
-      if (cash.length !== 1) throw new BadRequestException('This order must have one existing cash payment');
+      if (order.createdByUserId !== actorUserId)
+        throw new ForbiddenException(
+          'Only the cashier who completed this order can correct its cash payment',
+        );
+      if (order.status !== OrderStatus.COMPLETED)
+        throw new BadRequestException(
+          'Only completed orders can have their cash payment corrected',
+        );
+      const cash = order.payments.filter(
+        (payment) => payment.method === 'CASH',
+      );
+      if (cash.length !== 1)
+        throw new BadRequestException(
+          'This order must have one existing cash payment',
+        );
       const amount = toDecimal(dto.amount);
-      if (!cash[0].amount.equals(toDecimal(dto.expectedAmount))) throw new ConflictException('The cash payment has changed. Reload the receipt before editing it');
-      const otherPaid = sumDecimals(order.payments.filter(payment => payment.method !== 'CASH').map(payment => payment.amount));
-      if (amount.plus(otherPaid).lessThan(order.totalAmount)) throw new BadRequestException('Payment total is less than the order total');
+      if (!cash[0].amount.equals(toDecimal(dto.expectedAmount)))
+        throw new ConflictException(
+          'The cash payment has changed. Reload the receipt before editing it',
+        );
+      const otherPaid = sumDecimals(
+        order.payments
+          .filter((payment) => payment.method !== 'CASH')
+          .map((payment) => payment.amount),
+      );
+      if (amount.plus(otherPaid).lessThan(order.totalAmount))
+        throw new BadRequestException(
+          'Payment total is less than the order total',
+        );
       if (!amount.equals(cash[0].amount)) {
-        await tx.orderPayment.update({ where: { id: cash[0].id }, data: { amount } });
+        await tx.orderPayment.update({
+          where: { id: cash[0].id },
+          data: { amount },
+        });
         await this.outboxService.enqueue(tx, {
-          aggregateType: 'order', aggregateId: orderId, eventType: 'order.cash_payment_corrected',
-          payload: { orderId, actorUserId, previousAmount: cash[0].amount.toString(), amount: amount.toString() },
+          aggregateType: 'order',
+          aggregateId: orderId,
+          eventType: 'order.cash_payment_corrected',
+          payload: {
+            orderId,
+            actorUserId,
+            previousAmount: cash[0].amount.toString(),
+            amount: amount.toString(),
+          },
         });
       }
       return this.getOrderByIdWithClient(tx, orderId);
@@ -429,10 +477,17 @@ export class OrdersService {
     return order ? this.attachDisplayOrderNumber(order) : null;
   }
 
-  private buildListOrdersWhere(filters: ListOrdersDto, orderIdOnly = false, includeStaffName = false): Prisma.OrderWhereInput {
+  private buildListOrdersWhere(
+    filters: ListOrdersDto,
+    orderIdOnly = false,
+    includeStaffName = false,
+  ): Prisma.OrderWhereInput {
     const input = filters.search?.trim();
     // Every displayed order reference starts with ORD-, so the prefix matches all orders.
-    const search = orderIdOnly && input && /^(?:O|OR|ORD-?)$/i.test(input) ? undefined : input;
+    const search =
+      orderIdOnly && input && /^(?:O|OR|ORD-?)$/i.test(input)
+        ? undefined
+        : input;
     const orderReferenceSearch = search
       ? this.normalizeOrderReferenceSearch(search)
       : null;
@@ -497,100 +552,138 @@ export class OrdersService {
       AND: andConditions.length > 0 ? andConditions : undefined,
       OR: search
         ? orderIdOnly
-          ? [{ id: /^ORD-/i.test(search) && orderReferenceSearch
-              ? { startsWith: orderReferenceSearch, mode: 'insensitive' }
-              : { contains: search, mode: 'insensitive' } },
-            ...(includeStaffName ? [
-              { createdBy: { firstName: { contains: search, mode: 'insensitive' as const } } },
-              { createdBy: { lastName: { contains: search, mode: 'insensitive' as const } } },
-              ...(search.split(/\s+/).length > 1 ? [{
-                AND: search.split(/\s+/).map((part) => ({
-                  OR: [
-                    { createdBy: { firstName: { contains: part, mode: 'insensitive' as const } } },
-                    { createdBy: { lastName: { contains: part, mode: 'insensitive' as const } } },
-                  ],
-                })),
-              }] : []),
-            ] : []),
-          ]
-          : [
-            {
-              id: {
-                contains: search,
-                mode: 'insensitive',
+          ? [
+              {
+                id:
+                  /^ORD-/i.test(search) && orderReferenceSearch
+                    ? { startsWith: orderReferenceSearch, mode: 'insensitive' }
+                    : { contains: search, mode: 'insensitive' },
               },
-            },
-            ...(orderReferenceSearch
-              ? [
-                  {
-                    id: {
-                      startsWith: orderReferenceSearch,
-                      mode: 'insensitive' as const,
+              ...(includeStaffName
+                ? [
+                    {
+                      createdBy: {
+                        firstName: {
+                          contains: search,
+                          mode: 'insensitive' as const,
+                        },
+                      },
+                    },
+                    {
+                      createdBy: {
+                        lastName: {
+                          contains: search,
+                          mode: 'insensitive' as const,
+                        },
+                      },
+                    },
+                    ...(search.split(/\s+/).length > 1
+                      ? [
+                          {
+                            AND: search.split(/\s+/).map((part) => ({
+                              OR: [
+                                {
+                                  createdBy: {
+                                    firstName: {
+                                      contains: part,
+                                      mode: 'insensitive' as const,
+                                    },
+                                  },
+                                },
+                                {
+                                  createdBy: {
+                                    lastName: {
+                                      contains: part,
+                                      mode: 'insensitive' as const,
+                                    },
+                                  },
+                                },
+                              ],
+                            })),
+                          },
+                        ]
+                      : []),
+                  ]
+                : []),
+            ]
+          : [
+              {
+                id: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              ...(orderReferenceSearch
+                ? [
+                    {
+                      id: {
+                        startsWith: orderReferenceSearch,
+                        mode: 'insensitive' as const,
+                      },
+                    },
+                  ]
+                : []),
+              {
+                notes: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                createdBy: {
+                  email: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+              {
+                createdBy: {
+                  firstName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+              {
+                createdBy: {
+                  lastName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+              {
+                items: {
+                  some: {
+                    productNameSnapshot: {
+                      contains: search,
+                      mode: 'insensitive',
                     },
                   },
-                ]
-              : []),
-            {
-              notes: {
-                contains: search,
-                mode: 'insensitive',
-              },
-            },
-            {
-              createdBy: {
-                email: {
-                  contains: search,
-                  mode: 'insensitive',
                 },
               },
-            },
-            {
-              createdBy: {
-                firstName: {
-                  contains: search,
-                  mode: 'insensitive',
-                },
-              },
-            },
-            {
-              createdBy: {
-                lastName: {
-                  contains: search,
-                  mode: 'insensitive',
-                },
-              },
-            },
-            {
-              items: {
-                some: {
-                  productNameSnapshot: {
-                    contains: search,
-                    mode: 'insensitive',
+              {
+                items: {
+                  some: {
+                    variantNameSnapshot: {
+                      contains: search,
+                      mode: 'insensitive',
+                    },
                   },
                 },
               },
-            },
-            {
-              items: {
-                some: {
-                  variantNameSnapshot: {
-                    contains: search,
-                    mode: 'insensitive',
+              {
+                items: {
+                  some: {
+                    skuSnapshot: {
+                      contains: search,
+                      mode: 'insensitive',
+                    },
                   },
                 },
               },
-            },
-            {
-              items: {
-                some: {
-                  skuSnapshot: {
-                    contains: search,
-                    mode: 'insensitive',
-                  },
-                },
-              },
-            },
-          ]
+            ]
         : undefined,
     };
   }
@@ -667,7 +760,9 @@ export class OrdersService {
     });
 
     return this.prisma.$transaction(async (tx) => {
-      await tx.$queryRaw(Prisma.sql`SELECT id FROM orders WHERE id = ${orderId} FOR UPDATE`);
+      await tx.$queryRaw(
+        Prisma.sql`SELECT id FROM orders WHERE id = ${orderId} FOR UPDATE`,
+      );
       const order = await tx.order.findUnique({
         where: { id: orderId },
         include: {
@@ -740,10 +835,15 @@ export class OrdersService {
       });
 
       const rawMaterialIds = [
-        ...new Set(checkoutTransaction.lines.map((line) => line.rawMaterialId).filter((id): id is string => id !== null)),
+        ...new Set(
+          checkoutTransaction.lines
+            .map((line) => line.rawMaterialId)
+            .filter((id): id is string => id !== null),
+        ),
       ];
       const stockLines = historyStockWasReversed(checkoutTransaction.metadata)
-        ? [] : checkoutTransaction.lines;
+        ? []
+        : checkoutTransaction.lines;
 
       for (const line of stockLines) {
         await tx.stockBatch.update({
@@ -769,13 +869,13 @@ export class OrdersService {
           requestedByUserId: actorUserId,
           approvedByUserId: approver.id,
         },
-        note:
-          dto.note ??
-          `Refund processed for order ${order.id}`,
+        note: dto.note ?? `Refund processed for order ${order.id}`,
         occurredAt: reversal.occurredAt,
         lines: stockLines.map((line) => ({
           rawMaterialId: line.rawMaterialId,
-          rawMaterialSnapshot: (line.rawMaterialSnapshot ?? undefined) as Prisma.InputJsonValue | undefined,
+          rawMaterialSnapshot: (line.rawMaterialSnapshot ?? undefined) as
+            | Prisma.InputJsonValue
+            | undefined,
           stockBatchId: line.stockBatchId,
           orderItemId: line.orderItemId ?? undefined,
           productVariantId: line.productVariantId ?? undefined,
@@ -841,7 +941,9 @@ export class OrdersService {
     }
 
     if (isContainerCategory(variant.product.category.name)) {
-      throw new BadRequestException('Containers cannot be sold as standalone POS items');
+      throw new BadRequestException(
+        'Containers cannot be sold as standalone POS items',
+      );
     }
 
     if (!variant.product.isEnabled) {

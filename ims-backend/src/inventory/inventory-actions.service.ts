@@ -32,7 +32,9 @@ export class InventoryActionsService {
   async logWaste(dto: CreateInventoryWasteDto, actorUserId: string) {
     return this.prisma.$transaction(async (tx) => {
       await this.ensureRawMaterialExists(tx, dto.rawMaterialId);
-      await tx.$queryRaw(Prisma.sql`SELECT id FROM stock_batches WHERE id = ${dto.batchId} FOR UPDATE`);
+      await tx.$queryRaw(
+        Prisma.sql`SELECT id FROM stock_batches WHERE id = ${dto.batchId} FOR UPDATE`,
+      );
       const batch = await this.ensureWasteBatch(
         tx,
         dto.batchId,
@@ -47,14 +49,22 @@ export class InventoryActionsService {
       }
 
       const expirationDate = batch.expirationDate?.toISOString().slice(0, 10);
-      const expired = Boolean(expirationDate && expirationDate < getTodayManilaBusinessDateInput());
+      const expired = Boolean(
+        expirationDate && expirationDate < getTodayManilaBusinessDateInput(),
+      );
       if (dto.reasonCode === 'EXPIRED' && !expired) {
-        throw new BadRequestException(expirationDate
-          ? 'Selected batch is not expired according to its stock-run expiration date (' + expirationDate + '). Choose another reason code.'
-          : 'Selected batch has no stock-run expiration date, so it cannot be labeled as expired. Choose another reason code.');
+        throw new BadRequestException(
+          expirationDate
+            ? 'Selected batch is not expired according to its stock-run expiration date (' +
+                expirationDate +
+                '). Choose another reason code.'
+            : 'Selected batch has no stock-run expiration date, so it cannot be labeled as expired. Choose another reason code.',
+        );
       }
       if (expired && !quantity.equals(batch.remainingQuantity)) {
-        throw new BadRequestException('Expired batches must be recorded as waste using their full remaining quantity');
+        throw new BadRequestException(
+          'Expired batches must be recorded as waste using their full remaining quantity',
+        );
       }
       await tx.stockBatch.update({
         where: { id: batch.id },
@@ -134,15 +144,20 @@ export class InventoryActionsService {
         },
       },
     });
-    return transactions.map((transaction) => ({ ...transaction, lines: transaction.lines.map(withHistoricalMaterial) }));
+    return transactions.map((transaction) => ({
+      ...transaction,
+      lines: transaction.lines.map(withHistoricalMaterial),
+    }));
   }
-
 
   async listTransactionsForRawMaterial(
     rawMaterialId: string,
     filters: ListInventoryTransactionsDto,
   ) {
-    const material = await this.prisma.rawMaterial.findUnique({ where: { id: rawMaterialId }, select: { id: true } });
+    const material = await this.prisma.rawMaterial.findUnique({
+      where: { id: rawMaterialId },
+      select: { id: true },
+    });
     if (!material) {
       const history = await this.prisma.inventoryTransactionLine.findFirst({
         where: { rawMaterialSnapshot: { path: ['id'], equals: rawMaterialId } },
@@ -301,13 +316,17 @@ export class InventoryActionsService {
     return where;
   }
 
-  private materialHistoryWhere(rawMaterialId?: string): Prisma.InventoryTransactionLineWhereInput {
-    return rawMaterialId ? {
-      OR: [
-        { rawMaterialId },
-        { rawMaterialSnapshot: { path: ['id'], equals: rawMaterialId } },
-      ],
-    } : {};
+  private materialHistoryWhere(
+    rawMaterialId?: string,
+  ): Prisma.InventoryTransactionLineWhereInput {
+    return rawMaterialId
+      ? {
+          OR: [
+            { rawMaterialId },
+            { rawMaterialSnapshot: { path: ['id'], equals: rawMaterialId } },
+          ],
+        }
+      : {};
   }
 
   private async getTransactionById(tx: TxClient, transactionId: string) {

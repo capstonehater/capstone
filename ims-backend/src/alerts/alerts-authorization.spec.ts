@@ -65,8 +65,18 @@ const routes = [
     path: '/alerts/alert-1/dismiss',
     permission: 'alerts.dismiss',
   },
-  { handler: 'deleteResolvedAlerts', method: 'post', path: '/alerts/resolved/delete', permission: 'alerts.dismiss' },
-  { handler: 'getNotifications', method: 'get', path: '/alerts/notifications', permission: 'alerts.view' },
+  {
+    handler: 'deleteResolvedAlerts',
+    method: 'post',
+    path: '/alerts/resolved/delete',
+    permission: 'alerts.dismiss',
+  },
+  {
+    handler: 'getNotifications',
+    method: 'get',
+    path: '/alerts/notifications',
+    permission: 'alerts.view',
+  },
 ] as const;
 
 const permissionCases: { label: string; grants: PermissionKey[] }[] = [
@@ -116,7 +126,9 @@ describe('Alerts HTTP authorization', () => {
   const findUnique = jest.fn();
   const validateSession = jest.fn();
   const alertService = {
-    getNotifications: jest.fn().mockResolvedValue({ alerts: [], pendingCount: 3 }),
+    getNotifications: jest
+      .fn()
+      .mockResolvedValue({ alerts: [], pendingCount: 3 }),
     listAlerts: jest.fn().mockResolvedValue([{ id: 'alert-1' }]),
     getUnreadCount: jest.fn().mockResolvedValue({ count: 3 }),
     acknowledgeAlert: jest.fn().mockResolvedValue({ id: 'alert-1' }),
@@ -131,7 +143,9 @@ describe('Alerts HTTP authorization', () => {
   const send = (
     route: { method: 'get' | 'post'; path: string },
     token: string | null = 'valid',
-    body: object = route.path === '/alerts/resolved/delete' ? { ids: ['alert-1'] } : {},
+    body: object = route.path === '/alerts/resolved/delete'
+      ? { ids: ['alert-1'] }
+      : {},
   ) => {
     const req = request(app.getHttpServer() as Server)[route.method](
       route.path,
@@ -345,7 +359,12 @@ describe('Alerts HTTP authorization', () => {
     expect(alertService.getUnreadCount).toHaveBeenCalledWith();
   });
 
-  it.each(routes.filter((route) => route.method === 'post' && route.handler !== 'deleteResolvedAlerts'))(
+  it.each(
+    routes.filter(
+      (route) =>
+        route.method === 'post' && route.handler !== 'deleteResolvedAlerts',
+    ),
+  )(
     '$path keeps the authenticated actor, optional note and response envelope',
     async (route) => {
       grants = [route.permission];
@@ -368,11 +387,23 @@ describe('Alerts HTTP authorization', () => {
 
   it('deletes a specified resolved selection with its response count', async () => {
     grants = ['alerts.dismiss'];
-    await send(routes[4], 'valid', { ids: ['one', 'two'] }).expect(201, { deletedCount: 1 });
-    expect(alertService.deleteResolvedAlerts).toHaveBeenCalledWith(['one', 'two']);
+    await send(routes[4], 'valid', { ids: ['one', 'two'] }).expect(201, {
+      deletedCount: 1,
+    });
+    expect(alertService.deleteResolvedAlerts).toHaveBeenCalledWith([
+      'one',
+      'two',
+    ]);
   });
 
-  it.each([{}, { ids: [] }, { ids: ['one', 'one'] }, { ids: [123] }, { ids: Array.from({ length: 201 }, (_, i) => String(i)) }, { ids: ['one'], state: 'ACTIVE' }])('rejects invalid deletion payload %j', async (body) => {
+  it.each([
+    {},
+    { ids: [] },
+    { ids: ['one', 'one'] },
+    { ids: [123] },
+    { ids: Array.from({ length: 201 }, (_, i) => String(i)) },
+    { ids: ['one'], state: 'ACTIVE' },
+  ])('rejects invalid deletion payload %j', async (body) => {
     grants = ['alerts.dismiss'];
     await send(routes[4], 'valid', body).expect(400);
     expect(alertService.deleteResolvedAlerts).not.toHaveBeenCalled();

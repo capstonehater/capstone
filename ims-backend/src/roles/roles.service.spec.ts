@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment -- Jest asymmetric matchers are intentionally untyped. */
 import 'reflect-metadata';
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { Role } from '@prisma/client';

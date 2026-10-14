@@ -1,4 +1,9 @@
-import { groupMaterialQuantities, itemNetRevenue, summarizeSales, type SalesAmounts } from './report-accounting';
+import {
+  groupMaterialQuantities,
+  itemNetRevenue,
+  summarizeSales,
+  type SalesAmounts,
+} from './report-accounting';
 import { withHistoricalMaterial } from '../inventory/material-history-snapshot';
 import { Injectable } from '@nestjs/common';
 import {
@@ -27,7 +32,7 @@ import { PosAuditExceptionsDto } from './dto/pos-audit-exceptions.dto';
 import { PosInventoryLinkedDto } from './dto/pos-inventory-linked.dto';
 import { SalesReportQueries } from './sales-report.queries';
 import { PosPeakHoursDto } from './dto/pos-peak-hours.dto';
-import { CAFE_OPERATING_HOURS, isCafeOperatingHour } from '../common/utils/cafe-operating-hours';
+import { CAFE_OPERATING_HOURS } from '../common/utils/cafe-operating-hours';
 import { PosProductPerformanceDto } from './dto/pos-product-performance.dto';
 import { PosRefundsVoidsDto } from './dto/pos-refunds-voids.dto';
 import { PosSalesAnalyticsDto } from './dto/pos-sales-analytics.dto';
@@ -264,7 +269,20 @@ export class ReportsService {
       const countedMaterials = new Set<string>();
       for (const record of transaction.lines) {
         const line = withHistoricalMaterial(record);
-        const materials = reasonMaterials.get(reasonCode) ?? new Map();
+        const materials =
+          reasonMaterials.get(reasonCode) ??
+          new Map<
+            string,
+            {
+              rawMaterialId: string;
+              name: string;
+              sku: string;
+              unitCode: string;
+              quantity: Prisma.Decimal;
+              cost: Prisma.Decimal;
+              eventCount: number;
+            }
+          >();
         const reasonMaterial = materials.get(line.rawMaterialId) ?? {
           rawMaterialId: line.rawMaterialId,
           name: line.rawMaterial.name,
@@ -467,12 +485,16 @@ export class ReportsService {
       (sum, summary) => sum + summary.summary.activeBatchCount,
       0,
     );
-    const today = parseBusinessDateToDateOnlyUtc(formatManilaBusinessDateInput(new Date()));
+    const today = parseBusinessDateToDateOnlyUtc(
+      formatManilaBusinessDateInput(new Date()),
+    );
     const cutoff = new Date(today);
     const day = cutoff.getUTCDate();
     cutoff.setUTCDate(1);
     cutoff.setUTCMonth(cutoff.getUTCMonth() + 2);
-    const lastDay = new Date(Date.UTC(cutoff.getUTCFullYear(), cutoff.getUTCMonth() + 1, 0)).getUTCDate();
+    const lastDay = new Date(
+      Date.UTC(cutoff.getUTCFullYear(), cutoff.getUTCMonth() + 1, 0),
+    ).getUTCDate();
     cutoff.setUTCDate(Math.min(day, lastDay));
 
     const nearExpiryBatches = await this.prisma.stockBatch.findMany({
@@ -2102,8 +2124,11 @@ export class ReportsService {
           : ZERO,
     }));
 
-    const operatingHourly = hourly.filter((row) => row.hour >= 13 && row.hour <= 20);
-    const busiestHours = operatingHourly.filter((row) => row.transactionCount > 0)
+    const operatingHourly = hourly.filter(
+      (row) => row.hour >= 13 && row.hour <= 20,
+    );
+    const busiestHours = operatingHourly
+      .filter((row) => row.transactionCount > 0)
       .sort((left, right) => {
         if (right.transactionCount !== left.transactionCount) {
           return right.transactionCount - left.transactionCount;
@@ -2114,9 +2139,11 @@ export class ReportsService {
       .slice(0, 3);
 
     const slowestHours = [...operatingHourly]
-      .sort((left, right) =>
-        left.netSales.comparedTo(right.netSales) ||
-        left.transactionCount - right.transactionCount || left.hour - right.hour,
+      .sort(
+        (left, right) =>
+          left.netSales.comparedTo(right.netSales) ||
+          left.transactionCount - right.transactionCount ||
+          left.hour - right.hour,
       )
       .slice(0, 3);
 
@@ -2855,69 +2882,71 @@ export class ReportsService {
       status: statusFilter ?? undefined,
     };
 
+    const reversalQuery = this.prisma.orderReversal.findMany({
+      where: reversalWhere,
+      orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
+      include: {
+        actorUser: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        order: {
+          select: {
+            id: true,
+            status: true,
+            createdBy: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+            discountCode: true,
+            discountCustomerName: true,
+            discountIdNumber: true,
+            discountRate: true,
+            discountAmount: true,
+          },
+        },
+      },
+    });
+    const discountQuery = this.prisma.order.findMany({
+      where: discountWhere,
+      orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
+      select: {
+        id: true,
+        status: true,
+        completedAt: true,
+        discountCode: true,
+        discountCustomerName: true,
+        discountIdNumber: true,
+        discountRate: true,
+        discountAmount: true,
+        totalAmount: true,
+        subtotalAmount: true,
+        taxAmount: true,
+        createdBy: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
     const [reversals, discountedOrders] = await Promise.all([
       exceptionType === 'DISCOUNT'
-        ? Promise.resolve([])
-        : this.prisma.orderReversal.findMany({
-            where: reversalWhere,
-            orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
-            include: {
-              actorUser: {
-                select: {
-                  id: true,
-                  email: true,
-                  firstName: true,
-                  lastName: true,
-                },
-              },
-              order: {
-                select: {
-                  id: true,
-                  status: true,
-                  createdBy: {
-                    select: {
-                      id: true,
-                      email: true,
-                      firstName: true,
-                      lastName: true,
-                    },
-                  },
-                  discountCode: true,
-                  discountCustomerName: true,
-                  discountIdNumber: true,
-                  discountRate: true,
-                  discountAmount: true,
-                },
-              },
-            },
-          }),
+        ? Promise.resolve<Awaited<typeof reversalQuery>>([])
+        : reversalQuery,
       exceptionType === 'REFUND' || exceptionType === 'VOID'
-        ? Promise.resolve([])
-        : this.prisma.order.findMany({
-            where: discountWhere,
-            orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
-            select: {
-              id: true,
-              status: true,
-              completedAt: true,
-              discountCode: true,
-              discountCustomerName: true,
-              discountIdNumber: true,
-              discountRate: true,
-              discountAmount: true,
-              totalAmount: true,
-              subtotalAmount: true,
-              taxAmount: true,
-              createdBy: {
-                select: {
-                  id: true,
-                  email: true,
-                  firstName: true,
-                  lastName: true,
-                },
-              },
-            },
-          }),
+        ? Promise.resolve<Awaited<typeof discountQuery>>([])
+        : discountQuery,
     ]);
 
     const requestedByUserIds = [
@@ -3305,12 +3334,16 @@ export class ReportsService {
     return Math.max(range.to.getTime() - range.from.getTime() + 1, 1);
   }
 
-  private withVariantMargin<T extends { revenue: Prisma.Decimal; cogs: Prisma.Decimal }>(variant: T) {
+  private withVariantMargin<
+    T extends { revenue: Prisma.Decimal; cogs: Prisma.Decimal },
+  >(variant: T) {
     const grossMargin = variant.revenue.minus(variant.cogs);
     return {
       ...variant,
       grossMargin,
-      marginRate: variant.revenue.greaterThan(0) ? grossMargin.dividedBy(variant.revenue).toNumber() : 0,
+      marginRate: variant.revenue.greaterThan(0)
+        ? grossMargin.dividedBy(variant.revenue).toNumber()
+        : 0,
     };
   }
 
@@ -3337,12 +3370,20 @@ export class ReportsService {
       totalAmount: Prisma.Decimal;
     }>,
   ) {
-    const hourlyMap = new Map<number, { netSales: Prisma.Decimal; transactionCount: number }>();
-    for (let hour = CAFE_OPERATING_HOURS.openingHour; hour < CAFE_OPERATING_HOURS.closingHour; hour += 1) {
+    const hourlyMap = new Map<
+      number,
+      { netSales: Prisma.Decimal; transactionCount: number }
+    >();
+    for (
+      let hour = CAFE_OPERATING_HOURS.openingHour;
+      hour < CAFE_OPERATING_HOURS.closingHour;
+      hour += 1
+    ) {
       hourlyMap.set(hour, { netSales: ZERO, transactionCount: 0 });
     }
     for (const order of orders) {
-      if (order.completedAt < range.from || order.completedAt > range.to) continue;
+      if (order.completedAt < range.from || order.completedAt > range.to)
+        continue;
       const bucket = hourlyMap.get(this.getManilaHour(order.completedAt));
       if (!bucket) continue;
       bucket.netSales = bucket.netSales.plus(order.totalAmount);

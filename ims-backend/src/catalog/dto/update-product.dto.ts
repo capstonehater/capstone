@@ -14,7 +14,9 @@ export class UpdateProductDto {
   imageUrl?: string | null;
 
   @IsOptional()
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   @IsString()
   @MaxLength(160)
   name?: string;

@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { toDecimal } from '../common/utils/decimal.util';
 import { PrismaService } from '../prisma/prisma.service';
@@ -17,26 +22,43 @@ export class InventoryService {
 
   private async ensureCategoriesExist(categoryIds?: string[]) {
     if (!categoryIds?.length) return;
-    const count = await this.prisma.category.count({ where: { id: { in: categoryIds } } });
+    const count = await this.prisma.category.count({
+      where: { id: { in: categoryIds } },
+    });
     if (count !== new Set(categoryIds).size) {
-      throw new BadRequestException('One or more product categories do not exist.');
+      throw new BadRequestException(
+        'One or more product categories do not exist.',
+      );
     }
   }
 
   async createUnit(dto: CreateUnitDto) {
     const name = dto.name.trim();
     const code = dto.code.trim().toUpperCase();
-    if (!name || !code) throw new BadRequestException('Unit name and abbreviation are required.');
+    if (!name || !code)
+      throw new BadRequestException('Unit name and abbreviation are required.');
     return this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(614210)::text`;
       const existing = await tx.unit.findFirst({
-        where: { OR: [
-          { name: { equals: name, mode: 'insensitive' } },
-          { code: { equals: code, mode: 'insensitive' } },
-        ] },
+        where: {
+          OR: [
+            { name: { equals: name, mode: 'insensitive' } },
+            { code: { equals: code, mode: 'insensitive' } },
+          ],
+        },
       });
-      if (existing) throw new ConflictException('A unit with this name or abbreviation already exists. Select the existing unit.');
-      return tx.unit.create({ data: { name, code, dimension: dto.dimension, conversionFactor: toDecimal(1) } });
+      if (existing)
+        throw new ConflictException(
+          'A unit with this name or abbreviation already exists. Select the existing unit.',
+        );
+      return tx.unit.create({
+        data: {
+          name,
+          code,
+          dimension: dto.dimension,
+          conversionFactor: toDecimal(1),
+        },
+      });
     });
   }
 
@@ -91,17 +113,41 @@ export class InventoryService {
       const disallowedCategory = { categoryId: { notIn: dto.categoryIds } };
       const [recipe, modifier] = await Promise.all([
         this.prisma.variantRecipeItem.findFirst({
-          where: { rawMaterialId, productVariant: { product: disallowedCategory } },
-          select: { productVariant: { select: { product: { select: { name: true, category: { select: { name: true } } } } } } },
+          where: {
+            rawMaterialId,
+            productVariant: { product: disallowedCategory },
+          },
+          select: {
+            productVariant: {
+              select: {
+                product: {
+                  select: { name: true, category: { select: { name: true } } },
+                },
+              },
+            },
+          },
         }),
         this.prisma.productModifierGroup.findFirst({
-          where: { product: disallowedCategory, modifierGroup: { modifiers: { some: { recipeAdjustments: { some: { rawMaterialId } } } } } },
-          select: { product: { select: { name: true, category: { select: { name: true } } } } },
+          where: {
+            product: disallowedCategory,
+            modifierGroup: {
+              modifiers: {
+                some: { recipeAdjustments: { some: { rawMaterialId } } },
+              },
+            },
+          },
+          select: {
+            product: {
+              select: { name: true, category: { select: { name: true } } },
+            },
+          },
         }),
       ]);
       const conflict = recipe?.productVariant.product ?? modifier?.product;
       if (conflict) {
-        throw new BadRequestException(`${conflict.name} already uses this material in ${conflict.category.name}. Keep that category selected or remove the material from the product's recipe first.`);
+        throw new BadRequestException(
+          `${conflict.name} already uses this material in ${conflict.category.name}. Keep that category selected or remove the material from the product's recipe first.`,
+        );
       }
     }
 
@@ -115,9 +161,10 @@ export class InventoryService {
         name: dto.name,
         sku: dto.sku,
         unitId: dto.unitId,
-        categories: dto.categoryIds !== undefined
-          ? { set: dto.categoryIds.map((id) => ({ id })) }
-          : undefined,
+        categories:
+          dto.categoryIds !== undefined
+            ? { set: dto.categoryIds.map((id) => ({ id })) }
+            : undefined,
         reorderPoint:
           dto.reorderPoint !== undefined
             ? toDecimal(dto.reorderPoint)
@@ -157,34 +204,52 @@ export class InventoryService {
   }
 
   async deleteRawMaterial(rawMaterialId: string) {
-    return this.prisma.$transaction(async (tx) => {
-      const material = await tx.rawMaterial.findUnique({
-        where: { id: rawMaterialId },
-        include: { unit: true },
-      });
-      if (!material) throw new NotFoundException('Raw material not found');
-      const [recipes, modifiers, drafts] = await Promise.all([
-        tx.variantRecipeItem.count({ where: { rawMaterialId } }),
-        tx.modifierRecipeAdjustment.count({ where: { rawMaterialId } }),
-        tx.stockRunItem.count({ where: { rawMaterialId, stockRun: { status: 'DRAFT' } } }),
-      ]);
-      if (recipes || modifiers || drafts) {
-        throw new BadRequestException('Remove this material from product recipes, modifier recipes, and draft stock runs before deleting it.');
-      }
-      const snapshot = JSON.parse(JSON.stringify(material)) as Prisma.InputJsonObject;
-      const update = { where: { rawMaterialId }, data: { rawMaterialSnapshot: snapshot } };
-      await tx.stockRunItem.updateMany(update);
-      await tx.stockBatch.updateMany(update);
-      await tx.inventoryTransactionLine.updateMany(update);
-      await tx.inventoryDailySnapshot.updateMany(update);
-      await tx.storeAvailabilitySearch.updateMany(update);
-      await tx.alert.updateMany(update);
-      await tx.stockoutEvent.updateMany(update);
-      await tx.alert.updateMany({ where: { rawMaterialId, state: 'ACTIVE' }, data: { state: 'RESOLVED', resolvedAt: new Date() } });
-      await tx.stockoutEvent.updateMany({ where: { rawMaterialId, endedAt: null }, data: { endedAt: new Date() } });
-      await tx.rawMaterial.delete({ where: { id: rawMaterialId } });
-      return { id: material.id, name: material.name };
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    return this.prisma.$transaction(
+      async (tx) => {
+        const material = await tx.rawMaterial.findUnique({
+          where: { id: rawMaterialId },
+          include: { unit: true },
+        });
+        if (!material) throw new NotFoundException('Raw material not found');
+        const [recipes, modifiers, drafts] = await Promise.all([
+          tx.variantRecipeItem.count({ where: { rawMaterialId } }),
+          tx.modifierRecipeAdjustment.count({ where: { rawMaterialId } }),
+          tx.stockRunItem.count({
+            where: { rawMaterialId, stockRun: { status: 'DRAFT' } },
+          }),
+        ]);
+        if (recipes || modifiers || drafts) {
+          throw new BadRequestException(
+            'Remove this material from product recipes, modifier recipes, and draft stock runs before deleting it.',
+          );
+        }
+        const snapshot = JSON.parse(
+          JSON.stringify(material),
+        ) as Prisma.InputJsonObject;
+        const update = {
+          where: { rawMaterialId },
+          data: { rawMaterialSnapshot: snapshot },
+        };
+        await tx.stockRunItem.updateMany(update);
+        await tx.stockBatch.updateMany(update);
+        await tx.inventoryTransactionLine.updateMany(update);
+        await tx.inventoryDailySnapshot.updateMany(update);
+        await tx.storeAvailabilitySearch.updateMany(update);
+        await tx.alert.updateMany(update);
+        await tx.stockoutEvent.updateMany(update);
+        await tx.alert.updateMany({
+          where: { rawMaterialId, state: 'ACTIVE' },
+          data: { state: 'RESOLVED', resolvedAt: new Date() },
+        });
+        await tx.stockoutEvent.updateMany({
+          where: { rawMaterialId, endedAt: null },
+          data: { endedAt: new Date() },
+        });
+        await tx.rawMaterial.delete({ where: { id: rawMaterialId } });
+        return { id: material.id, name: material.name };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
   }
 
   async listRawMaterials() {
@@ -268,7 +333,10 @@ export class InventoryService {
       // Existing foreign keys use SetNull to retain stock and purchasing history.
       return await this.prisma.supplier.delete({ where: { id: supplierId } });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
         throw new NotFoundException('Supplier not found');
       }
       throw error;
@@ -288,7 +356,11 @@ export class InventoryService {
     const rawMaterials = await this.prisma.rawMaterial.findMany({
       where: {
         isActive:
-          filters.status === 'INACTIVE' ? false : includeArchived ? undefined : true,
+          filters.status === 'INACTIVE'
+            ? false
+            : includeArchived
+              ? undefined
+              : true,
         OR: search
           ? [
               {

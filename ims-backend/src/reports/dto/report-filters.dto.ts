@@ -1,5 +1,12 @@
 import { Type } from 'class-transformer';
-import { IsBooleanString, IsDateString, IsNumber, IsOptional, Max, Min } from 'class-validator';
+import {
+  IsBooleanString,
+  IsDateString,
+  IsNumber,
+  IsOptional,
+  Max,
+  Min,
+} from 'class-validator';
 
 export class ReportFiltersDto {
   @IsOptional()

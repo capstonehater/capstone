@@ -57,7 +57,9 @@ export class RecipeResolverService {
     await assertMaterialsAllowedForCategory(
       tx,
       variant.product.categoryId,
-      [...materialMap.entries()].filter(([, quantity]) => quantity.greaterThan(0)).map(([id]) => id),
+      [...materialMap.entries()]
+        .filter(([, quantity]) => quantity.greaterThan(0))
+        .map(([id]) => id),
     );
 
     return [...materialMap.entries()]

@@ -24,45 +24,6 @@ export type ValidatedModifierSelection = {
   }>;
 };
 
-type VariantWithModifierConfig = Prisma.ProductVariantGetPayload<{
-  select: {
-    id: true;
-    productId: true;
-    product: {
-      select: {
-        productModifierGroups: {
-          select: {
-            minSelect: true;
-            maxSelect: true;
-            isRequired: true;
-            allowQuantity: true;
-            modifierGroupId: true;
-            modifierGroup: {
-              select: {
-                id: true;
-                modifiers: {
-                  where: { isActive: true };
-                  select: {
-                    id: true;
-                    name: true;
-                    priceAdjustment: true;
-                    recipeAdjustments: {
-                      select: {
-                        rawMaterialId: true;
-                        quantityDelta: true;
-                      };
-                    };
-                  };
-                };
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-}>;
-
 @Injectable()
 export class ModifierValidationService {
   async validateSelections(

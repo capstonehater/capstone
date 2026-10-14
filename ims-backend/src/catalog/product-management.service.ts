@@ -310,13 +310,29 @@ export class ProductManagementService {
     if (dto.categoryId && dto.categoryId !== existing.categoryId) {
       await this.ensureCategoryExists(dto.categoryId);
       const materials = await this.prisma.rawMaterial.findMany({
-        where: { OR: [
-          { recipeItems: { some: { productVariant: { productId } } } },
-          { modifierRecipeAdjustments: { some: { modifier: { modifierGroup: { productModifierGroups: { some: { productId } } } } } } },
-        ] },
+        where: {
+          OR: [
+            { recipeItems: { some: { productVariant: { productId } } } },
+            {
+              modifierRecipeAdjustments: {
+                some: {
+                  modifier: {
+                    modifierGroup: {
+                      productModifierGroups: { some: { productId } },
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        },
         select: { id: true },
       });
-      await assertMaterialsAllowedForCategory(this.prisma, dto.categoryId, materials.map((material) => material.id));
+      await assertMaterialsAllowedForCategory(
+        this.prisma,
+        dto.categoryId,
+        materials.map((material) => material.id),
+      );
     }
 
     const nextCategoryId = dto.categoryId ?? existing.categoryId;
@@ -344,13 +360,22 @@ export class ProductManagementService {
     });
 
     // Delete only after the replacement (or removal) is saved successfully.
-    if (dto.imageUrl !== undefined && existing.imageUrl && existing.imageUrl !== dto.imageUrl) {
+    if (
+      dto.imageUrl !== undefined &&
+      existing.imageUrl &&
+      existing.imageUrl !== dto.imageUrl
+    ) {
       try {
-        const references = await this.prisma.product.count({ where: { imageUrl: existing.imageUrl } });
+        const references = await this.prisma.product.count({
+          where: { imageUrl: existing.imageUrl },
+        });
         if (references === 0) await removeProductImage(existing.imageUrl);
       } catch {
         // The product is already saved; avoid reporting a failed save on cleanup errors.
-        Logger.warn(`Product ${productId} saved, but its previous photo could not be cleaned up.`, ProductManagementService.name);
+        Logger.warn(
+          `Product ${productId} saved, but its previous photo could not be cleaned up.`,
+          ProductManagementService.name,
+        );
       }
     }
 
@@ -505,7 +530,11 @@ export class ProductManagementService {
 
     return {
       eligible: true,
-      blockingReasons: [] as Array<{ code: string; message: string; count: number }>,
+      blockingReasons: [] as Array<{
+        code: string;
+        message: string;
+        count: number;
+      }>,
     };
   }
 
@@ -878,7 +907,11 @@ export class ProductManagementService {
     }
 
     await this.prisma.$transaction(async (tx) => {
-      await assertMaterialsAllowedForCategory(tx, variant.product.categoryId, recipeItems.map((item) => item.rawMaterialId));
+      await assertMaterialsAllowedForCategory(
+        tx,
+        variant.product.categoryId,
+        recipeItems.map((item) => item.rawMaterialId),
+      );
       await tx.variantRecipeItem.deleteMany({
         where: {
           productVariantId: variantId,
@@ -1179,7 +1212,7 @@ export class ProductManagementService {
     }
   }
 
-  private getAdminProductListInclude(): Prisma.ProductInclude {
+  private getAdminProductListInclude() {
     return {
       category: true,
       variants: {
@@ -1187,10 +1220,18 @@ export class ProductManagementService {
           availabilitySummary: true,
         },
       },
-    };
+    } satisfies Prisma.ProductInclude;
   }
 
-  private mapAdminProductListItem(product: any, ingredientCount: number) {
+  private mapAdminProductListItem(
+    product: Prisma.ProductGetPayload<{
+      include: {
+        category: true;
+        variants: { include: { availabilitySummary: true } };
+      };
+    }>,
+    ingredientCount: number,
+  ) {
     const status = this.deriveProductStatus(product);
     return {
       id: product.id,

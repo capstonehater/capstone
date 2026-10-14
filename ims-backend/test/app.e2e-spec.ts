@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
@@ -9,6 +8,8 @@ import { AppModule } from '../src/app.module';
 import { csrfOriginMiddleware } from '../src/auth/csrf-origin.middleware';
 import { env } from '../src/config/env.validation';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { PermissionResolver } from '../src/auth/rbac/permission-resolver.service';
+import { PERMISSION_CATALOG } from '../src/auth/rbac/permission-catalog';
 
 function buildUser(
   overrides: Partial<{
@@ -177,7 +178,7 @@ describe('User management and auth foundation (e2e)', () => {
     });
     prismaMock.authSession.groupBy.mockResolvedValue([]);
     prismaMock.passwordResetToken.update.mockResolvedValue(undefined);
-    prismaMock.passwordResetToken.updateMany.mockResolvedValue(undefined);
+    prismaMock.passwordResetToken.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.passwordResetToken.create.mockResolvedValue(undefined);
     prismaMock.order.count.mockResolvedValue(0);
     prismaMock.order.findMany.mockResolvedValue([]);
@@ -197,6 +198,23 @@ describe('User management and auth foundation (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(prismaMock)
+      .overrideProvider(PermissionResolver)
+      .useValue({
+        resolve: (user: { role: string }) =>
+          Promise.resolve(
+            new Set(
+              user.role === 'ADMINISTRATOR'
+                ? PERMISSION_CATALOG.map(({ key }) => key)
+                : [],
+            ),
+          ),
+        snapshot: () =>
+          Promise.resolve({
+            roles: [],
+            effectivePermissions: PERMISSION_CATALOG.map(({ key }) => key),
+            authorizationRevision: 'e2e-fixture-revision',
+          }),
+      })
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -328,6 +346,7 @@ describe('User management and auth foundation (e2e)', () => {
 
     const response = await request(app.getHttpServer())
       .post('/auth/login')
+      .set('Origin', env.FRONTEND_ORIGIN)
       .send({
         email: 'admin@stockscout.com',
         password: validPassword,
@@ -341,6 +360,9 @@ describe('User management and auth foundation (e2e)', () => {
         email: 'admin@stockscout.com',
         name: 'Admin User',
         role: 'ADMINISTRATOR',
+        roles: [],
+        effectivePermissions: PERMISSION_CATALOG.map(({ key }) => key),
+        authorizationRevision: 'e2e-fixture-revision',
       },
     });
     expect(response.headers['set-cookie']).toBeDefined();
@@ -357,6 +379,7 @@ describe('User management and auth foundation (e2e)', () => {
 
     await request(app.getHttpServer())
       .post('/auth/login')
+      .set('Origin', env.FRONTEND_ORIGIN)
       .send({
         email: 'admin@stockscout.com',
         password: validPassword,
@@ -364,19 +387,21 @@ describe('User management and auth foundation (e2e)', () => {
       .expect(401);
   });
 
-  it('returns a generic forgot-password response for unknown users', async () => {
+  it('rejects forgot-password requests for unknown users', async () => {
     prismaMock.user.findUnique.mockResolvedValue(null);
 
     const response = await request(app.getHttpServer())
       .post('/auth/forgot-password')
+      .set('Origin', env.FRONTEND_ORIGIN)
       .send({
         email: 'missing@stockscout.com',
       })
-      .expect(201);
+      .expect(400);
 
     expect(response.body).toEqual({
-      message:
-        'If an account exists for that email, a password reset link will be sent.',
+      message: 'not an existing email',
+      error: 'Bad Request',
+      statusCode: 400,
     });
     expect(prismaMock.passwordResetToken.create).not.toHaveBeenCalled();
   });
@@ -398,9 +423,10 @@ describe('User management and auth foundation (e2e)', () => {
 
     const response = await request(app.getHttpServer())
       .post('/auth/reset-password')
+      .set('Origin', env.FRONTEND_ORIGIN)
       .send({
         token: 'a'.repeat(48),
-        newPassword: 'NewStrong123',
+        newPassword: 'NewStrong123!',
       })
       .expect(201);
 
@@ -434,9 +460,10 @@ describe('User management and auth foundation (e2e)', () => {
 
     await request(app.getHttpServer())
       .post('/auth/reset-password')
+      .set('Origin', env.FRONTEND_ORIGIN)
       .send({
         token: 'b'.repeat(48),
-        newPassword: 'NewStrong123',
+        newPassword: 'NewStrong123!',
       })
       .expect(201);
 
@@ -551,7 +578,7 @@ describe('User management and auth foundation (e2e)', () => {
     );
 
     await request(app.getHttpServer())
-      .get('/settings/account')
+      .get('/settings/storage')
       .set('Cookie', `${cookieName}=raw-session-token`)
       .expect(403);
   });
@@ -568,7 +595,7 @@ describe('User management and auth foundation (e2e)', () => {
     );
 
     await request(app.getHttpServer())
-      .get('/settings/account')
+      .get('/settings/storage')
       .set('Cookie', `${cookieName}=raw-session-token`)
       .expect(403);
   });
@@ -728,7 +755,7 @@ describe('User management and auth foundation (e2e)', () => {
       .set('Origin', env.FRONTEND_ORIGIN)
       .send({
         currentPassword: 'WrongPass123',
-        newPassword: 'NewStrong123',
+        newPassword: 'NewStrong123!',
       })
       .expect(401);
     expect(prismaMock.user.update).not.toHaveBeenCalled();
@@ -751,7 +778,7 @@ describe('User management and auth foundation (e2e)', () => {
       .set('Origin', env.FRONTEND_ORIGIN)
       .send({
         currentPassword: validPassword,
-        newPassword: 'NewStrong123',
+        newPassword: 'NewStrong123!',
       })
       .expect(201);
 
@@ -959,6 +986,7 @@ describe('User management and auth foundation (e2e)', () => {
 
     const response = await request(app.getHttpServer())
       .post('/users')
+      .set('Origin', env.FRONTEND_ORIGIN)
       .set('Cookie', `${cookieName}=raw-session-token`)
       .send({
         firstName: 'Created',
@@ -1005,6 +1033,7 @@ describe('User management and auth foundation (e2e)', () => {
 
     await request(app.getHttpServer())
       .post('/users')
+      .set('Origin', env.FRONTEND_ORIGIN)
       .set('Cookie', `${cookieName}=raw-session-token`)
       .send({
         firstName: 'Reserved',
@@ -1028,6 +1057,7 @@ describe('User management and auth foundation (e2e)', () => {
 
     await request(app.getHttpServer())
       .patch('/users/99999999-9999-4999-8999-999999999999')
+      .set('Origin', env.FRONTEND_ORIGIN)
       .set('Cookie', `${cookieName}=raw-session-token`)
       .send({
         role: 'STAFF',
@@ -1057,6 +1087,7 @@ describe('User management and auth foundation (e2e)', () => {
 
     await request(app.getHttpServer())
       .patch(`/users/${targetUserId}`)
+      .set('Origin', env.FRONTEND_ORIGIN)
       .set('Cookie', `${cookieName}=raw-session-token`)
       .send({
         role: 'ADMINISTRATOR',
@@ -1097,6 +1128,7 @@ describe('User management and auth foundation (e2e)', () => {
 
     await request(app.getHttpServer())
       .patch(`/users/${targetUserId}`)
+      .set('Origin', env.FRONTEND_ORIGIN)
       .set('Cookie', `${cookieName}=raw-session-token`)
       .send({
         email: 'new-login@stockscout.com',
@@ -1138,6 +1170,7 @@ describe('User management and auth foundation (e2e)', () => {
 
     await request(app.getHttpServer())
       .patch(`/users/${targetUserId}`)
+      .set('Origin', env.FRONTEND_ORIGIN)
       .set('Cookie', `${cookieName}=raw-session-token`)
       .send({
         firstName: 'Updated',
@@ -1177,6 +1210,7 @@ describe('User management and auth foundation (e2e)', () => {
 
     const response = await request(app.getHttpServer())
       .post('/users/bbbbbbbb-2222-4222-8222-222222222222/suspend')
+      .set('Origin', env.FRONTEND_ORIGIN)
       .set('Cookie', `${cookieName}=raw-session-token`)
       .expect(201);
 
@@ -1212,6 +1246,7 @@ describe('User management and auth foundation (e2e)', () => {
 
     await request(app.getHttpServer())
       .post('/users/dddddddd-4444-4444-8444-444444444444/suspend')
+      .set('Origin', env.FRONTEND_ORIGIN)
       .set('Cookie', `${cookieName}=raw-session-token`)
       .expect(409);
   });
@@ -1272,6 +1307,7 @@ describe('User management and auth foundation (e2e)', () => {
       .delete(
         '/users/ffffffff-6666-4666-8666-666666666666/sessions/12121212-1212-4121-8121-121212121212',
       )
+      .set('Origin', env.FRONTEND_ORIGIN)
       .set('Cookie', `${cookieName}=raw-session-token`)
       .expect(404);
   });
@@ -1367,6 +1403,7 @@ describe('User management and auth foundation (e2e)', () => {
 
     const response = await request(app.getHttpServer())
       .delete('/users/abababab-7777-4777-8777-777777777777')
+      .set('Origin', env.FRONTEND_ORIGIN)
       .set('Cookie', `${cookieName}=raw-session-token`)
       .expect(409);
 
@@ -1398,6 +1435,7 @@ describe('User management and auth foundation (e2e)', () => {
 
     const response = await request(app.getHttpServer())
       .delete('/users/cdcdcdcd-8888-4888-8888-888888888888')
+      .set('Origin', env.FRONTEND_ORIGIN)
       .set('Cookie', `${cookieName}=raw-session-token`)
       .expect(200);
 

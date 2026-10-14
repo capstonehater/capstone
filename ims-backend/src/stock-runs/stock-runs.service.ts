@@ -48,7 +48,11 @@ export class StockRunsService {
         });
       }
       return tx.stockRun.create({
-        data: { name: dto.name, notes: dto.notes ?? null, createdByUserId: userId },
+        data: {
+          name: dto.name,
+          notes: dto.notes ?? null,
+          createdByUserId: userId,
+        },
       });
     });
   }
@@ -71,14 +75,28 @@ export class StockRunsService {
     const unitCode = rawMaterial.unit.code.trim().toUpperCase();
     const costUnitCode = dto.costUnitCode?.trim().toUpperCase() ?? unitCode;
     if (dto.costUnitCode !== undefined && dto.costQuantity === undefined) {
-      throw new BadRequestException('Price quantity is required when a price unit is selected');
+      throw new BadRequestException(
+        'Price quantity is required when a price unit is selected',
+      );
     }
-    const priceQuantity = dto.costQuantity ?? (unitCode === 'G' || unitCode === 'ML' ? 1000 : 1);
+    const priceQuantity =
+      dto.costQuantity ?? (unitCode === 'G' || unitCode === 'ML' ? 1000 : 1);
     let conversionFactor = 1;
     if (costUnitCode !== unitCode) {
-      if (unitCode === 'G' && costUnitCode === 'KG' || unitCode === 'ML' && costUnitCode === 'L') conversionFactor = 1000;
-      else if (unitCode === 'KG' && costUnitCode === 'G' || unitCode === 'L' && costUnitCode === 'ML') conversionFactor = 0.001;
-      else throw new BadRequestException('Price unit must match the material unit or its kg/g or L/ml equivalent');
+      if (
+        (unitCode === 'G' && costUnitCode === 'KG') ||
+        (unitCode === 'ML' && costUnitCode === 'L')
+      )
+        conversionFactor = 1000;
+      else if (
+        (unitCode === 'KG' && costUnitCode === 'G') ||
+        (unitCode === 'L' && costUnitCode === 'ML')
+      )
+        conversionFactor = 0.001;
+      else
+        throw new BadRequestException(
+          'Price unit must match the material unit or its kg/g or L/ml equivalent',
+        );
     }
     const costQuantity = toDecimal(priceQuantity).mul(conversionFactor);
 
@@ -92,7 +110,9 @@ export class StockRunsService {
         rawMaterialId: dto.rawMaterialId,
         supplierId: dto.supplierId ?? null,
         quantity: toDecimal(dto.quantity),
-        costPerUnit: toDecimal(dto.costPerUnit).div(costQuantity).toDecimalPlaces(8),
+        costPerUnit: toDecimal(dto.costPerUnit)
+          .div(costQuantity)
+          .toDecimalPlaces(8),
         purchaseCost: toDecimal(dto.costPerUnit),
         priceQuantity: toDecimal(priceQuantity),
         priceUnitCode: costUnitCode,
@@ -157,7 +177,10 @@ export class StockRunsService {
       }
 
       const items = stockRun.items.map((item) => {
-        if (!item.rawMaterialId) throw new BadRequestException("A material in this draft was deleted. Remove the item before posting.");
+        if (!item.rawMaterialId)
+          throw new BadRequestException(
+            'A material in this draft was deleted. Remove the item before posting.',
+          );
         return { ...item, rawMaterialId: item.rawMaterialId };
       });
       const postedAt = new Date();
@@ -264,7 +287,10 @@ export class StockRunsService {
             : undefined,
         OR: filters.search?.trim()
           ? ['name', 'reference'].map((field) => ({
-              [field]: { contains: filters.search!.trim(), mode: 'insensitive' as const },
+              [field]: {
+                contains: filters.search!.trim(),
+                mode: 'insensitive' as const,
+              },
             }))
           : undefined,
       },

@@ -191,8 +191,11 @@ describe('ProductManagementService delete policy repair', () => {
     prisma.orderItem.count.mockResolvedValue(3);
     prisma.inventoryTransactionLine.count.mockResolvedValue(2);
     prisma.stockoutEvent.count.mockResolvedValue(1);
-    await expect(service.getProductDeleteEligibility('product-1')).resolves.toEqual({
-      eligible: true, blockingReasons: [],
+    await expect(
+      service.getProductDeleteEligibility('product-1'),
+    ).resolves.toEqual({
+      eligible: true,
+      blockingReasons: [],
     });
   });
 
@@ -310,7 +313,8 @@ describe('ProductManagementService delete policy repair', () => {
     prisma.inventoryTransactionLine.count.mockResolvedValue(1);
     prisma.stockoutEvent.count.mockResolvedValue(1);
     await expect(service.deleteProduct('product-1')).resolves.toEqual({
-      deleted: true, productId: 'product-1',
+      deleted: true,
+      productId: 'product-1',
     });
     expect(tx.productVariant.deleteMany).toHaveBeenCalled();
     expect(tx.product.delete).toHaveBeenCalled();

@@ -53,8 +53,14 @@ describe('security boundaries', () => {
     await request(app).get('/read').expect(204);
   });
   it('allows the additional configured frontend origin for writes', async () => {
-    await request(app).post('/change').set('Origin', 'https://ims.example.com').expect(204);
-    await request(app).post('/change').set('Referer', 'https://ims.example.com/account').expect(204);
+    await request(app)
+      .post('/change')
+      .set('Origin', 'https://ims.example.com')
+      .expect(204);
+    await request(app)
+      .post('/change')
+      .set('Referer', 'https://ims.example.com/account')
+      .expect(204);
   });
   it('rejects malformed and ambiguous cookies', () => {
     expect(readCookieValue('session=%ZZ', 'session')).toBeNull();
@@ -97,15 +103,25 @@ describe('security boundaries', () => {
       const fifthRequestAt = 1000 + 10 * 60 * 1000;
       now.mockReturnValue(fifthRequestAt);
       service.consumeForgotPasswordAttempt('192.0.2.10');
-      expect(() => service.consumeForgotPasswordAttempt('192.0.2.10')).toThrow('limit of 5');
-      expect(() => service.consumeForgotPasswordAttempt('192.0.2.11')).not.toThrow();
+      expect(() => service.consumeForgotPasswordAttempt('192.0.2.10')).toThrow(
+        'limit of 5',
+      );
+      expect(() =>
+        service.consumeForgotPasswordAttempt('192.0.2.11'),
+      ).not.toThrow();
       now.mockReturnValue(fifthRequestAt + 30 * 60 * 1000 - 1);
-      expect(() => service.consumeForgotPasswordAttempt('192.0.2.10')).toThrow('limit of 5');
+      expect(() => service.consumeForgotPasswordAttempt('192.0.2.10')).toThrow(
+        'limit of 5',
+      );
       now.mockReturnValue(fifthRequestAt + 30 * 60 * 1000);
       for (let attempt = 0; attempt < 5; attempt += 1) {
-        expect(() => service.consumeForgotPasswordAttempt('192.0.2.10')).not.toThrow();
+        expect(() =>
+          service.consumeForgotPasswordAttempt('192.0.2.10'),
+        ).not.toThrow();
       }
-      expect(() => service.consumeForgotPasswordAttempt('192.0.2.10')).toThrow('limit of 5');
+      expect(() => service.consumeForgotPasswordAttempt('192.0.2.10')).toThrow(
+        'limit of 5',
+      );
     } finally {
       now.mockRestore();
     }

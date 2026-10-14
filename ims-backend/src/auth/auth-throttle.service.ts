@@ -27,7 +27,8 @@ export class AuthThrottleService {
       key: `forgot-password:${ipAddress ?? 'unknown'}`,
       maxAttempts: 5,
       cooldownAfterLimitMs: 30 * 60 * 1000,
-      message: 'You have reached the limit of 5 password reset requests. Please try again after 30 minutes.',
+      message:
+        'You have reached the limit of 5 password reset requests. Please try again after 30 minutes.',
     });
   }
 
@@ -50,7 +51,9 @@ export class AuthThrottleService {
     if (!current || current.resetAt <= now) {
       this.buckets.set(options.key, {
         count: 1,
-        resetAt: now + (options.cooldownAfterLimitMs ?? PASSWORD_RESET_RATE_LIMIT_WINDOW_MS),
+        resetAt:
+          now +
+          (options.cooldownAfterLimitMs ?? PASSWORD_RESET_RATE_LIMIT_WINDOW_MS),
       });
       this.pruneExpiredBuckets(now);
       return;

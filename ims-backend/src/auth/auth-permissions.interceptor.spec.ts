@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment -- Jest asymmetric matchers intentionally return any. */
 import 'reflect-metadata';
 import { ExecutionContext } from '@nestjs/common';
 import { AccountStatus, Role } from '@prisma/client';

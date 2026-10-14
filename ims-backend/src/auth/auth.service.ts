@@ -272,10 +272,7 @@ export class AuthService {
       throw new BadRequestException('not an existing email');
     }
 
-    if (
-      user.accountStatus !== AccountStatus.ACTIVE ||
-      !user.isActive
-    ) {
+    if (user.accountStatus !== AccountStatus.ACTIVE || !user.isActive) {
       return { message: FORGOT_PASSWORD_MESSAGE };
     }
 

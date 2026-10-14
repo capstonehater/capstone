@@ -108,13 +108,13 @@ export default function StorageSettingsCard() {
               <p className="mt-2 text-lg font-bold text-[#232d46]">{formatBytes(section.bytes)}</p>
             </div>)}
           </div>
-          <p className="mt-4 text-xs text-[#232d46]/60">Temporary usage includes abandoned forecast files older than 24 hours. Hosting capacity and this browser's menu cache are excluded from the total.</p>
+          <p className="mt-4 text-xs text-[#232d46]/60">Temporary usage includes abandoned forecast files older than 24 hours. Hosting capacity and this browser&apos;s menu cache are excluded from the total.</p>
         </> : null}
       </div>
       <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-bold text-[#232d46]">Cache & temporary files</p>
-          <p className="mt-1 text-sm text-[#232d46]/70">Clears this browser's saved menu and abandoned forecast files older than 24 hours.</p>
+          <p className="mt-1 text-sm text-[#232d46]/70">Clears this browser&apos;s saved menu and abandoned forecast files older than 24 hours.</p>
           <p className="mt-1 text-xs text-[#232d46]/60">Pending sales, recipe drafts, database records, and uploaded images are kept. The offline menu reloads next time POS connects.</p>
         </div>
         <button type="button" onClick={() => void clearCache()} disabled={loading || cleaning}

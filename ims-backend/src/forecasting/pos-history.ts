@@ -1,13 +1,29 @@
 import { Prisma } from '@prisma/client';
 
-export async function loadPosHistory(tx: Prisma.TransactionClient, startDate: string, capturedAt: Date) {
+export async function loadPosHistory(
+  tx: Prisma.TransactionClient,
+  startDate: string,
+  capturedAt: Date,
+) {
   // Forecast dates are Philippine calendar dates. Never train on the forecast period.
   const snapshotDay = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit',
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
   }).format(capturedAt);
   // Use complete Philippine calendar days; a partial trading day would understate demand.
-  const cutoff = new Date(`${startDate < snapshotDay ? startDate : snapshotDay}T00:00:00+08:00`);
-  const rows = await tx.$queryRaw<{ materialId: string; date: string; sourceUnit: string | null; quantity: Prisma.Decimal }[]>`
+  const cutoff = new Date(
+    `${startDate < snapshotDay ? startDate : snapshotDay}T00:00:00+08:00`,
+  );
+  const rows = await tx.$queryRaw<
+    {
+      materialId: string;
+      date: string;
+      sourceUnit: string | null;
+      quantity: Prisma.Decimal;
+    }[]
+  >`
     SELECT l.raw_material_id AS "materialId",
       l.raw_material_snapshot->>'unitCode' AS "sourceUnit",
       to_char(o.completed_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Manila', 'YYYY-MM-DD') AS date,
@@ -26,5 +42,9 @@ export async function loadPosHistory(tx: Prisma.TransactionClient, startDate: st
     FROM orders WHERE completed_at < ${cutoff} AND completed_at <= ${capturedAt}
     ORDER BY date
   `;
-  return { posHistory: rows.map((row) => ({ ...row, quantity: Number(row.quantity) })), posDates: dates.map((row) => row.date), capturedAt: capturedAt.toISOString() };
+  return {
+    posHistory: rows.map((row) => ({ ...row, quantity: Number(row.quantity) })),
+    posDates: dates.map((row) => row.date),
+    capturedAt: capturedAt.toISOString(),
+  };
 }

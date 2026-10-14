@@ -42,7 +42,12 @@ export class CheckoutItemDto {
 }
 
 export class CheckoutPaymentDto {
-  @IsIn([PaymentMethod.CASH, PaymentMethod.CARD, PaymentMethod.GCASH, PaymentMethod.MAYA])
+  @IsIn([
+    PaymentMethod.CASH,
+    PaymentMethod.CARD,
+    PaymentMethod.GCASH,
+    PaymentMethod.MAYA,
+  ])
   method!: PaymentMethod;
 
   @IsNumber()

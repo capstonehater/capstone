@@ -41,10 +41,13 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
   }
 
   private scheduleMidnight() {
-    this.midnightTimer = setTimeout(() => {
-      void this.checkSchedule();
-      this.scheduleMidnight();
-    }, nextPhilippineMidnight(Date.now()) - Date.now());
+    this.midnightTimer = setTimeout(
+      () => {
+        void this.checkSchedule();
+        this.scheduleMidnight();
+      },
+      nextPhilippineMidnight(Date.now()) - Date.now(),
+    );
     this.midnightTimer.unref();
   }
 
@@ -211,12 +214,27 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
     });
     const nextForecastPeriod = await this.nextForecastPeriod();
     return {
-      run: run ? {
-        ...run,
-        noteSeries: run.series.map(({ materialId, name, unit, metadata }) => ({ materialId, name, unit, metadata })),
-        series: materialIds ? run.series.filter((series) => materialIds.includes(series.materialId)) : run.series,
-      } : null,
-      activeRun: activeRun ? { ...activeRun, progress: await readForecastProgress(activeRun) } : null,
+      run: run
+        ? {
+            ...run,
+            noteSeries: run.series.map(
+              ({ materialId, name, unit, metadata }) => ({
+                materialId,
+                name,
+                unit,
+                metadata,
+              }),
+            ),
+            series: materialIds
+              ? run.series.filter((series) =>
+                  materialIds.includes(series.materialId),
+                )
+              : run.series,
+          }
+        : null,
+      activeRun: activeRun
+        ? { ...activeRun, progress: await readForecastProgress(activeRun) }
+        : null,
       periods,
       nextScheduledDate: nextForecastPeriod.startDate,
       nextForecastPeriod,
@@ -231,7 +249,13 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
     await this.expireAbandonedRuns();
     const run = await this.prisma.forecastRun.findUnique({ where: { id } });
     if (!run) throw new NotFoundException('Forecast run not found');
-    return { run: { ...run, progress: run.status === 'RUNNING' ? await readForecastProgress(run) : null } };
+    return {
+      run: {
+        ...run,
+        progress:
+          run.status === 'RUNNING' ? await readForecastProgress(run) : null,
+      },
+    };
   }
 
   async generate(startDate: string) {
@@ -456,7 +480,8 @@ export class ForecastingService implements OnModuleDestroy, OnModuleInit {
       child.on('close', (code) => {
         clearTimeout(timer);
         this.children.delete(child);
-        if (timedOut) reject(new Error('Forecast timed out after 120 minutes.'));
+        if (timedOut)
+          reject(new Error('Forecast timed out after 120 minutes.'));
         else if (code !== 0)
           reject(new Error(stderr.trim() || `Python exited with code ${code}`));
         else resolvePromise();
@@ -479,9 +504,15 @@ export function scheduledStart(
   return today;
 }
 
-
 // Philippine time is UTC+08 year-round; the execution host timezone is irrelevant.
 export function nextPhilippineMidnight(now: number): number {
   const local = new Date(now + 8 * 3600000);
-  return Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() + 1) - 8 * 3600000;
+  return (
+    Date.UTC(
+      local.getUTCFullYear(),
+      local.getUTCMonth(),
+      local.getUTCDate() + 1,
+    ) -
+    8 * 3600000
+  );
 }

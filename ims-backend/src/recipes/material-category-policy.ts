@@ -13,7 +13,9 @@ export async function assertMaterialsAllowedForCategory(
   const disallowed = await tx.rawMaterial.findFirst({
     where: {
       id: { in: rawMaterialIds },
-      categories: { none: { OR: [{ id: categoryId }, containerCategoryFilter] } },
+      categories: {
+        none: { OR: [{ id: categoryId }, containerCategoryFilter] },
+      },
     },
     select: { name: true },
   });

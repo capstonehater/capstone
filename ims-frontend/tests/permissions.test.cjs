@@ -349,6 +349,6 @@ test('existing page titles and staff presentation metadata remain distinct',()=>
  assert.equal(nav.getAdminPageInfo('/admin/inventory/materials/add'),undefined);
  assert.equal(pageMetadata['legacy.inventory.materials.add'].label,'Add Raw Material');
  assert.equal(nav.getAdminPageInfo('/admin/inventory/materials'),undefined);
- assert.equal(nav.staffPageInfo['/pos'].label,'Staff POS');
+ assert.equal(nav.staffPageInfo['/pos'].label,'POS');
  assert.equal(nav.staffPageInfo['/settings'].label,'Settings');
 });

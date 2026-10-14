@@ -86,8 +86,14 @@ export const env = Object.freeze({
   NODE_ENV: nodeEnv,
   READ_CACHE_ENABLED: parseBoolean('READ_CACHE_ENABLED', true),
   READ_CACHE_MAX_ENTRIES: parsePositiveInt('READ_CACHE_MAX_ENTRIES', 1000),
-  READ_CACHE_MAX_BYTES: parsePositiveInt('READ_CACHE_MAX_BYTES', 16 * 1024 * 1024),
-  READ_CACHE_MAX_ENTRY_BYTES: parsePositiveInt('READ_CACHE_MAX_ENTRY_BYTES', 512 * 1024),
+  READ_CACHE_MAX_BYTES: parsePositiveInt(
+    'READ_CACHE_MAX_BYTES',
+    16 * 1024 * 1024,
+  ),
+  READ_CACHE_MAX_ENTRY_BYTES: parsePositiveInt(
+    'READ_CACHE_MAX_ENTRY_BYTES',
+    512 * 1024,
+  ),
   // Comma-separated proxy IPs/CIDRs; empty means direct connections only.
   TRUST_PROXY: process.env.TRUST_PROXY?.trim() || '',
   REQUEST_BURST_LIMIT: parsePositiveInt('REQUEST_BURST_LIMIT', 30),

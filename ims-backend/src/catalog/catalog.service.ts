@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { isContainerCategory } from './container-category';
@@ -9,14 +13,17 @@ export class CatalogService {
 
   async createCategory(dto: { name: string }) {
     const name = dto.name.trim();
-    return this.prisma.$transaction(async tx => {
+    return this.prisma.$transaction(async (tx) => {
       // Serialize category creation so names remain unique despite nullable parents.
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(614209)::text`;
       const existing = await tx.category.findFirst({
         where: { name: { equals: name, mode: 'insensitive' } },
         select: { id: true },
       });
-      if (existing) throw new ConflictException('A category with this name already exists.');
+      if (existing)
+        throw new ConflictException(
+          'A category with this name already exists.',
+        );
       return tx.category.create({ data: { name } });
     });
   }

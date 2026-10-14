@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { UpdateCashPaymentDto } from './dto/update-cash-payment.dto';
 import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -28,7 +36,9 @@ export class OrdersController {
     @Body() dto: UpdateCashPaymentDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return { order: await this.ordersService.updateCashPayment(orderId, dto, user.id) };
+    return {
+      order: await this.ordersService.updateCashPayment(orderId, dto, user.id),
+    };
   }
 
   @Get('orders')

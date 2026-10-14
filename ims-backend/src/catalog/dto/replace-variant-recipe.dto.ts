@@ -12,7 +12,9 @@ export class ReplaceVariantRecipeItemDto {
   @IsNotEmpty()
   rawMaterialId!: string;
 
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   @IsString()
   @IsNotEmpty()
   @MaxLength(40)

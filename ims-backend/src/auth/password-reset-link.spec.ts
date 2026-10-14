@@ -33,7 +33,7 @@ describe('single-use password links', () => {
     };
     const prisma = { ...tx, $transaction: (callback: any) => callback(tx) };
     service = new AuthService(
-      prisma as any,
+      prisma,
       {} as any,
       { hashPassword: jest.fn(async () => 'hashed') } as any,
       {} as any,
@@ -53,12 +53,23 @@ describe('single-use password links', () => {
     const throttle = { consumeForgotPasswordAttempt: jest.fn() };
     const notifier = { sendResetLink: jest.fn() };
     const resetService = new AuthService(
-      tx, users as any, {} as any, {} as any, {} as any,
-      throttle as any, notifier as any,
+      tx,
+      users as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      throttle as any,
+      notifier as any,
     );
-    await expect(resetService.forgotPassword({ email: 'unknown@example.com' }, { ipAddress: '192.0.2.10' }))
-      .rejects.toThrow('not an existing email');
-    expect(throttle.consumeForgotPasswordAttempt).toHaveBeenCalledWith('192.0.2.10');
+    await expect(
+      resetService.forgotPassword(
+        { email: 'unknown@example.com' },
+        { ipAddress: '192.0.2.10' },
+      ),
+    ).rejects.toThrow('not an existing email');
+    expect(throttle.consumeForgotPasswordAttempt).toHaveBeenCalledWith(
+      '192.0.2.10',
+    );
     expect(tx.passwordResetToken.create).not.toHaveBeenCalled();
     expect(notifier.sendResetLink).not.toHaveBeenCalled();
   });

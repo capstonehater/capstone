@@ -145,15 +145,11 @@ describe('Forecasting HTTP authorization', () => {
     for (const route of routes) {
       const handler = proto[route.handler];
       expect(reflector.get(PATH_METADATA, handler)).toBe(route.path);
-      expect(reflector.get(METHOD_METADATA, handler)).toBe(
-        RequestMethod.GET,
-      );
-      expect(reflector.get(ROLES_KEY, handler)).toEqual(
-        undefined,
-      );
-      expect(reflector.get(REQUIRED_PERMISSIONS_KEY, handler)).toEqual(
-        ['forecasting.view'],
-      );
+      expect(reflector.get(METHOD_METADATA, handler)).toBe(RequestMethod.GET);
+      expect(reflector.get(ROLES_KEY, handler)).toEqual(undefined);
+      expect(reflector.get(REQUIRED_PERMISSIONS_KEY, handler)).toEqual([
+        'forecasting.view',
+      ]);
       expect(reflector.get(IS_PUBLIC_KEY, handler)).toBeUndefined();
     }
   });

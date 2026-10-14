@@ -22,10 +22,15 @@ describe('inventory summary status filters', () => {
 
   beforeEach(() => {
     findMany.mockReset();
-    findMany.mockImplementation(({ where }: { where: { isActive?: boolean } }) =>
-      Promise.resolve(materials.filter((material) =>
-        where.isActive === undefined || material.isActive === where.isActive,
-      )),
+    findMany.mockImplementation(
+      ({ where }: { where: { isActive?: boolean } }) =>
+        Promise.resolve(
+          materials.filter(
+            (material) =>
+              where.isActive === undefined ||
+              material.isActive === where.isActive,
+          ),
+        ),
     );
   });
 
@@ -41,12 +46,19 @@ describe('inventory summary status filters', () => {
   });
 
   it('includes both active and archived materials when explicitly requested', async () => {
-    const result = await service.listInventorySummary({ includeArchived: 'true' });
-    expect(result.map((item) => item.rawMaterialId)).toEqual(['active', 'archived']);
+    const result = await service.listInventorySummary({
+      includeArchived: 'true',
+    });
+    expect(result.map((item) => item.rawMaterialId)).toEqual([
+      'active',
+      'archived',
+    ]);
   });
 
   it('keeps active stock status filters restricted to matching materials', async () => {
-    const result = await service.listInventorySummary({ status: 'OUT_OF_STOCK' });
+    const result = await service.listInventorySummary({
+      status: 'OUT_OF_STOCK',
+    });
     expect(result.map((item) => item.rawMaterialId)).toEqual(['active']);
   });
 });

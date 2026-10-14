@@ -156,10 +156,11 @@ describe('RBAC foundation', () => {
   });
   it('keeps migration seeds aligned with the catalog', () => {
     const root = join(__dirname, '../../../prisma/migrations');
-    const sql = readdirSync(root).filter((name) => name !== 'migration_lock.toml')
-      .map((name) => readFileSync(join(root, name, 'migration.sql'), 'utf8')).join('\n');
+    const sql = readdirSync(root)
+      .filter((name) => name !== 'migration_lock.toml')
+      .map((name) => readFileSync(join(root, name, 'migration.sql'), 'utf8'))
+      .join('\n');
     for (const permission of PERMISSION_CATALOG)
       expect(sql).toContain(`'${permission.key}'`);
-    
   });
 });

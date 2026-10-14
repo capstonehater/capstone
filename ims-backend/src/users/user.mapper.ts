@@ -3,7 +3,13 @@ import { AuthenticatedUser } from '../common/types/authenticated-user.type';
 
 type PublicUserSource = Pick<
   User,
-  'id' | 'email' | 'firstName' | 'middleInitial' | 'lastName' | 'role' | 'profilePictureUrl'
+  | 'id'
+  | 'email'
+  | 'firstName'
+  | 'middleInitial'
+  | 'lastName'
+  | 'role'
+  | 'profilePictureUrl'
 >;
 type AuthUserSource = Pick<
   User,

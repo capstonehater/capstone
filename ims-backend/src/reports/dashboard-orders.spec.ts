@@ -14,21 +14,37 @@ describe('POS dashboard orders in the selected range', () => {
       payments: [{ method: 'CASH' }],
       createdBy: { firstName: 'Admin', lastName: 'User' },
     }));
-    const findMany = jest.fn(async (args) => args.take ? orders.slice(0, args.take) : orders);
+    const findMany = jest.fn(async (args) =>
+      args.take ? orders.slice(0, args.take) : orders,
+    );
     const service = Object.create(ReportsService.prototype);
     Object.assign(service, {
-      prisma: { order: { findMany }, orderItem: { groupBy: jest.fn().mockResolvedValue([]) } },
+      prisma: {
+        order: { findMany },
+        orderItem: { groupBy: jest.fn().mockResolvedValue([]) },
+      },
       ordersService: { getDisplayOrderNumber: (id: string) => id },
-      salesQueries: { hourlySales: jest.fn().mockResolvedValue([]), productSales: jest.fn().mockResolvedValue([]) },
-      aggregateOrderSummary: jest.fn().mockResolvedValue({ netSales: new Prisma.Decimal(6500) }),
+      salesQueries: {
+        hourlySales: jest.fn().mockResolvedValue([]),
+        productSales: jest.fn().mockResolvedValue([]),
+      },
+      aggregateOrderSummary: jest
+        .fn()
+        .mockResolvedValue({ netSales: new Prisma.Decimal(6500) }),
     });
     return { service: service as ReportsService, findMany, orders };
   }
 
   it('returns every matching order, including more than the usual 50-row maximum', async () => {
     const { service, findMany, orders } = setup();
-    const report = await service.getPosDashboard({ from, to, includeAllOrders: 'true' });
-    expect(report.recentOrders.map((order) => order.id)).toEqual(orders.map((order) => order.id));
+    const report = await service.getPosDashboard({
+      from,
+      to,
+      includeAllOrders: 'true',
+    });
+    expect(report.recentOrders.map((order) => order.id)).toEqual(
+      orders.map((order) => order.id),
+    );
     const query = findMany.mock.calls[0][0];
     expect(query).not.toHaveProperty('take');
     expect(query.where).toEqual({

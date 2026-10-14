@@ -15,7 +15,10 @@ import { PROFILE_PICTURE_DIRECTORY } from './profile-picture';
 import { buildUserName } from '../users/user.mapper';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateAccountSettingsDto } from './dto/update-account-settings.dto';
-import { clearDisposableForecastFiles, scanDisposableForecastFiles } from './storage-cleanup';
+import {
+  clearDisposableForecastFiles,
+  scanDisposableForecastFiles,
+} from './storage-cleanup';
 
 const selfAccountSelect = {
   id: true,
@@ -73,10 +76,12 @@ async function directoryBytes(directory: string): Promise<number> {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return 0;
     throw error;
   }
-  const sizes = await Promise.all(filenames.map(async (filename) => {
-    const file = await stat(join(directory, filename));
-    return file.isFile() ? file.size : 0;
-  }));
+  const sizes = await Promise.all(
+    filenames.map(async (filename) => {
+      const file = await stat(join(directory, filename));
+      return file.isFile() ? file.size : 0;
+    }),
+  );
   return sizes.reduce((total, size) => total + size, 0);
 }
 
@@ -101,20 +106,35 @@ export class SettingsService {
   }
 
   async getStorageUsage() {
-    const [databaseRows, productImagesBytes, profilePicturesBytes, temporaryFolders] = await Promise.all([
-      this.prisma.$queryRaw<{ bytes: string }[]>`SELECT pg_database_size(current_database())::text AS bytes`,
+    const [
+      databaseRows,
+      productImagesBytes,
+      profilePicturesBytes,
+      temporaryFolders,
+    ] = await Promise.all([
+      this.prisma.$queryRaw<
+        { bytes: string }[]
+      >`SELECT pg_database_size(current_database())::text AS bytes`,
       directoryBytes(PRODUCT_IMAGE_DIRECTORY),
       directoryBytes(PROFILE_PICTURE_DIRECTORY),
       scanDisposableForecastFiles(),
     ]);
     const databaseBytes = Number(databaseRows[0]?.bytes ?? 0);
-    const temporaryBytes = temporaryFolders.reduce((total, folder) => total + folder.files.reduce((sum, file) => sum + file.bytes, 0), 0);
+    const temporaryBytes = temporaryFolders.reduce(
+      (total, folder) =>
+        total + folder.files.reduce((sum, file) => sum + file.bytes, 0),
+      0,
+    );
     return {
       databaseBytes,
       productImagesBytes,
       profilePicturesBytes,
       temporaryBytes,
-      totalBytes: databaseBytes + productImagesBytes + profilePicturesBytes + temporaryBytes,
+      totalBytes:
+        databaseBytes +
+        productImagesBytes +
+        profilePicturesBytes +
+        temporaryBytes,
       measuredAt: new Date().toISOString(),
     };
   }

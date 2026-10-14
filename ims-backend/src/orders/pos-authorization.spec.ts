@@ -290,7 +290,9 @@ describe('POS endpoint authorization (real HTTP guards and resolver)', () => {
   );
   it('refund keeps order and session actor attribution', async () => {
     grants = ['pos.refund'];
-    await send(routes.find(route => route.handler === 'refundOrder')!).expect(201);
+    await send(routes.find((route) => route.handler === 'refundOrder')!).expect(
+      201,
+    );
     expect(orderService.refundOrder).toHaveBeenCalledWith(
       'order-1',
       {},
@@ -300,7 +302,9 @@ describe('POS endpoint authorization (real HTTP guards and resolver)', () => {
   it('invalid session is denied before permission resolution', async () => {
     validateSession.mockResolvedValueOnce(null);
     grants = ['pos.checkout'];
-    await send(routes.find(route => route.handler === 'checkout')!).expect(401);
+    await send(routes.find((route) => route.handler === 'checkout')!).expect(
+      401,
+    );
     expect(findUnique).not.toHaveBeenCalled();
   });
   it('inactive identity cannot checkout', async () => {
@@ -309,12 +313,16 @@ describe('POS endpoint authorization (real HTTP guards and resolver)', () => {
       accountStatus: AccountStatus.INACTIVE,
       accessRoles: [],
     });
-    await send(routes.find(route => route.handler === 'checkout')!).expect(403);
+    await send(routes.find((route) => route.handler === 'checkout')!).expect(
+      403,
+    );
     expect(allCalls()).toBe(0);
   });
   it('unknown grants cannot authorize checkout', async () => {
     grants = ['pos.superuser'];
-    await send(routes.find(route => route.handler === 'checkout')!).expect(403);
+    await send(routes.find((route) => route.handler === 'checkout')!).expect(
+      403,
+    );
   });
   it('uses exactly the existing four POS keys', () => {
     expect(

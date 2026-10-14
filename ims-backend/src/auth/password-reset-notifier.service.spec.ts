@@ -98,7 +98,7 @@ describe('Google SMTP account email delivery', () => {
   it('escapes link attributes so content cannot inject HTML', async () => {
     await service.sendResetLink({
       ...options,
-      resetUrl: options.resetUrl + '\"<img src=x>',
+      resetUrl: options.resetUrl + '"<img src=x>',
     });
     const html = sendMail.mock.calls[0][0].html;
     expect(html).toContain('&quot;&lt;img src=x&gt;');
