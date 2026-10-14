@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
+import { CircleAlert, Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   loginWithPassword,
@@ -31,6 +31,7 @@ export default function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [resetNoticeDismissed, setResetNoticeDismissed] = useState(false);
+  const credentialsInvalid = error === "Invalid email or password";
 
   const redirectPath = useMemo(() => {
     if (!user) {
@@ -78,12 +79,12 @@ export default function LoginForm() {
         <Suspense fallback={null}><ResetPasswordNotice hidden={resetNoticeDismissed || Boolean(error)} onDismiss={() => setResetNoticeDismissed(true)} /></Suspense>
         <label className={styles.field} htmlFor="email">
           Email address
-          <input id="email" type="email" autoComplete="username" placeholder="admin@cafesalvacion.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
+          <input id="email" type="email" autoComplete="username" placeholder="admin@cafesalvacion.com" value={email} onChange={(event) => { setEmail(event.target.value); setError(""); }} className={credentialsInvalid ? styles.invalidInput : undefined} aria-invalid={credentialsInvalid} aria-describedby={credentialsInvalid ? "signin-error" : undefined} required />
         </label>
         <div className={styles.field}>
           <label htmlFor="password">Password</label>
           <div className={styles.passwordField}>
-            <input id="password" type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="Enter your password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+            <input id="password" type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="Enter your password" value={password} onChange={(event) => { setPassword(event.target.value); setError(""); }} className={credentialsInvalid ? styles.invalidInput : undefined} aria-invalid={credentialsInvalid} aria-describedby={credentialsInvalid ? "signin-error" : undefined} required />
             <button
               className={styles.passwordToggle}
               type="button"
@@ -95,10 +96,15 @@ export default function LoginForm() {
             </button>
           </div>
         </div>
+        {error && (
+          <p id="signin-error" role="alert" className={styles.fieldError}>
+            <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+            <span>{error}</span>
+          </p>
+        )}
         <div className={styles.formLinks}>
           <Link href="/forgot-password">Forgot password?</Link>
         </div>
-        {error && <ActionAlert key={error} tone="error" title="Unable to sign in" message={error} onDismiss={() => setError("")} />}
         <button className={styles.submit} type="submit" disabled={loading || status !== "unauthenticated"}>{loading ? "Signing in..." : "Sign in"}</button>
       </form>
       <p className={styles.accessNote}>Access is limited to authorized Café Salvacion staff.</p>

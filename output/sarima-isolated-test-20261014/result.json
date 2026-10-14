@@ -1,0 +1,222 @@
+{
+  "historyEnd": "2026-10-13",
+  "sourceHash": "021b5a26092863016a123e0f10925afbf5977500f07b7673b690ab6177e976f2",
+  "warnings": [
+    "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+    "SARIMA uses calendar-day totals with seven-day seasonality.",
+    "Product filters show store-wide ingredient demand, not predicted product sales.",
+    "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+    "Operational training: 90 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+    "New enrolled ingredient (g): POS history excluded: SKU is absent from the current material catalog",
+    "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero.",
+    "Alaska Condensed Milk 390g (g): SARIMA requires varying usage history; constant history cannot be Box-Cox transformed"
+  ],
+  "series": [
+    {
+      "materialId": "fixture-valid",
+      "name": "Alaska Classic Evaporated Filled Milk 370ml",
+      "unit": "ml",
+      "points": [
+        {
+          "date": "2026-10-14",
+          "forecast": 1386.84,
+          "lower95": 1365.48,
+          "upper95": 1408.28
+        },
+        {
+          "date": "2026-10-15",
+          "forecast": 1472.3,
+          "lower95": 1446.44,
+          "upper95": 1498.26
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 1592.17,
+          "lower95": 1559.67,
+          "upper95": 1624.81
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 1697.22,
+          "lower95": 1663.82,
+          "upper95": 1730.77
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 1765.28,
+          "lower95": 1727.88,
+          "upper95": 1802.85
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 1214.84,
+          "lower95": 1180.38,
+          "upper95": 1249.52
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 1312.32,
+          "lower95": 1275.94,
+          "upper95": 1348.92
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          2,
+          1,
+          2
+        ],
+        "seasonalOrder": [
+          0,
+          1,
+          1,
+          7
+        ],
+        "metrics": {
+          "mae": 13.75953096310598,
+          "rmse": 16.308533598570417,
+          "mape": 0.9518417829537004,
+          "smape": 0.9538738652782914,
+          "aic": 282.24908546770536,
+          "bic": 296.63794926509354
+        },
+        "trainingDays": 90,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 90,
+          "recentUsageFrequency": 1.0,
+          "historyGapDays": 0,
+          "estimatedTotalUsage": 10440.97,
+          "estimatedShortfall": 9440.97,
+          "dailyUpperStressTotal": 10663.410000000002,
+          "stressShortfall": 9663.410000000002,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 90,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2026-07-16",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 90,
+          "zeroFilledDays": 0,
+          "imputedDays": 0,
+          "zeroDemandDays": 0,
+          "bridgeCalendarDays": 0,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 179200.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-23",
+              "end": "2026-09-29",
+              "days": 7,
+              "mae": 15.154765152551688,
+              "mape": 1.0915298045988393
+            },
+            {
+              "start": "2026-09-30",
+              "end": "2026-10-06",
+              "days": 7,
+              "mae": 13.27546577571671,
+              "mape": 0.8817258897419497
+            },
+            {
+              "start": "2026-10-07",
+              "end": "2026-10-13",
+              "days": 7,
+              "mae": 12.848361961049543,
+              "mape": 0.8822696545203121
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "ml",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T05:00:00Z",
+        "posMaterialDays": 90,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 10511.0,
+        "changePercent": -0.67
+      },
+      "recommendation": {
+        "Product": "Alaska Classic Evaporated Filled Milk 370ml",
+        "Unit": "ml",
+        "ForecastTotal": 10440.97,
+        "ForecastDays": 7,
+        "Forecast7Days": 10440.97,
+        "DailyDemand": 1491.57,
+        "MAE": 13.7595309631,
+        "RMSE": 16.3085335986,
+        "MAPE": 0.951841783,
+        "SMAPE": 0.9538738653,
+        "CurrentStock": 1000.0,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 5000.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 5000.0,
+        "DaysRemaining": 0.7,
+        "StockoutDay": 1,
+        "RecommendedPurchase": 14441,
+        "BuyOnNextRun": "Yes",
+        "ProjectedRemaining": 5000.03,
+        "Priority": "Critical",
+        "Recommendation": "Restock 14441 ml on the next stock run; current stock reaches zero by forecast day 1.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    }
+  ]
+}

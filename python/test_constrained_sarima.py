@@ -1,4 +1,6 @@
 import unittest
+import ast
+from pathlib import Path
 from unittest.mock import patch
 import numpy as np
 import pandas as pd
@@ -7,6 +9,35 @@ import constrained_sarima as constrained
 
 
 class ConstrainedSarimaTests(unittest.TestCase):
+    def test_unknown_days_do_not_improve_pooled_or_volume_scores(self):
+        test = pd.DataFrame({'qty': [10., 1000.]})
+        fold = {**constrained.metrics([10.], [5.]), 'aic': 1., 'bic': 1.,
+                'test': test, 'predictions': np.array([5., 1000.]),
+                'observed_mask': np.array([True, False])}
+        result = constrained.aggregate_candidate(constrained.candidate_specs()[0], [fold], [])
+        self.assertEqual(result['metrics']['wape'], 50.)
+        self.assertEqual(result['metrics']['period_volume_error'], 50.)
+
+    def test_historical_low_mape_candidates_use_current_trading_calendar(self):
+        historical = constrained.historical_candidate_specs()
+        self.assertEqual(len(historical), 13)
+        self.assertTrue(all(spec['seasonal'][3] == 7 for spec in historical))
+        self.assertTrue(any(spec['seasonal'][1] == 1 for spec in historical))
+        self.assertTrue(all(spec in constrained.candidate_specs() for spec in historical))
+        self.assertEqual(len({str(spec) for spec in constrained.candidate_specs()}),
+                         len(constrained.candidate_specs()))
+
+    def test_historical_orders_are_backed_by_archived_low_mape_runs(self):
+        archive = pd.read_csv(Path(__file__).parent / '_archive' /
+                              'catalog-update-052f2ec2' / 'forecast_database.csv', header=None)
+        scores = pd.to_numeric(archive[14], errors='coerce')
+        recovered = set()
+        for _, row in archive[(scores >= 0) & (scores < 30)].iterrows():
+            seasonal = ast.literal_eval(row[9])
+            recovered.add((ast.literal_eval(row[8]), (*seasonal[:3], 7)))
+        self.assertEqual({(s['order'], s['seasonal']) for s in constrained.historical_candidate_specs()},
+                         recovered)
+
     def test_nonfinite_error_cannot_bypass_model_selection_guards(self):
         with self.assertRaisesRegex(ValueError, 'Finite nonnegative'):
             constrained.rank_candidates([{'metrics': {'mae': np.nan, 'mape': 0.}}])
@@ -45,7 +76,8 @@ class ConstrainedSarimaTests(unittest.TestCase):
             result = constrained.train({'series': series}, {'CV_HORIZON': 14, 'FORECAST_DAYS': 7,
                 'CV_FOLDS': 3, 'INTERVAL_CALIBRATION_FOLDS': 12, 'INTERVAL_VALIDATION_FOLDS': 5})
         self.assertEqual(predicted.call_count, 6)
-        self.assertEqual(fitted.call_count, 7)
+        # Six selection fits plus validation and production convergence refits.
+        self.assertEqual(fitted.call_count, 8)
         self.assertEqual(result['test'].Date.max(), series.Date.max())
         self.assertLess(result['interval_validation_candidate']['fold_metrics'][-1]['test'].Date.max(),
                         series.iloc[-70].Date)

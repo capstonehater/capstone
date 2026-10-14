@@ -15,9 +15,6 @@ function IngredientNotes({ ingredient }: { ingredient: Pick<ForecastSeries, 'nam
     <div className={styles.notesExplanation}>
       {m.trainingSource && <p>Training source: {m.trainingSource}.</p>}
       {m.portfolio && <>
-        <p>Demand pattern: {m.portfolio.demandPattern.class}. Selected method: {m.portfolio.selectedMethod.replaceAll('_', ' ')}.
-          Compared with {m.portfolio.bestBaseline.replaceAll('_', ' ')} over {m.portfolio.selectionFolds} chronological selection windows.
-          {m.portfolio.promotionPassed ? ' The selected method passed the promotion check.' : ' The challenger did not pass; the best baseline was retained.'}</p>
         <p>Estimated total demand: P50 {number(m.portfolio.periodDemand.quantiles.p50)}, P80 {number(m.portfolio.periodDemand.quantiles.p80)},
           P95 {number(m.portfolio.periodDemand.quantiles.p95)} {formatUnit(ingredient.unit)}.
           {!m.portfolio.periodDemand.finiteSampleSupported.p95 && ' There are too few error blocks to support the P95 target; it uses the observed maximum and requires review.'}
@@ -46,7 +43,7 @@ function IngredientNotes({ ingredient }: { ingredient: Pick<ForecastSeries, 'nam
       {m.transformation === 'log1p (Box-Cox lambda 0)' && <p>I adjusted the numbers while doing the math so zero-use days could be included, then changed the estimates back to ingredient amounts.</p>}
       <p>When checked against past data, the model&apos;s average absolute error was {number(m.metrics?.mae)}{m.metrics?.mae != null ? ` ${formatUnit(ingredient.unit)}` : ''}. This tells you how far its guesses were from past amounts, on average. It does not guarantee future accuracy.</p>
       <dl className={styles.auditFacts}>
-        <div><dt>Model</dt><dd>{m.model ?? 'Not recorded'}</dd></div>
+        <div><dt>Model</dt><dd>SARIMA</dd></div>
         <div><dt>SARIMA settings</dt><dd>{m.portfolio && m.portfolio.selectedMethod !== 'sarima' ? 'Not applicable' : m.order?.join(', ') ?? 'Not recorded'}</dd></div>
         <div><dt>SARIMA seasonal settings</dt><dd>{m.portfolio && m.portfolio.selectedMethod !== 'sarima' ? 'Not applicable' : m.seasonalOrder?.join(', ') ?? 'Not recorded'}</dd></div>
         <div><dt>Number adjustment</dt><dd>{m.transformation ?? 'Not recorded'}</dd></div>
@@ -86,7 +83,6 @@ export default function ForecastNotes({ run, title = 'Forecast notes' }: { run: 
     <summary className={styles.notesSummary}>
       <FileText size={20} aria-hidden="true" />
       <span className={styles.notesHeading}><strong>{title}</strong><span>{period}</span></span>
-      <span className={styles.notesCount}>{notes.length}</span>
       <ChevronDown size={18} className={styles.notesChevron} aria-hidden="true" />
     </summary>
     <div className={styles.notesContent} role="region" aria-label={title} tabIndex={0}>

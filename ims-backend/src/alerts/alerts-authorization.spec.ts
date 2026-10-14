@@ -66,6 +66,7 @@ const routes = [
     permission: 'alerts.dismiss',
   },
   { handler: 'deleteResolvedAlerts', method: 'post', path: '/alerts/resolved/delete', permission: 'alerts.dismiss' },
+  { handler: 'getNotifications', method: 'get', path: '/alerts/notifications', permission: 'alerts.view' },
 ] as const;
 
 const permissionCases: { label: string; grants: PermissionKey[] }[] = [
@@ -115,6 +116,7 @@ describe('Alerts HTTP authorization', () => {
   const findUnique = jest.fn();
   const validateSession = jest.fn();
   const alertService = {
+    getNotifications: jest.fn().mockResolvedValue({ alerts: [], pendingCount: 3 }),
     listAlerts: jest.fn().mockResolvedValue([{ id: 'alert-1' }]),
     getUnreadCount: jest.fn().mockResolvedValue({ count: 3 }),
     acknowledgeAlert: jest.fn().mockResolvedValue({ id: 'alert-1' }),

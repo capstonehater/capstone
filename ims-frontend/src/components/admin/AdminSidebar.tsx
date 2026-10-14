@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import SidebarAccount from "@/components/layout/SidebarAccount";
 import AlertCountBadge from "@/components/layout/AlertCountBadge";
 import { usePathname } from "next/navigation";
@@ -88,8 +89,11 @@ export default function AdminSidebar({ isOpen, onClose, collapsed: desktopCollap
       <aside id="admin-navigation" ref={sidebarRef} inert={inert} aria-label="Application navigation" className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""} ${collapsed ? styles.adminSidebarCollapsed : ""} ${className}`}>
         <div className={`${styles.brand} ${styles.brandWithAccount}`}>
           <div className={styles.sidebarBrandLogo}>
-            <strong>{collapsed ? "CS" : "Cafe Salvacion"}</strong>
-            {collapsed ? null : <p>Inventory Management</p>}
+            <Image src="/assets/cafe-salvacion-sidebar-logo.png" alt={collapsed ? "Cafe Salvacion" : ""} width={42} height={52} className={styles.sidebarBrandImage} priority />
+            {collapsed ? null : <div className={styles.sidebarBrandText}>
+              <strong>Cafe Salvacion</strong>
+              <p>Inventory Management</p>
+            </div>}
           </div>
           <NavigationCloseButton onClose={onClose} />
           <SidebarAccount collapsed={collapsed && !isOpen} onNavigate={navigateMain} />

@@ -153,6 +153,7 @@ def calibrate(series, candidate, plan):
 
     actual, calibrated, original = [], [], []
     evaluated_dates, fold_coverage, evaluation_steps, fold_details, baselines = [], [], [], [], []
+    period_totals = []  # (actual, forecast, last-week-baseline) 7-day totals per held-out period
     for start in range(calibration_end, len(series) - horizon + 1, horizon):
         test = series.iloc[start:start + horizon]
         try:
@@ -166,6 +167,7 @@ def calibrate(series, candidate, plan):
             # A competing forecast known at the origin, repeated for each week.
             baseline = np.resize(series.iloc[start - 7:start].qty.to_numpy(), len(test))
             baselines.extend(baseline)
+            period_totals.append((float(test.qty.sum()), float(adjusted[:, 0].sum()), float(baseline.sum())))
             evaluation_steps.extend(range(1, len(test) + 1))
             fold_coverage.append(summarize(test.qty, adjusted, baseline=baseline)["coverage"])
             fold_details.append({"start": str(test.Date.min().date()), "end": str(test.Date.max().date()),
@@ -201,6 +203,15 @@ def calibrate(series, candidate, plan):
             np.asarray(calibrated)[np.asarray(evaluation_steps) == step],
             baseline=np.asarray(baselines)[np.asarray(evaluation_steps) == step])}
         for step in range(1, horizon + 1)]
+    totals = np.asarray(period_totals, dtype=float)
+    actual_sum = float(totals[:, 0].sum())
+    positive_periods = totals[:, 0] > 0
+    result["validation"]["weeklyTotal"] = {
+        "periods": int(len(totals)),
+        "wape": float(np.abs(totals[:, 1] - totals[:, 0]).sum() / actual_sum * 100) if actual_sum > 0 else None,
+        "biasPercent": float((totals[:, 1].sum() - actual_sum) / actual_sum * 100) if actual_sum > 0 else None,
+        "mape": float(np.mean(np.abs(totals[positive_periods, 1] - totals[positive_periods, 0]) / totals[positive_periods, 0]) * 100) if positive_periods.any() else None,
+        "baselineWape": float(np.abs(totals[:, 2] - totals[:, 0]).sum() / actual_sum * 100) if actual_sum > 0 else None}
     for key, value in result["validation"]["pointMetrics"].items():
         if not np.isfinite(value):
             result["validation"]["pointMetrics"][key] = None

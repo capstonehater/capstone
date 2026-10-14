@@ -4,6 +4,10 @@ import { IsEnum, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class ListAlertsDto {
   @IsOptional()
+  @IsString()
+  id?: string;
+
+  @IsOptional()
   @IsEnum(AlertType)
   type?: AlertType;
 

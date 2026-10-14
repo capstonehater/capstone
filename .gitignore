@@ -41,3 +41,6 @@ Thumbs.db
 # Database backup directories
 backups/
 
+# Generated historical data exports
+output/**/source/historical-raw-material-data.csv
+

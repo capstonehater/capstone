@@ -1,0 +1,168 @@
+﻿record_type,sku,name,product_name,variant_name,category,unit_code,unit_name,price_php,reorder_point,is_active
+RAW_MATERIAL,RM-ACEFM3-001,Alaska Classic Evaporated Filled Milk 370ml,,,,ml,Milliliter,,5000,true
+RAW_MATERIAL,RM-ACM3-001,Alaska Condensed Milk 390g,,,,g,Gram,,3500,true
+RAW_MATERIAL,RM-AMC2-001,Arla Mozzarella Cheese 200g,,,,g,Gram,,2000,true
+RAW_MATERIAL,RM-BFLE1-001,Bounty Fresh Large Eggs 12s,,,,pcs,Piece,,120,true
+RAW_MATERIAL,RM-BPFD1-001,Butterfly Pea Flower Dried 100g,,,,g,Gram,,300,true
+RAW_MATERIAL,RM-CMM3-001,Campfire Mini Marshmallows 300g,,,,g,Gram,,700,true
+RAW_MATERIAL,RM-CTFIO1-001,Century Tuna Flakes in Oil 180g,,,,g,Gram,,1400,true
+RAW_MATERIAL,RM-COTTM4-001,ChaTraMue Original Thai Tea Mix 400g,,,,g,Gram,,1600,true
+RAW_MATERIAL,RM-DPV1-001,Datu Puti Vinegar 1L,,,,ml,Milliliter,,2000,true
+RAW_MATERIAL,RM-DMPH8-001,Del Monte Peach Halves 825g,,,,g,Gram,,1300,true
+RAW_MATERIAL,RM-DMTS1-001,Del Monte Tomato Sauce 1kg,,,,g,Gram,,3000,true
+RAW_MATERIAL,RM-DMJR5-001,Doña Maria Jasponica Rice 5kg,,,,g,Gram,,8000,true
+RAW_MATERIAL,RM-EOC1-001,Eden Original Cheese 180g,,,,g,Gram,,1800,true
+RAW_MATERIAL,RM-FFFFF1-001,Farm Frites Frozen French Fries 1kg,,,,g,Gram,,3000,true
+RAW_MATERIAL,RM-FIS1-001,Fidel Iodized Salt 1kg,,,,g,Gram,,1000,true
+RAW_MATERIAL,RM-FBBP1-001,Filippo Berio Basil Pesto 190g,,,,g,Gram,,1000,true
+RAW_MATERIAL,RM-FGPSB1-001,Food Grade PET Sauce Bottle 150ml,,,,pcs,Piece,,100,true
+RAW_MATERIAL,RM-FG1-001,Fresh Garlic 1kg,,,,g,Gram,,700,true
+RAW_MATERIAL,RM-FIL1-001,Fresh Iceberg Lettuce 1kg,,,,g,Gram,,1200,true
+RAW_MATERIAL,RM-FLB1-001,Fresh Lakatan Banana 1kg,,,,g,Gram,,1600,true
+RAW_MATERIAL,RM-FMS1-001,Fresh Medium Shrimp 1kg,,,,g,Gram,,1800,true
+RAW_MATERIAL,RM-FPM1-001,Fresh Philippine Mango 1kg,,,,g,Gram,,3000,true
+RAW_MATERIAL,RM-FPRCP1-001,Fresh Philippine Red Chili Peppers 1kg,,,,g,Gram,,600,true
+RAW_MATERIAL,RM-FPD2-001,Fresh Pizza Dough 250g,,,,g,Gram,,2000,true
+RAW_MATERIAL,RM-FRO1-001,Fresh Red Onion 1kg,,,,g,Gram,,1200,true
+RAW_MATERIAL,RM-FS5-001,Fresh Strawberries 500g,,,,g,Gram,,1800,true
+RAW_MATERIAL,RM-GFCO1-001,Golden Fiesta Canola Oil 1L,,,,ml,Milliliter,,5000,true
+RAW_MATERIAL,RM-G1DWPC-001,Greenware 12oz Double Wall Paper Cup,,,,pcs,Piece,,500,true
+RAW_MATERIAL,RM-G1SHL-001,Greenware 12oz Sip Hole Lid,,,,pcs,Piece,,500,true
+RAW_MATERIAL,RM-G2CDC-001,Greenware 22oz Cold Drink Cup,,,,pcs,Piece,,300,true
+RAW_MATERIAL,RM-G2DL-001,Greenware 22oz Dome Lid,,,,pcs,Piece,,300,true
+RAW_MATERIAL,RM-GPDS1-001,Greenware Paper Drinking Straw 100s,,,,pcs,Piece,,500,true
+RAW_MATERIAL,RM-GSBBB-001,Greenware Sugarcane Bagasse Bento Box,,,,pcs,Piece,,160,true
+RAW_MATERIAL,RM-HSCS6-001,Hershey's Chocolate Syrup 623g,,,,g,Gram,,1500,true
+RAW_MATERIAL,RM-HFSHCS4-001,Huy Fong Sriracha Hot Chili Sauce 481g,,,,g,Gram,,700,true
+RAW_MATERIAL,RM-KSMN6-001,Kirkland Signature Macadamia Nuts 680g,,,,g,Gram,,700,true
+RAW_MATERIAL,RM-KSEP5-001,Knorr Salted Egg Powder 500g,,,,g,Gram,,600,true
+RAW_MATERIAL,RM-KGPC8-001,Kraft Grated Parmesan Cheese 85g,,,,g,Gram,,800,true
+RAW_MATERIAL,RM-LKKKBS2-001,Lee Kum Kee Korean BBQ Sauce 240g,,,,g,Gram,,900,true
+RAW_MATERIAL,RM-LYLBTB1-001,Lipton Yellow Label Black Tea Bags 100s,,,,pcs,Piece,,200,true
+RAW_MATERIAL,RM-LBS4-001,Lotus Biscoff Spread 400g,,,,g,Gram,,1200,true
+RAW_MATERIAL,RM-MCW1-001,Magnolia Chicken Wings 1kg,,,,g,Gram,,4000,true
+RAW_MATERIAL,RM-MCC2-001,Magnolia Cream Cheese 225g,,,,g,Gram,,900,true
+RAW_MATERIAL,RM-MFM1-001,Magnolia Fresh Milk 1L,,,,ml,Milliliter,,12000,true
+RAW_MATERIAL,RM-MGBS2-001,Magnolia Gold Butter Salted 225g,,,,g,Gram,,3000,true
+RAW_MATERIAL,RM-MAPF2-001,Maya All Purpose Flour 2kg,,,,g,Gram,,7000,true
+RAW_MATERIAL,RM-MJBC2-001,Maya Japanese Bread Crumbs 200g,,,,g,Gram,,700,true
+RAW_MATERIAL,RM-MGBP8-001,McCormick Ground Black Pepper 80g,,,,g,Gram,,250,true
+RAW_MATERIAL,RM-MCMP3-001,MILO Chocolate Malt Powder 300g,,,,g,Gram,,2500,true
+RAW_MATERIAL,RM-MSFT1-001,Mission Soft Flour Tortillas 10s,,,,pcs,Piece,,80,true
+RAW_MATERIAL,RM-MCS7-001,MONIN Caramel Syrup 700ml,,,,ml,Milliliter,,1500,true
+RAW_MATERIAL,RM-MFVS7-001,MONIN French Vanilla Syrup 700ml,,,,ml,Milliliter,,1500,true
+RAW_MATERIAL,RM-MHS7-001,MONIN Hazelnut Syrup 700ml,,,,ml,Milliliter,,1200,true
+RAW_MATERIAL,RM-MMS7-001,MONIN Mango Syrup 700ml,,,,ml,Milliliter,,1200,true
+RAW_MATERIAL,RM-MPFS7-001,MONIN Passion Fruit Syrup 700ml,,,,ml,Milliliter,,1000,true
+RAW_MATERIAL,RM-MPS7-001,MONIN Peppermint Syrup 700ml,,,,ml,Milliliter,,800,true
+RAW_MATERIAL,RM-MSS7-001,MONIN Strawberry Syrup 700ml,,,,ml,Milliliter,,1200,true
+RAW_MATERIAL,RM-MWCS5-001,MONIN White Chocolate Sauce 500ml,,,,ml,Milliliter,,1000,true
+RAW_MATERIAL,RM-MBS1-001,Monterey Beef Sirloin 1kg,,,,g,Gram,,3000,true
+RAW_MATERIAL,RM-NAPC2-001,Nestlé All Purpose Cream 250ml,,,,ml,Milliliter,,5000,true
+RAW_MATERIAL,RM-OBBOM1-001,Oatside Barista Blend Oat Milk 1L,,,,ml,Milliliter,,4000,true
+RAW_MATERIAL,RM-OOC1-001,Oreo Original Cookies 133g,,,,g,Gram,,1200,true
+RAW_MATERIAL,RM-PSBPT4-001,Pampanga’s Best Pork Tocino 450g,,,,g,Gram,,2000,true
+RAW_MATERIAL,RM-PSBSL4-001,Pampanga’s Best Skinless Longganisa 450g,,,,g,Gram,,2000,true
+RAW_MATERIAL,RM-PIFGI5-001,Pure Ice Food Grade Ice 5kg,,,,g,Gram,,15000,true
+RAW_MATERIAL,RM-PP2-001,Purefoods Pepperoni 250g,,,,g,Gram,,1000,true
+RAW_MATERIAL,RM-RLLJ2-001,Real Lemon Lemon Juice 250ml,,,,ml,Milliliter,,2500,true
+RAW_MATERIAL,RM-SRSP5-001,San Remo Spaghetti Pasta 500g,,,,g,Gram,,3500,true
+RAW_MATERIAL,RM-SBBB4-001,Sarangani Bay Boneless Bangus 450g,,,,g,Gram,,1600,true
+RAW_MATERIAL,RM-STWA1-001,Soy Taho with Arnibal 1kg,,,,g,Gram,,1800,true
+RAW_MATERIAL,RM-SSIOO2-001,Spanish Sardines in Olive Oil 220g,,,,g,Gram,,1200,true
+RAW_MATERIAL,RM-TCABACBPG1-001,TOP Creamery Atok Benguet Arabica Coffee Beans Premium Grade 1kg,,,,g,Gram,,5000,true
+RAW_MATERIAL,RM-TCMTSMP5-001,TOP Creamery Milk Tea Series Matcha Powder 500g,,,,g,Gram,,1500,true
+RAW_MATERIAL,RM-TCPCTN1-001,TOP Creamery Pre-Cut Tissue Napkins 100pcs,,,,pcs,Piece,,800,true
+RAW_MATERIAL,RM-TRSTC2-001,Tostitos Restaurant Style Tortilla Chips 283g,,,,g,Gram,,1500,true
+RAW_MATERIAL,RM-TCTB2-001,Twinings Chai Tea Bags 20s,,,,pcs,Piece,,100,true
+RAW_MATERIAL,RM-VRS1-001,Victorias Refined Sugar 1kg,,,,g,Gram,,7000,true
+RAW_MATERIAL,RM-WPBW5-001,Wilkins Pure Bottled Water 500ml,,,,pcs,Piece,,120,true
+RAW_MATERIAL,RM-WPW6-001,Wilkins Purified Water 6L,,,,ml,Milliliter,,30000,true
+PRODUCT_VARIANT,BL-FAMILY,Family,Beef Lasagna,Family,Pasta,,,1350,,true
+PRODUCT_VARIANT,BL-SOLO,Solo,Beef Lasagna,Solo,Pasta,,,470,,true
+PRODUCT_VARIANT,BN-REGULAR,Regular,Beef Nachos,Regular,Ala Carte,,,165,,true
+PRODUCT_VARIANT,BT-REGULAR,Regular,Beef Tapa,Regular,All Day Breakfast,,,225,,true
+PRODUCT_VARIANT,BCL-ICED22OZ,Iced 22oz,Biscoff Coffee Latte,Iced 22oz,Coffee,,,265,,true
+PRODUCT_VARIANT,B-ICED22OZ,Iced 22oz,Blackadamia,Iced 22oz,Coffee,,,185,,true
+PRODUCT_VARIANT,BW-REGULAR,Regular,Bottled Water,Regular,Extras,,,25,,true
+PRODUCT_VARIANT,BSC-REGULAR,Regular,Butter Sugar Crepe,Regular,Crepes,,,80,,true
+PRODUCT_VARIANT,BPVD-ICED22OZ,Iced 22oz,Butterfly Pea (Violet Drink),Iced 22oz,Lemonade,,,130,,true
+PRODUCT_VARIANT,CA-ICED22OZ,Iced 22oz,Cafe Americano,Iced 22oz,Coffee,,,110,,true
+PRODUCT_VARIANT,CA-HOT12OZ,Hot 12oz,Cafe Americano,Hot 12oz,Coffee,,,100,,true
+PRODUCT_VARIANT,C-ICED22OZ,Iced 22oz,Cappuccino,Iced 22oz,Coffee,,,135,,true
+PRODUCT_VARIANT,C-HOT12OZ,Hot 12oz,Cappuccino,Hot 12oz,Coffee,,,120,,true
+PRODUCT_VARIANT,CM-HOT12OZ,Hot 12oz,Caramel Macchiato,Hot 12oz,Coffee,,,150,,true
+PRODUCT_VARIANT,CM-ICED22OZ,Iced 22oz,Caramel Macchiato,Iced 22oz,Coffee,,,175,,true
+PRODUCT_VARIANT,CMW-REGULAR,Regular,Caramel Mocha Waffles,Regular,Waffles,,,185,,true
+PRODUCT_VARIANT,CTL-HOT12OZ,Hot 12oz,Chai Tea Latte,Hot 12oz,Non-Coffee,,,140,,true
+PRODUCT_VARIANT,CTL-ICED22OZ,Iced 22oz,Chai Tea Latte,Iced 22oz,Non-Coffee,,,175,,true
+PRODUCT_VARIANT,CN-REGULAR,Regular,Cheese Nachos,Regular,Ala Carte,,,120,,true
+PRODUCT_VARIANT,CC-SOLO,Solo,Chicken Carbonara,Solo,Pasta,,,240,,true
+PRODUCT_VARIANT,CC-FAMILY,Family,Chicken Carbonara,Family,Pasta,,,920,,true
+PRODUCT_VARIANT,CW8P-KBBQ,KBBQ,Chicken Wings 8 pcs,KBBQ,Ala Carte,,,320,,true
+PRODUCT_VARIANT,CW8P-SRIRACHA,Sriracha,Chicken Wings 8 pcs,Sriracha,Ala Carte,,,320,,true
+PRODUCT_VARIANT,CW8P-GARLICPARMESAN,Garlic Parmesan,Chicken Wings 8 pcs,Garlic Parmesan,Ala Carte,,,320,,true
+PRODUCT_VARIANT,CW8P-SALTEDEGG,Salted Egg,Chicken Wings 8 pcs,Salted Egg,Ala Carte,,,370,,true
+PRODUCT_VARIANT,CCW-REGULAR,Regular,Choco Cream Waffles,Regular,Waffles,,,185,,true
+PRODUCT_VARIANT,CL-HOT12OZ,Hot 12oz,Classic Lemon,Hot 12oz,Lemonade,,,80,,true
+PRODUCT_VARIANT,CL-ICED22OZ,Iced 22oz,Classic Lemon,Iced 22oz,Lemonade,,,85,,true
+PRODUCT_VARIANT,CB-ICED22OZ,Iced 22oz,Cold Brew,Iced 22oz,Coffee,,,120,,true
+PRODUCT_VARIANT,CFE-ICED22OZ,Iced 22oz,Cold Foam Espresso,Iced 22oz,Coffee,,,170,,true
+PRODUCT_VARIANT,CTP-SOLO,Solo,Creamy Tuna Pesto,Solo,Pasta,,,220,,true
+PRODUCT_VARIANT,CTP-FAMILY,Family,Creamy Tuna Pesto,Family,Pasta,,,820,,true
+PRODUCT_VARIANT,CMBL-ICED22OZ,Iced 22oz,Crème-Bru Latte,Iced 22oz,Coffee,,,225,,true
+PRODUCT_VARIANT,CNL-REGULAR,Regular,Crispy Naked Longganisa,Regular,All Day Breakfast,,,165,,true
+PRODUCT_VARIANT,CES-HOT12OZ,Hot 12oz,Cubano (Espresso Shot),Hot 12oz,Coffee,,,60,,true
+PRODUCT_VARIANT,DC-ICED22OZ,Iced 22oz,Dark Chocolate,Iced 22oz,Non-Coffee,,,150,,true
+PRODUCT_VARIANT,DC-HOT12OZ,Hot 12oz,Dark Chocolate,Hot 12oz,Non-Coffee,,,130,,true
+PRODUCT_VARIANT,DBCC-REGULAR,Regular,Death by Chocolate Crepe,Regular,Crepes,,,145,,true
+PRODUCT_VARIANT,DCC-REGULAR22OZ,Regular 22oz,Double Choco Chip,Regular 22oz,Ice-Blended Non-Coffee,,,205,,true
+PRODUCT_VARIANT,E-REGULAR,Regular,Egg,Regular,Extras,,,20,,true
+PRODUCT_VARIANT,FC-GOODFOR2,Good for 2,Four Cheese,Good for 2,Pizza,,,300,,true
+PRODUCT_VARIANT,FF-REGULAR,Regular,French Fries,Regular,Ala Carte,,,110,,true
+PRODUCT_VARIANT,HM-ICED22OZ,Iced 22oz,Hazelnut Macchiato,Iced 22oz,Coffee,,,175,,true
+PRODUCT_VARIANT,HM-HOT12OZ,Hot 12oz,Hazelnut Macchiato,Hot 12oz,Coffee,,,150,,true
+PRODUCT_VARIANT,HHS1-150ML,150ml,Homemade Hot Sauce (150ml),150ml,Extras,,,150,,true
+PRODUCT_VARIANT,HIT-ICED22OZ,Iced 22oz,Houseblend Iced Tea,Iced 22oz,Non-Coffee,,,150,,true
+PRODUCT_VARIANT,L-HOT12OZ,Hot 12oz,Latte,Hot 12oz,Coffee,,,120,,true
+PRODUCT_VARIANT,L-ICED22OZ,Iced 22oz,Latte,Iced 22oz,Coffee,,,135,,true
+PRODUCT_VARIANT,MDC-REGULAR,Regular,Mango Dream Crepe,Regular,Crepes,,,145,,true
+PRODUCT_VARIANT,MS-ICED22OZ,Iced 22oz,Mango Shake,Iced 22oz,Non-Coffee,,,150,,true
+PRODUCT_VARIANT,MT-ICED22OZ,Iced 22oz,Mango Trail,Iced 22oz,Lemonade,,,100,,true
+PRODUCT_VARIANT,M-GOODFOR2,Good for 2,Margherita,Good for 2,Pizza,,,250,,true
+PRODUCT_VARIANT,MCD-REGULAR22OZ,Regular 22oz,Matcha Choco Drizzle,Regular 22oz,Ice-Blended Non-Coffee,,,205,,true
+PRODUCT_VARIANT,MEL-HOT12OZ,Hot 12oz,Matcha Espresso Latte,Hot 12oz,Coffee,,,165,,true
+PRODUCT_VARIANT,MEL-ICED22OZ,Iced 22oz,Matcha Espresso Latte,Iced 22oz,Coffee,,,195,,true
+PRODUCT_VARIANT,ML-HOT12OZ,Hot 12oz,Matcha Latte,Hot 12oz,Non-Coffee,,,130,,true
+PRODUCT_VARIANT,ML-ICED22OZ,Iced 22oz,Matcha Latte,Iced 22oz,Non-Coffee,,,170,,true
+PRODUCT_VARIANT,M-HOT12OZ,Hot 12oz,Mocha,Hot 12oz,Coffee,,,135,,true
+PRODUCT_VARIANT,M-ICED22OZ,Iced 22oz,Mocha,Iced 22oz,Coffee,,,160,,true
+PRODUCT_VARIANT,MC-REGULAR22OZ,Regular 22oz,Mocha Chip,Regular 22oz,Ice-Blended Coffee,,,225,,true
+PRODUCT_VARIANT,MMC-REGULAR,Regular,Monkey Madness Crepe,Regular,Crepes,,,145,,true
+PRODUCT_VARIANT,NMW-REGULAR,Regular,Nutty Mango Waffles,Regular,Waffles,,,185,,true
+PRODUCT_VARIANT,OCC-REGULAR22OZ,Regular 22oz,Oreo Cookie Crumble,Regular 22oz,Ice-Blended Non-Coffee,,,205,,true
+PRODUCT_VARIANT,OW-REGULAR,Regular,Original Waffles,Regular,Waffles,,,120,,true
+PRODUCT_VARIANT,PFBB-REGULAR,Regular,Pan-Fried Baby Bangus,Regular,All Day Breakfast,,,275,,true
+PRODUCT_VARIANT,PF-ICED22OZ,Iced 22oz,Passion Fruit,Iced 22oz,Lemonade,,,100,,true
+PRODUCT_VARIANT,PM-REGULAR22OZ,Regular 22oz,Peach Milk,Regular 22oz,Ice-Blended Non-Coffee,,,205,,true
+PRODUCT_VARIANT,PMC-REGULAR22OZ,Regular 22oz,Peppermint Mocha,Regular 22oz,Ice-Blended Coffee,,,240,,true
+PRODUCT_VARIANT,P-NONSPICY,Non Spicy,Pepperoni,Non Spicy,Pizza,,,300,,true
+PRODUCT_VARIANT,P-SPICY,Spicy,Pepperoni,Spicy,Pizza,,,300,,true
+PRODUCT_VARIANT,PT-GOODFOR2,Good for 2,Pesto Tapa,Good for 2,Pizza,,,370,,true
+PRODUCT_VARIANT,PT-REGULAR,Regular,Pork Tocino,Regular,All Day Breakfast,,,160,,true
+PRODUCT_VARIANT,R-REGULAR,Regular,Rice,Regular,Extras,,,30,,true
+PRODUCT_VARIANT,ST2P-BEEF,Beef,Soft Tacos 2 pcs,Beef,Ala Carte,,,170,,true
+PRODUCT_VARIANT,ST2P-SHRIMP,Shrimp,Soft Tacos 2 pcs,Shrimp,Ala Carte,,,170,,true
+PRODUCT_VARIANT,SL-HOT12OZ,Hot 12oz,Spanish Latte,Hot 12oz,Coffee,,,135,,true
+PRODUCT_VARIANT,SL-ICED22OZ,Iced 22oz,Spanish Latte,Iced 22oz,Coffee,,,160,,true
+PRODUCT_VARIANT,SS-FAMILY,Family,Spanish Sardines,Family,Pasta,,,980,,true
+PRODUCT_VARIANT,SS-SOLO,Solo,Spanish Sardines,Solo,Pasta,,,280,,true
+PRODUCT_VARIANT,SS1-150ML,150ml,Spicy Suka (150ml),150ml,Extras,,,80,,true
+PRODUCT_VARIANT,S-ICED22OZ,Iced 22oz,Strawberiri,Iced 22oz,Lemonade,,,100,,true
+PRODUCT_VARIANT,SCC-REGULAR,Regular,Strawberries & Cream Crepe,Regular,Crepes,,,145,,true
+PRODUCT_VARIANT,SMW-REGULAR,Regular,Strawberry Mallow Waffles,Regular,Waffles,,,185,,true
+PRODUCT_VARIANT,STL-ICED22OZ,Iced 22oz,Strawberry Taho Latte,Iced 22oz,Non-Coffee,,,165,,true
+PRODUCT_VARIANT,TKL-ICED22OZ,Iced 22oz,Taho Kape Latte,Iced 22oz,Coffee,,,170,,true
+PRODUCT_VARIANT,TM-ICED22OZ,Iced 22oz,Thai Milktea,Iced 22oz,Non-Coffee,,,150,,true
+PRODUCT_VARIANT,VBS-REGULAR22OZ,Regular 22oz,Vanilla Bean Strawberry,Regular 22oz,Ice-Blended Non-Coffee,,,205,,true
+PRODUCT_VARIANT,WCM-REGULAR22OZ,Regular 22oz,White Caramel Mocha,Regular 22oz,Ice-Blended Coffee,,,225,,true

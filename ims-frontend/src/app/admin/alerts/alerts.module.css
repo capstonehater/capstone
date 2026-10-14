@@ -20,15 +20,19 @@
   .filters { grid-template-columns:minmax(0, 1fr); }
 }
 .alert { padding:24px; background:#fff; border:1px solid #dce2eb; border-left:4px solid #94a3b8; border-radius:12px; }
-.critical { background:#fff1f2; border-color:#efc5ca; border-left-color:#a34c54; }
-.warning { background:#fff8df; border-color:#ead393; border-left-color:#b08b45; }
+.expired { background:#fff1f2; border-color:#fecaca; border-left-color:#dc2626; }
+.lowStock { background:#fffbeb; border-color:#fde68a; border-left-color:#ca8a04; }
+.depleted { background:#fff3ee; border-color:#ffc5b8; border-left-color:#f0441e; }
+.nearExpiry { background:#fff7ed; border-color:#fed7aa; border-left-color:#ea580c; }
 .resolved { background:#f0fdf4; border-color:#bbf7d0; border-left-color:#16a34a; }
 .info { border-left-color:#475569; }
 .alert h2 { margin:0; color:#232d46; font-size:20px; font-weight:650; }
 .alert p { margin:0; }
 .alert h2 ~ span { padding:4px 9px; border:1px solid #e2e8f0; border-radius:999px; background:#f8fafc; color:#475569; font-size:14px; letter-spacing:.025em; }
-.critical h2 ~ span:last-child { background:#faf0f1; border-color:#ead1d4; color:#8e3f48; }
-.warning h2 ~ span:last-child { background:#ffedb5; border-color:#dfbd70; color:#785517; }
+.expired h2 ~ span:last-child { background:#fee2e2; border-color:#fecaca; color:#991b1b; }
+.lowStock h2 ~ span:last-child { background:#fef3c7; border-color:#fde68a; color:#854d0e; }
+.depleted h2 ~ span:last-child { background:#ffe5dc; border-color:#ffc5b8; color:#a52b13; }
+.nearExpiry h2 ~ span:last-child { background:#ffedd5; border-color:#fed7aa; color:#9a3412; }
 .resolved h2 ~ span { background:#dcfce7; border-color:#86efac; color:#166534; }
 .primary,.secondary { min-height:44px; padding:9px 15px; border:1px solid #232d46; border-radius:8px; background:#232d46; color:white; font-size:16px; font-weight:600; transition:background-color 150ms; }
 .primary:hover:not(:disabled) { background:#34425f; }
@@ -76,3 +80,5 @@
   .selectionControls, .selectionToolbarActive .selectionControls { transition:none; }
   .cardCheckbox { animation:none; }
 }
+.notificationFocus { outline:3px solid #ea580c; outline-offset:4px; scroll-margin:100px; }
+.alert h2 ~ span.newBadge { display:inline-flex; align-items:center; border-radius:999px; background:#15803d; border-color:#15803d; color:white; padding:3px 10px; font-size:12px; font-weight:700; letter-spacing:.03em; }

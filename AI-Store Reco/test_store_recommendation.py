@@ -137,6 +137,28 @@ class RecommendationTests(unittest.TestCase):
         row["availability"] = {"status": "OUT_OF_STOCK"}
         self.assertEqual(reco.rank_stores([row])["recommendations"], [])
 
+    def test_failed_searches_are_preserved_but_never_recommended(self):
+        for status in reco.FAILED_SEARCH_STATUSES:
+            with self.subTest(status=status):
+                failed = store('Failed nearby store')
+                failed.update(status=status, fetched_at=datetime.now(timezone.utc).isoformat())
+                failed['search_evidence'] = [{'title': 'Partial response', 'url': 'https://example.com'}]
+                result = reco.recommend_saved_results('Pasta', [failed, store('Working', .02)])
+                self.assertEqual(len(result['results']), 2)
+                self.assertEqual(result['results'][0]['status'], status)
+                self.assertIsNone(result['results'][0]['recommendation']['rank'])
+                self.assertEqual(result['results'][0]['recommendation']['confidence']['percentage'], 0)
+                self.assertIn('search failed', result['results'][0]['recommendation']['reason'])
+                self.assertEqual(result['results'][1]['recommendation']['rank'], 1)
+                self.assertEqual(reco.rank_stores([failed])['recommendations'], [])
+
+    def test_invalid_source_cannot_qualify_for_top_one(self):
+        for url in ['javascript:alert(1)', 'https://', 'https://user:password@example.com']:
+            with self.subTest(url=url):
+                row = store('Invalid source')
+                row['source_url'] = url
+                self.assertFalse(reco.rank_stores([row])['top_1_available'])
+
     def test_saved_evidence_is_used_without_new_search(self):
         row = store("Shop")
         row["search_evidence"] = [{"title": "Shop Pasta", "content": "PHP 100", "url": "https://example.com"}]

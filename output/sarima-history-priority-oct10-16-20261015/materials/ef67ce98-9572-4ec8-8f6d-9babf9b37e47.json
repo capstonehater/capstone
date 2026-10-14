@@ -1,0 +1,10 @@
+{
+  "materialId": "ef67ce98-9572-4ec8-8f6d-9babf9b37e47",
+  "name": "Mascarpone Cheese 250g",
+  "sku": "RM-CMC2-001",
+  "unit": "g",
+  "status": "excluded",
+  "reason": "Historical CSV contains no usage rows",
+  "convergenceWarnings": 0,
+  "seconds": 0.06
+}

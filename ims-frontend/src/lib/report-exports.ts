@@ -1,4 +1,5 @@
 import { reportAccountingNote } from "./report-accounting";
+import { summarizeTransactionExport, transactionExportSummaryNote, transactionExportAccountingNote } from "./report-transaction-summary";
 import { formatReportQuantities } from "./report-quantities";
 import { authorizeReportExport } from "./report-export-access";
 import { formatAvailabilityDuration, formatStockoutDuration } from "./report-duration";
@@ -33,6 +34,7 @@ export type InventoryReportsExportSnapshot = {
 };
 
 export type PosTransactionHistoryExportSnapshot = {
+  scope?: "all";
   filters: {
     from: string;
     to: string;
@@ -114,6 +116,7 @@ export type PosInventoryLinkedExportSnapshot = {
 };
 
 export type PosAuditExceptionsExportSnapshot = {
+  scope?: "all";
   filters: {
     from: string;
     to: string;
@@ -236,6 +239,42 @@ function renderHtmlSummary(title: string, rows: Array<{ label: string; value: st
       </div>
     </section>
   `;
+}
+
+function transactionExportKpis(snapshot: PosTransactionHistoryExportSnapshot) {
+  const summary = summarizeTransactionExport(snapshot.report.orders);
+  return {
+    summary,
+    metrics: [
+      ["Exported Transactions", String(summary.totalTransactions)],
+      ["Completed Transactions", String(summary.completedTransactions)],
+      ["Refunded Transactions", String(summary.refundedTransactions)],
+      ["Completed Sales (incl. VAT)", formatPeso(summary.completedSales)],
+      ["Completed Order Discounts", formatPeso(summary.discounts)],
+      ["Completed Order VAT", formatPeso(summary.vat)],
+      ["Average Completed Sale (incl. VAT)", formatPeso(summary.averageSale)],
+      ["Accounts With Completed Sales", String(summary.staffCount)],
+      ["Top Account by Sales Amount", summary.topSalesAccounts],
+      ["Top Account Sales (incl. VAT)", formatPeso(summary.topSalesAmount)],
+      ["Top Account by Transaction Count", summary.topTransactionAccounts],
+      ["Most Completed Transactions", String(summary.topTransactionCount)],
+    ],
+    headers: ["Rank", "Staff Account", "Email", "Completed Transactions", "Completed Sales (incl. VAT)", "Share of Completed Sales"],
+    rows: summary.staff.map(row => [String(row.rank), row.account, row.email || "Not recorded", String(row.transactions), formatPeso(row.sales), row.share === null ? "N/A" : `${row.share.toFixed(1)}%`]),
+  };
+}
+
+function staffExportLeaderKpis(snapshot: PosStaffPerformanceExportSnapshot) {
+  const rows = snapshot.report.staff.filter(row => row.transactionCount > 0);
+  const topSales = Math.max(0, ...rows.map(row => Number(row.netSales)));
+  const topCount = Math.max(0, ...rows.map(row => row.transactionCount));
+  const label = (row: typeof rows[number]) => `${row.staff.firstName} ${row.staff.lastName} (${row.staff.email})`;
+  return [
+    ["Top Account by Net Sales", topSales > 0 ? rows.filter(row => Number(row.netSales) === topSales).map(label).join("; ") : "N/A"],
+    ["Highest Account Net Sales", formatPeso(topSales)],
+    ["Top Account by Transaction Count", topCount ? rows.filter(row => row.transactionCount === topCount).map(label).join("; ") : "N/A"],
+    ["Most Transactions by One Account", String(topCount)],
+  ];
 }
 
 function describeOrderItems(order: PosOrder) {
@@ -759,17 +798,29 @@ export async function exportPosTransactionHistoryExcel(snapshot: PosTransactionH
   const lines: string[] = [];
   lines.push(createCsvRow(["POS Transaction History Export"]));
   lines.push(createCsvRow(["Generated At", new Date().toISOString()]));
-  lines.push(createCsvRow(["Accounting Basis", reportAccountingNote]));
+  lines.push(createCsvRow(["Accounting Basis", transactionExportAccountingNote]));
   lines.push(createCsvRow(["From", snapshot.filters.from]));
   lines.push(createCsvRow(["To", snapshot.filters.to]));
   lines.push(createCsvRow(["Search", snapshot.filters.search ?? ""]));
   lines.push(createCsvRow(["Staff Filter", snapshot.filters.staffSearch ?? ""]));
   lines.push(createCsvRow(["Payment Method", snapshot.filters.paymentMethod ?? ""]));
   lines.push(createCsvRow(["Status", snapshot.filters.status ?? ""]));
-  lines.push(createCsvRow(["Page", snapshot.filters.page]));
-  lines.push(createCsvRow(["Page Size", snapshot.filters.pageSize]));
-  lines.push(createCsvRow(["Scope", "Current filtered page"]));
+  if (snapshot.scope !== "all") {
+    lines.push(createCsvRow(["Page", snapshot.filters.page]));
+    lines.push(createCsvRow(["Page Size", snapshot.filters.pageSize]));
+  } else {
+    lines.push(createCsvRow(["Scope", "All matching records in the selected date range"]));
+    lines.push(createCsvRow(["Exported Records", snapshot.report.pagination.total]));
+  }
+  if (snapshot.scope !== "all") lines.push(createCsvRow(["Scope", "Current filtered page"]));
   lines.push("");
+
+  const kpis = transactionExportKpis(snapshot);
+  appendCsvSection(lines, "KPI Summary", ["Metric", "Value"], kpis.metrics.map(([label, value]) => [
+    label, /sales \(incl|discounts|order vat|average completed sale/i.test(label) ? value.replace(/PHP|\u20b1|,/g, "").trim() : value,
+  ]));
+  appendCsvSection(lines, "Summary Definitions", ["Note"], [[transactionExportSummaryNote]]);
+  appendCsvSection(lines, "Staff Sales Ranking", kpis.headers, kpis.rows);
 
   appendCsvSection(
     lines,
@@ -812,14 +863,9 @@ export async function exportPosTransactionHistoryPdf(snapshot: PosTransactionHis
   }
 
   const filename = `pos-transaction-history_${sanitizeFilenamePart(snapshot.filters.from)}_to_${sanitizeFilenamePart(snapshot.filters.to)}.pdf`;
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
+  await authorizeReportExport("pdf");
 
-  if (!printWindow) {
-    throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
-  }
-
-  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
-
+  const kpis = transactionExportKpis(snapshot);
   const html = `
     <!doctype html>
     <html>
@@ -832,15 +878,20 @@ export async function exportPosTransactionHistoryPdf(snapshot: PosTransactionHis
         <div class="page">
           <h1>POS Transaction History</h1>
           <div class="meta">
-            <div><strong>Accounting Basis:</strong> ${escapeHtml(reportAccountingNote)}</div>
+            <div><strong>Accounting Basis:</strong> ${escapeHtml(transactionExportAccountingNote)}</div>
             <div><strong>Generated:</strong> ${escapeHtml(formatDateTime(new Date().toISOString()))}</div>
             <div><strong>From:</strong> ${escapeHtml(snapshot.filters.from)}</div>
             <div><strong>To:</strong> ${escapeHtml(snapshot.filters.to)}</div>
             <div><strong>Filters:</strong> Search=${escapeHtml(snapshot.filters.search ?? "N/A")} | Staff=${escapeHtml(snapshot.filters.staffSearch ?? "N/A")} | Payment=${escapeHtml(snapshot.filters.paymentMethod ?? "N/A")} | Status=${escapeHtml(snapshot.filters.status ?? "N/A")}</div>
-            <div><strong>Page:</strong> ${snapshot.filters.page} of ${snapshot.report.pagination.totalPages || 1}</div>
-            <div><strong>Scope:</strong> Current filtered page</div>
+            ${snapshot.scope === "all"
+              ? `<div><strong>Scope:</strong> All matching records in the selected date range</div><div><strong>Exported Records:</strong> ${snapshot.report.pagination.total}</div>`
+              : `<div><strong>Page:</strong> ${snapshot.filters.page} of ${snapshot.report.pagination.totalPages || 1}</div>`}
+            ${snapshot.scope !== "all" ? "<div><strong>Scope:</strong> Current filtered page</div>" : ""}
           </div>
 
+          ${renderHtmlSummary("KPI Summary", kpis.metrics.map(([label, value]) => ({ label, value })))}
+          ${renderHtmlTable("Summary Definitions", ["Note"], [[transactionExportSummaryNote]])}
+          ${renderHtmlTable("Staff Sales Ranking", kpis.headers, kpis.rows)}
           ${renderHtmlTable(
             "Transactions",
             ["Order Number", "Order ID", "Completed At", "Staff", "Items", "Subtotal", "Discount", "Tax", "Total", "Payment", "Status"],
@@ -863,13 +914,8 @@ export async function exportPosTransactionHistoryPdf(snapshot: PosTransactionHis
     </html>
   `;
 
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  window.setTimeout(() => {
-    printWindow.print();
-  }, 250);
+  const { readReportPdfContent, buildReportPdfDocument } = await import("./report-pdf");
+  await buildReportPdfDocument(readReportPdfContent(html)).save(filename, { returnPromise: true });
 
   return filename;
 }
@@ -889,7 +935,7 @@ export async function exportPosSalesAnalyticsExcel(snapshot: PosSalesAnalyticsEx
   lines.push(createCsvRow(["Payment Method", snapshot.filters.paymentMethod ?? ""]));
   lines.push("");
 
-  appendCsvSection(lines, "Summary", ["Metric", "Value"], [
+  appendCsvSection(lines, "KPI Summary", ["Metric", "Value"], [
     ["Gross Sales", snapshot.report.summary.grossSales],
     ["Net Sales", snapshot.report.summary.netSales],
     ["Discounts", snapshot.report.summary.discounts],
@@ -949,13 +995,7 @@ export async function exportPosSalesAnalyticsPdf(snapshot: PosSalesAnalyticsExpo
   }
 
   const filename = `${buildRangeBaseName("pos-sales-analytics", snapshot.filters.from, snapshot.filters.to)}.pdf`;
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
-
-  if (!printWindow) {
-    throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
-  }
-
-  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
+  await authorizeReportExport("pdf");
 
   const html = `
     <!doctype html>
@@ -979,7 +1019,7 @@ export async function exportPosSalesAnalyticsPdf(snapshot: PosSalesAnalyticsExpo
             <div><strong>Payment Method:</strong> ${escapeHtml(snapshot.filters.paymentMethod ?? "N/A")}</div>
           </div>
 
-          ${renderHtmlSummary("Summary", [
+          ${renderHtmlSummary("KPI Summary", [
             { label: "Gross Sales", value: formatPeso(snapshot.report.summary.grossSales) },
             { label: "Net Sales", value: formatPeso(snapshot.report.summary.netSales) },
             { label: "Discounts", value: formatPeso(snapshot.report.summary.discounts) },
@@ -1025,13 +1065,8 @@ export async function exportPosSalesAnalyticsPdf(snapshot: PosSalesAnalyticsExpo
     </html>
   `;
 
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  window.setTimeout(() => {
-    printWindow.print();
-  }, 250);
+  const { readReportPdfContent, buildReportPdfDocument } = await import("./report-pdf");
+  await buildReportPdfDocument(readReportPdfContent(html)).save(filename, { returnPromise: true });
 
   return filename;
 }
@@ -1093,13 +1128,7 @@ export async function exportPosPaymentReportsPdf(snapshot: PosPaymentReportsExpo
   }
 
   const filename = `${buildRangeBaseName("pos-payment-reports", snapshot.filters.from, snapshot.filters.to)}.pdf`;
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
-
-  if (!printWindow) {
-    throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
-  }
-
-  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
+  await authorizeReportExport("pdf");
 
   const html = `
     <!doctype html>
@@ -1157,13 +1186,8 @@ export async function exportPosPaymentReportsPdf(snapshot: PosPaymentReportsExpo
     </html>
   `;
 
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  window.setTimeout(() => {
-    printWindow.print();
-  }, 250);
+  const { readReportPdfContent, buildReportPdfDocument } = await import("./report-pdf");
+  await buildReportPdfDocument(readReportPdfContent(html)).save(filename, { returnPromise: true });
 
   return filename;
 }
@@ -1180,7 +1204,7 @@ export async function exportPosRefundsVoidsExcel(snapshot: PosRefundsVoidsExport
   lines.push(createCsvRow(["Staff Filter", snapshot.filters.staffSearch ?? ""]));
   lines.push("");
 
-  appendCsvSection(lines, "Summary", ["Metric", "Value"], [
+  appendCsvSection(lines, "KPI Summary", ["Metric", "Value"], [
     ["Refund Count", snapshot.report.summary.refundCount],
     ["Refunded Amount", snapshot.report.summary.refundedAmount],
     ["Void Count", snapshot.report.summary.voidCount],
@@ -1258,13 +1282,7 @@ export async function exportPosRefundsVoidsPdf(snapshot: PosRefundsVoidsExportSn
   }
 
   const filename = `${buildRangeBaseName("pos-refunds-voids", snapshot.filters.from, snapshot.filters.to)}.pdf`;
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
-
-  if (!printWindow) {
-    throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
-  }
-
-  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
+  await authorizeReportExport("pdf");
 
   const html = `
     <!doctype html>
@@ -1285,7 +1303,7 @@ export async function exportPosRefundsVoidsPdf(snapshot: PosRefundsVoidsExportSn
             <div><strong>Staff Filter:</strong> ${escapeHtml(snapshot.filters.staffSearch ?? "N/A")}</div>
           </div>
 
-          ${renderHtmlSummary("Summary", [
+          ${renderHtmlSummary("KPI Summary", [
             { label: "Refund Count", value: String(snapshot.report.summary.refundCount) },
             { label: "Refunded Amount", value: formatPeso(snapshot.report.summary.refundedAmount) },
             { label: "Void Count", value: String(snapshot.report.summary.voidCount) },
@@ -1340,13 +1358,8 @@ export async function exportPosRefundsVoidsPdf(snapshot: PosRefundsVoidsExportSn
     </html>
   `;
 
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  window.setTimeout(() => {
-    printWindow.print();
-  }, 250);
+  const { readReportPdfContent, buildReportPdfDocument } = await import("./report-pdf");
+  await buildReportPdfDocument(readReportPdfContent(html)).save(filename, { returnPromise: true });
 
   return filename;
 }
@@ -1366,7 +1379,7 @@ export async function exportPosProductPerformanceExcel(
   lines.push(createCsvRow(["Category Attribution", snapshot.report.categoryAttributionMode]));
   lines.push("");
 
-  appendCsvSection(lines, "Summary", ["Metric", "Value"], [
+  appendCsvSection(lines, "KPI Summary", ["Metric", "Value"], [
     ["Products Considered", snapshot.report.summary.totalProductsConsidered],
     ["Selling Products", snapshot.report.summary.sellingProductsCount],
     ["Total Quantity Sold", snapshot.report.summary.totalQuantitySold],
@@ -1458,13 +1471,7 @@ export async function exportPosProductPerformancePdf(
   }
 
   const filename = `${buildRangeBaseName("pos-product-performance", snapshot.filters.from, snapshot.filters.to)}.pdf`;
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
-
-  if (!printWindow) {
-    throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
-  }
-
-  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
+  await authorizeReportExport("pdf");
 
   const html = `
     <!doctype html>
@@ -1486,7 +1493,7 @@ export async function exportPosProductPerformancePdf(
             <div><strong>Category Attribution:</strong> ${escapeHtml(snapshot.report.categoryAttributionMode)}</div>
           </div>
 
-          ${renderHtmlSummary("Summary", [
+          ${renderHtmlSummary("KPI Summary", [
             { label: "Products Considered", value: String(snapshot.report.summary.totalProductsConsidered) },
             { label: "Selling Products", value: String(snapshot.report.summary.sellingProductsCount) },
             { label: "Total Quantity Sold", value: String(snapshot.report.summary.totalQuantitySold) },
@@ -1540,13 +1547,8 @@ export async function exportPosProductPerformancePdf(
     </html>
   `;
 
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  window.setTimeout(() => {
-    printWindow.print();
-  }, 250);
+  const { readReportPdfContent, buildReportPdfDocument } = await import("./report-pdf");
+  await buildReportPdfDocument(readReportPdfContent(html)).save(filename, { returnPromise: true });
 
   return filename;
 }
@@ -1562,13 +1564,14 @@ export async function exportPosStaffPerformanceExcel(snapshot: PosStaffPerforman
   lines.push(createCsvRow(["To", snapshot.filters.to]));
   lines.push("");
 
-  appendCsvSection(lines, "Summary", ["Metric", "Value"], [
+  appendCsvSection(lines, "KPI Summary", ["Metric", "Value"], [
     ["Staff Count", snapshot.report.summary.staffCount],
     ["Total Net Sales", snapshot.report.summary.totalNetSales],
     ["Total Transactions", snapshot.report.summary.totalTransactions],
     ["Total Discounts", snapshot.report.summary.totalDiscounts],
     ["Refunds Handled", snapshot.report.summary.totalRefundsHandled],
     ["Voids Handled", snapshot.report.summary.totalVoidsHandled],
+    ...staffExportLeaderKpis(snapshot),
   ]);
 
   appendCsvSection(
@@ -1600,13 +1603,7 @@ export async function exportPosStaffPerformancePdf(snapshot: PosStaffPerformance
   }
 
   const filename = `${buildRangeBaseName("pos-staff-performance", snapshot.filters.from, snapshot.filters.to)}.pdf`;
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
-
-  if (!printWindow) {
-    throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
-  }
-
-  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
+  await authorizeReportExport("pdf");
 
   const html = `
     <!doctype html>
@@ -1626,13 +1623,14 @@ export async function exportPosStaffPerformancePdf(snapshot: PosStaffPerformance
             <div><strong>To:</strong> ${escapeHtml(snapshot.filters.to)}</div>
           </div>
 
-          ${renderHtmlSummary("Summary", [
+          ${renderHtmlSummary("KPI Summary", [
             { label: "Staff Count", value: String(snapshot.report.summary.staffCount) },
             { label: "Total Net Sales", value: formatPeso(snapshot.report.summary.totalNetSales) },
             { label: "Total Transactions", value: String(snapshot.report.summary.totalTransactions) },
             { label: "Total Discounts", value: formatPeso(snapshot.report.summary.totalDiscounts) },
             { label: "Refunds Handled", value: String(snapshot.report.summary.totalRefundsHandled) },
             { label: "Voids Handled", value: String(snapshot.report.summary.totalVoidsHandled) },
+            ...staffExportLeaderKpis(snapshot).map(([label, value]) => ({ label, value })),
           ])}
 
           ${renderHtmlTable(
@@ -1657,13 +1655,8 @@ export async function exportPosStaffPerformancePdf(snapshot: PosStaffPerformance
     </html>
   `;
 
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  window.setTimeout(() => {
-    printWindow.print();
-  }, 250);
+  const { readReportPdfContent, buildReportPdfDocument } = await import("./report-pdf");
+  await buildReportPdfDocument(readReportPdfContent(html)).save(filename, { returnPromise: true });
 
   return filename;
 }
@@ -1680,7 +1673,7 @@ export async function exportPosPeakHoursExcel(snapshot: PosPeakHoursExportSnapsh
   lines.push(createCsvRow(["Day Type", snapshot.filters.dayType]));
   lines.push("");
 
-  appendCsvSection(lines, "Summary", ["Metric", "Value"], [
+  appendCsvSection(lines, "KPI Summary", ["Metric", "Value"], [
     ["Total Transactions", snapshot.report.summary.totalTransactions],
     ["Total Net Sales", snapshot.report.summary.totalNetSales],
     ["Busiest Hour", snapshot.report.summary.busiestHour?.label ?? "N/A"],
@@ -1710,13 +1703,7 @@ export async function exportPosPeakHoursPdf(snapshot: PosPeakHoursExportSnapshot
   }
 
   const filename = `${buildRangeBaseName("pos-peak-hours", snapshot.filters.from, snapshot.filters.to)}.pdf`;
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
-
-  if (!printWindow) {
-    throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
-  }
-
-  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
+  await authorizeReportExport("pdf");
 
   const html = `
     <!doctype html>
@@ -1737,7 +1724,7 @@ export async function exportPosPeakHoursPdf(snapshot: PosPeakHoursExportSnapshot
             <div><strong>Day Type:</strong> ${escapeHtml(snapshot.filters.dayType)}</div>
           </div>
 
-          ${renderHtmlSummary("Summary", [
+          ${renderHtmlSummary("KPI Summary", [
             { label: "Total Transactions", value: String(snapshot.report.summary.totalTransactions) },
             { label: "Total Net Sales", value: formatPeso(snapshot.report.summary.totalNetSales) },
             { label: "Busiest Hour", value: snapshot.report.summary.busiestHour?.label ?? "N/A" },
@@ -1760,13 +1747,8 @@ export async function exportPosPeakHoursPdf(snapshot: PosPeakHoursExportSnapshot
     </html>
   `;
 
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  window.setTimeout(() => {
-    printWindow.print();
-  }, 250);
+  const { readReportPdfContent, buildReportPdfDocument } = await import("./report-pdf");
+  await buildReportPdfDocument(readReportPdfContent(html)).save(filename, { returnPromise: true });
 
   return filename;
 }
@@ -1805,13 +1787,7 @@ export async function exportPosInventoryLinkedPdf(
   }
 
   const filename = `${buildRangeBaseName("pos-inventory-linked", snapshot.filters.from, snapshot.filters.to)}.pdf`;
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
-
-  if (!printWindow) {
-    throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
-  }
-
-  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
+  await authorizeReportExport("pdf");
 
   const html = `
     <!doctype html>
@@ -1840,13 +1816,8 @@ export async function exportPosInventoryLinkedPdf(
     </html>
   `;
 
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  window.setTimeout(() => {
-    printWindow.print();
-  }, 250);
+  const { readReportPdfContent, buildReportPdfDocument } = await import("./report-pdf");
+  await buildReportPdfDocument(readReportPdfContent(html)).save(filename, { returnPromise: true });
 
   return filename;
 }
@@ -1866,11 +1837,16 @@ export async function exportPosAuditExceptionsExcel(
   lines.push(createCsvRow(["Reason Filter", snapshot.filters.reasonSearch ?? ""]));
   lines.push(createCsvRow(["Status Filter", snapshot.filters.status ?? ""]));
   lines.push(createCsvRow(["Exception Type", snapshot.filters.exceptionType ?? "ALL"]));
-  lines.push(createCsvRow(["Page", snapshot.filters.page]));
-  lines.push(createCsvRow(["Page Size", snapshot.filters.pageSize]));
+  if (snapshot.scope !== "all") {
+    lines.push(createCsvRow(["Page", snapshot.filters.page]));
+    lines.push(createCsvRow(["Page Size", snapshot.filters.pageSize]));
+  } else {
+    lines.push(createCsvRow(["Scope", "All matching records in the selected date range"]));
+    lines.push(createCsvRow(["Exported Records", snapshot.report.pagination.total]));
+  }
   lines.push("");
 
-  appendCsvSection(lines, "Summary", ["Metric", "Value"], [
+  appendCsvSection(lines, "KPI Summary", ["Metric", "Value"], [
     ["Total Exceptions", snapshot.report.summary.totalExceptions],
     ["Refund Count", snapshot.report.summary.refundCount],
     ["Refunded Amount", snapshot.report.summary.refundedAmount],
@@ -1931,13 +1907,7 @@ export async function exportPosAuditExceptionsPdf(
   }
 
   const filename = `${buildRangeBaseName("pos-audit-exceptions", snapshot.filters.from, snapshot.filters.to)}.pdf`;
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
-
-  if (!printWindow) {
-    throw new Error("Unable to open a printable export window. Please allow pop-ups and try again.");
-  }
-
-  try { await authorizeReportExport("pdf"); } catch (error) { printWindow.close(); throw error; }
+  await authorizeReportExport("pdf");
 
   const html = `
     <!doctype html>
@@ -1956,10 +1926,12 @@ export async function exportPosAuditExceptionsPdf(
             <div><strong>From:</strong> ${escapeHtml(snapshot.filters.from)}</div>
             <div><strong>To:</strong> ${escapeHtml(snapshot.filters.to)}</div>
             <div><strong>Filters:</strong> Staff=${escapeHtml(snapshot.filters.staffSearch ?? "N/A")} | Reason=${escapeHtml(snapshot.filters.reasonSearch ?? "N/A")} | Status=${escapeHtml(snapshot.filters.status ?? "N/A")} | Type=${escapeHtml(snapshot.filters.exceptionType ?? "ALL")}</div>
-            <div><strong>Page:</strong> ${snapshot.filters.page} of ${snapshot.report.pagination.totalPages || 1}</div>
+            ${snapshot.scope === "all"
+              ? `<div><strong>Scope:</strong> All matching records in the selected date range</div><div><strong>Exported Records:</strong> ${snapshot.report.pagination.total}</div>`
+              : `<div><strong>Page:</strong> ${snapshot.filters.page} of ${snapshot.report.pagination.totalPages || 1}</div>`}
           </div>
 
-          ${renderHtmlSummary("Summary", [
+          ${renderHtmlSummary("KPI Summary", [
             { label: "Total Exceptions", value: String(snapshot.report.summary.totalExceptions) },
             { label: "Refund Count", value: String(snapshot.report.summary.refundCount) },
             { label: "Refunded Amount", value: formatPeso(snapshot.report.summary.refundedAmount) },
@@ -1997,13 +1969,8 @@ export async function exportPosAuditExceptionsPdf(
     </html>
   `;
 
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  window.setTimeout(() => {
-    printWindow.print();
-  }, 250);
+  const { readReportPdfContent, buildReportPdfDocument } = await import("./report-pdf");
+  await buildReportPdfDocument(readReportPdfContent(html)).save(filename, { returnPromise: true });
 
   return filename;
 }

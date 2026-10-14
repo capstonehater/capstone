@@ -85,10 +85,11 @@ export default function RawMaterialModals({
     : undefined);
   const invalidClasses = " !border-red-600 !bg-red-50 focus:!border-red-600 focus:!ring-red-600/15";
   const selectedCount = categories.filter((category) => materialForm.categoryIds.includes(category.id)).length;
+  const categoryError = validationAttempted && selectedCount === 0 ? "Select at least one product category." : undefined;
   const allSelected = categories.length > 0 && selectedCount === categories.length;
   const categorySelection = (
     <fieldset className={modalStyles.materialCategories} disabled={submitting}>
-      <legend>Product categories</legend>
+      <legend>Product categories <span className="text-red-600" aria-hidden="true">*</span></legend>
       <p id="material-categories-hint">{activePanel === "edit-material"
         ? "Saved categories are already selected. Add or remove selections to update where this ingredient can be used."
         : "Only products in the selected categories can use this ingredient. Unchecked categories cannot use it."}</p>
@@ -102,7 +103,7 @@ export default function RawMaterialModals({
         </label>
         <span>{selectedCount} of {categories.length} selected</span>
       </div>
-      <div className={modalStyles.materialCategoryGrid} aria-describedby="material-categories-hint">
+      <div className={modalStyles.materialCategoryGrid} role="group" aria-label="Product categories (required)" aria-describedby={`material-categories-hint${categoryError ? " material-categories-error" : ""}`}>
         {categories.map((category) => (
           <label key={category.id} className={`${modalStyles.materialCategoryOption} ${materialForm.categoryIds.includes(category.id) ? modalStyles.materialCategorySelected : ""}`}>
             <input type="checkbox" checked={materialForm.categoryIds.includes(category.id)}
@@ -114,6 +115,7 @@ export default function RawMaterialModals({
         ))}
       </div>
       {!categories.length && <p>No product categories available.</p>}
+      {categoryError && <p id="material-categories-error" role="alert" className="text-sm text-red-600">{categoryError}</p>}
     </fieldset>
   );
   return (
@@ -131,7 +133,7 @@ export default function RawMaterialModals({
             event.preventDefault();
             if (unitSaving) return;
             setValidationAttempted(true);
-            if (!materialForm.name.trim() || !units.some((unit) => unit.id === materialForm.unitId) || !/^[0-9]{1,5}$/.test(materialForm.reorderPoint) || reorderInputError) return;
+            if (!materialForm.name.trim() || !units.some((unit) => unit.id === materialForm.unitId) || !/^[0-9]{1,5}$/.test(materialForm.reorderPoint) || reorderInputError || selectedCount === 0) return;
             onCreateMaterial(event);
           }}>
             <div className={modalStyles.materialIntro}>
@@ -215,7 +217,11 @@ export default function RawMaterialModals({
           description="Update metadata without changing the existing stock or ledger history."
           onClose={onClose}
         >
-          <form className="grid gap-4 md:grid-cols-2" onSubmit={(event) => { if (unitSaving) { event.preventDefault(); return; } onUpdateMaterial(event); }}>
+          <form className="grid gap-4 md:grid-cols-2" onSubmit={(event) => {
+            setValidationAttempted(true);
+            if (unitSaving || selectedCount === 0) { event.preventDefault(); return; }
+            onUpdateMaterial(event);
+          }}>
             <InventoryField htmlFor="edit-material-name" label="Raw material name">
               <input
                 id="edit-material-name"

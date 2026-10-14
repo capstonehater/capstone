@@ -1,0 +1,745 @@
+{
+  "forecastStart": "2026-10-14",
+  "forecastEnd": "2026-10-20",
+  "forecastDays": 7,
+  "capturedAt": "2026-10-13T13:07:30.671Z",
+  "purpose": "isolated direct SARIMA experiment",
+  "mapeScope": "positive-day rolling selection MAPE; not future or independent held-out accuracy",
+  "rangeScope": "model-based pointwise 95% bounds; not calibrated empirical coverage or a weekly-total interval",
+  "manifest": {
+    "python": "3.14.2 (tags/v3.14.2:df79316, Dec  5 2025, 17:18:21) [MSC v.1944 64 bit (AMD64)]",
+    "executable": "C:\\Users\\Robert\\Documents\\salvacion\\output\\forecast-run-20261013\\venv\\Scripts\\python.exe",
+    "codeHash": "2f00c165a110fe55e69e65c5da83562b50c5a2ee6a0b9f27b2097462296c4d06",
+    "workers": 4,
+    "cvFolds": 4,
+    "maxiter": 100,
+    "intervalOuterTesting": false
+  },
+  "notes": [
+    "Included 8969 POS material/day totals across 368 transaction dates through 2026-10-12. POS replaces CSV history on those dates; voided/refunded sales are excluded.",
+    "237 unknown material/date inputs estimated causally; excluded from selection scores."
+  ],
+  "materials": [
+    {
+      "materialId": "84290ad2-a5cb-59cc-ba6f-f5bc6e543f07",
+      "name": "Alaska Condensed Milk 390g",
+      "sku": "RM-ACM3-001",
+      "unit": "g",
+      "availableDays": 1016,
+      "historyEnd": "2026-10-12",
+      "sourceDays": {
+        "CSV": 645,
+        "POS": 368,
+        "IMPUTED": 3
+      },
+      "horizonIncludingGap": 8,
+      "status": "SARIMA",
+      "total": 183.7605051325559,
+      "fittingDays": 182,
+      "configuration": {
+        "window": 182,
+        "transform": "raw",
+        "features": "level",
+        "order": [
+          1,
+          0,
+          0
+        ],
+        "seasonal": [
+          1,
+          0,
+          0,
+          7
+        ],
+        "trend": "c"
+      },
+      "cvMAPE": 27.08079240416189,
+      "reportedFoldMAPE": 27.08079240416189,
+      "cvMAE": 18.79700266960992,
+      "cvRMSE": 22.379002624989415,
+      "cvWAPE": 73.78100468929989,
+      "cvPeriodVolumeError": 19.63399285747389,
+      "selectionMetric": "period_volume_error_with_mae_mape_rmse_guards",
+      "successfulCandidates": 41,
+      "candidateCount": 45,
+      "folds": 4,
+      "points": [
+        {
+          "date": "2026-10-14",
+          "forecast": 26.795693501550456,
+          "modelLower95": 0.0,
+          "modelUpper95": 78.0519371587587
+        },
+        {
+          "date": "2026-10-15",
+          "forecast": 27.47719836465751,
+          "modelLower95": 0.0,
+          "modelUpper95": 78.73550101152493
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 27.66186253708788,
+          "modelLower95": 0.0,
+          "modelUpper95": 78.92018372203695
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 24.939931212061847,
+          "modelLower95": 0.0,
+          "modelUpper95": 76.19825256392161
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 24.939707048808945,
+          "modelLower95": 0.0,
+          "modelUpper95": 76.19802840217152
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 24.93972831913432,
+          "modelLower95": 0.0,
+          "modelUpper95": 76.19804967251042
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 27.0063841492549,
+          "modelLower95": 0.0,
+          "modelUpper95": 78.37879445669883
+        }
+      ],
+      "seconds": 117.76246880006511
+    },
+    {
+      "materialId": "7f6d16a0-e3bd-5b03-aed4-809246baeb76",
+      "name": "Magnolia Fresh Milk 1L",
+      "sku": "RM-MFM1-001",
+      "unit": "ml",
+      "availableDays": 1016,
+      "historyEnd": "2026-10-12",
+      "sourceDays": {
+        "CSV": 645,
+        "POS": 368,
+        "IMPUTED": 3
+      },
+      "horizonIncludingGap": 8,
+      "status": "SARIMA",
+      "total": 4701.5302050775135,
+      "fittingDays": 1016,
+      "configuration": {
+        "window": null,
+        "transform": "log1p",
+        "features": "level",
+        "order": [
+          2,
+          1,
+          1
+        ],
+        "seasonal": [
+          0,
+          0,
+          0,
+          7
+        ],
+        "trend": "n"
+      },
+      "cvMAPE": 107.52363686830662,
+      "reportedFoldMAPE": 107.52363686830662,
+      "cvMAE": 590.3275989972897,
+      "cvRMSE": 696.0992213738576,
+      "cvWAPE": 37.148024851743635,
+      "cvPeriodVolumeError": 20.184973736447205,
+      "selectionMetric": "period_volume_error_with_mae_mape_rmse_guards",
+      "successfulCandidates": 37,
+      "candidateCount": 45,
+      "folds": 4,
+      "points": [
+        {
+          "date": "2026-10-14",
+          "forecast": 669.1236075915688,
+          "modelLower95": 339.6708443209723,
+          "modelUpper95": 1317.180457581041
+        },
+        {
+          "date": "2026-10-15",
+          "forecast": 677.9201699064663,
+          "modelLower95": 339.88224609552617,
+          "modelUpper95": 1351.1754282757715
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 672.2791399953395,
+          "modelLower95": 333.48742498448166,
+          "modelUpper95": 1354.2222490094953
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 670.6198260006446,
+          "modelLower95": 329.0224778032196,
+          "modelUpper95": 1365.7953579395116
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 670.4938084790521,
+          "modelLower95": 325.3527949314671,
+          "modelUpper95": 1380.6456970144534
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 670.5389221486392,
+          "modelLower95": 321.8533052991633,
+          "modelUpper95": 1395.8093761427717
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 670.5547309558029,
+          "modelLower95": 318.42925924506187,
+          "modelUpper95": 1410.848613163926
+        }
+      ],
+      "seconds": 156.24378649995197
+    },
+    {
+      "id": "d3d83926-f0a2-4fb2-b620-7305fe0e77f0",
+      "name": "Milktea Powder",
+      "sku": "RM-MP-001",
+      "unit": "g",
+      "currentStock": 0,
+      "status": "failed",
+      "reason": "No compatible CSV or completed POS usage history"
+    },
+    {
+      "materialId": "91bd447c-da72-580b-ac1e-683cf9798b2a",
+      "name": "Nestl\u00e9 All Purpose Cream 250ml",
+      "sku": "RM-NAPC2-001",
+      "unit": "ml",
+      "availableDays": 1016,
+      "historyEnd": "2026-10-12",
+      "sourceDays": {
+        "CSV": 645,
+        "POS": 368,
+        "IMPUTED": 3
+      },
+      "horizonIncludingGap": 8,
+      "status": "SARIMA",
+      "total": 337.25218125578857,
+      "fittingDays": 365,
+      "configuration": {
+        "window": 365,
+        "transform": "log1p",
+        "features": "weekday",
+        "order": [
+          1,
+          0,
+          0
+        ],
+        "seasonal": [
+          0,
+          0,
+          0,
+          7
+        ],
+        "trend": "c"
+      },
+      "cvMAPE": 53.07434752300465,
+      "reportedFoldMAPE": 53.07434752300465,
+      "cvMAE": 131.03047188785882,
+      "cvRMSE": 226.24441456602887,
+      "cvWAPE": 80.53459518278598,
+      "cvPeriodVolumeError": 62.62352434778968,
+      "selectionMetric": "period_volume_error_with_mae_mape_rmse_guards",
+      "successfulCandidates": 41,
+      "candidateCount": 45,
+      "folds": 4,
+      "points": [
+        {
+          "date": "2026-10-14",
+          "forecast": 28.953832020512987,
+          "modelLower95": 0.0,
+          "modelUpper95": 1661.3133990556523
+        },
+        {
+          "date": "2026-10-15",
+          "forecast": 33.02397605976197,
+          "modelLower95": 0.0,
+          "modelUpper95": 1887.209512661577
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 29.282889065770092,
+          "modelLower95": 0.0,
+          "modelUpper95": 1679.5925473753398
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 91.23893235949505,
+          "modelLower95": 0.6620693459539078,
+          "modelUpper95": 5117.932410089372
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 75.13539414422087,
+          "modelLower95": 0.371896893342409,
+          "modelUpper95": 4224.243361673752
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 48.137731189580265,
+          "modelLower95": 0.0,
+          "modelUpper95": 2725.9691692039773
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 31.479426416447303,
+          "modelLower95": 0.0,
+          "modelUpper95": 1801.4925515865607
+        }
+      ],
+      "seconds": 119.68627099995501
+    },
+    {
+      "materialId": "4f708505-240b-58a0-b877-12f276ee86d9",
+      "name": "Oatside Barista Blend Oat Milk 1L",
+      "sku": "RM-OBBOM1-001",
+      "unit": "ml",
+      "availableDays": 1016,
+      "historyEnd": "2026-10-12",
+      "sourceDays": {
+        "CSV": 645,
+        "POS": 368,
+        "IMPUTED": 3
+      },
+      "horizonIncludingGap": 8,
+      "status": "SARIMA",
+      "total": 0.0,
+      "fittingDays": 1016,
+      "configuration": {
+        "window": null,
+        "transform": "log1p",
+        "features": "level",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal": [
+          1,
+          0,
+          0,
+          7
+        ],
+        "trend": "n"
+      },
+      "cvMAPE": null,
+      "reportedFoldMAPE": null,
+      "cvMAE": 0.0,
+      "cvRMSE": 0.0,
+      "cvWAPE": null,
+      "cvPeriodVolumeError": null,
+      "selectionMetric": "mae",
+      "successfulCandidates": 32,
+      "candidateCount": 45,
+      "folds": 4,
+      "points": [
+        {
+          "date": "2026-10-14",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 67.97567979675564
+        },
+        {
+          "date": "2026-10-15",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 67.97567979675564
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 67.97567979675564
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 67.97567979675564
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 67.97567979675564
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 67.97567979675564
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 243.19950283934992
+        }
+      ],
+      "seconds": 134.06265800003894
+    },
+    {
+      "materialId": "4956fe2e-6b98-5ecd-922c-9fa8c6e2d2c6",
+      "name": "Pure Ice Food Grade Ice 5kg",
+      "sku": "RM-PIFGI5-001",
+      "unit": "g",
+      "availableDays": 1016,
+      "historyEnd": "2026-10-12",
+      "sourceDays": {
+        "CSV": 645,
+        "POS": 368,
+        "IMPUTED": 3
+      },
+      "horizonIncludingGap": 8,
+      "status": "SARIMA",
+      "total": 345.23594809539907,
+      "fittingDays": 1016,
+      "configuration": {
+        "window": null,
+        "transform": "log1p",
+        "features": "level",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal": [
+          1,
+          0,
+          0,
+          7
+        ],
+        "trend": "n"
+      },
+      "cvMAPE": 100.0,
+      "reportedFoldMAPE": null,
+      "cvMAE": 18.0,
+      "cvRMSE": 40.24922359499622,
+      "cvWAPE": 100.0,
+      "cvPeriodVolumeError": 100.0,
+      "selectionMetric": "period_volume_error_with_mae_mape_rmse_guards",
+      "successfulCandidates": 35,
+      "candidateCount": 45,
+      "folds": 4,
+      "points": [
+        {
+          "date": "2026-10-14",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 3.842249810919612
+        },
+        {
+          "date": "2026-10-15",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 3.842249810919612
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 3.842249810919612
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 345.23594809539907,
+          "modelLower95": 70.50311562088612,
+          "modelUpper95": 1675.5609541985189
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 3.842249810919612
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 3.842249810919612
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 8.233668799753383
+        }
+      ],
+      "seconds": 127.98879869992379
+    },
+    {
+      "materialId": "418433e7-4166-53e5-98d9-cb4af3253feb",
+      "name": "TOP Creamery Atok Benguet Arabica Coffee Beans Premium Grade 1kg",
+      "sku": "RM-TCABACBPG1-001",
+      "unit": "g",
+      "availableDays": 1016,
+      "historyEnd": "2026-10-12",
+      "sourceDays": {
+        "CSV": 645,
+        "POS": 368,
+        "IMPUTED": 3
+      },
+      "horizonIncludingGap": 8,
+      "status": "SARIMA",
+      "total": 440.66819246240016,
+      "fittingDays": 1016,
+      "configuration": {
+        "window": null,
+        "transform": "log1p",
+        "features": "level",
+        "order": [
+          2,
+          1,
+          1
+        ],
+        "seasonal": [
+          1,
+          0,
+          0,
+          7
+        ],
+        "trend": "n"
+      },
+      "cvMAPE": 162.78703588511647,
+      "reportedFoldMAPE": 162.78703588511647,
+      "cvMAE": 63.64009509050229,
+      "cvRMSE": 76.4744810031741,
+      "cvWAPE": 45.55914357314953,
+      "cvPeriodVolumeError": 20.387334341417667,
+      "selectionMetric": "period_volume_error_with_mae_mape_rmse_guards",
+      "successfulCandidates": 37,
+      "candidateCount": 45,
+      "folds": 4,
+      "points": [
+        {
+          "date": "2026-10-14",
+          "forecast": 65.13718819701438,
+          "modelLower95": 30.972997104956537,
+          "modelUpper95": 135.8069326828673
+        },
+        {
+          "date": "2026-10-15",
+          "forecast": 77.98695348124622,
+          "modelLower95": 36.660551183395185,
+          "modelUpper95": 164.66244051678527
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 72.91695520748286,
+          "modelLower95": 33.98503347690258,
+          "modelUpper95": 155.17296095349516
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 64.38446124818813,
+          "modelLower95": 29.748910851687548,
+          "modelUpper95": 138.033469944227
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 37.31098247584323,
+          "modelLower95": 16.910141675065685,
+          "modelUpper95": 80.94973579174574
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 56.568122316283386,
+          "modelLower95": 25.75736512718332,
+          "modelUpper95": 122.85706482196638
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 66.36352953634197,
+          "modelLower95": 28.932479392244847,
+          "modelUpper95": 150.60271396593092
+        }
+      ],
+      "seconds": 143.29169149999507
+    },
+    {
+      "materialId": "0ddf6b21-8c25-5fdc-9679-b762c6e99952",
+      "name": "Victorias Refined Sugar 1kg",
+      "sku": "RM-VRS1-001",
+      "unit": "g",
+      "availableDays": 1016,
+      "historyEnd": "2026-10-12",
+      "sourceDays": {
+        "CSV": 645,
+        "POS": 368,
+        "IMPUTED": 3
+      },
+      "horizonIncludingGap": 8,
+      "status": "SARIMA",
+      "total": 286.7129724571648,
+      "fittingDays": 365,
+      "configuration": {
+        "window": 365,
+        "transform": "log1p",
+        "features": "weekday",
+        "order": [
+          1,
+          0,
+          0
+        ],
+        "seasonal": [
+          0,
+          0,
+          0,
+          7
+        ],
+        "trend": "c"
+      },
+      "cvMAPE": 64.05832624736419,
+      "reportedFoldMAPE": 64.05832624736419,
+      "cvMAE": 29.21186199368082,
+      "cvRMSE": 35.706184798340786,
+      "cvWAPE": 50.246918107018104,
+      "cvPeriodVolumeError": 36.92333211511028,
+      "selectionMetric": "period_volume_error_with_mae_mape_rmse_guards",
+      "successfulCandidates": 41,
+      "candidateCount": 45,
+      "folds": 4,
+      "points": [
+        {
+          "date": "2026-10-14",
+          "forecast": 32.10236359092112,
+          "modelLower95": 6.71180412627236,
+          "modelUpper95": 141.0895107504759
+        },
+        {
+          "date": "2026-10-15",
+          "forecast": 39.465428415943315,
+          "modelLower95": 8.427162554463155,
+          "modelUpper95": 172.6949890728896
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 35.022711579493894,
+          "modelLower95": 7.392150310496627,
+          "modelUpper95": 153.62494134743557
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 55.1245905079355,
+          "modelLower95": 12.07525111257113,
+          "modelUpper95": 239.91083471849515
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 52.12134765158173,
+          "modelLower95": 11.375590693787162,
+          "modelUpper95": 227.0196271953998
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 35.11480064601829,
+          "modelLower95": 7.4136041448777945,
+          "modelUpper95": 154.02022715148638
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 37.76173006527096,
+          "modelLower95": 8.030254823675842,
+          "modelUpper95": 165.3819844500619
+        }
+      ],
+      "seconds": 127.04489790007938
+    },
+    {
+      "materialId": "3c0eb795-db9d-5c95-9683-9b3386600710",
+      "name": "Wilkins Purified Water 6L",
+      "sku": "RM-WPW6-001",
+      "unit": "ml",
+      "availableDays": 1016,
+      "historyEnd": "2026-10-12",
+      "sourceDays": {
+        "CSV": 645,
+        "POS": 368,
+        "IMPUTED": 3
+      },
+      "horizonIncludingGap": 8,
+      "status": "SARIMA",
+      "total": 514.2419346692899,
+      "fittingDays": 1016,
+      "configuration": {
+        "window": null,
+        "transform": "log1p",
+        "features": "level",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal": [
+          1,
+          0,
+          0,
+          7
+        ],
+        "trend": "n"
+      },
+      "cvMAPE": 100.0,
+      "reportedFoldMAPE": null,
+      "cvMAE": 26.75,
+      "cvRMSE": 43.420185398038086,
+      "cvWAPE": 100.0,
+      "cvPeriodVolumeError": 100.0,
+      "selectionMetric": "period_volume_error_with_mae_mape_rmse_guards",
+      "successfulCandidates": 34,
+      "candidateCount": 45,
+      "folds": 4,
+      "points": [
+        {
+          "date": "2026-10-14",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 3.69038656286744
+        },
+        {
+          "date": "2026-10-15",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 3.69038656286744
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 3.69038656286744
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 354.50092372839504,
+          "modelLower95": 74.79352340440391,
+          "modelUpper95": 1666.4367557426274
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 67.85017033126854,
+          "modelLower95": 13.678997009827988,
+          "modelUpper95": 321.9339137729166
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 91.89084060962635,
+          "modelLower95": 18.804517040241148,
+          "modelUpper95": 434.69395060885273
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 0.0,
+          "modelLower95": 0.0,
+          "modelUpper95": 7.827040003799992
+        }
+      ],
+      "seconds": 129.48254180001095
+    }
+  ]
+}

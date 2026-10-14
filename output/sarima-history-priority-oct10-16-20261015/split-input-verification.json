@@ -1,0 +1,479 @@
+{
+  "verified": true,
+  "materials": [
+    {
+      "name": "Wilkins Purified Water 6L",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Pure Ice Food Grade Ice 5kg",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Magnolia Fresh Milk 1L",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Oatside Barista Blend Oat Milk 1L",
+      "positiveHistoricalDays": 809,
+      "posFallbackDays": 98,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Alaska Condensed Milk 390g",
+      "positiveHistoricalDays": 964,
+      "posFallbackDays": 40,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Nestl\u00c3\u00a9 All Purpose Cream 250ml",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "MONIN Caramel Syrup 700ml",
+      "positiveHistoricalDays": 971,
+      "posFallbackDays": 37,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "MONIN Hazelnut Syrup 700ml",
+      "positiveHistoricalDays": 957,
+      "posFallbackDays": 41,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "MONIN Peppermint Syrup 700ml",
+      "positiveHistoricalDays": 589,
+      "posFallbackDays": 168,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "MONIN Passion Fruit Syrup 700ml",
+      "positiveHistoricalDays": 598,
+      "posFallbackDays": 172,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "MONIN Strawberry Syrup 700ml",
+      "positiveHistoricalDays": 891,
+      "posFallbackDays": 62,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "MONIN Mango Syrup 700ml",
+      "positiveHistoricalDays": 595,
+      "posFallbackDays": 161,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Lipton Yellow Label Black Tea Bags 100s",
+      "positiveHistoricalDays": 616,
+      "posFallbackDays": 153,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Twinings Chai Tea Bags 20s",
+      "positiveHistoricalDays": 825,
+      "posFallbackDays": 84,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "TOP Creamery Milk Tea Series Matcha Powder 500g",
+      "positiveHistoricalDays": 973,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "MILO Chocolate Malt Powder 300g",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Hershey's Chocolate Syrup 623g",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "MONIN White Chocolate Sauce 500ml",
+      "positiveHistoricalDays": 595,
+      "posFallbackDays": 160,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Real Lemon Lemon Juice 250ml",
+      "positiveHistoricalDays": 969,
+      "posFallbackDays": 37,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Butterfly Pea Flower Dried 100g",
+      "positiveHistoricalDays": 628,
+      "posFallbackDays": 160,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Lotus Biscoff Spread 400g",
+      "positiveHistoricalDays": 916,
+      "posFallbackDays": 54,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Kirkland Signature Macadamia Nuts 680g",
+      "positiveHistoricalDays": 898,
+      "posFallbackDays": 65,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Soy Taho with Arnibal 1kg",
+      "positiveHistoricalDays": 909,
+      "posFallbackDays": 60,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Fresh Philippine Mango 1kg",
+      "positiveHistoricalDays": 902,
+      "posFallbackDays": 60,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Fresh Strawberries 500g",
+      "positiveHistoricalDays": 911,
+      "posFallbackDays": 60,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Fresh Lakatan Banana 1kg",
+      "positiveHistoricalDays": 628,
+      "posFallbackDays": 148,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Del Monte Peach Halves 825g",
+      "positiveHistoricalDays": 610,
+      "posFallbackDays": 177,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Oreo Original Cookies 133g",
+      "positiveHistoricalDays": 908,
+      "posFallbackDays": 61,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Campfire Mini Marshmallows 300g",
+      "positiveHistoricalDays": 583,
+      "posFallbackDays": 173,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Maya All Purpose Flour 2kg",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Bounty Fresh Large Eggs 12s",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Magnolia Gold Butter Salted 225g",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Eden Original Cheese 180g",
+      "positiveHistoricalDays": 958,
+      "posFallbackDays": 40,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Arla Mozzarella Cheese 200g",
+      "positiveHistoricalDays": 972,
+      "posFallbackDays": 37,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Kraft Grated Parmesan Cheese 85g",
+      "positiveHistoricalDays": 972,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Magnolia Cream Cheese 225g",
+      "positiveHistoricalDays": 603,
+      "posFallbackDays": 164,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Golden Fiesta Canola Oil 1L",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Fidel Iodized Salt 1kg",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "McCormick Ground Black Pepper 80g",
+      "positiveHistoricalDays": 904,
+      "posFallbackDays": 54,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Do\u00c3\u00b1a Maria Jasponica Rice 5kg",
+      "positiveHistoricalDays": 959,
+      "posFallbackDays": 40,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "San Remo Spaghetti Pasta 500g",
+      "positiveHistoricalDays": 967,
+      "posFallbackDays": 38,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Del Monte Tomato Sauce 1kg",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Alaska Classic Evaporated Filled Milk 370ml",
+      "positiveHistoricalDays": 606,
+      "posFallbackDays": 154,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Victorias Refined Sugar 1kg",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "MONIN French Vanilla Syrup 700ml",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "TOP Creamery Atok Benguet Arabica Coffee Beans Premium Grade 1kg",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Filippo Berio Basil Pesto 190g",
+      "positiveHistoricalDays": 907,
+      "posFallbackDays": 50,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Fresh Garlic 1kg",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Fresh Red Onion 1kg",
+      "positiveHistoricalDays": 952,
+      "posFallbackDays": 41,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Fresh Iceberg Lettuce 1kg",
+      "positiveHistoricalDays": 819,
+      "posFallbackDays": 79,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Magnolia Chicken Wings 1kg",
+      "positiveHistoricalDays": 971,
+      "posFallbackDays": 37,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Monterey Beef Sirloin 1kg",
+      "positiveHistoricalDays": 968,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Fresh Medium Shrimp 1kg",
+      "positiveHistoricalDays": 574,
+      "posFallbackDays": 166,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Pampanga\u00e2\u20ac\u2122s Best Pork Tocino 450g",
+      "positiveHistoricalDays": 569,
+      "posFallbackDays": 181,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Pampanga\u00e2\u20ac\u2122s Best Skinless Longganisa 450g",
+      "positiveHistoricalDays": 570,
+      "posFallbackDays": 168,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Sarangani Bay Boneless Bangus 450g",
+      "positiveHistoricalDays": 588,
+      "posFallbackDays": 157,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Century Tuna Flakes in Oil 180g",
+      "positiveHistoricalDays": 816,
+      "posFallbackDays": 83,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Spanish Sardines in Olive Oil 220g",
+      "positiveHistoricalDays": 821,
+      "posFallbackDays": 83,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Purefoods Pepperoni 250g",
+      "positiveHistoricalDays": 837,
+      "posFallbackDays": 84,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Mission Soft Flour Tortillas 10s",
+      "positiveHistoricalDays": 819,
+      "posFallbackDays": 79,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Tostitos Restaurant Style Tortilla Chips 283g",
+      "positiveHistoricalDays": 817,
+      "posFallbackDays": 85,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Farm Frites Frozen French Fries 1kg",
+      "positiveHistoricalDays": 596,
+      "posFallbackDays": 163,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Fresh Pizza Dough 250g",
+      "positiveHistoricalDays": 966,
+      "posFallbackDays": 40,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Maya Japanese Bread Crumbs 200g",
+      "positiveHistoricalDays": 946,
+      "posFallbackDays": 41,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Lee Kum Kee Korean BBQ Sauce 240g",
+      "positiveHistoricalDays": 556,
+      "posFallbackDays": 176,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Huy Fong Sriracha Hot Chili Sauce 481g",
+      "positiveHistoricalDays": 910,
+      "posFallbackDays": 51,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Knorr Salted Egg Powder 500g",
+      "positiveHistoricalDays": 586,
+      "posFallbackDays": 165,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Fresh Philippine Red Chili Peppers 1kg",
+      "positiveHistoricalDays": 909,
+      "posFallbackDays": 53,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Datu Puti Vinegar 1L",
+      "positiveHistoricalDays": 900,
+      "posFallbackDays": 59,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Wilkins Pure Bottled Water 500ml",
+      "positiveHistoricalDays": 592,
+      "posFallbackDays": 164,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "TOP Creamery Pre-Cut Tissue Napkins 100pcs",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Food Grade PET Sauce Bottle 150ml",
+      "positiveHistoricalDays": 806,
+      "posFallbackDays": 82,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Greenware 12oz Double Wall Paper Cup",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Greenware 12oz Sip Hole Lid",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Greenware 22oz Cold Drink Cup",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Greenware 22oz Dome Lid",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Greenware Paper Drinking Straw 100s",
+      "positiveHistoricalDays": 974,
+      "posFallbackDays": 36,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "Greenware Sugarcane Bagasse Bento Box",
+      "positiveHistoricalDays": 946,
+      "posFallbackDays": 44,
+      "trainingEnd": "2026-10-06"
+    },
+    {
+      "name": "ChaTraMue Original Thai Tea Mix 400g",
+      "positiveHistoricalDays": 606,
+      "posFallbackDays": 154,
+      "trainingEnd": "2026-10-06"
+    }
+  ]
+}

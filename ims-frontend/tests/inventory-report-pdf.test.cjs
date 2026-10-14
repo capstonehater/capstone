@@ -15,7 +15,28 @@ require.extensions['.ts'] = (module, filename) => {
 };
 global.DOMParser = DOMParser;
 const { buildInventoryReportsPdfHtml, exportInventoryReportsPdf } = require('../src/lib/report-exports.ts');
-const { readReportPdfContent, buildReportPdfDocument } = require('../src/lib/report-pdf.ts');
+const { readReportPdfContent, buildReportPdfDocument, readReportChart } = require('../src/lib/report-pdf.ts');
+
+test('charts rank comparable monetary values, preserve time order and exclude missing values', () => {
+  const section = { title: 'Product Sales', headers: ['Product', 'Net Sales'], rows: [
+    ['Low', 'PHP 20.00'], ['Missing', 'N/A'], ['High', '\u20b1 1,500.00'], ['Zero', 'PHP 0.00'], ['Refund', 'PHP -30.00'],
+  ] };
+  const chart = readReportChart(section);
+  assert.deepEqual(chart.points.map(point => point.value), [1500, 20, 0, -30]);
+  assert.equal(chart.currency, true);
+  assert.deepEqual(readReportChart({ ...section, title: 'Hourly Sales' }).points.map(point => point.label), ['Low', 'High', 'Zero', 'Refund']);
+  assert.equal(readReportChart({ title: 'High-Usage Ingredients', headers: ['Material', 'Quantity'], rows: [['Rice', '2 kg'], ['Milk', '3 L']] }), null);
+  assert.equal(readReportChart({ ...section, rows: [['Missing', 'N/A']] }), null);
+});
+
+test('charts limit the visual to eight rows and retain the complete detail table', () => {
+  const section = { title: 'Product Sales', headers: ['Product', 'Net Sales'], rows: Array.from({ length: 12 }, (_, i) => [`Product ${i}`, `PHP ${i + 1}.00`]) };
+  assert.equal(readReportChart(section).points.length, 8);
+  const output = buildReportPdfDocument({ title: 'Sales', metadata: [], sections: [section] }).output();
+  assert.ok(output.includes('Showing 8 of 12 rows'));
+  assert.ok(output.includes('(Product 0)'));
+  assert.ok(output.includes('(Product 11)'));
+});
 
 function fixture(count = 1) {
   const material = {

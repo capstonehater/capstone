@@ -1,0 +1,3145 @@
+{
+  "historyEnd": "2026-10-13",
+  "sourceHash": "isolated-full-pos-test",
+  "warnings": [
+    "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+    "SARIMA uses calendar-day totals with seven-day seasonality.",
+    "Product filters show store-wide ingredient demand, not predicted product sales.",
+    "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+    "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+    "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+    "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+    "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+  ],
+  "series": [
+    {
+      "materialId": "4a5b2556-8ef6-5914-a5c6-40d52aa5d15a",
+      "name": "Bounty Fresh Large Eggs 12s",
+      "unit": "pcs",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 0.75,
+          "lower95": 0.0,
+          "upper95": 3.6
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 0.66,
+          "lower95": 0.0,
+          "upper95": 3.31
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 1.23,
+          "lower95": 0.0,
+          "upper95": 5.45
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 1.14,
+          "lower95": 0.0,
+          "upper95": 5.07
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 0.61,
+          "lower95": 0.0,
+          "upper95": 3.13
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 0.67,
+          "lower95": 0.0,
+          "upper95": 3.34
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 0.64,
+          "lower95": 0.0,
+          "upper95": 3.25
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          2,
+          1,
+          1
+        ],
+        "seasonalOrder": [
+          1,
+          1,
+          1,
+          7
+        ],
+        "metrics": {
+          "mae": 0.6530746892135307,
+          "rmse": 0.9107884827032805,
+          "mape": 61.23249982712749,
+          "smape": 89.45905207684073,
+          "aic": 314.1546453306609,
+          "bic": 340.93534627697113
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 71,
+          "recentUsageFrequency": 0.7888888888888889,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 5.7,
+          "estimatedShortfall": 0.0,
+          "dailyUpperStressTotal": 27.15,
+          "stressShortfall": 0.0,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 66,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 600.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 0.7487161408025016,
+              "mape": 43.78102054052073
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 0.8687326333040413,
+              "mape": 114.57504573786441
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 0.3417752935340492,
+              "mape": 25.341433202997337
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "pcs",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 303,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 3.5374999999999996,
+        "changePercent": 61.13
+      },
+      "recommendation": {
+        "Product": "Bounty Fresh Large Eggs 12s",
+        "Unit": "pcs",
+        "ForecastTotal": 5.7,
+        "ForecastDays": 7,
+        "Forecast7Days": 5.7,
+        "DailyDemand": 0.81,
+        "MAE": 0.6530746892,
+        "RMSE": 0.9107884827,
+        "MAPE": 61.2324998271,
+        "SMAPE": 89.4590520768,
+        "CurrentStock": 36.0,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 120.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 120.0,
+        "DaysRemaining": 44.4,
+        "StockoutDay": null,
+        "RecommendedPurchase": 90,
+        "BuyOnNextRun": "Yes",
+        "ProjectedRemaining": 120.3,
+        "Priority": "Low",
+        "Recommendation": "Restock 90 pcs on the next stock run to cover the forecast and configured stock target.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "c7ed08bb-2773-5680-871d-3f8ff3593286",
+      "name": "Del Monte Tomato Sauce 1kg",
+      "unit": "g",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 61.07,
+          "lower95": 0.0,
+          "upper95": 503.64
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 58.97,
+          "lower95": 0.0,
+          "upper95": 494.77
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 58.37,
+          "lower95": 0.0,
+          "upper95": 492.16
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 58.19,
+          "lower95": 0.0,
+          "upper95": 491.39
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 58.14,
+          "lower95": 0.0,
+          "upper95": 491.17
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 58.13,
+          "lower95": 0.0,
+          "upper95": 491.1
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 58.12,
+          "lower95": 0.0,
+          "upper95": 491.08
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [
+            "2026-06-28"
+          ],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          1,
+          1,
+          2
+        ],
+        "seasonalOrder": [
+          0,
+          0,
+          0,
+          7
+        ],
+        "metrics": {
+          "mae": 72.84455606119843,
+          "rmse": 96.8712803264926,
+          "mape": 74.91144777518024,
+          "smape": 107.11594632243462,
+          "aic": 2193.0561992704406,
+          "bic": 2212.3734940444765
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 73,
+          "recentUsageFrequency": 0.8111111111111111,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 410.99,
+          "estimatedShortfall": 0.0,
+          "dailyUpperStressTotal": 3455.31,
+          "stressShortfall": 0.0,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 84,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 75500.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 71.8291998949498,
+              "mape": 73.26854156044149
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 77.34933516928136,
+              "mape": 66.47006203736336
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 69.35513311936417,
+              "mape": 84.99573972773582
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "g",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 285,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 586.875,
+        "changePercent": -29.97
+      },
+      "recommendation": {
+        "Product": "Del Monte Tomato Sauce 1kg",
+        "Unit": "g",
+        "ForecastTotal": 410.99,
+        "ForecastDays": 7,
+        "Forecast7Days": 410.99,
+        "DailyDemand": 58.71,
+        "MAE": 72.8445560612,
+        "RMSE": 96.8712803265,
+        "MAPE": 74.9114477752,
+        "SMAPE": 107.1159463224,
+        "CurrentStock": 16489.3206,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 3000.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 3000.0,
+        "DaysRemaining": 280.9,
+        "StockoutDay": null,
+        "RecommendedPurchase": 0,
+        "BuyOnNextRun": "No",
+        "ProjectedRemaining": 16078.33,
+        "Priority": "Healthy",
+        "Recommendation": "Inventory is sufficient.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "443cc3da-8023-581a-ac05-2b0c940be522",
+      "name": "Do\u00c3\u00b1a Maria Jasponica Rice 5kg",
+      "unit": "g",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 0.01,
+          "lower95": 0.0,
+          "upper95": 496.18
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 0.03,
+          "lower95": 0.0,
+          "upper95": 779.71
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 0.0,
+          "lower95": 0.0,
+          "upper95": 1699.58
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 0.0,
+          "lower95": 0.0,
+          "upper95": 2695.14
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 0.0,
+          "lower95": 0.0,
+          "upper95": 4273.48
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 0.0,
+          "lower95": 0.0,
+          "upper95": 6992.37
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 0.0,
+          "lower95": 0.0,
+          "upper95": 10794.7
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [
+            "2026-07-08"
+          ],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          2,
+          1,
+          0
+        ],
+        "seasonalOrder": [
+          1,
+          0,
+          0,
+          7
+        ],
+        "metrics": {
+          "mae": 78.56660474588439,
+          "rmse": 87.74081628695967,
+          "mape": 44.79389348361894,
+          "smape": 126.25398685274365,
+          "aic": 1776.7403070050211,
+          "bic": 1795.9716096444788
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 45,
+          "recentUsageFrequency": 0.5,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 0.04,
+          "estimatedShortfall": 0.0,
+          "dailyUpperStressTotal": 27731.16,
+          "stressShortfall": 14312.8824,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 179,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 76000.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 69.70807933015993,
+              "mape": 57.21812395524532
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 115.44923066376097,
+              "mape": 35.48896268254702
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 50.54250424373227,
+              "mape": 41.67459381306446
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "g",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 190,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 215.0,
+        "changePercent": -99.98
+      },
+      "recommendation": {
+        "Product": "Do\u00c3\u00b1a Maria Jasponica Rice 5kg",
+        "Unit": "g",
+        "ForecastTotal": 0.04,
+        "ForecastDays": 7,
+        "Forecast7Days": 0.04,
+        "DailyDemand": 0.01,
+        "MAE": 78.5666047459,
+        "RMSE": 87.740816287,
+        "MAPE": 44.7938934836,
+        "SMAPE": 126.2539868527,
+        "CurrentStock": 13418.2776,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 8000.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 8000.0,
+        "DaysRemaining": 1341827.8,
+        "StockoutDay": null,
+        "RecommendedPurchase": 0,
+        "BuyOnNextRun": "No",
+        "ProjectedRemaining": 13418.24,
+        "Priority": "Healthy",
+        "Recommendation": "Inventory is sufficient.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "ae77fc9f-e132-509c-8f1a-85f2d861f3b9",
+      "name": "Eden Original Cheese 180g",
+      "unit": "g",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 6.61,
+          "lower95": 0.0,
+          "upper95": 681.31
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 6.06,
+          "lower95": 0.0,
+          "upper95": 967.77
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 16.35,
+          "lower95": 0.0,
+          "upper95": 4154.12
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 10.67,
+          "lower95": 0.0,
+          "upper95": 3867.3
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 6.1,
+          "lower95": 0.0,
+          "upper95": 3486.86
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 7.03,
+          "lower95": 0.0,
+          "upper95": 5633.19
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 8.36,
+          "lower95": 0.0,
+          "upper95": 9756.65
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [
+            "2025-10-27",
+            "2025-12-10",
+            "2026-02-21",
+            "2026-02-23",
+            "2026-04-11",
+            "2026-07-12",
+            "2026-10-10",
+            "2026-10-11"
+          ],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          2,
+          1,
+          0
+        ],
+        "seasonalOrder": [
+          1,
+          0,
+          1,
+          7
+        ],
+        "metrics": {
+          "mae": 46.650036754182814,
+          "rmse": 78.8015793032858,
+          "mape": 69.82983465418876,
+          "smape": 147.61464152641852,
+          "aic": 1559.8768348624806,
+          "bic": 1582.9543980298297
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 50,
+          "recentUsageFrequency": 0.5555555555555556,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 61.18000000000001,
+          "estimatedShortfall": 0.0,
+          "dailyUpperStressTotal": 28547.199999999997,
+          "stressShortfall": 25361.677099999997,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 166,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 45000.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 14.504972548480195,
+              "mape": 51.28325436118985
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 22.180032655726556,
+              "mape": 89.01270395441156
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 103.26510505834167,
+              "mape": 69.19354564696485
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "g",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 203,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 853.125,
+        "changePercent": -92.83
+      },
+      "recommendation": {
+        "Product": "Eden Original Cheese 180g",
+        "Unit": "g",
+        "ForecastTotal": 61.18,
+        "ForecastDays": 7,
+        "Forecast7Days": 61.18,
+        "DailyDemand": 8.74,
+        "MAE": 46.6500367542,
+        "RMSE": 78.8015793033,
+        "MAPE": 69.8298346542,
+        "SMAPE": 147.6146415264,
+        "CurrentStock": 3185.5229,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 1800.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 1800.0,
+        "DaysRemaining": 364.5,
+        "StockoutDay": null,
+        "RecommendedPurchase": 0,
+        "BuyOnNextRun": "No",
+        "ProjectedRemaining": 3124.34,
+        "Priority": "Healthy",
+        "Recommendation": "Inventory is sufficient.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "d54fe6a7-06c4-5178-8fe5-00408371e910",
+      "name": "Fresh Red Onion 1kg",
+      "unit": "g",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 6.9,
+          "lower95": 0.0,
+          "upper95": 100.44
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 10.71,
+          "lower95": 0.0,
+          "upper95": 125.55
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 31.16,
+          "lower95": 0.0,
+          "upper95": 230.73
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 22.09,
+          "lower95": 0.0,
+          "upper95": 187.87
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 14.3,
+          "lower95": 0.0,
+          "upper95": 146.73
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 11.73,
+          "lower95": 0.0,
+          "upper95": 131.81
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 13.23,
+          "lower95": 0.0,
+          "upper95": 140.85
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [
+            "2026-10-10"
+          ],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          2,
+          1,
+          2
+        ],
+        "seasonalOrder": [
+          1,
+          1,
+          1,
+          7
+        ],
+        "metrics": {
+          "mae": 28.926819019267587,
+          "rmse": 45.53363118874614,
+          "mape": 45.43465708637783,
+          "smape": 112.08867436742366,
+          "aic": 1714.474709685154,
+          "bic": 1745.0575825518238
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 65,
+          "recentUsageFrequency": 0.7222222222222222,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 110.12,
+          "estimatedShortfall": 0.0,
+          "dailyUpperStressTotal": 1063.98,
+          "stressShortfall": 573.9245000000001,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 108,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 22500.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 24.10808524655869,
+              "mape": 49.93312718378487
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 14.045393424927088,
+              "mape": 36.40410617127421
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 48.626978386316985,
+              "mape": 49.966737904074435
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "g",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 261,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 446.25,
+        "changePercent": -75.32
+      },
+      "recommendation": {
+        "Product": "Fresh Red Onion 1kg",
+        "Unit": "g",
+        "ForecastTotal": 110.12,
+        "ForecastDays": 7,
+        "Forecast7Days": 110.12,
+        "DailyDemand": 15.73,
+        "MAE": 28.9268190193,
+        "RMSE": 45.5336311887,
+        "MAPE": 45.4346570864,
+        "SMAPE": 112.0886743674,
+        "CurrentStock": 490.0555,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 1200.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 1200.0,
+        "DaysRemaining": 31.2,
+        "StockoutDay": null,
+        "RecommendedPurchase": 821,
+        "BuyOnNextRun": "Yes",
+        "ProjectedRemaining": 1200.94,
+        "Priority": "Low",
+        "Recommendation": "Restock 821 g on the next stock run to cover the forecast and configured stock target.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "a6d6bfec-cbdc-5e26-97e8-b1ced83a6042",
+      "name": "Hershey's Chocolate Syrup 623g",
+      "unit": "g",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 22.5,
+          "lower95": 0.0,
+          "upper95": 86.95
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 23.04,
+          "lower95": 0.0,
+          "upper95": 87.99
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 20.81,
+          "lower95": 0.0,
+          "upper95": 83.67
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 22.85,
+          "lower95": 0.0,
+          "upper95": 87.62
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 22.27,
+          "lower95": 0.0,
+          "upper95": 86.5
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 20.68,
+          "lower95": 0.0,
+          "upper95": 83.41
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 22.35,
+          "lower95": 0.0,
+          "upper95": 86.76
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          0,
+          1,
+          1
+        ],
+        "seasonalOrder": [
+          0,
+          0,
+          1,
+          7
+        ],
+        "metrics": {
+          "mae": 15.045861422352738,
+          "rmse": 19.40939760252991,
+          "mape": 36.16237543880933,
+          "smape": 85.37477129761415,
+          "aic": 2061.5338848580327,
+          "bic": 2076.9189269695994
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 71,
+          "recentUsageFrequency": 0.7888888888888889,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 154.49999999999997,
+          "estimatedShortfall": 0.0,
+          "dailyUpperStressTotal": 602.9,
+          "stressShortfall": 0.0,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 67,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 12600.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 15.071139644049026,
+              "mape": 41.904454882275374
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 14.844012777700621,
+              "mape": 34.49580720646918
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 15.222431845308572,
+              "mape": 32.086864227683435
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "g",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 302,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 135.75,
+        "changePercent": 13.81
+      },
+      "recommendation": {
+        "Product": "Hershey's Chocolate Syrup 623g",
+        "Unit": "g",
+        "ForecastTotal": 154.5,
+        "ForecastDays": 7,
+        "Forecast7Days": 154.5,
+        "DailyDemand": 22.07,
+        "MAE": 15.0458614224,
+        "RMSE": 19.4093976025,
+        "MAPE": 36.1623754388,
+        "SMAPE": 85.3747712976,
+        "CurrentStock": 4453.1323,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 1500.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 1500.0,
+        "DaysRemaining": 201.8,
+        "StockoutDay": null,
+        "RecommendedPurchase": 0,
+        "BuyOnNextRun": "No",
+        "ProjectedRemaining": 4298.63,
+        "Priority": "Healthy",
+        "Recommendation": "Inventory is sufficient.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "e7fa963d-8d5f-5827-8540-5fdabbd3a2ec",
+      "name": "Kraft Grated Parmesan Cheese 85g",
+      "unit": "g",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 14.98,
+          "lower95": 0.0,
+          "upper95": 214.17
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 13.63,
+          "lower95": 0.0,
+          "upper95": 202.83
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 17.84,
+          "lower95": 0.0,
+          "upper95": 237.42
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 12.52,
+          "lower95": 0.0,
+          "upper95": 193.32
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 13.33,
+          "lower95": 0.0,
+          "upper95": 200.37
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 12.6,
+          "lower95": 0.0,
+          "upper95": 194.06
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 14.88,
+          "lower95": 0.0,
+          "upper95": 214.24
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          2,
+          1,
+          2
+        ],
+        "seasonalOrder": [
+          0,
+          0,
+          1,
+          7
+        ],
+        "metrics": {
+          "mae": 32.042882274806274,
+          "rmse": 55.150008813168405,
+          "mape": 55.65405229926964,
+          "smape": 136.26690938758264,
+          "aic": 1718.7126559570672,
+          "bic": 1745.6162119004737
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 52,
+          "recentUsageFrequency": 0.5777777777777777,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 99.77999999999999,
+          "estimatedShortfall": 0.0,
+          "dailyUpperStressTotal": 1456.41,
+          "stressShortfall": 0.0,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 132,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 27000.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 35.19014302296469,
+              "mape": 61.426653635333054
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 18.392979747914428,
+              "mape": 52.75596841393377
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 42.54552405353971,
+              "mape": 52.77953484854208
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "g",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 237,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 339.75,
+        "changePercent": -70.63
+      },
+      "recommendation": {
+        "Product": "Kraft Grated Parmesan Cheese 85g",
+        "Unit": "g",
+        "ForecastTotal": 99.78,
+        "ForecastDays": 7,
+        "Forecast7Days": 99.78,
+        "DailyDemand": 14.25,
+        "MAE": 32.0428822748,
+        "RMSE": 55.1500088132,
+        "MAPE": 55.6540522993,
+        "SMAPE": 136.2669093876,
+        "CurrentStock": 4708.4898,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 800.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 800.0,
+        "DaysRemaining": 330.4,
+        "StockoutDay": null,
+        "RecommendedPurchase": 0,
+        "BuyOnNextRun": "No",
+        "ProjectedRemaining": 4608.71,
+        "Priority": "Healthy",
+        "Recommendation": "Inventory is sufficient.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "1da34204-ae0d-57f1-aa40-428ee5e69ad8",
+      "name": "MONIN Caramel Syrup 700ml",
+      "unit": "ml",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 13.08,
+          "lower95": 0.0,
+          "upper95": 119.69
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 10.98,
+          "lower95": 0.0,
+          "upper95": 108.86
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 9.78,
+          "lower95": 0.0,
+          "upper95": 102.37
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 11.75,
+          "lower95": 0.0,
+          "upper95": 112.87
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 8.6,
+          "lower95": 0.0,
+          "upper95": 95.81
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 9.74,
+          "lower95": 0.0,
+          "upper95": 102.15
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 12.34,
+          "lower95": 0.0,
+          "upper95": 116.75
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [
+            "2025-11-01",
+            "2025-12-10",
+            "2025-12-11",
+            "2026-02-01",
+            "2026-03-01",
+            "2026-04-11"
+          ],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          2,
+          1,
+          2
+        ],
+        "seasonalOrder": [
+          1,
+          0,
+          1,
+          7
+        ],
+        "metrics": {
+          "mae": 13.519874675146374,
+          "rmse": 16.51332687796075,
+          "mape": 42.73204290470495,
+          "smape": 107.21977616917877,
+          "aic": 1712.52525132681,
+          "bic": 1743.2721724049886
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 57,
+          "recentUsageFrequency": 0.6333333333333333,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 76.27000000000001,
+          "estimatedShortfall": 0.0,
+          "dailyUpperStressTotal": 758.5,
+          "stressShortfall": 0.0,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 129,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 13400.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 13.381916626789945,
+              "mape": 46.691591807864306
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 16.487973734638,
+              "mape": 50.56023660706435
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 10.689733664011179,
+              "mape": 30.9443002991862
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "ml",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 240,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 88.75,
+        "changePercent": -14.06
+      },
+      "recommendation": {
+        "Product": "MONIN Caramel Syrup 700ml",
+        "Unit": "ml",
+        "ForecastTotal": 76.27,
+        "ForecastDays": 7,
+        "Forecast7Days": 76.27,
+        "DailyDemand": 10.9,
+        "MAE": 13.5198746751,
+        "RMSE": 16.513326878,
+        "MAPE": 42.7320429047,
+        "SMAPE": 107.2197761692,
+        "CurrentStock": 1809.1851,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 1500.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 1500.0,
+        "DaysRemaining": 166.0,
+        "StockoutDay": null,
+        "RecommendedPurchase": 0,
+        "BuyOnNextRun": "No",
+        "ProjectedRemaining": 1732.92,
+        "Priority": "Healthy",
+        "Recommendation": "Inventory is sufficient.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "7f6d16a0-e3bd-5b03-aed4-809246baeb76",
+      "name": "Magnolia Fresh Milk 1L",
+      "unit": "ml",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 1073.53,
+          "lower95": 395.12,
+          "upper95": 2361.72
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 1327.55,
+          "lower95": 515.33,
+          "upper95": 2824.73
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 1505.37,
+          "lower95": 605.25,
+          "upper95": 3131.97
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 1477.66,
+          "lower95": 590.9,
+          "upper95": 3085.07
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 1448.27,
+          "lower95": 575.88,
+          "upper95": 3034.68
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 1449.68,
+          "lower95": 576.6,
+          "upper95": 3037.12
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 1454.13,
+          "lower95": 578.86,
+          "upper95": 3044.8
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [
+            "2026-10-13"
+          ],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          2,
+          1,
+          1
+        ],
+        "seasonalOrder": [
+          0,
+          0,
+          0,
+          7
+        ],
+        "metrics": {
+          "mae": 746.6832736010277,
+          "rmse": 1176.5302359634989,
+          "mape": 88.49371386352,
+          "smape": 43.17623096204634,
+          "aic": 1692.5804737338792,
+          "bic": 1711.9119577877088
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 90,
+          "recentUsageFrequency": 1.0,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 9736.189999999999,
+          "estimatedShortfall": 3930.4344999999985,
+          "dailyUpperStressTotal": 20520.09,
+          "stressShortfall": 14714.3345,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 0,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 836000.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 355.7767110173029,
+              "mape": 20.471087892413756
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 351.48006961311967,
+              "mape": 27.33080373674121
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 1532.7930401726603,
+              "mape": 217.67924996140508
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "ml",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 369,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 13196.25,
+        "changePercent": -26.22
+      },
+      "recommendation": {
+        "Product": "Magnolia Fresh Milk 1L",
+        "Unit": "ml",
+        "ForecastTotal": 9736.19,
+        "ForecastDays": 7,
+        "Forecast7Days": 9736.19,
+        "DailyDemand": 1390.88,
+        "MAE": 746.683273601,
+        "RMSE": 1176.5302359635,
+        "MAPE": 88.4937138635,
+        "SMAPE": 43.176230962,
+        "CurrentStock": 5805.7555,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 12000.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 12000.0,
+        "DaysRemaining": 4.2,
+        "StockoutDay": 5,
+        "RecommendedPurchase": 15931,
+        "BuyOnNextRun": "Yes",
+        "ProjectedRemaining": 12000.57,
+        "Priority": "Medium",
+        "Recommendation": "Restock 15931 ml on the next stock run; current stock reaches zero by forecast day 5.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "c56a602d-1e26-5e84-a18e-14cb7085c455",
+      "name": "Magnolia Gold Butter Salted 225g",
+      "unit": "g",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 12.35,
+          "lower95": 0.0,
+          "upper95": 87.84
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 10.5,
+          "lower95": 0.0,
+          "upper95": 80.61
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 9.86,
+          "lower95": 0.0,
+          "upper95": 78.04
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 12.1,
+          "lower95": 0.0,
+          "upper95": 87.03
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 11.62,
+          "lower95": 0.0,
+          "upper95": 85.14
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 9.57,
+          "lower95": 0.0,
+          "upper95": 76.84
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 11.03,
+          "lower95": 0.0,
+          "upper95": 83.06
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          2,
+          1,
+          2
+        ],
+        "seasonalOrder": [
+          1,
+          0,
+          1,
+          7
+        ],
+        "metrics": {
+          "mae": 14.446326270097712,
+          "rmse": 21.482774652856545,
+          "mape": 40.95600803665397,
+          "smape": 94.38326938389878,
+          "aic": 1684.4259734372129,
+          "bic": 1715.1728945153918
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 60,
+          "recentUsageFrequency": 0.6666666666666666,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 77.03,
+          "estimatedShortfall": 0.0,
+          "dailyUpperStressTotal": 578.56,
+          "stressShortfall": 0.0,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 125,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 10200.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 21.407069224910998,
+              "mape": 44.461528650003515
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 10.601555878077122,
+              "mape": 37.62944230445554
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 11.330353707305013,
+              "mape": 40.777053155502855
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "g",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 244,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 112.0,
+        "changePercent": -31.22
+      },
+      "recommendation": {
+        "Product": "Magnolia Gold Butter Salted 225g",
+        "Unit": "g",
+        "ForecastTotal": 77.03,
+        "ForecastDays": 7,
+        "Forecast7Days": 77.03,
+        "DailyDemand": 11.0,
+        "MAE": 14.4463262701,
+        "RMSE": 21.4827746529,
+        "MAPE": 40.9560080367,
+        "SMAPE": 94.3832693839,
+        "CurrentStock": 2512.0352,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 3000.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 3000.0,
+        "DaysRemaining": 228.4,
+        "StockoutDay": null,
+        "RecommendedPurchase": 565,
+        "BuyOnNextRun": "Yes",
+        "ProjectedRemaining": 3000.01,
+        "Priority": "Low",
+        "Recommendation": "Restock 565 g on the next stock run to cover the forecast and configured stock target.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "9ce35695-723f-5708-8498-6989961751c3",
+      "name": "Monterey Beef Sirloin 1kg",
+      "unit": "g",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 17.64,
+          "lower95": 0.0,
+          "upper95": 1535.9
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 19.71,
+          "lower95": 0.0,
+          "upper95": 1673.3
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 13.57,
+          "lower95": 0.0,
+          "upper95": 1256.82
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 24.06,
+          "lower95": 0.0,
+          "upper95": 1955.11
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 13.66,
+          "lower95": 0.0,
+          "upper95": 1262.95
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 13.76,
+          "lower95": 0.0,
+          "upper95": 1269.67
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 17.66,
+          "lower95": 0.0,
+          "upper95": 1559.63
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [
+            "2026-06-06",
+            "2026-06-28"
+          ],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          0,
+          1,
+          2
+        ],
+        "seasonalOrder": [
+          0,
+          0,
+          1,
+          7
+        ],
+        "metrics": {
+          "mae": 77.23629746868575,
+          "rmse": 131.48003037213627,
+          "mape": 76.7850074817281,
+          "smape": 164.66830764373177,
+          "aic": 1720.7879125734805,
+          "bic": 1740.0047382473424
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 49,
+          "recentUsageFrequency": 0.5444444444444444,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 120.06,
+          "estimatedShortfall": 120.06,
+          "dailyUpperStressTotal": 10513.380000000001,
+          "stressShortfall": 10513.380000000001,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 163,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 99000.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 38.20996036487652,
+              "mape": 84.15198401294823
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 80.05883836198274,
+              "mape": 80.56862518248298
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 113.44009367919797,
+              "mape": 65.63441324975307
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "g",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 206,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 889.375,
+        "changePercent": -86.5
+      },
+      "recommendation": {
+        "Product": "Monterey Beef Sirloin 1kg",
+        "Unit": "g",
+        "ForecastTotal": 120.06,
+        "ForecastDays": 7,
+        "Forecast7Days": 120.06,
+        "DailyDemand": 17.15,
+        "MAE": 77.2362974687,
+        "RMSE": 131.4800303721,
+        "MAPE": 76.7850074817,
+        "SMAPE": 164.6683076437,
+        "CurrentStock": 0.0,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 3000.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 3000.0,
+        "DaysRemaining": 0.0,
+        "StockoutDay": 1,
+        "RecommendedPurchase": 3121,
+        "BuyOnNextRun": "Yes",
+        "ProjectedRemaining": 3000.94,
+        "Priority": "Critical",
+        "Recommendation": "Restock 3121 g on the next stock run; current stock reaches zero by forecast day 1.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "7db33030-edef-55c5-b83a-a777632b7640",
+      "name": "Real Lemon Lemon Juice 250ml",
+      "unit": "ml",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 0.0,
+          "lower95": 0.0,
+          "upper95": 139.76
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 0.0,
+          "lower95": 0.0,
+          "upper95": 205.02
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 0.0,
+          "lower95": 0.0,
+          "upper95": 360.48
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 0.0,
+          "lower95": 0.0,
+          "upper95": 503.03
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 0.0,
+          "lower95": 0.0,
+          "upper95": 708.28
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 0.0,
+          "lower95": 0.0,
+          "upper95": 991.0
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 0.0,
+          "lower95": 0.0,
+          "upper95": 1325.34
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [
+            "2025-12-19",
+            "2026-01-01",
+            "2026-03-07"
+          ],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          2,
+          1,
+          0
+        ],
+        "seasonalOrder": [
+          0,
+          0,
+          0,
+          7
+        ],
+        "metrics": {
+          "mae": 35.190584204164686,
+          "rmse": 45.0220082214376,
+          "mape": 41.49945012171324,
+          "smape": 101.79991480908177,
+          "aic": 1721.3643647767249,
+          "bic": 1736.8295520197883
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 52,
+          "recentUsageFrequency": 0.5777777777777777,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 0.0,
+          "estimatedShortfall": 0.0,
+          "dailyUpperStressTotal": 4232.91,
+          "stressShortfall": 1236.4813,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 166,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 27000.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 37.089653273405105,
+              "mape": 56.88156593669855
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 32.41060168953639,
+              "mape": 41.38221242789805
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 36.07149764955257,
+              "mape": 26.234572000543128
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "ml",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 203,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 131.25,
+        "changePercent": -100.0
+      },
+      "recommendation": {
+        "Product": "Real Lemon Lemon Juice 250ml",
+        "Unit": "ml",
+        "ForecastTotal": 0.0,
+        "ForecastDays": 7,
+        "Forecast7Days": 0.0,
+        "DailyDemand": 0.0,
+        "MAE": 35.1905842042,
+        "RMSE": 45.0220082214,
+        "MAPE": 41.4994501217,
+        "SMAPE": 101.7999148091,
+        "CurrentStock": 2996.4287,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 2500.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 2500.0,
+        "DaysRemaining": null,
+        "StockoutDay": null,
+        "RecommendedPurchase": 0,
+        "BuyOnNextRun": "No",
+        "ProjectedRemaining": 2996.43,
+        "Priority": "Healthy",
+        "Recommendation": "Inventory is sufficient.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "418433e7-4166-53e5-98d9-cb4af3253feb",
+      "name": "TOP Creamery Atok Benguet Arabica Coffee Beans Premium Grade 1kg",
+      "unit": "g",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 134.92,
+          "lower95": 35.2,
+          "upper95": 285.96
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 126.56,
+          "lower95": 30.54,
+          "upper95": 274.39
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 125.44,
+          "lower95": 29.92,
+          "upper95": 272.84
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 125.74,
+          "lower95": 30.07,
+          "upper95": 273.31
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 125.81,
+          "lower95": 30.1,
+          "upper95": 273.43
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 125.8,
+          "lower95": 30.08,
+          "upper95": 273.45
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 125.79,
+          "lower95": 30.07,
+          "upper95": 273.47
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          2,
+          1,
+          1
+        ],
+        "seasonalOrder": [
+          0,
+          0,
+          0,
+          7
+        ],
+        "metrics": {
+          "mae": 59.71289121090723,
+          "rmse": 67.6468295916122,
+          "mape": 160.93798421412632,
+          "smape": 52.914200729159425,
+          "aic": 2433.8034158593614,
+          "bic": 2453.1348999131906
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 89,
+          "recentUsageFrequency": 0.9888888888888889,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 890.06,
+          "estimatedShortfall": 0.0,
+          "dailyUpperStressTotal": 1926.85,
+          "stressShortfall": 0.0,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 1,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 53000.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 70.49933871817954,
+              "mape": 59.89936511090248
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 26.693818295933944,
+              "mape": 22.929796969999597
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 81.9455166186082,
+              "mape": 399.9847905614768
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "g",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 368,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 451.5,
+        "changePercent": 97.13
+      },
+      "recommendation": {
+        "Product": "TOP Creamery Atok Benguet Arabica Coffee Beans Premium Grade 1kg",
+        "Unit": "g",
+        "ForecastTotal": 890.06,
+        "ForecastDays": 7,
+        "Forecast7Days": 890.06,
+        "DailyDemand": 127.15,
+        "MAE": 59.7128912109,
+        "RMSE": 67.6468295916,
+        "MAPE": 160.9379842141,
+        "SMAPE": 52.9142007292,
+        "CurrentStock": 10120.5836,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 5000.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 5000.0,
+        "DaysRemaining": 79.6,
+        "StockoutDay": null,
+        "RecommendedPurchase": 0,
+        "BuyOnNextRun": "No",
+        "ProjectedRemaining": 9230.52,
+        "Priority": "Healthy",
+        "Recommendation": "Inventory is sufficient.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "f9cfefaf-c2e1-5d6d-a4e1-d5d576e7645d",
+      "name": "TOP Creamery Milk Tea Series Matcha Powder 500g",
+      "unit": "g",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 525.87,
+          "lower95": 14.94,
+          "upper95": 5206.39
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 218.12,
+          "lower95": 0.0,
+          "upper95": 4287.46
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 53.41,
+          "lower95": 0.0,
+          "upper95": 2390.79
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 117.48,
+          "lower95": 0.0,
+          "upper95": 4938.21
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 48.96,
+          "lower95": 0.0,
+          "upper95": 3857.25
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 1428.75,
+          "lower95": 2.54,
+          "upper95": 32466.82
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 611.5,
+          "lower95": 0.0,
+          "upper95": 30740.96
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [
+            "2025-11-15",
+            "2026-01-24",
+            "2026-01-25",
+            "2026-09-23",
+            "2026-10-13"
+          ],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          1,
+          1,
+          0
+        ],
+        "seasonalOrder": [
+          1,
+          1,
+          0,
+          7
+        ],
+        "metrics": {
+          "mae": 44.24030801581955,
+          "rmse": 98.69040614813692,
+          "mape": 60.2341069347471,
+          "smape": 144.21707432835015,
+          "aic": 1740.0365379755685,
+          "bic": 1755.3515820639702
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 59,
+          "recentUsageFrequency": 0.6555555555555556,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 3004.09,
+          "estimatedShortfall": 1924.1171000000002,
+          "dailyUpperStressTotal": 83887.88,
+          "stressShortfall": 82807.90710000001,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 133,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 68400.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 25.835508841246618,
+              "mape": 57.53528681174211
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 13.212893294942837,
+              "mape": 47.84371687583479
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 93.67252191126921,
+              "mape": 75.32331711666443
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "g",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 236,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 740.25,
+        "changePercent": 305.82
+      },
+      "recommendation": {
+        "Product": "TOP Creamery Milk Tea Series Matcha Powder 500g",
+        "Unit": "g",
+        "ForecastTotal": 3004.09,
+        "ForecastDays": 7,
+        "Forecast7Days": 3004.09,
+        "DailyDemand": 429.16,
+        "MAE": 44.2403080158,
+        "RMSE": 98.6904061481,
+        "MAPE": 60.2341069347,
+        "SMAPE": 144.2170743284,
+        "CurrentStock": 1079.9729,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 1500.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 1500.0,
+        "DaysRemaining": 2.5,
+        "StockoutDay": 6,
+        "RecommendedPurchase": 3425,
+        "BuyOnNextRun": "Yes",
+        "ProjectedRemaining": 1500.88,
+        "Priority": "Medium",
+        "Recommendation": "Restock 3425 g on the next stock run; current stock reaches zero by forecast day 6.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    },
+    {
+      "materialId": "0ddf6b21-8c25-5fdc-9679-b762c6e99952",
+      "name": "Victorias Refined Sugar 1kg",
+      "unit": "g",
+      "points": [
+        {
+          "date": "2026-10-15",
+          "forecast": 37.43,
+          "lower95": 4.41,
+          "upper95": 116.8
+        },
+        {
+          "date": "2026-10-16",
+          "forecast": 35.34,
+          "lower95": 3.77,
+          "upper95": 112.82
+        },
+        {
+          "date": "2026-10-17",
+          "forecast": 59.79,
+          "lower95": 11.93,
+          "upper95": 160.12
+        },
+        {
+          "date": "2026-10-18",
+          "forecast": 54.18,
+          "lower95": 9.85,
+          "upper95": 149.72
+        },
+        {
+          "date": "2026-10-19",
+          "forecast": 39.23,
+          "lower95": 4.88,
+          "upper95": 120.79
+        },
+        {
+          "date": "2026-10-20",
+          "forecast": 45.36,
+          "lower95": 6.81,
+          "upper95": 132.88
+        },
+        {
+          "date": "2026-10-21",
+          "forecast": 36.71,
+          "lower95": 4.14,
+          "upper95": 115.71
+        }
+      ],
+      "metadata": {
+        "dataQuality": {
+          "outlierDatesForReview": [
+            "2026-10-13"
+          ],
+          "outlierTreatment": "flagged; observed quantities retained",
+          "verifiedStockoutDates": [],
+          "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+          "inventoryZeroIsNotProofOfZeroDemand": true,
+          "unknownCalendarDaysAreNotZeroDemand": true
+        },
+        "model": "SARIMA",
+        "order": [
+          2,
+          1,
+          2
+        ],
+        "seasonalOrder": [
+          0,
+          1,
+          1,
+          7
+        ],
+        "metrics": {
+          "mae": 43.84689865838849,
+          "rmse": 74.01703630127082,
+          "mape": 62.72538793385783,
+          "smape": 62.0257824106878,
+          "aic": 1645.8258316962153,
+          "bic": 1672.5858454545516
+        },
+        "trainingDays": 372,
+        "transformation": "log1p",
+        "trainingWindowDays": null,
+        "calendarFeatures": "level",
+        "predictionInterval": null,
+        "insights": {
+          "evidenceStatus": "limited",
+          "requirements": {
+            "minimumTestDays": 30,
+            "minimumPositiveDays": 20,
+            "maximumWAPE": 30.0,
+            "maximumHistoryGapDays": 7,
+            "minimumPeriodCoverage": 0.8
+          },
+          "reasons": [
+            "More held-out forecast days are needed to assess reliability.",
+            "There are too few held-out days with usage to assess demand-spike coverage."
+          ],
+          "recentDays": 90,
+          "recentPositiveDays": 89,
+          "recentUsageFrequency": 0.9888888888888889,
+          "historyGapDays": 1,
+          "estimatedTotalUsage": 308.03999999999996,
+          "estimatedShortfall": 0.0,
+          "dailyUpperStressTotal": 908.84,
+          "stressShortfall": 0.0,
+          "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+          "validation": null,
+          "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+        },
+        "trend": "n",
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "constraints": {
+          "maeTolerance": 0.1,
+          "bestValidationMAE": null,
+          "maeGuardLimit": null,
+          "operationalGuards": null,
+          "rejectedByMAEGuard": null,
+          "requiresConvergence": false,
+          "stationarity": true,
+          "invertibility": true
+        },
+        "availableTrainingDays": 372,
+        "candidateCount": null,
+        "validationFolds": 3,
+        "audit": {
+          "version": 1,
+          "trainingStart": "2025-10-07",
+          "trainingEnd": "2026-10-13",
+          "csvDays": 0,
+          "posDays": 369,
+          "zeroFilledDays": 0,
+          "imputedDays": 3,
+          "zeroDemandDays": 5,
+          "bridgeCalendarDays": 1,
+          "weekdaysOnly": false,
+          "successfulCandidates": null,
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "rangeRejections": [],
+          "rangeCeiling": 45600.0,
+          "validationMethod": "rolling windows",
+          "validationWindows": [
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-27",
+              "days": 8,
+              "mae": 30.80923694029915,
+              "mape": 61.285728063635624
+            },
+            {
+              "start": "2026-09-28",
+              "end": "2026-10-05",
+              "days": 8,
+              "mae": 30.01397460026964,
+              "mape": 49.53954655593566
+            },
+            {
+              "start": "2026-10-06",
+              "end": "2026-10-13",
+              "days": 8,
+              "mae": 70.71748443459668,
+              "mape": 77.35088918200222
+            }
+          ]
+        },
+        "historicalProducts": [
+          "Completed POS sales"
+        ],
+        "sourceUnit": "g",
+        "trainingSource": "POS-only",
+        "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+        "posMaterialDays": 364,
+        "conversionFactor": 1.0,
+        "forecastDays": 7,
+        "previousPeriodDays": 7,
+        "previousPeriodUsage": 646.5,
+        "changePercent": -52.35
+      },
+      "recommendation": {
+        "Product": "Victorias Refined Sugar 1kg",
+        "Unit": "g",
+        "ForecastTotal": 308.04,
+        "ForecastDays": 7,
+        "Forecast7Days": 308.04,
+        "DailyDemand": 44.01,
+        "MAE": 43.8468986584,
+        "RMSE": 74.0170363013,
+        "MAPE": 62.7253879339,
+        "SMAPE": 62.0257824107,
+        "CurrentStock": 7971.2042,
+        "SafetyStock": 0.0,
+        "LeadTime": 0.0,
+        "CatalogReorderPoint": 7000.0,
+        "HasInventoryData": true,
+        "LeadTimeDemand": 0.0,
+        "ReorderPoint": 7000.0,
+        "DaysRemaining": 181.1,
+        "StockoutDay": null,
+        "RecommendedPurchase": 0,
+        "BuyOnNextRun": "No",
+        "ProjectedRemaining": 7663.16,
+        "Priority": "Healthy",
+        "Recommendation": "Inventory is sufficient.",
+        "stockSource": "live inventory snapshot",
+        "policySource": "raw-materials-and-products.csv"
+      }
+    }
+  ]
+}

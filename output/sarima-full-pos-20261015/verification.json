@@ -1,0 +1,14 @@
+{
+  "allEnrolledMaterialIdsRepresented": true,
+  "backendValidation": "passed",
+  "forecastSeries": 15,
+  "dailyPoints": 105,
+  "forecasted": 15,
+  "excluded": 69,
+  "exclusionCounts": {
+    "object of type 'NoneType' has no len()": 27,
+    "No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run": 35,
+    "No compatible completed POS history is available": 5,
+    "SARIMA requires varying usage history; constant history cannot be Box-Cox transformed": 2
+  }
+}

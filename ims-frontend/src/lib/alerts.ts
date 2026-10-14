@@ -68,6 +68,7 @@ function toQueryString(params: Record<string, string | undefined | null>) {
 }
 
 export async function fetchAlerts(params: {
+  id?: string;
   type?: AlertType;
   state?: AlertState;
   severity?: AlertSeverity;
@@ -77,6 +78,7 @@ export async function fetchAlerts(params: {
   limit?: number;
 } = {}) {
   const query = toQueryString({
+    id: params.id,
     type: params.type,
     state: params.state,
     severity: params.severity,
@@ -87,6 +89,12 @@ export async function fetchAlerts(params: {
   });
   const response = await apiJsonFetch<{ alerts: AlertRecord[] }>(`/alerts${query}`);
   return response.alerts;
+}
+
+export type AlertNotification = Pick<AlertRecord, "id" | "type" | "severity" | "title" | "message" | "firstTriggeredAt" | "remainingQuantity">;
+
+export function fetchAlertNotifications(signal?: AbortSignal) {
+  return apiJsonFetch<{ alerts: AlertNotification[]; pendingCount: number }>("/alerts/notifications", { signal });
 }
 
 export async function fetchUnreadAlertCount() {

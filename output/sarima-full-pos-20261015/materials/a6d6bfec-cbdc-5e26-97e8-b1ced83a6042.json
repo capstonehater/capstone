@@ -1,0 +1,234 @@
+{
+  "materialId": "a6d6bfec-cbdc-5e26-97e8-b1ced83a6042",
+  "name": "Hershey's Chocolate Syrup 623g",
+  "sku": "RM-HSCS6-001",
+  "unit": "g",
+  "status": "forecasted",
+  "total": 154.5,
+  "metrics": {
+    "mae": 15.045861422352738,
+    "rmse": 19.40939760252991,
+    "mape": 36.16237543880933,
+    "smape": 85.37477129761415,
+    "aic": 2061.5338848580327,
+    "bic": 2076.9189269695994
+  },
+  "series": {
+    "materialId": "a6d6bfec-cbdc-5e26-97e8-b1ced83a6042",
+    "name": "Hershey's Chocolate Syrup 623g",
+    "unit": "g",
+    "points": [
+      {
+        "date": "2026-10-15",
+        "forecast": 22.5,
+        "lower95": 0.0,
+        "upper95": 86.95
+      },
+      {
+        "date": "2026-10-16",
+        "forecast": 23.04,
+        "lower95": 0.0,
+        "upper95": 87.99
+      },
+      {
+        "date": "2026-10-17",
+        "forecast": 20.81,
+        "lower95": 0.0,
+        "upper95": 83.67
+      },
+      {
+        "date": "2026-10-18",
+        "forecast": 22.85,
+        "lower95": 0.0,
+        "upper95": 87.62
+      },
+      {
+        "date": "2026-10-19",
+        "forecast": 22.27,
+        "lower95": 0.0,
+        "upper95": 86.5
+      },
+      {
+        "date": "2026-10-20",
+        "forecast": 20.68,
+        "lower95": 0.0,
+        "upper95": 83.41
+      },
+      {
+        "date": "2026-10-21",
+        "forecast": 22.35,
+        "lower95": 0.0,
+        "upper95": 86.76
+      }
+    ],
+    "metadata": {
+      "dataQuality": {
+        "outlierDatesForReview": [],
+        "outlierTreatment": "flagged; observed quantities retained",
+        "verifiedStockoutDates": [],
+        "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+        "inventoryZeroIsNotProofOfZeroDemand": true,
+        "unknownCalendarDaysAreNotZeroDemand": true
+      },
+      "model": "SARIMA",
+      "order": [
+        0,
+        1,
+        1
+      ],
+      "seasonalOrder": [
+        0,
+        0,
+        1,
+        7
+      ],
+      "metrics": {
+        "mae": 15.045861422352738,
+        "rmse": 19.40939760252991,
+        "mape": 36.16237543880933,
+        "smape": 85.37477129761415,
+        "aic": 2061.5338848580327,
+        "bic": 2076.9189269695994
+      },
+      "trainingDays": 372,
+      "transformation": "log1p",
+      "trainingWindowDays": null,
+      "calendarFeatures": "level",
+      "predictionInterval": null,
+      "insights": {
+        "evidenceStatus": "limited",
+        "requirements": {
+          "minimumTestDays": 30,
+          "minimumPositiveDays": 20,
+          "maximumWAPE": 30.0,
+          "maximumHistoryGapDays": 7,
+          "minimumPeriodCoverage": 0.8
+        },
+        "reasons": [
+          "More held-out forecast days are needed to assess reliability.",
+          "There are too few held-out days with usage to assess demand-spike coverage."
+        ],
+        "recentDays": 90,
+        "recentPositiveDays": 71,
+        "recentUsageFrequency": 0.7888888888888889,
+        "historyGapDays": 1,
+        "estimatedTotalUsage": 154.49999999999997,
+        "estimatedShortfall": 0.0,
+        "dailyUpperStressTotal": 602.9,
+        "stressShortfall": 0.0,
+        "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+        "validation": null,
+        "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+      },
+      "trend": "n",
+      "selectionMetric": null,
+      "selectionMAPE": null,
+      "constraints": {
+        "maeTolerance": 0.1,
+        "bestValidationMAE": null,
+        "maeGuardLimit": null,
+        "operationalGuards": null,
+        "rejectedByMAEGuard": null,
+        "requiresConvergence": false,
+        "stationarity": true,
+        "invertibility": true
+      },
+      "availableTrainingDays": 372,
+      "candidateCount": null,
+      "validationFolds": 3,
+      "audit": {
+        "version": 1,
+        "trainingStart": "2025-10-07",
+        "trainingEnd": "2026-10-13",
+        "csvDays": 0,
+        "posDays": 369,
+        "zeroFilledDays": 0,
+        "imputedDays": 3,
+        "zeroDemandDays": 67,
+        "bridgeCalendarDays": 1,
+        "weekdaysOnly": false,
+        "successfulCandidates": null,
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "rangeRejections": [],
+        "rangeCeiling": 12600.0,
+        "validationMethod": "rolling windows",
+        "validationWindows": [
+          {
+            "start": "2026-09-20",
+            "end": "2026-09-27",
+            "days": 8,
+            "mae": 15.071139644049026,
+            "mape": 41.904454882275374
+          },
+          {
+            "start": "2026-09-28",
+            "end": "2026-10-05",
+            "days": 8,
+            "mae": 14.844012777700621,
+            "mape": 34.49580720646918
+          },
+          {
+            "start": "2026-10-06",
+            "end": "2026-10-13",
+            "days": 8,
+            "mae": 15.222431845308572,
+            "mape": 32.086864227683435
+          }
+        ]
+      },
+      "historicalProducts": [
+        "Completed POS sales"
+      ],
+      "sourceUnit": "g",
+      "trainingSource": "POS-only",
+      "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+      "posMaterialDays": 302,
+      "conversionFactor": 1.0,
+      "forecastDays": 7,
+      "previousPeriodDays": 7,
+      "previousPeriodUsage": 135.75,
+      "changePercent": 13.81
+    },
+    "recommendation": {
+      "Product": "Hershey's Chocolate Syrup 623g",
+      "Unit": "g",
+      "ForecastTotal": 154.5,
+      "ForecastDays": 7,
+      "Forecast7Days": 154.5,
+      "DailyDemand": 22.07,
+      "MAE": 15.0458614224,
+      "RMSE": 19.4093976025,
+      "MAPE": 36.1623754388,
+      "SMAPE": 85.3747712976,
+      "CurrentStock": 4453.1323,
+      "SafetyStock": 0.0,
+      "LeadTime": 0.0,
+      "CatalogReorderPoint": 1500.0,
+      "HasInventoryData": true,
+      "LeadTimeDemand": 0.0,
+      "ReorderPoint": 1500.0,
+      "DaysRemaining": 201.8,
+      "StockoutDay": null,
+      "RecommendedPurchase": 0,
+      "BuyOnNextRun": "No",
+      "ProjectedRemaining": 4298.63,
+      "Priority": "Healthy",
+      "Recommendation": "Inventory is sufficient.",
+      "stockSource": "live inventory snapshot",
+      "policySource": "raw-materials-and-products.csv"
+    }
+  },
+  "warnings": [
+    "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+    "SARIMA uses calendar-day totals with seven-day seasonality.",
+    "Product filters show store-wide ingredient demand, not predicted product sales.",
+    "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+    "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+    "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+    "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+    "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+  ],
+  "convergenceWarnings": 23,
+  "seconds": 61.53
+}

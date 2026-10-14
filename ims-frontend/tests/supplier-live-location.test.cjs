@@ -14,6 +14,7 @@ test('live pin, coordinates, copied directions and driving origin follow device 
   const saved = globals.map((key) => [key, Object.getOwnPropertyDescriptor(global, key)]);
   const originalLoad = Module._load;
   const originalTsx = require.extensions['.tsx'];
+  const originalTs = require.extensions['.ts'];
   let receivePosition;
   let receiveError;
   let cleared = false;
@@ -77,6 +78,7 @@ test('live pin, coordinates, copied directions and driving origin follow device 
     require.extensions['.tsx'] = (module, filename) => module._compile(ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
     }).outputText, filename);
+    require.extensions['.ts'] = require.extensions['.tsx'];
     Module._load = function (name, parent, main) {
       if (name === 'leaflet') return leaflet;
       if (name.endsWith('.css')) return {};
@@ -139,14 +141,18 @@ test('live pin, coordinates, copied directions and driving origin follow device 
     await click('Open Maps');
     assert.equal(locationRequests, 1);
     assert.equal(document.querySelector('dialog').hasAttribute('open'), true);
-    assert.match(document.querySelector('dialog').textContent, /up to 5 seconds/);
+    assert.match(document.querySelector('dialog').textContent, /when everything is ready/);
     assert.equal(navigatedUrl, previousRoute);
     assert.equal(openedTabs, previousTabs, 'no tab should open while location permission is pending');
     await React.act(async () => pendingLocation.error({ code: 3 }));
+    assert.equal(document.querySelector('dialog').hasAttribute('open'), true, 'GPS timeout should keep loading while retrying');
+    assert.equal(openedTabs, previousTabs);
+    assert.equal(locationRequests, 2);
+    await React.act(async () => pendingLocation.error({ code: 1 }));
     assert.equal(document.querySelector('dialog').hasAttribute('open'), false);
     assert.equal(openedTabs, previousTabs, 'denied or timed-out location must not open a tab');
     assert.equal(navigatedUrl, previousRoute);
-    assert.match(document.body.textContent, /No fresh coordinates available/);
+    assert.match(document.body.textContent, /Location permission is blocked/);
     await click('Open Maps');
     assert.equal(document.querySelector('dialog').hasAttribute('open'), true);
     assert.equal(openedTabs, previousTabs);
@@ -160,6 +166,8 @@ test('live pin, coordinates, copied directions and driving origin follow device 
   } finally {
     if (root) await React.act(async () => root.unmount());
     Module._load = originalLoad;
+    if (originalTs) require.extensions['.ts'] = originalTs;
+    else delete require.extensions['.ts'];
     if (originalTsx) require.extensions['.tsx'] = originalTsx;
     else delete require.extensions['.tsx'];
     for (const [key, descriptor] of saved) {

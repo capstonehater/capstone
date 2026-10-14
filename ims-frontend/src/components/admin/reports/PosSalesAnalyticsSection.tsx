@@ -73,6 +73,19 @@ const GROUP_OPTIONS: Array<{
   { value: "monthly", label: "Monthly" },
 ];
 
+const comparisonDateFormatter = new Intl.DateTimeFormat("en-PH", {
+  timeZone: "Asia/Manila",
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+
+function formatComparisonDates(from: string, to: string) {
+  const start = comparisonDateFormatter.format(new Date(from));
+  const end = comparisonDateFormatter.format(new Date(to));
+  return start === end ? start : `${start} to ${end}`;
+}
+
 export default function PosSalesAnalyticsSection({
   active,
   refreshToken,
@@ -336,7 +349,15 @@ export default function PosSalesAnalyticsSection({
             </p>
             <dl className={comparisonStyles.sales}>
               <div><dt>Current net sales</dt><dd>{loading && !report ? "..." : formatPeso(report?.summary.netSales ?? "0")}</dd></div>
-              <div><dt>Previous net sales</dt><dd>{loading && !report ? "..." : formatPeso(report?.comparison.previousPeriod.netSales ?? "0")}</dd></div>
+              <div>
+                <dt>Previous net sales</dt>
+                <dd>
+                  {loading && !report ? "..." : formatPeso(report?.comparison.previousPeriod.netSales ?? "0")}
+                  {report && <span className={comparisonStyles.periodDates}>
+                    {formatComparisonDates(report.comparison.previousPeriod.from, report.comparison.previousPeriod.to)}
+                  </span>}
+                </dd>
+              </div>
             </dl>
           </div>
           <dl className={comparisonStyles.details}>

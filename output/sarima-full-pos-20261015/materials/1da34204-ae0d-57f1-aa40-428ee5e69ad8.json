@@ -1,0 +1,241 @@
+{
+  "materialId": "1da34204-ae0d-57f1-aa40-428ee5e69ad8",
+  "name": "MONIN Caramel Syrup 700ml",
+  "sku": "RM-MCS7-001",
+  "unit": "ml",
+  "status": "forecasted",
+  "total": 76.27,
+  "metrics": {
+    "mae": 13.519874675146374,
+    "rmse": 16.51332687796075,
+    "mape": 42.73204290470495,
+    "smape": 107.21977616917877,
+    "aic": 1712.52525132681,
+    "bic": 1743.2721724049886
+  },
+  "series": {
+    "materialId": "1da34204-ae0d-57f1-aa40-428ee5e69ad8",
+    "name": "MONIN Caramel Syrup 700ml",
+    "unit": "ml",
+    "points": [
+      {
+        "date": "2026-10-15",
+        "forecast": 13.08,
+        "lower95": 0.0,
+        "upper95": 119.69
+      },
+      {
+        "date": "2026-10-16",
+        "forecast": 10.98,
+        "lower95": 0.0,
+        "upper95": 108.86
+      },
+      {
+        "date": "2026-10-17",
+        "forecast": 9.78,
+        "lower95": 0.0,
+        "upper95": 102.37
+      },
+      {
+        "date": "2026-10-18",
+        "forecast": 11.75,
+        "lower95": 0.0,
+        "upper95": 112.87
+      },
+      {
+        "date": "2026-10-19",
+        "forecast": 8.6,
+        "lower95": 0.0,
+        "upper95": 95.81
+      },
+      {
+        "date": "2026-10-20",
+        "forecast": 9.74,
+        "lower95": 0.0,
+        "upper95": 102.15
+      },
+      {
+        "date": "2026-10-21",
+        "forecast": 12.34,
+        "lower95": 0.0,
+        "upper95": 116.75
+      }
+    ],
+    "metadata": {
+      "dataQuality": {
+        "outlierDatesForReview": [
+          "2025-11-01",
+          "2025-12-10",
+          "2025-12-11",
+          "2026-02-01",
+          "2026-03-01",
+          "2026-04-11"
+        ],
+        "outlierTreatment": "flagged; observed quantities retained",
+        "verifiedStockoutDates": [],
+        "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+        "inventoryZeroIsNotProofOfZeroDemand": true,
+        "unknownCalendarDaysAreNotZeroDemand": true
+      },
+      "model": "SARIMA",
+      "order": [
+        2,
+        1,
+        2
+      ],
+      "seasonalOrder": [
+        1,
+        0,
+        1,
+        7
+      ],
+      "metrics": {
+        "mae": 13.519874675146374,
+        "rmse": 16.51332687796075,
+        "mape": 42.73204290470495,
+        "smape": 107.21977616917877,
+        "aic": 1712.52525132681,
+        "bic": 1743.2721724049886
+      },
+      "trainingDays": 372,
+      "transformation": "log1p",
+      "trainingWindowDays": null,
+      "calendarFeatures": "level",
+      "predictionInterval": null,
+      "insights": {
+        "evidenceStatus": "limited",
+        "requirements": {
+          "minimumTestDays": 30,
+          "minimumPositiveDays": 20,
+          "maximumWAPE": 30.0,
+          "maximumHistoryGapDays": 7,
+          "minimumPeriodCoverage": 0.8
+        },
+        "reasons": [
+          "More held-out forecast days are needed to assess reliability.",
+          "There are too few held-out days with usage to assess demand-spike coverage."
+        ],
+        "recentDays": 90,
+        "recentPositiveDays": 57,
+        "recentUsageFrequency": 0.6333333333333333,
+        "historyGapDays": 1,
+        "estimatedTotalUsage": 76.27000000000001,
+        "estimatedShortfall": 0.0,
+        "dailyUpperStressTotal": 758.5,
+        "stressShortfall": 0.0,
+        "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+        "validation": null,
+        "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+      },
+      "trend": "n",
+      "selectionMetric": null,
+      "selectionMAPE": null,
+      "constraints": {
+        "maeTolerance": 0.1,
+        "bestValidationMAE": null,
+        "maeGuardLimit": null,
+        "operationalGuards": null,
+        "rejectedByMAEGuard": null,
+        "requiresConvergence": false,
+        "stationarity": true,
+        "invertibility": true
+      },
+      "availableTrainingDays": 372,
+      "candidateCount": null,
+      "validationFolds": 3,
+      "audit": {
+        "version": 1,
+        "trainingStart": "2025-10-07",
+        "trainingEnd": "2026-10-13",
+        "csvDays": 0,
+        "posDays": 369,
+        "zeroFilledDays": 0,
+        "imputedDays": 3,
+        "zeroDemandDays": 129,
+        "bridgeCalendarDays": 1,
+        "weekdaysOnly": false,
+        "successfulCandidates": null,
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "rangeRejections": [],
+        "rangeCeiling": 13400.0,
+        "validationMethod": "rolling windows",
+        "validationWindows": [
+          {
+            "start": "2026-09-20",
+            "end": "2026-09-27",
+            "days": 8,
+            "mae": 13.381916626789945,
+            "mape": 46.691591807864306
+          },
+          {
+            "start": "2026-09-28",
+            "end": "2026-10-05",
+            "days": 8,
+            "mae": 16.487973734638,
+            "mape": 50.56023660706435
+          },
+          {
+            "start": "2026-10-06",
+            "end": "2026-10-13",
+            "days": 8,
+            "mae": 10.689733664011179,
+            "mape": 30.9443002991862
+          }
+        ]
+      },
+      "historicalProducts": [
+        "Completed POS sales"
+      ],
+      "sourceUnit": "ml",
+      "trainingSource": "POS-only",
+      "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+      "posMaterialDays": 240,
+      "conversionFactor": 1.0,
+      "forecastDays": 7,
+      "previousPeriodDays": 7,
+      "previousPeriodUsage": 88.75,
+      "changePercent": -14.06
+    },
+    "recommendation": {
+      "Product": "MONIN Caramel Syrup 700ml",
+      "Unit": "ml",
+      "ForecastTotal": 76.27,
+      "ForecastDays": 7,
+      "Forecast7Days": 76.27,
+      "DailyDemand": 10.9,
+      "MAE": 13.5198746751,
+      "RMSE": 16.513326878,
+      "MAPE": 42.7320429047,
+      "SMAPE": 107.2197761692,
+      "CurrentStock": 1809.1851,
+      "SafetyStock": 0.0,
+      "LeadTime": 0.0,
+      "CatalogReorderPoint": 1500.0,
+      "HasInventoryData": true,
+      "LeadTimeDemand": 0.0,
+      "ReorderPoint": 1500.0,
+      "DaysRemaining": 166.0,
+      "StockoutDay": null,
+      "RecommendedPurchase": 0,
+      "BuyOnNextRun": "No",
+      "ProjectedRemaining": 1732.92,
+      "Priority": "Healthy",
+      "Recommendation": "Inventory is sufficient.",
+      "stockSource": "live inventory snapshot",
+      "policySource": "raw-materials-and-products.csv"
+    }
+  },
+  "warnings": [
+    "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+    "SARIMA uses calendar-day totals with seven-day seasonality.",
+    "Product filters show store-wide ingredient demand, not predicted product sales.",
+    "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+    "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+    "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+    "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+    "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+  ],
+  "convergenceWarnings": 14,
+  "seconds": 53.57
+}

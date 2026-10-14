@@ -1,0 +1,10 @@
+{
+  "materialId": "d3d83926-f0a2-4fb2-b620-7305fe0e77f0",
+  "name": "Milktea Powder",
+  "sku": "RM-MP-001",
+  "unit": "g",
+  "status": "excluded",
+  "reason": "Historical CSV contains no usage rows",
+  "convergenceWarnings": 0,
+  "seconds": 0.01
+}

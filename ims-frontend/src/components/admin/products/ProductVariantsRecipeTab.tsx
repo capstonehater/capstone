@@ -67,7 +67,7 @@ export default function ProductVariantsRecipeTab({
         <div>
           <h3 className="text-lg font-semibold text-slate-900">Variants & Recipe</h3>
           <p className="mt-1 text-sm text-slate-500">
-            Select a variant to view its recipe and availability.
+            Select a variant to view or edit its recipe and availability. Customers choose variants in the POS.
           </p>
         </div>
         <PermissionAction permission={"products.edit"}><button

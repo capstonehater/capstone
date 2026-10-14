@@ -1,0 +1,243 @@
+{
+  "materialId": "ae77fc9f-e132-509c-8f1a-85f2d861f3b9",
+  "name": "Eden Original Cheese 180g",
+  "sku": "RM-EOC1-001",
+  "unit": "g",
+  "status": "forecasted",
+  "total": 61.18,
+  "metrics": {
+    "mae": 46.650036754182814,
+    "rmse": 78.8015793032858,
+    "mape": 69.82983465418876,
+    "smape": 147.61464152641852,
+    "aic": 1559.8768348624806,
+    "bic": 1582.9543980298297
+  },
+  "series": {
+    "materialId": "ae77fc9f-e132-509c-8f1a-85f2d861f3b9",
+    "name": "Eden Original Cheese 180g",
+    "unit": "g",
+    "points": [
+      {
+        "date": "2026-10-15",
+        "forecast": 6.61,
+        "lower95": 0.0,
+        "upper95": 681.31
+      },
+      {
+        "date": "2026-10-16",
+        "forecast": 6.06,
+        "lower95": 0.0,
+        "upper95": 967.77
+      },
+      {
+        "date": "2026-10-17",
+        "forecast": 16.35,
+        "lower95": 0.0,
+        "upper95": 4154.12
+      },
+      {
+        "date": "2026-10-18",
+        "forecast": 10.67,
+        "lower95": 0.0,
+        "upper95": 3867.3
+      },
+      {
+        "date": "2026-10-19",
+        "forecast": 6.1,
+        "lower95": 0.0,
+        "upper95": 3486.86
+      },
+      {
+        "date": "2026-10-20",
+        "forecast": 7.03,
+        "lower95": 0.0,
+        "upper95": 5633.19
+      },
+      {
+        "date": "2026-10-21",
+        "forecast": 8.36,
+        "lower95": 0.0,
+        "upper95": 9756.65
+      }
+    ],
+    "metadata": {
+      "dataQuality": {
+        "outlierDatesForReview": [
+          "2025-10-27",
+          "2025-12-10",
+          "2026-02-21",
+          "2026-02-23",
+          "2026-04-11",
+          "2026-07-12",
+          "2026-10-10",
+          "2026-10-11"
+        ],
+        "outlierTreatment": "flagged; observed quantities retained",
+        "verifiedStockoutDates": [],
+        "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+        "inventoryZeroIsNotProofOfZeroDemand": true,
+        "unknownCalendarDaysAreNotZeroDemand": true
+      },
+      "model": "SARIMA",
+      "order": [
+        2,
+        1,
+        0
+      ],
+      "seasonalOrder": [
+        1,
+        0,
+        1,
+        7
+      ],
+      "metrics": {
+        "mae": 46.650036754182814,
+        "rmse": 78.8015793032858,
+        "mape": 69.82983465418876,
+        "smape": 147.61464152641852,
+        "aic": 1559.8768348624806,
+        "bic": 1582.9543980298297
+      },
+      "trainingDays": 372,
+      "transformation": "log1p",
+      "trainingWindowDays": null,
+      "calendarFeatures": "level",
+      "predictionInterval": null,
+      "insights": {
+        "evidenceStatus": "limited",
+        "requirements": {
+          "minimumTestDays": 30,
+          "minimumPositiveDays": 20,
+          "maximumWAPE": 30.0,
+          "maximumHistoryGapDays": 7,
+          "minimumPeriodCoverage": 0.8
+        },
+        "reasons": [
+          "More held-out forecast days are needed to assess reliability.",
+          "There are too few held-out days with usage to assess demand-spike coverage."
+        ],
+        "recentDays": 90,
+        "recentPositiveDays": 50,
+        "recentUsageFrequency": 0.5555555555555556,
+        "historyGapDays": 1,
+        "estimatedTotalUsage": 61.18000000000001,
+        "estimatedShortfall": 0.0,
+        "dailyUpperStressTotal": 28547.199999999997,
+        "stressShortfall": 25361.677099999997,
+        "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+        "validation": null,
+        "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+      },
+      "trend": "n",
+      "selectionMetric": null,
+      "selectionMAPE": null,
+      "constraints": {
+        "maeTolerance": 0.1,
+        "bestValidationMAE": null,
+        "maeGuardLimit": null,
+        "operationalGuards": null,
+        "rejectedByMAEGuard": null,
+        "requiresConvergence": false,
+        "stationarity": true,
+        "invertibility": true
+      },
+      "availableTrainingDays": 372,
+      "candidateCount": null,
+      "validationFolds": 3,
+      "audit": {
+        "version": 1,
+        "trainingStart": "2025-10-07",
+        "trainingEnd": "2026-10-13",
+        "csvDays": 0,
+        "posDays": 369,
+        "zeroFilledDays": 0,
+        "imputedDays": 3,
+        "zeroDemandDays": 166,
+        "bridgeCalendarDays": 1,
+        "weekdaysOnly": false,
+        "successfulCandidates": null,
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "rangeRejections": [],
+        "rangeCeiling": 45000.0,
+        "validationMethod": "rolling windows",
+        "validationWindows": [
+          {
+            "start": "2026-09-20",
+            "end": "2026-09-27",
+            "days": 8,
+            "mae": 14.504972548480195,
+            "mape": 51.28325436118985
+          },
+          {
+            "start": "2026-09-28",
+            "end": "2026-10-05",
+            "days": 8,
+            "mae": 22.180032655726556,
+            "mape": 89.01270395441156
+          },
+          {
+            "start": "2026-10-06",
+            "end": "2026-10-13",
+            "days": 8,
+            "mae": 103.26510505834167,
+            "mape": 69.19354564696485
+          }
+        ]
+      },
+      "historicalProducts": [
+        "Completed POS sales"
+      ],
+      "sourceUnit": "g",
+      "trainingSource": "POS-only",
+      "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+      "posMaterialDays": 203,
+      "conversionFactor": 1.0,
+      "forecastDays": 7,
+      "previousPeriodDays": 7,
+      "previousPeriodUsage": 853.125,
+      "changePercent": -92.83
+    },
+    "recommendation": {
+      "Product": "Eden Original Cheese 180g",
+      "Unit": "g",
+      "ForecastTotal": 61.18,
+      "ForecastDays": 7,
+      "Forecast7Days": 61.18,
+      "DailyDemand": 8.74,
+      "MAE": 46.6500367542,
+      "RMSE": 78.8015793033,
+      "MAPE": 69.8298346542,
+      "SMAPE": 147.6146415264,
+      "CurrentStock": 3185.5229,
+      "SafetyStock": 0.0,
+      "LeadTime": 0.0,
+      "CatalogReorderPoint": 1800.0,
+      "HasInventoryData": true,
+      "LeadTimeDemand": 0.0,
+      "ReorderPoint": 1800.0,
+      "DaysRemaining": 364.5,
+      "StockoutDay": null,
+      "RecommendedPurchase": 0,
+      "BuyOnNextRun": "No",
+      "ProjectedRemaining": 3124.34,
+      "Priority": "Healthy",
+      "Recommendation": "Inventory is sufficient.",
+      "stockSource": "live inventory snapshot",
+      "policySource": "raw-materials-and-products.csv"
+    }
+  },
+  "warnings": [
+    "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+    "SARIMA uses calendar-day totals with seven-day seasonality.",
+    "Product filters show store-wide ingredient demand, not predicted product sales.",
+    "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+    "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+    "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+    "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+    "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+  ],
+  "convergenceWarnings": 17,
+  "seconds": 55.45
+}

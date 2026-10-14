@@ -32,7 +32,7 @@ export const managerSettingsMetadata = { label: "Settings", subtitle: "Manage yo
 
 // Context-specific titles retained exactly; no policy is attached to titles.
 export const staffPageInfo: Record<string, ShellPageInfo> = {
-  [routeHref("pos")]: { label: "Staff POS", subtitle: "Create orders, accept payments, and manage daily sales." },
+  [routeHref("pos")]: { label: "POS", subtitle: "Create orders, accept payments, and manage daily sales." },
   [routeHref("pos.transactions")]: { label: "Transaction History", subtitle: "Review your transactions and receipts." },
   [routeHref("settings")]: { label: "Settings", subtitle: "Manage your account and security settings." },
 };

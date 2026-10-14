@@ -2,12 +2,14 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { RequirePermission } from '../auth/decorators/require-permission.decorator';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CatalogService } from './catalog.service';
+import { CacheRead } from '../cache/cache-read.decorator';
 
 @Controller()
 export class CatalogController {
   constructor(private readonly catalogService: CatalogService) {}
 
   @Get('categories')
+  @CacheRead(30_000)
   async listCategories() {
     return {
       categories: await this.catalogService.listCategories(),
@@ -21,6 +23,7 @@ export class CatalogController {
   }
 
   @Get('products')
+  @CacheRead(30_000)
   @RequirePermission('products.view')
   async listProducts() {
     return {

@@ -1,0 +1,114 @@
+{
+  "environment": {
+    "python": "3.14.2 (tags/v3.14.2:df79316, Dec  5 2025, 17:18:21) [MSC v.1944 64 bit (AMD64)]",
+    "executable": "C:\\Users\\Robert\\Documents\\salvacion\\output\\sarima-isolated-test-20261014\\venv\\Scripts\\python.exe",
+    "isolated_source": "C:\\Users\\Robert\\Documents\\salvacion\\output\\sarima-isolated-test-20261014\\source",
+    "dependencies": "virtualenv with read-only shared installed packages; no production database",
+    "numpy": "2.5.1",
+    "pandas": "3.0.3"
+  },
+  "fixture": "Synthetic completed POS ledger snapshots, real local catalog identities; not live sales",
+  "durationSeconds": 20.08,
+  "checks": [
+    {
+      "test": "POS liter-to-milliliter conversion",
+      "passed": true,
+      "detail": "Source unit l converted to enrolled unit ml"
+    },
+    {
+      "test": "New material absent from CSV catalog",
+      "passed": true,
+      "detail": "New enrolled ingredient (g): POS history excluded: SKU is absent from the current material catalog"
+    },
+    {
+      "test": "No completed POS coverage",
+      "passed": true,
+      "detail": "No complete POS days available. CSV data is development-only; import completed POS history."
+    },
+    {
+      "test": "Partial current Philippine day",
+      "passed": true,
+      "detail": "POS coverage includes forecast dates; future observations cannot enter training"
+    },
+    {
+      "test": "Negative ledger consumption",
+      "passed": true,
+      "detail": "Invalid POS consumption quantity"
+    },
+    {
+      "test": "Consumption outside covered dates",
+      "passed": true,
+      "detail": "POS quantity is outside the covered-day snapshot"
+    },
+    {
+      "test": "Partial-day exclusion independent of forecast cutoff",
+      "passed": true,
+      "detail": "POS coverage includes a partial or future Philippine trading day"
+    },
+    {
+      "test": "Incompatible POS units excluded",
+      "passed": true,
+      "detail": "Alaska Classic Evaporated Filled Milk 370ml (ml): POS history excluded: Incompatible units: g -> ml"
+    },
+    {
+      "test": "Actual full SARIMA grid training",
+      "passed": true,
+      "detail": "No model mocks; original parameter grid and rolling validation"
+    },
+    {
+      "test": "Seven calendar forecast days including weekend",
+      "passed": true,
+      "detail": "2026-10-14 through 2026-10-20"
+    },
+    {
+      "test": "Finite ordered prediction intervals",
+      "passed": true,
+      "detail": "All seven dates checked"
+    },
+    {
+      "test": "Constant unused enrolled material skipped",
+      "passed": true,
+      "detail": "No replacement forecasting model used"
+    },
+    {
+      "test": "POS-only training provenance",
+      "passed": true,
+      "detail": "{'version': 1, 'trainingStart': '2026-07-16', 'trainingEnd': '2026-10-13', 'csvDays': 0, 'posDays': 90, 'zeroFilledDays': 0, 'imputedDays': 0, 'zeroDemandDays': 0, 'bridgeCalendarDays': 0, 'weekdaysOnly': False, 'successfulCandidates': None, 'selectionMetric': None, 'selectionMAPE': None, 'rangeRejections': [], 'rangeCeiling': 179200.0, 'validationMethod': 'rolling windows', 'validationWindows': [{'start': '2026-09-23', 'end': '2026-09-29', 'days': 7, 'mae': 15.154765152551688, 'mape': 1.0915298045988393}, {'start': '2026-09-30', 'end': '2026-10-06', 'days': 7, 'mae': 13.27546577571671, 'mape': 0.8817258897419497}, {'start': '2026-10-07', 'end': '2026-10-13', 'days': 7, 'mae': 12.848361961049543, 'mape': 0.8822696545203121}]}"
+    }
+  ],
+  "passed": 13,
+  "total": 13,
+  "material": "Alaska Classic Evaporated Filled Milk 370ml",
+  "unit": "ml",
+  "forecastTotal": 10440.97,
+  "order": [
+    2,
+    1,
+    2
+  ],
+  "seasonalOrder": [
+    0,
+    1,
+    1,
+    7
+  ],
+  "metrics": {
+    "mae": 13.75953096310598,
+    "rmse": 16.308533598570417,
+    "mape": 0.9518417829537004,
+    "smape": 0.9538738652782914,
+    "aic": 282.24908546770536,
+    "bic": 296.63794926509354
+  },
+  "convergenceWarnings": 47,
+  "warnings": [
+    "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+    "SARIMA uses calendar-day totals with seven-day seasonality.",
+    "Product filters show store-wide ingredient demand, not predicted product sales.",
+    "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+    "Operational training: 90 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+    "New enrolled ingredient (g): POS history excluded: SKU is absent from the current material catalog",
+    "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero.",
+    "Alaska Condensed Milk 390g (g): SARIMA requires varying usage history; constant history cannot be Box-Cox transformed"
+  ]
+}

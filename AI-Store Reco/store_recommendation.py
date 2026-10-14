@@ -11,6 +11,8 @@ from datetime import datetime, timezone
 
 import store_price
 
+FAILED_SEARCH_STATUSES = {'ERROR', 'RATE_LIMIT', 'PAYLOAD_TOO_LARGE'}
+
 
 def number(value):
     if isinstance(value, bool):
@@ -53,6 +55,9 @@ def recommendation_confidence(row):
         percentage = min(percentage, 40)
     if not recent:
         percentage = min(percentage, 45)
+    if row.get('status') in FAILED_SEARCH_STATUSES:
+        percentage = 0
+        reasons.append('Store search failed; retry before considering this store.')
     if (row.get('availability') or {}).get('status') == 'OUT_OF_STOCK':
         percentage = 0
     if len(sources) > 1:
@@ -76,6 +81,8 @@ def rank_stores(results, distance_weight=0.6, include_all=False):
     candidates = []
     seen = set()
     for source_index, source in enumerate(results):
+        if source.get('status') in FAILED_SEARCH_STATUSES:
+            continue
         identity = (source.get("supplier_id") or source.get("place_id") or
                     (source.get("store_name"), source.get("latitude"), source.get("longitude")))
         if identity in seen:
@@ -91,7 +98,8 @@ def rank_stores(results, distance_weight=0.6, include_all=False):
         price = price if price is not None and price > 0 else None
         confirmed = (price is not None and row.get("price_type") == "confirmed"
                      and row.get("store_match") == "VERIFIED"
-                     and row.get("status") == "FOUND" and bool(row.get("source_url")))
+                     and row.get("status") == "FOUND"
+                     and bool(store_price.source_identity(row.get("source_url"))))
         # Copy only evidence needed by consumers, never raw search responses.
         candidates.append({
             "candidate_id": source_index,
@@ -232,7 +240,7 @@ def recommend_saved_results(product, results, client=None):
             row = dict(source)
             evidence = row.get("search_evidence", [])
             query = row.get("search_product") or product
-            if evidence or row.get("market_evidence"):
+            if row.get('status') not in FAILED_SEARCH_STATUSES and (evidence or row.get("market_evidence")):
                 fallback = store_price.build_fallback_result(
                     evidence, row["store_name"], query, row.get("address") or "No saved location")
                 if fallback is None and row.get("market_evidence"):
@@ -264,6 +272,8 @@ def recommend_saved_results(product, results, client=None):
         row["recommendation"] = {
             "rank": choice["rank"] if choice else None,
             "reason": choice["reason"] if choice else (
+                "Store search failed; retry to obtain usable evidence." if
+                row.get("status") in FAILED_SEARCH_STATUSES else
                 "Online listing reports out of stock." if
                 (row.get("availability") or {}).get("status") == "OUT_OF_STOCK" else
                 "Not selected among the top recommendations."),

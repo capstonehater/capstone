@@ -90,15 +90,17 @@ def generate(request):
     progress = ForecastProgress(request.get("progressFile"))
     forecast_days = SARIMA.validate_forecast_days(request.get('forecastDays', 7))
     source = HERE / SARIMA.CONFIG['DATASET']
-    training_source = os.environ.get('FORECAST_TRAINING_SOURCE', 'pos').lower()
+    training_source = os.environ.get('FORECAST_TRAINING_SOURCE', 'mixed').lower()
     if training_source not in ('pos', 'mixed'):
-        raise ValueError('FORECAST_TRAINING_SOURCE must be pos or mixed (development comparison).')
+        raise ValueError('FORECAST_TRAINING_SOURCE must be pos or mixed.')
     catalog = load_catalog()
     if training_source == 'pos':
         from operational_history import build_pos_history
         history, policy_map, merge_notes = build_pos_history(request, catalog, conversion)
     else:
         history = pd.read_csv(source)
+        from mixed_history import select_csv_period
+        history = select_csv_period(history, request['startDate'], request.get('capturedAt'))
     if history.empty:
         raise ValueError('No compatible completed POS history is available' if training_source == 'pos' else 'Historical CSV contains no usage rows')
     required = {'date', 'product', 'raw_material', 'item_code', 'quantity_used', 'unit', 'holiday'}
@@ -112,7 +114,13 @@ def generate(request):
     if not np.isfinite(history['quantity_used']).all() or (history['quantity_used'] < 0).any():
         raise ValueError('History contains invalid or negative usage')
     if training_source == 'mixed':
-        history, policy_map, merge_notes = merge_pos_history(history, request, match_material, conversion)
+        catalog_units = catalog[catalog.record_type.eq('RAW_MATERIAL')].set_index('sku').unit_code.to_dict()
+        history, policy_map, merge_notes = merge_pos_history(history, request, match_material, conversion, catalog_units)
+        from mixed_history import fill_unknown_days
+        history, imputed = fill_unknown_days(history)
+        merge_notes.insert(0, 'Main training history: 2024-01-01 through available 2026 CSV dates before the forecast; completed POS usage replaces overlap and extends history. CSV quantities are synthetic; POS quantities are actual recorded usage.')
+        if imputed:
+            merge_notes.append(f'{imputed} uncovered material/calendar days were estimated using earlier usage. These are model inputs, not measured demand, and are excluded from portfolio evaluation targets.')
     if history.empty:
         raise ValueError('No compatible CSV or POS history is available')
     start = pd.Timestamp(request['startDate'])
@@ -124,18 +132,17 @@ def generate(request):
     business_days_only = False
     date_range = pd.bdate_range if business_days_only else pd.date_range
     dates = forecast_calendar_days(start, forecast_days)
-    # Compare 18 candidates, including validated weekday effects and both transforms.
-    SARIMA.CONFIG.update(FORECAST_DAYS=forecast_days, P=[0, 1, 2], D=[0, 1], Q=[0, 1], SP=[1], SD=[0], SQ=[0], CV_FOLDS=3, BOXCOX_LAMBDA=0, BUSINESS_DAYS_ONLY=business_days_only, SEASON_LENGTH=7, CONSTRAINED_SELECTION=True)
+    SARIMA.CONFIG.update(FORECAST_DAYS=forecast_days, P=[0, 1, 2], D=[0, 1], Q=[0, 1], SP=[1], SD=[0], SQ=[0], CV_FOLDS=4, BOXCOX_LAMBDA=0, BUSINESS_DAYS_ONLY=business_days_only, SEASON_LENGTH=7, CONSTRAINED_SELECTION=True)
     warnings = ['Training source: completed POS ingredient consumption with CSV history on uncovered dates; stock source: live inventory snapshot.',
                 'Store operates daily, 1 PM–10 PM (Asia/Manila): SARIMA uses daily totals and seven-day seasonality, not hourly forecasts.',
                 'Product filters show store-wide ingredient demand, not predicted product sales.']
-    warnings.append('SARIMA compares log1p and scaled raw usage, recent/full history, Philippine holidays and weekday effects. Selection targets period usage error within a 10% MAE guard and 10% MAPE/RMSE limits relative to the reference MAPE objective. Zeros remain in absolute errors; undefined percentage errors are null.')
+    warnings.append('SARIMA compares log1p and scaled raw usage, recent/full history, Philippine holidays and weekday effects. Selection targets period usage error within a 10% MAE guard and 3% MAPE/RMSE limits relative to the reference MAPE objective. Zeros remain in absolute errors; undefined percentage errors are null.')
     warnings.append('Daily intervals target 95% coverage with up to 12 calibration periods and five later test periods excluded from the earlier model selection. A positive-usage tail guard protects against spikes; fewer than 19 positive calibration samples use the observed maximum, not a validated 95% positive-demand quantile. Measured coverage is reported separately; daily bounds are not simultaneous weekly bounds.')
     warnings.extend(merge_notes)
     warnings[0] = ('Training source: completed POS ingredient consumption only; generated CSV is development-only; stock source: live inventory snapshot.' if training_source == 'pos' else warnings[0])
-    if training_source == 'pos' and any(not row.get('sourceUnit') for row in request.get('posHistory', [])):
+    if any(not row.get('sourceUnit') for row in request.get('posHistory', [])):
         warnings.append('Some legacy POS consumption records lack a unit snapshot. Their units are assumed from the catalog; incompatible current inventory units are excluded. Verify these units before relying on estimates.')
-    if training_source == 'pos' and os.environ.get('FORECAST_PORTFOLIO', 'auto') != 'off':
+    if os.environ.get('FORECAST_PORTFOLIO', 'auto') != 'off':
         warnings.append('Portfolio-enabled ingredients use chronological method selection by daily and period absolute error, separate residual calibration, and a later promotion check. Older SARIMA-only selection and interval rules above apply to legacy or constant-history fallbacks. Portfolio promotion tests are not an untouched deployment holdout. Supplier facts and service-level targets require review.')
     if (start - last).days > 1:
         warnings.append(f'Historical data ends {last.date()}; forecasting bridges a {(start-last).days - 1}-day gap.')
@@ -170,10 +177,13 @@ def generate(request):
             if 'is_observed' in group:
                 coverage = group.groupby('date').is_observed.all()
                 series['is_observed'] = series.Date.map(coverage).fillna(False)
+            if 'history_source' in group:
+                sources = group.groupby('date').history_source.first()
+                series['history_source'] = series.Date.map(sources).fillna('IMPUTED')
             if len(series) < SARIMA.CONFIG['MIN_HISTORY']:
                 raise ValueError('At least 60 daily observations of history are required')
             if 'is_observed' in series and int(series.is_observed.sum()) < SARIMA.CONFIG['MIN_HISTORY']:
-                raise ValueError('At least 60 covered POS days are required; imputed calendar days cannot satisfy the training minimum')
+                raise ValueError('At least 60 recorded history days are required; imputed calendar days cannot satisfy the training minimum')
             # Keep the complete uploaded history unless an explicit window is configured.
             available_days = len(series)
             from data_quality import assess
@@ -182,8 +192,6 @@ def generate(request):
                 raise ValueError('Verified stockout-censored history requires reconciliation before demand forecasts; do not train on these zeros as true demand')
             if training_limit:
                 series = series.tail(training_limit).reset_index(drop=True)
-            if series['qty'].nunique() < 2 and training_source != 'pos':
-                raise ValueError('Constant history cannot be fitted with the Box-Cox SARIMA pipeline')
             stationary = {'series': series} if series['qty'].nunique() < 2 else SARIMA.make_stationary(series)
             horizon = len(date_range(series['Date'].max() + pd.Timedelta(days=1), dates[-1]))
             material_policy = configured_policies.get(material['sku'], {})
@@ -195,7 +203,7 @@ def generate(request):
             # Check the actual prediction distance, including unobserved gap days.
             SARIMA.CONFIG['CV_HORIZON'] = horizon
             with contextlib.redirect_stdout(sys.stderr):
-                if training_source == 'pos':
+                if training_source in ('pos', 'mixed'):
                     from operational_forecast import forecast
                     try:
                         training, future = forecast(stationary, material, horizon, dates, select_stable_forecast)
@@ -279,7 +287,7 @@ def generate(request):
                              'validationFolds': len(training['fold_metrics']) if 'fold_metrics' in training else None,
                              'audit': training_audit(model_history, group, training, start, business_days_only),
                              'historicalProducts': sorted(group['product'].unique().tolist()), 'sourceUnit': policy_info['unit'] if policy_info else source_unit,
-                             'trainingSource': 'POS-only' if training_source == 'pos' else ('POS + CSV (development)' if request.get('posDates') else 'CSV (development)'),
+                             'trainingSource': 'POS-only' if training_source == 'pos' else '2024–2026 historical CSV (synthetic) + completed POS',
                              'posSnapshotAt': request.get('capturedAt'),
                              'posMaterialDays': sum(item['materialId'] == material['id'] for item in request.get('posHistory', [])),
                              'conversionFactor': policy_info['factor'] if policy_info else 1,
@@ -298,9 +306,8 @@ def generate(request):
     progress.finalizing()
     if not results:
         raise ValueError('No forecasts could be generated. ' + ' '.join(warnings[-5:]))
-    if training_source == 'pos':
-        from model_store import fingerprint
-    source_bytes = source.read_bytes() if training_source == 'mixed' else ('POS-only-v1:' + fingerprint()).encode()
+    from model_store import fingerprint
+    source_bytes = (training_source + ':2024-2026-v2:' + fingerprint()).encode()
     return {'historyEnd': str(last.date()), 'sourceHash': hashlib.sha256(source_bytes + CATALOG_FILE.read_bytes() + json.dumps({'posHistory': request.get('posHistory', []), 'posDates': request.get('posDates', [])}, sort_keys=True).encode()).hexdigest(), 'warnings': warnings, 'series': results}
 
 

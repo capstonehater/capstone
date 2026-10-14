@@ -52,7 +52,33 @@
 .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; color: #232d46; font-size: 14px; font-weight: 600; line-height: 1.4; }
 .field input { width: 100%; min-height: 46px; padding: 12px 14px; border: 1px solid #d5ddea; border-radius: 8px; background: #fff; color: #09152d; font-size: 14px; font-weight: 400;  }
 .field input::placeholder { color: #7b8798; opacity: 1; }
+.field input { transition: border-color 300ms ease, background-color 300ms ease, box-shadow 300ms ease; }
 .field input:focus-visible { outline: 2px solid #5274a4; outline-offset: 2px; border-color: #5274a4; }
+.field input.invalidInput {
+  border-color: #d85a5a;
+  background: #fffafa;
+  box-shadow: 0 0 0 3px #d85a5a0d;
+}
+.field input.invalidInput:focus-visible {
+  outline: 2px solid #d85a5a40;
+  outline-offset: 2px;
+  border-color: #c24141;
+}
+.fieldError {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: -8px 0 20px;
+  padding: 10px 12px;
+  border: 1px solid #f3d5d5;
+  border-radius: 8px;
+  background: #fff4f4;
+  color: #ad2525;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.fieldError svg { flex-shrink: 0; margin-top: 1px; }
 .passwordField { position: relative; }
 .passwordField input { padding-right: 52px; }
 .passwordToggle { position: absolute; top: 50%; right: 3px; transform: translateY(-50%); display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #596d8a; cursor: pointer; }
@@ -64,6 +90,7 @@
 .formLinks a:hover, .formLinks button:hover { text-decoration: underline; }
 .submit { display: block; width: 100%; min-height: 46px; margin-top: 26px; padding: 12px 16px; border: 0; border-radius: 8px; background: #232d46; box-shadow: 0 6px 13px #232d4638; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;  }
 .submit:hover { background: #31405f; box-shadow: 0 8px 18px #232d4645; }
+.submit { transition: background-color 300ms ease, box-shadow 300ms ease, opacity 300ms ease; }
 .submit:disabled { opacity: .65; cursor: wait; }
 .submit:focus-visible, .formLinks button:focus-visible, .formLinks a:focus-visible { outline: 2px solid #5274a4; outline-offset: 4px; }
 .accessNote { margin: 28px 0 0; padding-top: 22px; border-top: 1px solid #e4e9f2; text-align: center; font-size: 13px; line-height: 1.6; color: #596d8a; }
@@ -76,6 +103,20 @@
 .recoveryLinks a.submit { text-align: center; text-decoration: none; }
 .recoveryLinks a.submit:focus-visible { outline: 2px solid #5274a4; outline-offset: 4px; }
 .success { background: #ecfdf5; color: #166534; }
+.recoveryEntrance .card {
+  animation: recoveryCardEnter 850ms cubic-bezier(.25, .1, .25, 1) both;
+}
+.recoveryEntrance .formContent {
+  animation: recoveryFormEnter 850ms cubic-bezier(.25, .1, .25, 1) both;
+}
+@keyframes recoveryCardEnter {
+  from { transform: translateY(8px); opacity: .65; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes recoveryFormEnter {
+  from { transform: translateX(10px); opacity: .4; }
+  to { transform: translateX(0); opacity: 1; }
+}
 @media (max-width: 760px) {
   .page { padding: 24px 16px; }
   .card { grid-template-columns: 1fr; min-height: auto; max-width: 520px; padding: 10px; border-radius: 24px; }
@@ -87,6 +128,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .field input, .submit { transition: none; }
+  .recoveryEntrance .card, .recoveryEntrance .formContent { animation: none; }
 }
 
 .strengthHeading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; color: #596d8a; font-size: 12px; line-height: 1.5; }

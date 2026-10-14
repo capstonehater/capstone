@@ -1,4 +1,5 @@
 "use client";
+import { trackLocationInBackground } from "@/lib/store-distance";
 import PageSkeleton from "@/components/loading/PageSkeleton";
 
 import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
@@ -11,6 +12,7 @@ import { createSupplier, deleteSupplier, fetchSuppliers, updateSupplier, type Su
 import { useInventoryStore } from "@/store/inventoryStore";
 
 export default function SuppliersFeature() {
+  useEffect(() => trackLocationInBackground(), []);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);

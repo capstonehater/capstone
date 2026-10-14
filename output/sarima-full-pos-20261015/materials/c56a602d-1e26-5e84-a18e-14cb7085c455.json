@@ -1,0 +1,234 @@
+{
+  "materialId": "c56a602d-1e26-5e84-a18e-14cb7085c455",
+  "name": "Magnolia Gold Butter Salted 225g",
+  "sku": "RM-MGBS2-001",
+  "unit": "g",
+  "status": "forecasted",
+  "total": 77.03,
+  "metrics": {
+    "mae": 14.446326270097712,
+    "rmse": 21.482774652856545,
+    "mape": 40.95600803665397,
+    "smape": 94.38326938389878,
+    "aic": 1684.4259734372129,
+    "bic": 1715.1728945153918
+  },
+  "series": {
+    "materialId": "c56a602d-1e26-5e84-a18e-14cb7085c455",
+    "name": "Magnolia Gold Butter Salted 225g",
+    "unit": "g",
+    "points": [
+      {
+        "date": "2026-10-15",
+        "forecast": 12.35,
+        "lower95": 0.0,
+        "upper95": 87.84
+      },
+      {
+        "date": "2026-10-16",
+        "forecast": 10.5,
+        "lower95": 0.0,
+        "upper95": 80.61
+      },
+      {
+        "date": "2026-10-17",
+        "forecast": 9.86,
+        "lower95": 0.0,
+        "upper95": 78.04
+      },
+      {
+        "date": "2026-10-18",
+        "forecast": 12.1,
+        "lower95": 0.0,
+        "upper95": 87.03
+      },
+      {
+        "date": "2026-10-19",
+        "forecast": 11.62,
+        "lower95": 0.0,
+        "upper95": 85.14
+      },
+      {
+        "date": "2026-10-20",
+        "forecast": 9.57,
+        "lower95": 0.0,
+        "upper95": 76.84
+      },
+      {
+        "date": "2026-10-21",
+        "forecast": 11.03,
+        "lower95": 0.0,
+        "upper95": 83.06
+      }
+    ],
+    "metadata": {
+      "dataQuality": {
+        "outlierDatesForReview": [],
+        "outlierTreatment": "flagged; observed quantities retained",
+        "verifiedStockoutDates": [],
+        "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+        "inventoryZeroIsNotProofOfZeroDemand": true,
+        "unknownCalendarDaysAreNotZeroDemand": true
+      },
+      "model": "SARIMA",
+      "order": [
+        2,
+        1,
+        2
+      ],
+      "seasonalOrder": [
+        1,
+        0,
+        1,
+        7
+      ],
+      "metrics": {
+        "mae": 14.446326270097712,
+        "rmse": 21.482774652856545,
+        "mape": 40.95600803665397,
+        "smape": 94.38326938389878,
+        "aic": 1684.4259734372129,
+        "bic": 1715.1728945153918
+      },
+      "trainingDays": 372,
+      "transformation": "log1p",
+      "trainingWindowDays": null,
+      "calendarFeatures": "level",
+      "predictionInterval": null,
+      "insights": {
+        "evidenceStatus": "limited",
+        "requirements": {
+          "minimumTestDays": 30,
+          "minimumPositiveDays": 20,
+          "maximumWAPE": 30.0,
+          "maximumHistoryGapDays": 7,
+          "minimumPeriodCoverage": 0.8
+        },
+        "reasons": [
+          "More held-out forecast days are needed to assess reliability.",
+          "There are too few held-out days with usage to assess demand-spike coverage."
+        ],
+        "recentDays": 90,
+        "recentPositiveDays": 60,
+        "recentUsageFrequency": 0.6666666666666666,
+        "historyGapDays": 1,
+        "estimatedTotalUsage": 77.03,
+        "estimatedShortfall": 0.0,
+        "dailyUpperStressTotal": 578.56,
+        "stressShortfall": 0.0,
+        "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+        "validation": null,
+        "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+      },
+      "trend": "n",
+      "selectionMetric": null,
+      "selectionMAPE": null,
+      "constraints": {
+        "maeTolerance": 0.1,
+        "bestValidationMAE": null,
+        "maeGuardLimit": null,
+        "operationalGuards": null,
+        "rejectedByMAEGuard": null,
+        "requiresConvergence": false,
+        "stationarity": true,
+        "invertibility": true
+      },
+      "availableTrainingDays": 372,
+      "candidateCount": null,
+      "validationFolds": 3,
+      "audit": {
+        "version": 1,
+        "trainingStart": "2025-10-07",
+        "trainingEnd": "2026-10-13",
+        "csvDays": 0,
+        "posDays": 369,
+        "zeroFilledDays": 0,
+        "imputedDays": 3,
+        "zeroDemandDays": 125,
+        "bridgeCalendarDays": 1,
+        "weekdaysOnly": false,
+        "successfulCandidates": null,
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "rangeRejections": [],
+        "rangeCeiling": 10200.0,
+        "validationMethod": "rolling windows",
+        "validationWindows": [
+          {
+            "start": "2026-09-20",
+            "end": "2026-09-27",
+            "days": 8,
+            "mae": 21.407069224910998,
+            "mape": 44.461528650003515
+          },
+          {
+            "start": "2026-09-28",
+            "end": "2026-10-05",
+            "days": 8,
+            "mae": 10.601555878077122,
+            "mape": 37.62944230445554
+          },
+          {
+            "start": "2026-10-06",
+            "end": "2026-10-13",
+            "days": 8,
+            "mae": 11.330353707305013,
+            "mape": 40.777053155502855
+          }
+        ]
+      },
+      "historicalProducts": [
+        "Completed POS sales"
+      ],
+      "sourceUnit": "g",
+      "trainingSource": "POS-only",
+      "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+      "posMaterialDays": 244,
+      "conversionFactor": 1.0,
+      "forecastDays": 7,
+      "previousPeriodDays": 7,
+      "previousPeriodUsage": 112.0,
+      "changePercent": -31.22
+    },
+    "recommendation": {
+      "Product": "Magnolia Gold Butter Salted 225g",
+      "Unit": "g",
+      "ForecastTotal": 77.03,
+      "ForecastDays": 7,
+      "Forecast7Days": 77.03,
+      "DailyDemand": 11.0,
+      "MAE": 14.4463262701,
+      "RMSE": 21.4827746529,
+      "MAPE": 40.9560080367,
+      "SMAPE": 94.3832693839,
+      "CurrentStock": 2512.0352,
+      "SafetyStock": 0.0,
+      "LeadTime": 0.0,
+      "CatalogReorderPoint": 3000.0,
+      "HasInventoryData": true,
+      "LeadTimeDemand": 0.0,
+      "ReorderPoint": 3000.0,
+      "DaysRemaining": 228.4,
+      "StockoutDay": null,
+      "RecommendedPurchase": 565,
+      "BuyOnNextRun": "Yes",
+      "ProjectedRemaining": 3000.01,
+      "Priority": "Low",
+      "Recommendation": "Restock 565 g on the next stock run to cover the forecast and configured stock target.",
+      "stockSource": "live inventory snapshot",
+      "policySource": "raw-materials-and-products.csv"
+    }
+  },
+  "warnings": [
+    "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+    "SARIMA uses calendar-day totals with seven-day seasonality.",
+    "Product filters show store-wide ingredient demand, not predicted product sales.",
+    "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+    "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+    "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+    "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+    "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+  ],
+  "convergenceWarnings": 34,
+  "seconds": 59.65
+}

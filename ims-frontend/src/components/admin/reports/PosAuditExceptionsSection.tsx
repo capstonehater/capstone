@@ -21,6 +21,7 @@ import {
   type PosAuditExceptionsReport,
 } from "@/lib/reports";
 import type { OrderStatus } from "@/lib/pos";
+import { fetchAllPosAuditExceptions } from "@/lib/report-export-pagination";
 import { formatDateTime, formatOrderReference, formatPeso } from "@/lib/pos-utils";
 import { POS_STATUS_OPTIONS, statusTone } from "./pos-report-shared";
 
@@ -180,7 +181,16 @@ export default function PosAuditExceptionsSection({
     setExportError(null);
 
     try {
+      const exportReport = await fetchAllPosAuditExceptions({
+        from: fromIso,
+        to: toIso,
+        staffSearch: staffSearchQuery || undefined,
+        reasonSearch: reasonSearchQuery || undefined,
+        status: status || undefined,
+        exceptionType,
+      });
       const snapshot = {
+        scope: "all" as const,
         filters: {
           from,
           to,
@@ -191,16 +201,16 @@ export default function PosAuditExceptionsSection({
           page,
           pageSize: report.pagination.pageSize,
         },
-        report,
+        report: exportReport,
       };
 
       if (format === "excel") {
         const filename = await exportPosAuditExceptionsExcel(snapshot);
-        setExportNotice(`Excel export downloaded as ${filename}.`);
+        setExportNotice(`Excel downloaded as ${filename}, including all ${exportReport.rows.length} matching exceptions in the selected date range.`);
       } else {
         const filename = await exportPosAuditExceptionsPdf(snapshot);
         setExportNotice(
-          `Printable audit and exceptions report opened as ${filename}. Use your browser's Save as PDF option to finish the export.`,
+          `PDF downloaded as ${filename}, including all ${exportReport.rows.length} matching exceptions in the selected date range.`,
         );
       }
     } catch (nextError) {
@@ -234,6 +244,7 @@ export default function PosAuditExceptionsSection({
               Review the currently stored exception signals only: refunds, voids, reversal
               reasons, approval context, and order-level discounts. This section is intentionally
               narrow and does not represent a full edit, delete, or manual-override audit log.
+              Exports include all matching exceptions in the selected date range, across every page.
             </p>
           </div>
 

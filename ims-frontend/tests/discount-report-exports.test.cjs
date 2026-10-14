@@ -36,19 +36,90 @@ test('discount audit Excel includes separate customer and ID columns', async () 
   assert.ok(spreadsheet.content.includes('"Discount Customer","Discount ID No."'));
   assert.ok(spreadsheet.content.includes('"Maria <Santos>","SC-123"'));
 });
-test('printable audit report includes escaped customer identity', async () => {
-  let html;
-  global.window = { open: () => ({ document: { open() {}, write(value) { html = value; }, close() {} }, focus() {}, close() {} }), setTimeout() {} };
-  await exportsApi.exportPosAuditExceptionsPdf(snapshot);
-  assert.ok(html.includes('Discount Customer'));
-  assert.ok(html.includes('Maria &lt;Santos&gt;'));
-  assert.ok(html.includes('SC-123'));
-  assert.ok(html.includes('A4 landscape'));
-  delete global.window;
+test('downloaded audit PDF retains customer identity and displayed-page scope', async () => {
+  global.DOMParser = require('linkedom').DOMParser;
+  const pdfModule = require('../src/lib/report-pdf.ts');
+  const originalBuilder = pdfModule.buildReportPdfDocument;
+  const originalWindow = global.window;
+  let output;
+  let saved;
+  let reportContent;
+  global.window = {};
+  pdfModule.buildReportPdfDocument = content => {
+    reportContent = content;
+    const pdf = originalBuilder(content);
+    output = pdf.output();
+    pdf.save = async filename => { saved = filename; };
+    return pdf;
+  };
+  try {
+    await exportsApi.exportPosAuditExceptionsPdf(snapshot);
+    assert.ok(reportContent.sections.some(section => section.headers.includes('Discount Customer')));
+    assert.ok(output.includes('Maria <Santos>'));
+    assert.ok(output.includes('SC-123'));
+    assert.ok(output.includes('displayed page of results'));
+    assert.equal(saved, 'pos-audit-exceptions_2026-10-07_to_2026-10-07.pdf');
+  } finally {
+    pdfModule.buildReportPdfDocument = originalBuilder;
+    global.window = originalWindow;
+  }
 });
 test('printed receipt includes discount ID details safely', () => {
   const order = { id: 'order-1', displayOrderNumber: 'POS-1', status: 'COMPLETED', completedAt: row.occurredAt, createdBy: row.responsibleUser, items: [], payments: [], subtotalAmount: '100', totalAmount: '80', taxAmount: '0', ...row.discountDetails };
   const html = receipt.buildReceiptHtml(order);
   assert.ok(html.includes('Senior Citizen ID No.: SC-123'));
   assert.ok(html.includes('Name: Maria &lt;Santos&gt;'));
+});
+
+test('complete-range exports retain the last transaction and exception with full-scope metadata', async () => {
+  global.DOMParser = require('linkedom').DOMParser;
+  const pdfModule = require('../src/lib/report-pdf.ts');
+  const originalBuilder = pdfModule.buildReportPdfDocument;
+  const originalWindow = global.window;
+  const documents = [];
+  global.window = {};
+  pdfModule.buildReportPdfDocument = content => {
+    const pdf = originalBuilder(content);
+    documents.push({ content, output: pdf.output() });
+    pdf.save = async () => {};
+    return pdf;
+  };
+  try {
+    const fullAudit = { ...snapshot, scope: 'all', report: {
+      ...snapshot.report,
+      pagination: { page: 1, pageSize: 100, total: 205, totalPages: 3 },
+      rows: Array.from({ length: 205 }, (_, i) => ({ ...row, orderId: `order-${i}`, discountDetails: { ...row.discountDetails, discountIdNumber: `SC-${i}` } })),
+    } };
+    await exportsApi.exportPosAuditExceptionsExcel(fullAudit);
+    assert.ok(spreadsheet.content.includes('SC-204'));
+    assert.ok(spreadsheet.content.includes('All matching records in the selected date range'));
+    assert.ok(!spreadsheet.content.includes('"Page Size"'));
+    await exportsApi.exportPosAuditExceptionsPdf(fullAudit);
+    const history = { scope: 'all', filters: snapshot.filters, report: {
+      pagination: fullAudit.report.pagination,
+      orders: Array.from({ length: 205 }, (_, i) => ({
+        id: `order-${i}`, displayOrderNumber: `ORD-${i}`, completedAt: row.occurredAt, createdBy: row.responsibleUser,
+        items: [], payments: [], subtotalAmount: '100', discountAmount: '20', taxAmount: '0', totalAmount: '80', status: 'COMPLETED',
+      })),
+    } };
+    await exportsApi.exportPosTransactionHistoryExcel(history);
+    assert.ok(spreadsheet.content.includes('ORD-204'));
+    assert.ok(!spreadsheet.content.includes('Current filtered page'));
+    assert.ok(spreadsheet.content.indexOf('KPI Summary') < spreadsheet.content.indexOf('"Transactions"'));
+    assert.ok(spreadsheet.content.includes('"Most Completed Transactions","205"'));
+    await exportsApi.exportPosTransactionHistoryPdf(history);
+    assert.ok(documents[0].output.includes('SC-204'));
+    assert.ok(documents[1].output.includes('ORD-204'));
+    assert.equal(documents[1].content.sections[0].title, 'KPI Summary');
+    assert.ok(documents[1].content.sections[0].rows.some(([label, value]) => label === 'Most Completed Transactions' && value === '205'));
+    assert.equal(documents[1].content.sections.find(section => section.title === 'Staff Sales Ranking').rows[0][0], '1');
+    for (const document of documents) {
+      assert.ok(document.content.metadata.includes('Exported Records: 205'));
+      assert.ok(document.output.includes('All matching records in the selected date range'));
+      assert.ok(!document.output.includes('displayed page of results'));
+    }
+  } finally {
+    pdfModule.buildReportPdfDocument = originalBuilder;
+    global.window = originalWindow;
+  }
 });

@@ -318,8 +318,8 @@ export default function ProductConfiguratorModal({
 
         </div>
         <div className="space-y-4">
-          <p className={styles.requiredHint}><span className={styles.requiredMark} aria-hidden="true">*</span> Required selection</p>
-          <div>
+          {product.variants.length >= 2 ? <div>
+            <p className={styles.requiredHint}><span className={styles.requiredMark} aria-hidden="true">*</span> Required selection</p>
             <label className="mb-2 block text-sm font-semibold">Variant <span className={styles.requiredMark} aria-hidden="true">*</span><span className="sr-only"> (required)</span></label>
             <div className="grid gap-2">
               {product.variants.map((variant) => {
@@ -375,7 +375,7 @@ export default function ProductConfiguratorModal({
                 );
               })}
             </div>
-          </div>
+          </div> : null}
 
           <div>
             <label className="mb-2 block text-sm font-semibold">Item Notes</label>
@@ -393,7 +393,9 @@ export default function ProductConfiguratorModal({
             <div>
               <h3 className="text-lg font-semibold text-slate-900">Customize your item</h3>
               <p className="text-sm text-slate-500">
-                Customize your item. Complete any required selections.
+                {visibleModifierGroups.some((group) => group.isRequired || group.minSelect > 0)
+                  ? "Customize your item. Complete any required selections."
+                  : "Customize your item."}
               </p>
             </div>
             {error ? (

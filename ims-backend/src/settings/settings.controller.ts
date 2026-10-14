@@ -1,6 +1,8 @@
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MAX_PROFILE_PICTURE_SIZE } from './profile-picture';
+import { validatedImage } from '../common/image-upload';
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -23,6 +25,25 @@ import { SettingsService } from './settings.service';
 @Controller('settings')
 export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
+
+  @Post('image-validation')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      limits: { fileSize: MAX_PROFILE_PICTURE_SIZE, files: 1, fields: 0 },
+    }),
+  )
+  async validateImage(@UploadedFile() file?: Express.Multer.File) {
+    const source = await validatedImage(file);
+    try {
+      // Fully decode before a browser crop can discard unsafe source content.
+      await source.resize(1200, 1200, { fit: 'inside' }).webp().toBuffer();
+    } catch {
+      throw new BadRequestException(
+        'This file does not contain a valid image.',
+      );
+    }
+    return { valid: true };
+  }
 
   @Get('account')
   async getAccount(@CurrentUser() user: AuthenticatedUser) {

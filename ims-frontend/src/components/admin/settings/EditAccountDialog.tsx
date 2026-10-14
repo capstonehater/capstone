@@ -1,5 +1,6 @@
 "use client";
 
+import { validateImageUpload } from "@/lib/image-upload";
 import type { FormEvent } from "react";
 import Image from "next/image";
 import { Check, UserRound } from "lucide-react";
@@ -50,6 +51,7 @@ export default function EditAccountDialog({
   useEffect(() => {
     return () => { if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview); };
   }, [preview]);
+  const [validatingPicture, setValidatingPicture] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationAttempted, setValidationAttempted] = useState(false);
@@ -67,7 +69,7 @@ export default function EditAccountDialog({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting) return;
+    if (submitting || validatingPicture || cropFile) return;
     setValidationAttempted(true);
     if (Object.values(fieldErrors).some(Boolean) || phoneInputError) return;
 
@@ -153,21 +155,28 @@ export default function EditAccountDialog({
           </div>
           <div className="w-full min-w-0 flex-1">
             <label htmlFor="settings-profile-picture" className="block text-sm font-semibold text-[#232d46]">Profile picture</label>
-            <input id="settings-profile-picture" type="file" accept="image/jpeg,image/png,image/webp"
-              disabled={submitting} className="mt-2 block w-full text-sm text-[#232d46]/80 file:mr-3 file:rounded-full file:border-0 file:bg-[#f5f5f5] file:px-4 file:py-2 file:font-semibold file:text-[#232d46]"
-              onChange={(event) => {
+            <input id="settings-profile-picture" type="file" accept=".png,.jpg,.jpeg,.svg,image/jpeg,image/png,image/svg+xml"
+              disabled={submitting || validatingPicture} className="mt-2 block w-full text-sm text-[#232d46]/80 file:mr-3 file:rounded-full file:border-0 file:bg-[#f5f5f5] file:px-4 file:py-2 file:font-semibold file:text-[#232d46]"
+              onChange={async (event) => {
                 const selected = event.target.files?.[0];
                 event.target.value = "";
                 if (!selected) return;
-                if (!["image/jpeg", "image/png", "image/webp"].includes(selected.type) || selected.size > 5 * 1024 * 1024 || selected.size === 0) {
-                  setError("Choose a JPG, PNG, or WebP image up to 5 MB.");
+                if (!/\.(png|jpe?g|svg)$/i.test(selected.name) || selected.size > 5 * 1024 * 1024 || selected.size === 0) {
+                  setError("Choose a PNG, JPG, JPEG, or SVG image up to 5 MB.");
                   event.target.value = "";
                   return;
                 }
                 setError(null);
-                setCropFile(selected);
+                setValidatingPicture(true);
+                try {
+                  await validateImageUpload(selected);
+                  setCropFile(selected);
+                } catch (cause) {
+                  setError(cause instanceof Error ? cause.message : "This file is not a valid image.");
+                } finally { setValidatingPicture(false); }
               }} />
-            <p className="mt-2 text-xs text-[#232d46]/70">JPG, PNG, or WebP, up to 5 MB. Your picture updates when you save changes.</p>
+            <p className="mt-2 text-xs text-[#232d46]/70">PNG, JPG, JPEG, or SVG, up to 5 MB. Your picture updates when you save changes.</p>
+            {validatingPicture && <p role="status" className="mt-2 text-xs text-[#232d46]/70">Checking image contents...</p>}
           </div>
         </div>
 
@@ -272,7 +281,7 @@ export default function EditAccountDialog({
         <div className={styles.actions}>
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || validatingPicture}
             className="rounded-full bg-[#232d46] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#232d46] disabled:opacity-50"
           >
             <Check size={16} aria-hidden="true" />

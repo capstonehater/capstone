@@ -207,6 +207,7 @@ export default function StockRunModals({
         <InventoryModal
           professional
           panelClassName="stockRunManageDialog"
+          bodyClassName="stockRunManageBody"
           title="Manage Stock-Run Draft"
           description="Step 2 of 2. Add batch lines, remove draft items, then post when the receiving list is complete."
           onClose={onClose}
@@ -241,7 +242,7 @@ export default function StockRunModals({
                   onAddStockRunItem(event);
                 }}>
                   <InventoryValidationField error={itemValidationAttempted ? itemErrors.material : undefined}>
-                  <AdminSelect required label="Raw material" value={stockRunItemForm.rawMaterialId} onChange={(rawMaterialId) => {
+                  <AdminSelect searchable required label="Raw material" value={stockRunItemForm.rawMaterialId} onChange={(rawMaterialId) => {
                     const code = summaries.find(summary => summary.rawMaterialId === rawMaterialId)?.unit.code;
                     onStockRunItemFormChange((current) => ({ ...current, rawMaterialId, costPerUnit: "", ...defaultStockRunPriceBasis(code) }));
                     onSelectRawMaterial(rawMaterialId);
@@ -419,7 +420,7 @@ export default function StockRunModals({
                     </button>
                   </PermissionAction>
                 </div>
-                <div className="min-h-0 flex-1 overflow-auto">
+                <div className="min-h-0 flex-1 overflow-auto" tabIndex={0} role="region" aria-label="Draft items">
                   <table className="min-w-full text-sm">
                     <thead className="sticky top-0 z-10 bg-white text-left text-xs uppercase tracking-[0.18em] text-slate-400">
                       <tr>

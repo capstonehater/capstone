@@ -1,0 +1,10 @@
+{
+  "materialId": "53c7eeb8-621b-4c22-a842-67fa8b687bb1",
+  "name": "Arla Whipping Cream 1L",
+  "sku": "RM-AWC1-001",
+  "unit": "ml",
+  "status": "excluded",
+  "reason": "No compatible completed POS history is available",
+  "convergenceWarnings": 0,
+  "seconds": 0.02
+}

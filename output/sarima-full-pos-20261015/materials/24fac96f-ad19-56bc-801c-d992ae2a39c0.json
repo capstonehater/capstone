@@ -1,0 +1,10 @@
+{
+  "materialId": "24fac96f-ad19-56bc-801c-d992ae2a39c0",
+  "name": "Golden Fiesta Canola Oil 1L",
+  "sku": "RM-GFCO1-001",
+  "unit": "ml",
+  "status": "excluded",
+  "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Golden Fiesta Canola Oil 1L (ml): object of type 'NoneType' has no len()",
+  "convergenceWarnings": 187,
+  "seconds": 77.41
+}

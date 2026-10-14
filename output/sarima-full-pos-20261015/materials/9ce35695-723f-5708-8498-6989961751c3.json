@@ -1,0 +1,237 @@
+{
+  "materialId": "9ce35695-723f-5708-8498-6989961751c3",
+  "name": "Monterey Beef Sirloin 1kg",
+  "sku": "RM-MBS1-001",
+  "unit": "g",
+  "status": "forecasted",
+  "total": 120.06,
+  "metrics": {
+    "mae": 77.23629746868575,
+    "rmse": 131.48003037213627,
+    "mape": 76.7850074817281,
+    "smape": 164.66830764373177,
+    "aic": 1720.7879125734805,
+    "bic": 1740.0047382473424
+  },
+  "series": {
+    "materialId": "9ce35695-723f-5708-8498-6989961751c3",
+    "name": "Monterey Beef Sirloin 1kg",
+    "unit": "g",
+    "points": [
+      {
+        "date": "2026-10-15",
+        "forecast": 17.64,
+        "lower95": 0.0,
+        "upper95": 1535.9
+      },
+      {
+        "date": "2026-10-16",
+        "forecast": 19.71,
+        "lower95": 0.0,
+        "upper95": 1673.3
+      },
+      {
+        "date": "2026-10-17",
+        "forecast": 13.57,
+        "lower95": 0.0,
+        "upper95": 1256.82
+      },
+      {
+        "date": "2026-10-18",
+        "forecast": 24.06,
+        "lower95": 0.0,
+        "upper95": 1955.11
+      },
+      {
+        "date": "2026-10-19",
+        "forecast": 13.66,
+        "lower95": 0.0,
+        "upper95": 1262.95
+      },
+      {
+        "date": "2026-10-20",
+        "forecast": 13.76,
+        "lower95": 0.0,
+        "upper95": 1269.67
+      },
+      {
+        "date": "2026-10-21",
+        "forecast": 17.66,
+        "lower95": 0.0,
+        "upper95": 1559.63
+      }
+    ],
+    "metadata": {
+      "dataQuality": {
+        "outlierDatesForReview": [
+          "2026-06-06",
+          "2026-06-28"
+        ],
+        "outlierTreatment": "flagged; observed quantities retained",
+        "verifiedStockoutDates": [],
+        "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+        "inventoryZeroIsNotProofOfZeroDemand": true,
+        "unknownCalendarDaysAreNotZeroDemand": true
+      },
+      "model": "SARIMA",
+      "order": [
+        0,
+        1,
+        2
+      ],
+      "seasonalOrder": [
+        0,
+        0,
+        1,
+        7
+      ],
+      "metrics": {
+        "mae": 77.23629746868575,
+        "rmse": 131.48003037213627,
+        "mape": 76.7850074817281,
+        "smape": 164.66830764373177,
+        "aic": 1720.7879125734805,
+        "bic": 1740.0047382473424
+      },
+      "trainingDays": 372,
+      "transformation": "log1p",
+      "trainingWindowDays": null,
+      "calendarFeatures": "level",
+      "predictionInterval": null,
+      "insights": {
+        "evidenceStatus": "limited",
+        "requirements": {
+          "minimumTestDays": 30,
+          "minimumPositiveDays": 20,
+          "maximumWAPE": 30.0,
+          "maximumHistoryGapDays": 7,
+          "minimumPeriodCoverage": 0.8
+        },
+        "reasons": [
+          "More held-out forecast days are needed to assess reliability.",
+          "There are too few held-out days with usage to assess demand-spike coverage."
+        ],
+        "recentDays": 90,
+        "recentPositiveDays": 49,
+        "recentUsageFrequency": 0.5444444444444444,
+        "historyGapDays": 1,
+        "estimatedTotalUsage": 120.06,
+        "estimatedShortfall": 120.06,
+        "dailyUpperStressTotal": 10513.380000000001,
+        "stressShortfall": 10513.380000000001,
+        "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+        "validation": null,
+        "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+      },
+      "trend": "n",
+      "selectionMetric": null,
+      "selectionMAPE": null,
+      "constraints": {
+        "maeTolerance": 0.1,
+        "bestValidationMAE": null,
+        "maeGuardLimit": null,
+        "operationalGuards": null,
+        "rejectedByMAEGuard": null,
+        "requiresConvergence": false,
+        "stationarity": true,
+        "invertibility": true
+      },
+      "availableTrainingDays": 372,
+      "candidateCount": null,
+      "validationFolds": 3,
+      "audit": {
+        "version": 1,
+        "trainingStart": "2025-10-07",
+        "trainingEnd": "2026-10-13",
+        "csvDays": 0,
+        "posDays": 369,
+        "zeroFilledDays": 0,
+        "imputedDays": 3,
+        "zeroDemandDays": 163,
+        "bridgeCalendarDays": 1,
+        "weekdaysOnly": false,
+        "successfulCandidates": null,
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "rangeRejections": [],
+        "rangeCeiling": 99000.0,
+        "validationMethod": "rolling windows",
+        "validationWindows": [
+          {
+            "start": "2026-09-20",
+            "end": "2026-09-27",
+            "days": 8,
+            "mae": 38.20996036487652,
+            "mape": 84.15198401294823
+          },
+          {
+            "start": "2026-09-28",
+            "end": "2026-10-05",
+            "days": 8,
+            "mae": 80.05883836198274,
+            "mape": 80.56862518248298
+          },
+          {
+            "start": "2026-10-06",
+            "end": "2026-10-13",
+            "days": 8,
+            "mae": 113.44009367919797,
+            "mape": 65.63441324975307
+          }
+        ]
+      },
+      "historicalProducts": [
+        "Completed POS sales"
+      ],
+      "sourceUnit": "g",
+      "trainingSource": "POS-only",
+      "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+      "posMaterialDays": 206,
+      "conversionFactor": 1.0,
+      "forecastDays": 7,
+      "previousPeriodDays": 7,
+      "previousPeriodUsage": 889.375,
+      "changePercent": -86.5
+    },
+    "recommendation": {
+      "Product": "Monterey Beef Sirloin 1kg",
+      "Unit": "g",
+      "ForecastTotal": 120.06,
+      "ForecastDays": 7,
+      "Forecast7Days": 120.06,
+      "DailyDemand": 17.15,
+      "MAE": 77.2362974687,
+      "RMSE": 131.4800303721,
+      "MAPE": 76.7850074817,
+      "SMAPE": 164.6683076437,
+      "CurrentStock": 0.0,
+      "SafetyStock": 0.0,
+      "LeadTime": 0.0,
+      "CatalogReorderPoint": 3000.0,
+      "HasInventoryData": true,
+      "LeadTimeDemand": 0.0,
+      "ReorderPoint": 3000.0,
+      "DaysRemaining": 0.0,
+      "StockoutDay": 1,
+      "RecommendedPurchase": 3121,
+      "BuyOnNextRun": "Yes",
+      "ProjectedRemaining": 3000.94,
+      "Priority": "Critical",
+      "Recommendation": "Restock 3121 g on the next stock run; current stock reaches zero by forecast day 1.",
+      "stockSource": "live inventory snapshot",
+      "policySource": "raw-materials-and-products.csv"
+    }
+  },
+  "warnings": [
+    "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+    "SARIMA uses calendar-day totals with seven-day seasonality.",
+    "Product filters show store-wide ingredient demand, not predicted product sales.",
+    "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+    "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+    "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+    "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+    "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+  ],
+  "convergenceWarnings": 16,
+  "seconds": 60.79
+}

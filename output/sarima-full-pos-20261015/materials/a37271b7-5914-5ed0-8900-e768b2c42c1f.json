@@ -1,0 +1,10 @@
+{
+  "materialId": "a37271b7-5914-5ed0-8900-e768b2c42c1f",
+  "name": "MONIN Hazelnut Syrup 700ml",
+  "sku": "RM-MHS7-001",
+  "unit": "ml",
+  "status": "excluded",
+  "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. MONIN Hazelnut Syrup 700ml (ml): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+  "convergenceWarnings": 12,
+  "seconds": 46.06
+}

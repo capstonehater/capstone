@@ -1,0 +1,10 @@
+{
+  "materialId": "404c5f13-6f9b-5cb9-b929-83be3223f8c5",
+  "name": "Kirkland Signature Macadamia Nuts 680g",
+  "sku": "RM-KSMN6-001",
+  "unit": "g",
+  "status": "excluded",
+  "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Kirkland Signature Macadamia Nuts 680g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+  "convergenceWarnings": 1,
+  "seconds": 43.3
+}

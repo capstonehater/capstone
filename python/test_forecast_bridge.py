@@ -82,10 +82,10 @@ class ForecastBridgeTests(unittest.TestCase):
         self.assertEqual(sum(dates.dayofweek >= 5), 2)
 
     def test_bridge_passes_horizon_to_model_and_handles_weekend_only_period(self):
-        dates = pd.date_range(end='2026-07-31', periods=1308)
+        dates = pd.date_range('2024-01-01', '2026-07-31')
         history = pd.DataFrame({'date': dates, 'product': 'Latte', 'raw_material': 'Milk',
-            'item_code': 'RM-MILK', 'quantity_used': [10, 20] * 654, 'unit': 'ML', 'holiday': 0})
-        series = pd.DataFrame({'Date': dates, 'qty': [10, 20] * 654})
+            'item_code': 'RM-MILK', 'quantity_used': np.resize([10, 20], len(dates)), 'unit': 'ML', 'holiday': 0})
+        series = pd.DataFrame({'Date': dates, 'qty': np.resize([10, 20], len(dates))})
         training = {'exog_cols': [], 'order': (1, 1, 0), 'seasonal': (1, 0, 0, 7),
                     'metrics': {'mae': 1, 'rmse': 1, 'mape': 10, 'smape': 10}}
         def predict(model, stationary, horizon, exog_cols):
@@ -98,6 +98,8 @@ class ForecastBridgeTests(unittest.TestCase):
                     patch('pathlib.Path.read_bytes', return_value=b'test-input'), \
                     patch('forecast_bridge.load_catalog', return_value=pd.DataFrame([{'record_type': 'RAW_MATERIAL', 'sku': 'RM-MILK', 'name': 'Milk', 'unit_code': 'ML', 'reorder_point': 0}])), \
                     patch('forecast_bridge.merge_pos_history', return_value=(history.copy(), {}, [])), \
+                    patch('mixed_history.fill_unknown_days', side_effect=lambda history: (history, 0)), \
+                    patch('operational_forecast.forecast', side_effect=lambda stationary, material, horizon, dates, select: select(stationary, SARIMA.train_sarima(stationary), horizon, dates)), \
                     patch.object(SARIMA, 'aggregate_daily_sales'), patch.object(SARIMA, 'build_holiday_lookup'), \
                     patch.object(SARIMA, 'build_daily_series', return_value=series), \
                     patch.object(SARIMA, 'make_stationary', return_value={'series': series}), \
@@ -112,7 +114,7 @@ class ForecastBridgeTests(unittest.TestCase):
                 self.assertEqual(points[-1]['date'], str((pd.Timestamp(start) + pd.Timedelta(days=days - 1)).date()))
                 self.assertEqual(result['series'][0]['recommendation']['ForecastDays'], days)
                 self.assertEqual(SARIMA.CONFIG['FORECAST_DAYS'], days)
-                self.assertEqual(result['series'][0]['metadata']['trainingDays'], 1308)
+                self.assertEqual(result['series'][0]['metadata']['trainingDays'], len(dates))
                 self.assertFalse(SARIMA.CONFIG['BUSINESS_DAYS_ONLY'])
                 self.assertEqual(SARIMA.CONFIG['SEASON_LENGTH'], 7)
                 self.assertEqual(SARIMA.CONFIG['CV_HORIZON'], (pd.Timestamp(start) - dates[-1]).days + days - 1)

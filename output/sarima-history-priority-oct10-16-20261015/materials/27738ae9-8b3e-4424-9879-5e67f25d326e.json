@@ -1,0 +1,10 @@
+{
+  "materialId": "27738ae9-8b3e-4424-9879-5e67f25d326e",
+  "name": "Matilde Vicenzi Vicenzovo Ladyfingers",
+  "sku": "RM-MVVL-001",
+  "unit": "g",
+  "status": "excluded",
+  "reason": "Historical CSV contains no usage rows",
+  "convergenceWarnings": 0,
+  "seconds": 0.04
+}

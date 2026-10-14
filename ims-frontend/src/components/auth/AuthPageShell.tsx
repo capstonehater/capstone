@@ -5,16 +5,18 @@ import styles from "@/components/login/Login.module.css";
 export default function AuthPageShell({
   children,
   label,
+  animateEntrance = true,
   title = "Know what’s on the shelf before you run out.",
   description = "Sign in to track stock levels, log deliveries, and keep every counter running without a midnight supply run.",
 }: {
   children: ReactNode;
   label: string;
+  animateEntrance?: boolean;
   title?: string;
   description?: string;
 }) {
   return (
-    <main className={styles.page}>
+    <main className={`${styles.page}${animateEntrance ? ` ${styles.recoveryEntrance}` : ""}`}>
       <div className={styles.card}>
       <section className={styles.brandPanel} aria-label="Café Salvacion IMS">
         <div className={styles.brand}><PanelsTopLeft size={26} strokeWidth={1.5} aria-hidden="true" /><span>Café Salvacion IMS</span></div>

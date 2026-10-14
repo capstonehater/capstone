@@ -22,6 +22,7 @@ import {
   type PosTransactionHistoryReport,
 } from "@/lib/reports";
 import type { OrderStatus, PaymentMethod } from "@/lib/pos";
+import { fetchAllPosTransactionHistory } from "@/lib/report-export-pagination";
 import { formatDateTime, formatPeso } from "@/lib/pos-utils";
 import PosTransactionDetailModal from "./PosTransactionDetailModal";
 import {
@@ -155,33 +156,41 @@ export default function PosTransactionHistorySection({
     setExportError(null);
 
     try {
+      const exportReport = await fetchAllPosTransactionHistory({
+        from: fromIso,
+        to: toIso,
+        search: searchQuery || undefined,
+        paymentMethod: paymentMethod || undefined,
+        status: status || undefined,
+      });
       const snapshot = {
+        scope: "all" as const,
         filters: {
           from,
           to,
           search: searchQuery || undefined,
-            paymentMethod: paymentMethod || undefined,
+          paymentMethod: paymentMethod || undefined,
           status: status || undefined,
           page,
           pageSize: report.pagination.pageSize,
         },
-        report,
+        report: exportReport,
       };
 
       if (format === "excel") {
         const filename = await exportPosTransactionHistoryExcel(snapshot);
-        setExportNotice(`Excel export downloaded as ${filename}.`);
+        setExportNotice(`Excel downloaded as ${filename}, including all ${exportReport.orders.length} matching transactions in the selected date range.`);
       } else {
         const filename = await exportPosTransactionHistoryPdf(snapshot);
         setExportNotice(
-          `Printable transaction history opened as ${filename}. Use your browser's Save as PDF option to finish the export.`,
+          `PDF downloaded as ${filename}, including all ${exportReport.orders.length} matching transactions in the selected date range.`,
         );
       }
     } catch (nextError) {
       setExportError(
         nextError instanceof Error
           ? nextError.message
-          : "Failed to export the current transaction history view",
+          : "Failed to export the complete transaction history",
       );
     } finally {
       setExportingFormat(null);
@@ -206,6 +215,7 @@ export default function PosTransactionHistorySection({
             <h3 className="text-xl font-semibold text-neutral-900">Transaction History</h3>
             <p className="mt-2 text-sm text-neutral-600">
               Search transactions by Order ID or staff name, or filter by payment method and status. Open an order to view its receipt and full amount breakdown.
+              Exports include all matching transactions in the selected date range, across every page.
             </p>
           </div>
 

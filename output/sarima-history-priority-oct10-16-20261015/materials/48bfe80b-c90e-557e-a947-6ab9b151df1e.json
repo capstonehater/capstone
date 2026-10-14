@@ -1,0 +1,1226 @@
+{
+  "materialId": "48bfe80b-c90e-557e-a947-6ab9b151df1e",
+  "name": "Fresh Philippine Mango 1kg",
+  "sku": "RM-FPM1-001",
+  "unit": "g",
+  "status": "forecasted",
+  "total": 0.51,
+  "metrics": {
+    "mae": 61.775646776824814,
+    "rmse": 88.40133986898522,
+    "mape": 85.07343691904285,
+    "smape": 122.77586412070022,
+    "aic": 3956.643289113409,
+    "bic": 3981.106175195,
+    "wape": 91.23088301314223,
+    "bias_pct": -24.236980246318293,
+    "period_volume_error": 63.42816622409181
+  },
+  "series": {
+    "materialId": "48bfe80b-c90e-557e-a947-6ab9b151df1e",
+    "name": "Fresh Philippine Mango 1kg",
+    "unit": "g",
+    "points": [
+      {
+        "date": "2026-10-10",
+        "forecast": 0.18621119463246052,
+        "lower95": 0.0,
+        "upper95": 319.756581094021
+      },
+      {
+        "date": "2026-10-11",
+        "forecast": 0.32609284165682967,
+        "lower95": 0.0,
+        "upper95": 319.89646274104535
+      },
+      {
+        "date": "2026-10-12",
+        "forecast": 0.0,
+        "lower95": 0.0,
+        "upper95": 319.57036989938854
+      },
+      {
+        "date": "2026-10-13",
+        "forecast": 0.0,
+        "lower95": 0.0,
+        "upper95": 319.57036989938854
+      },
+      {
+        "date": "2026-10-14",
+        "forecast": 0.0,
+        "lower95": 0.0,
+        "upper95": 220.77138983156394
+      },
+      {
+        "date": "2026-10-15",
+        "forecast": 0.0,
+        "lower95": 0.0,
+        "upper95": 220.77138983156394
+      },
+      {
+        "date": "2026-10-16",
+        "forecast": 0.0,
+        "lower95": 0.0,
+        "upper95": 220.77138983156394
+      }
+    ],
+    "metadata": {
+      "dataQuality": {
+        "outlierDatesForReview": [
+          "2024-04-10"
+        ],
+        "outlierTreatment": "flagged; observed quantities retained",
+        "verifiedStockoutDates": [],
+        "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+        "inventoryZeroIsNotProofOfZeroDemand": true,
+        "unknownCalendarDaysAreNotZeroDemand": true
+      },
+      "portfolio": null,
+      "model": "SARIMA",
+      "modelLifecycle": {
+        "action": "trained",
+        "trainedThrough": "2026-10-06",
+        "configurationSelectedThrough": "2026-10-06",
+        "searchIntervalDays": 28,
+        "artifactSaved": false,
+        "metricScope": "last full chronological model selection"
+      },
+      "order": [
+        2,
+        0,
+        0
+      ],
+      "seasonalOrder": [
+        1,
+        0,
+        0,
+        7
+      ],
+      "metrics": {
+        "mae": 61.775646776824814,
+        "rmse": 88.40133986898522,
+        "mape": 85.07343691904285,
+        "smape": 122.77586412070022,
+        "aic": 3956.643289113409,
+        "bic": 3981.106175195,
+        "wape": 91.23088301314223,
+        "bias_pct": -24.236980246318293,
+        "period_volume_error": 63.42816622409181
+      },
+      "trainingDays": 1010,
+      "transformation": "log1p",
+      "trainingWindowDays": null,
+      "calendarFeatures": "level",
+      "predictionInterval": {
+        "targetCoverage": 0.95,
+        "pointwise": true,
+        "maxHorizon": 10,
+        "selectionEnd": "2026-10-06",
+        "calibrationMethod": "retrospective_fixed_configuration",
+        "validationIndependentOfSelection": true,
+        "calibrationStart": "2026-06-09",
+        "calibrationEnd": "2026-10-06",
+        "failedCalibrationFolds": 0,
+        "coverageGuarantee": false,
+        "method": "rolling_residual_calibration",
+        "calibrationDays": 120,
+        "calibrationFolds": 12,
+        "scaleFloor": 7839.771484903182,
+        "factors": [
+          0.03866441020568024,
+          0.028160436851596624
+        ],
+        "bucketSampleCounts": [
+          84,
+          36
+        ],
+        "positiveDemandGuard": true,
+        "zeroDemandFrequency": 0.22499999999999998,
+        "positiveUpperFactors": [
+          0.040762714897337994,
+          0.028160436851596624
+        ],
+        "positiveSampleCounts": [
+          67,
+          26
+        ],
+        "positiveQuantileMethods": [
+          "horizon_positive_quantile",
+          "horizon_positive_quantile"
+        ],
+        "horizonBucketDays": 7,
+        "validation": {
+          "coverage": 1.0,
+          "coveredDays": 50,
+          "days": 50,
+          "positiveDemandCoverage": 1.0,
+          "positiveDemandDays": 26,
+          "positiveDemandCoveredDays": 26,
+          "meanWidth": 745.0580402309815,
+          "intervalScore": 745.0580402309815,
+          "actualTotal": 5349.5560000000005,
+          "forecastTotal": 9066.809265839602,
+          "absoluteErrorTotal": 6388.507613071324,
+          "baselineAbsoluteErrorTotal": 6247.098,
+          "wape": 119.42126810283551,
+          "biasPercent": 69.48713623784106,
+          "seasonalNaiveMAE": 124.94196,
+          "seasonalNaiveSkill": -0.02263604846143341,
+          "start": "2026-08-18",
+          "end": "2026-10-06",
+          "folds": 5,
+          "foldCoverage": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "method": "prequential_rolling_origins",
+          "windows": [
+            {
+              "start": "2026-08-18",
+              "end": "2026-08-27",
+              "calibrationEnd": "2026-08-17",
+              "factors": [
+                0.2917207294416537,
+                0.4881593218485379
+              ],
+              "positiveUpperFactors": [
+                0.2917207294416537,
+                0.4881593218485379
+              ],
+              "positiveSampleCounts": [
+                81,
+                34
+              ],
+              "byHorizon": [
+                {
+                  "day": 1,
+                  "date": "2026-08-18",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 2,
+                  "date": "2026-08-19",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 3,
+                  "date": "2026-08-20",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 4,
+                  "date": "2026-08-21",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 5,
+                  "date": "2026-08-22",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 6,
+                  "date": "2026-08-23",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 7,
+                  "date": "2026-08-24",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 8,
+                  "date": "2026-08-25",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 9,
+                  "date": "2026-08-26",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 10,
+                  "date": "2026-08-27",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                }
+              ]
+            },
+            {
+              "start": "2026-08-28",
+              "end": "2026-09-06",
+              "calibrationEnd": "2026-08-27",
+              "factors": [
+                0.29142932204871963,
+                0.4876716868573988
+              ],
+              "positiveUpperFactors": [
+                0.29142932204871963,
+                0.4876716868573988
+              ],
+              "positiveSampleCounts": [
+                80,
+                35
+              ],
+              "byHorizon": [
+                {
+                  "day": 1,
+                  "date": "2026-08-28",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 2,
+                  "date": "2026-08-29",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 3,
+                  "date": "2026-08-30",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 4,
+                  "date": "2026-08-31",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 5,
+                  "date": "2026-09-01",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 6,
+                  "date": "2026-09-02",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 7,
+                  "date": "2026-09-03",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 8,
+                  "date": "2026-09-04",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 9,
+                  "date": "2026-09-05",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 10,
+                  "date": "2026-09-06",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                }
+              ]
+            },
+            {
+              "start": "2026-09-07",
+              "end": "2026-09-16",
+              "calibrationEnd": "2026-09-06",
+              "factors": [
+                0.2580586058359391,
+                0.48589162036814043
+              ],
+              "positiveUpperFactors": [
+                0.2580586058359391,
+                0.48589162036814043
+              ],
+              "positiveSampleCounts": [
+                79,
+                32
+              ],
+              "byHorizon": [
+                {
+                  "day": 1,
+                  "date": "2026-09-07",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 2,
+                  "date": "2026-09-08",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 3,
+                  "date": "2026-09-09",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 4,
+                  "date": "2026-09-10",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 5,
+                  "date": "2026-09-11",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 6,
+                  "date": "2026-09-12",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 7,
+                  "date": "2026-09-13",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 8,
+                  "date": "2026-09-14",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 9,
+                  "date": "2026-09-15",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 10,
+                  "date": "2026-09-16",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                }
+              ]
+            },
+            {
+              "start": "2026-09-17",
+              "end": "2026-09-26",
+              "calibrationEnd": "2026-09-16",
+              "factors": [
+                0.22997796858860844,
+                0.244067716138511
+              ],
+              "positiveUpperFactors": [
+                0.257035589766704,
+                0.244067716138511
+              ],
+              "positiveSampleCounts": [
+                73,
+                30
+              ],
+              "byHorizon": [
+                {
+                  "day": 1,
+                  "date": "2026-09-17",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 2,
+                  "date": "2026-09-18",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 3,
+                  "date": "2026-09-19",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 4,
+                  "date": "2026-09-20",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 5,
+                  "date": "2026-09-21",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 6,
+                  "date": "2026-09-22",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 7,
+                  "date": "2026-09-23",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 8,
+                  "date": "2026-09-24",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 9,
+                  "date": "2026-09-25",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 10,
+                  "date": "2026-09-26",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                }
+              ]
+            },
+            {
+              "start": "2026-09-27",
+              "end": "2026-10-06",
+              "calibrationEnd": "2026-09-26",
+              "factors": [
+                0.19741293974516727,
+                0.244067716138511
+              ],
+              "positiveUpperFactors": [
+                0.22521991183685347,
+                0.244067716138511
+              ],
+              "positiveSampleCounts": [
+                71,
+                28
+              ],
+              "byHorizon": [
+                {
+                  "day": 1,
+                  "date": "2026-09-27",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 2,
+                  "date": "2026-09-28",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 3,
+                  "date": "2026-09-29",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 4,
+                  "date": "2026-09-30",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 5,
+                  "date": "2026-10-01",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 6,
+                  "date": "2026-10-02",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 7,
+                  "date": "2026-10-03",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 8,
+                  "date": "2026-10-04",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 1,
+                  "positiveDemandCoveredDays": 1
+                },
+                {
+                  "day": 9,
+                  "date": "2026-10-05",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                },
+                {
+                  "day": 10,
+                  "date": "2026-10-06",
+                  "days": 1,
+                  "coveredDays": 1,
+                  "positiveDemandDays": 0,
+                  "positiveDemandCoveredDays": 0
+                }
+              ]
+            }
+          ],
+          "modelBased": {
+            "coverage": 0.52,
+            "coveredDays": 26,
+            "days": 50,
+            "positiveDemandCoverage": 1.0,
+            "positiveDemandDays": 26,
+            "positiveDemandCoveredDays": 26,
+            "meanWidth": 3573.6591478971636,
+            "intervalScore": 3723.630167454235,
+            "actualTotal": 5349.5560000000005,
+            "forecastTotal": 9066.809265839602,
+            "absoluteErrorTotal": 6388.507613071324,
+            "baselineAbsoluteErrorTotal": null,
+            "wape": 119.42126810283551,
+            "biasPercent": 69.48713623784106,
+            "seasonalNaiveMAE": null,
+            "seasonalNaiveSkill": null
+          },
+          "pointMetrics": {
+            "mae": 127.77015226142649,
+            "rmse": 148.37742235048734,
+            "mape": 53.62617587106576,
+            "smape": 119.65296091950451,
+            "wape": 119.42126810283551,
+            "bias_pct": 69.48713623784106
+          },
+          "byHorizon": [
+            {
+              "day": 1,
+              "start": "2026-08-18",
+              "end": "2026-09-27",
+              "coverage": 1.0,
+              "coveredDays": 5,
+              "days": 5,
+              "positiveDemandCoverage": 1.0,
+              "positiveDemandDays": 2,
+              "positiveDemandCoveredDays": 2,
+              "meanWidth": 600.0933237588872,
+              "intervalScore": 600.0933237588872,
+              "actualTotal": 547.2149999999999,
+              "forecastTotal": 732.3769162596311,
+              "absoluteErrorTotal": 446.3764331861131,
+              "baselineAbsoluteErrorTotal": 486.852,
+              "wape": 81.57240448198846,
+              "biasPercent": 33.837141938658704,
+              "seasonalNaiveMAE": 97.37039999999999,
+              "seasonalNaiveSkill": 0.08313731239449951
+            },
+            {
+              "day": 2,
+              "start": "2026-08-19",
+              "end": "2026-09-28",
+              "coverage": 1.0,
+              "coveredDays": 5,
+              "days": 5,
+              "positiveDemandCoverage": 1.0,
+              "positiveDemandDays": 3,
+              "positiveDemandCoveredDays": 3,
+              "meanWidth": 595.1622972586407,
+              "intervalScore": 595.1622972586407,
+              "actualTotal": 761.126,
+              "forecastTotal": 783.9642034412155,
+              "absoluteErrorTotal": 685.4896439418918,
+              "baselineAbsoluteErrorTotal": 599.2070000000001,
+              "wape": 90.0625709727288,
+              "biasPercent": 3.000581170688634,
+              "seasonalNaiveMAE": 119.84140000000002,
+              "seasonalNaiveSkill": -0.14399471959087884
+            },
+            {
+              "day": 3,
+              "start": "2026-08-20",
+              "end": "2026-09-29",
+              "coverage": 1.0,
+              "coveredDays": 5,
+              "days": 5,
+              "positiveDemandCoverage": 1.0,
+              "positiveDemandDays": 3,
+              "positiveDemandCoveredDays": 3,
+              "meanWidth": 672.6513370606465,
+              "intervalScore": 672.6513370606465,
+              "actualTotal": 669.044,
+              "forecastTotal": 897.3307474223702,
+              "absoluteErrorTotal": 541.2152919562036,
+              "baselineAbsoluteErrorTotal": 484.007,
+              "wape": 80.89382640845798,
+              "biasPercent": 34.12133543120785,
+              "seasonalNaiveMAE": 96.8014,
+              "seasonalNaiveSkill": -0.11819724085850747
+            },
+            {
+              "day": 4,
+              "start": "2026-08-21",
+              "end": "2026-09-30",
+              "coverage": 1.0,
+              "coveredDays": 5,
+              "days": 5,
+              "positiveDemandCoverage": 1.0,
+              "positiveDemandDays": 3,
+              "positiveDemandCoveredDays": 3,
+              "meanWidth": 836.3159835552578,
+              "intervalScore": 836.3159835552578,
+              "actualTotal": 612.034,
+              "forecastTotal": 1163.0798740245602,
+              "absoluteErrorTotal": 551.0458740245602,
+              "baselineAbsoluteErrorTotal": 596.358,
+              "wape": 90.03517354012362,
+              "biasPercent": 90.03517354012362,
+              "seasonalNaiveMAE": 119.27159999999999,
+              "seasonalNaiveSkill": 0.07598141716123485
+            },
+            {
+              "day": 5,
+              "start": "2026-08-22",
+              "end": "2026-10-01",
+              "coverage": 1.0,
+              "coveredDays": 5,
+              "days": 5,
+              "positiveDemandCoverage": 1.0,
+              "positiveDemandDays": 3,
+              "positiveDemandCoveredDays": 3,
+              "meanWidth": 667.9143140752467,
+              "intervalScore": 667.9143140752467,
+              "actualTotal": 540.227,
+              "forecastTotal": 923.3825195640632,
+              "absoluteErrorTotal": 607.1483268008151,
+              "baselineAbsoluteErrorTotal": 401.83399999999995,
+              "wape": 112.38763090345634,
+              "biasPercent": 70.9249111140434,
+              "seasonalNaiveMAE": 80.36679999999998,
+              "seasonalNaiveSkill": -0.5109431426927915
+            },
+            {
+              "day": 6,
+              "start": "2026-08-23",
+              "end": "2026-10-02",
+              "coverage": 1.0,
+              "coveredDays": 5,
+              "days": 5,
+              "positiveDemandCoverage": 1.0,
+              "positiveDemandDays": 2,
+              "positiveDemandCoveredDays": 2,
+              "meanWidth": 727.2282421023972,
+              "intervalScore": 727.2282421023972,
+              "actualTotal": 245.0,
+              "forecastTotal": 982.0866029399905,
+              "absoluteErrorTotal": 755.137373539687,
+              "baselineAbsoluteErrorTotal": 1043.2160000000001,
+              "wape": 308.2193361386478,
+              "biasPercent": 300.85167466938384,
+              "seasonalNaiveMAE": 208.64320000000004,
+              "seasonalNaiveSkill": 0.2761447547394912
+            },
+            {
+              "day": 7,
+              "start": "2026-08-24",
+              "end": "2026-10-03",
+              "coverage": 1.0,
+              "coveredDays": 5,
+              "days": 5,
+              "positiveDemandCoverage": 1.0,
+              "positiveDemandDays": 4,
+              "positiveDemandCoveredDays": 4,
+              "meanWidth": 649.9363661717872,
+              "intervalScore": 649.9363661717872,
+              "actualTotal": 533.269,
+              "forecastTotal": 850.1818295755354,
+              "absoluteErrorTotal": 316.9128295755353,
+              "baselineAbsoluteErrorTotal": 717.9680000000001,
+              "wape": 59.428324087005855,
+              "biasPercent": 59.428324087005876,
+              "seasonalNaiveMAE": 143.5936,
+              "seasonalNaiveSkill": 0.5585975564711307
+            },
+            {
+              "day": 8,
+              "start": "2026-08-25",
+              "end": "2026-10-04",
+              "coverage": 1.0,
+              "coveredDays": 5,
+              "days": 5,
+              "positiveDemandCoverage": 1.0,
+              "positiveDemandDays": 3,
+              "positiveDemandCoveredDays": 3,
+              "meanWidth": 932.8043176402705,
+              "intervalScore": 932.8043176402705,
+              "actualTotal": 544.957,
+              "forecastTotal": 961.2061257584551,
+              "absoluteErrorTotal": 616.8506863905179,
+              "baselineAbsoluteErrorTotal": 643.906,
+              "wape": 113.19254296954033,
+              "biasPercent": 76.38201284843667,
+              "seasonalNaiveMAE": 128.78119999999998,
+              "seasonalNaiveSkill": 0.042017489524064144
+            },
+            {
+              "day": 9,
+              "start": "2026-08-26",
+              "end": "2026-10-05",
+              "coverage": 1.0,
+              "coveredDays": 5,
+              "days": 5,
+              "positiveDemandCoverage": 1.0,
+              "positiveDemandDays": 1,
+              "positiveDemandCoveredDays": 1,
+              "meanWidth": 862.1060427923745,
+              "intervalScore": 862.1060427923745,
+              "actualTotal": 277.598,
+              "forecastTotal": 854.9531911333022,
+              "absoluteErrorTotal": 863.630520617975,
+              "baselineAbsoluteErrorTotal": 686.133,
+              "wape": 311.10833673800784,
+              "biasPercent": 207.98247506585145,
+              "seasonalNaiveMAE": 137.22660000000002,
+              "seasonalNaiveSkill": -0.25869258674043505
+            },
+            {
+              "day": 10,
+              "start": "2026-08-27",
+              "end": "2026-10-06",
+              "coverage": 1.0,
+              "coveredDays": 5,
+              "days": 5,
+              "positiveDemandCoverage": 1.0,
+              "positiveDemandDays": 2,
+              "positiveDemandCoveredDays": 2,
+              "meanWidth": 906.3681778943067,
+              "intervalScore": 906.3681778943067,
+              "actualTotal": 619.086,
+              "forecastTotal": 918.247255720478,
+              "absoluteErrorTotal": 1004.700633038025,
+              "baselineAbsoluteErrorTotal": 587.617,
+              "wape": 162.2877327282518,
+              "biasPercent": 48.32305297171605,
+              "seasonalNaiveMAE": 117.5234,
+              "seasonalNaiveSkill": -0.7097882345780075
+            }
+          ],
+          "weeklyTotal": {
+            "periods": 5,
+            "wape": 92.18002844664242,
+            "biasPercent": 69.48713623784106,
+            "mape": 213.93572504884116,
+            "baselineWape": 53.10511750881754
+          }
+        },
+        "validationConfiguration": {
+          "order": [
+            1,
+            0,
+            0
+          ],
+          "seasonal": [
+            0,
+            0,
+            0,
+            7
+          ],
+          "window": 365,
+          "transform": "log1p",
+          "features": "weekday",
+          "trend": "c",
+          "selectionEnd": "2026-08-17"
+        },
+        "productionConfigurationUpdated": true,
+        "validationScope": "forecasting_procedure_before_latest_observations",
+        "requestedValidation": {
+          "coverage": 1.0,
+          "coveredDays": 35,
+          "days": 35,
+          "positiveDemandDays": 18,
+          "positiveDemandCoverage": 1.0,
+          "meanWidth": 797.5247777473772,
+          "start": "2026-08-21",
+          "end": "2026-10-06",
+          "folds": 5,
+          "horizonStart": 4,
+          "horizonEnd": 10,
+          "actualTotal": 3372.171,
+          "forecastTotal": 6653.137398716384,
+          "wape": 139.8335447397868,
+          "biasPercent": 97.29537436613934,
+          "seasonalNaiveMAE": 133.62948571428572,
+          "seasonalNaiveSkill": -0.00820910440362943,
+          "periods": [
+            {
+              "start": "2026-08-21",
+              "end": "2026-08-27",
+              "coverage": 1.0,
+              "days": 7,
+              "positiveDemandDays": 6,
+              "positiveDemandCoverage": 1.0
+            },
+            {
+              "start": "2026-08-31",
+              "end": "2026-09-06",
+              "coverage": 1.0,
+              "days": 7,
+              "positiveDemandDays": 3,
+              "positiveDemandCoverage": 1.0
+            },
+            {
+              "start": "2026-09-10",
+              "end": "2026-09-16",
+              "coverage": 1.0,
+              "days": 7,
+              "positiveDemandDays": 2,
+              "positiveDemandCoverage": 1.0
+            },
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-26",
+              "coverage": 1.0,
+              "days": 7,
+              "positiveDemandDays": 4,
+              "positiveDemandCoverage": 1.0
+            },
+            {
+              "start": "2026-09-30",
+              "end": "2026-10-06",
+              "coverage": 1.0,
+              "days": 7,
+              "positiveDemandDays": 3,
+              "positiveDemandCoverage": 1.0
+            }
+          ],
+          "minimumPeriodCoverage": 1.0,
+          "periodsAtTarget": 5
+        }
+      },
+      "insights": {
+        "evidenceStatus": "limited",
+        "requirements": {
+          "minimumTestDays": 30,
+          "minimumPositiveDays": 20,
+          "maximumWAPE": 30.0,
+          "maximumHistoryGapDays": 7,
+          "minimumPeriodCoverage": 0.8
+        },
+        "reasons": [
+          "There are too few held-out days with usage to assess demand-spike coverage.",
+          "Volume-weighted daily error exceeds the configured planning threshold.",
+          "The earlier SARIMA test did not beat repeating last week's usage."
+        ],
+        "recentDays": 90,
+        "recentPositiveDays": 65,
+        "recentUsageFrequency": 0.7222222222222222,
+        "historyGapDays": 3,
+        "estimatedTotalUsage": 0.5123040362892902,
+        "estimatedShortfall": 0.5123040362892902,
+        "dailyUpperStressTotal": 1941.1079531285352,
+        "stressShortfall": 1941.1079531285352,
+        "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+        "validation": {
+          "coverage": 1.0,
+          "coveredDays": 35,
+          "days": 35,
+          "positiveDemandDays": 18,
+          "positiveDemandCoverage": 1.0,
+          "meanWidth": 797.5247777473772,
+          "start": "2026-08-21",
+          "end": "2026-10-06",
+          "folds": 5,
+          "horizonStart": 4,
+          "horizonEnd": 10,
+          "actualTotal": 3372.171,
+          "forecastTotal": 6653.137398716384,
+          "wape": 139.8335447397868,
+          "biasPercent": 97.29537436613934,
+          "seasonalNaiveMAE": 133.62948571428572,
+          "seasonalNaiveSkill": -0.00820910440362943,
+          "periods": [
+            {
+              "start": "2026-08-21",
+              "end": "2026-08-27",
+              "coverage": 1.0,
+              "days": 7,
+              "positiveDemandDays": 6,
+              "positiveDemandCoverage": 1.0
+            },
+            {
+              "start": "2026-08-31",
+              "end": "2026-09-06",
+              "coverage": 1.0,
+              "days": 7,
+              "positiveDemandDays": 3,
+              "positiveDemandCoverage": 1.0
+            },
+            {
+              "start": "2026-09-10",
+              "end": "2026-09-16",
+              "coverage": 1.0,
+              "days": 7,
+              "positiveDemandDays": 2,
+              "positiveDemandCoverage": 1.0
+            },
+            {
+              "start": "2026-09-20",
+              "end": "2026-09-26",
+              "coverage": 1.0,
+              "days": 7,
+              "positiveDemandDays": 4,
+              "positiveDemandCoverage": 1.0
+            },
+            {
+              "start": "2026-09-30",
+              "end": "2026-10-06",
+              "coverage": 1.0,
+              "days": 7,
+              "positiveDemandDays": 3,
+              "positiveDemandCoverage": 1.0
+            }
+          ],
+          "minimumPeriodCoverage": 1.0,
+          "periodsAtTarget": 5
+        },
+        "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+      },
+      "trend": "n",
+      "selectionMetric": "period_volume_error_with_mae_mape_rmse_guards",
+      "selectionMAPE": 85.07343691904285,
+      "constraints": {
+        "maeTolerance": 0.1,
+        "bestValidationMAE": 61.775646776824814,
+        "maeGuardLimit": 67.9532114555073,
+        "operationalGuards": {
+          "enabled": true,
+          "tolerance": 0.03,
+          "referenceMAPE": 85.07343691904285,
+          "referenceRMSE": 88.40133986898522,
+          "mapeLimit": 87.62564002761414,
+          "rmseLimit": 91.05338006605479
+        },
+        "rejectedByMAEGuard": 37,
+        "requiresConvergence": true,
+        "stationarity": true,
+        "invertibility": true
+      },
+      "availableTrainingDays": 1010,
+      "candidateCount": 45,
+      "validationFolds": 4,
+      "audit": {
+        "version": 1,
+        "trainingStart": "2024-01-01",
+        "trainingEnd": "2026-10-06",
+        "csvDays": 950,
+        "posDays": 60,
+        "zeroFilledDays": 0,
+        "imputedDays": 0,
+        "zeroDemandDays": 86,
+        "bridgeCalendarDays": 3,
+        "weekdaysOnly": false,
+        "successfulCandidates": 38,
+        "selectionMetric": "period_volume_error_with_mae_mape_rmse_guards",
+        "selectionMAPE": 85.07343691904285,
+        "rangeRejections": [],
+        "rangeCeiling": 132670.1,
+        "validationMethod": "rolling windows",
+        "validationWindows": [
+          {
+            "start": "2026-08-28",
+            "end": "2026-09-06",
+            "days": 10,
+            "mae": 110.67368923357155,
+            "mape": 52.09969224375802
+          },
+          {
+            "start": "2026-09-07",
+            "end": "2026-09-16",
+            "days": 10,
+            "mae": 24.50097054604023,
+            "mape": 100.0
+          },
+          {
+            "start": "2026-09-17",
+            "end": "2026-09-26",
+            "days": 10,
+            "mae": 58.35059854328991,
+            "mape": 99.7265612101036
+          },
+          {
+            "start": "2026-09-27",
+            "end": "2026-10-06",
+            "days": 10,
+            "mae": 53.57732878439756,
+            "mape": 88.46749422230978
+          }
+        ]
+      },
+      "historicalProducts": [
+        "Historical CSV daily zero",
+        "Mango Dream Crepe",
+        "Mango Shake",
+        "Nutty Mango Waffles",
+        "POS sales"
+      ],
+      "sourceUnit": "g",
+      "trainingSource": "2024\u20132026 historical CSV (synthetic) + completed POS",
+      "posSnapshotAt": "2026-10-14T17:15:18.124Z",
+      "posMaterialDays": 105,
+      "conversionFactor": 1.0,
+      "forecastDays": 7,
+      "previousPeriodDays": 7,
+      "previousPeriodUsage": 330.0,
+      "changePercent": -99.84
+    },
+    "recommendation": {
+      "Product": "Fresh Philippine Mango 1kg",
+      "Unit": "g",
+      "ForecastTotal": 0.5123040363,
+      "ForecastDays": 7,
+      "Forecast7Days": 0.5123040363,
+      "DailyDemand": 0.07,
+      "MAE": 61.7756467768,
+      "RMSE": 88.401339869,
+      "MAPE": 85.073436919,
+      "SMAPE": 122.7758641207,
+      "CurrentStock": 0.0,
+      "SafetyStock": 0.0,
+      "LeadTime": 0.0,
+      "CatalogReorderPoint": 3000.0,
+      "HasInventoryData": true,
+      "LeadTimeDemand": 0.0,
+      "ReorderPoint": 3000.0,
+      "DaysRemaining": 0.0,
+      "StockoutDay": 1,
+      "RecommendedPurchase": 3001,
+      "BuyOnNextRun": "Yes",
+      "ProjectedRemaining": 3000.49,
+      "Priority": "Critical",
+      "Recommendation": "Restock 3001 g on the next stock run; current stock reaches zero by forecast day 1.",
+      "stockSource": "live inventory snapshot",
+      "policySource": "raw-materials-and-products.csv"
+    }
+  },
+  "warnings": [
+    "Training source: completed POS ingredient consumption with CSV history on uncovered dates; stock source: live inventory snapshot.",
+    "Store operates daily, 1 PM\u201310 PM (Asia/Manila): SARIMA uses daily totals and seven-day seasonality, not hourly forecasts.",
+    "Product filters show store-wide ingredient demand, not predicted product sales.",
+    "SARIMA compares log1p and scaled raw usage, recent/full history, Philippine holidays and weekday effects. Selection targets period usage error within a 10% MAE guard and 3% MAPE/RMSE limits relative to the reference MAPE objective. Zeros remain in absolute errors; undefined percentage errors are null.",
+    "Daily intervals target 95% coverage with up to 12 calibration periods and five later test periods excluded from the earlier model selection. A positive-usage tail guard protects against spikes; fewer than 19 positive calibration samples use the observed maximum, not a validated 95% positive-demand quantile. Measured coverage is reported separately; daily bounds are not simultaneous weekly bounds.",
+    "Main training history: 2024-01-01 through available 2026 CSV dates before the forecast; positive CSV daily consumption takes priority; POS fills zero or absent CSV consumption and extends history. CSV quantities are synthetic; POS quantities are actual recorded usage.",
+    "Included 105 POS material/day totals across 365 transaction dates through 2026-10-06. POS fills only zero or absent CSV material/day totals; positive CSV totals are preserved; voided/refunded sales are excluded.",
+    "Some legacy POS consumption records lack a unit snapshot. Their units are assumed from the catalog; incompatible current inventory units are excluded. Verify these units before relying on estimates.",
+    "Historical data ends 2026-10-06; forecasting bridges a 3-day gap.",
+    "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+  ],
+  "convergenceWarnings": 0,
+  "seconds": 416.52
+}

@@ -103,7 +103,7 @@
 .notesHeading { display:flex;flex-direction:column;gap:3px;min-width:0; }
 .notesHeading strong { color:#334155;font-size:16px; }
 .notesHeading > span { color:#475569;font-size:16px;line-height:1.5; }
-.notesCount { margin-left:auto;flex-shrink:0;border-radius:999px;background:#edf1f7;padding:3px 9px;color:#475569;font-size:15px;font-weight:600; }
+.notesChevron { margin-left:auto; }
 .dataNotes[open] .notesChevron { transform:rotate(180deg); }
 .notesContent { max-height:340px;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:18px;border-top:1px solid #e2e8f0; }
 .notesSummary:focus-visible,.notesContent:focus-visible { outline:2px solid #526480;outline-offset:2px; }

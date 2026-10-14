@@ -1,0 +1,10 @@
+{
+  "materialId": "844b2095-61f1-55b3-af00-4e7fcefa04a4",
+  "name": "Greenware 22oz Dome Lid",
+  "sku": "RM-G2DL-001",
+  "unit": "pcs",
+  "status": "excluded",
+  "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Greenware 22oz Dome Lid (pcs): object of type 'NoneType' has no len()",
+  "convergenceWarnings": 187,
+  "seconds": 105.05
+}

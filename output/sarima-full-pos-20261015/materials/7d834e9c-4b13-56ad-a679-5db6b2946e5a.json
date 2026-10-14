@@ -1,0 +1,10 @@
+{
+  "materialId": "7d834e9c-4b13-56ad-a679-5db6b2946e5a",
+  "name": "McCormick Ground Black Pepper 80g",
+  "sku": "RM-MGBP8-001",
+  "unit": "g",
+  "status": "excluded",
+  "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. McCormick Ground Black Pepper 80g (g): object of type 'NoneType' has no len()",
+  "convergenceWarnings": 187,
+  "seconds": 77.4
+}

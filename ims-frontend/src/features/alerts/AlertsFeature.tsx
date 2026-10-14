@@ -3,14 +3,16 @@ import PageSkeleton from "@/components/loading/PageSkeleton";
 import SearchInput from "@/components/ui/SearchInput";
 import { PermissionAction } from "@/components/auth/PermissionGuard";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import styles from "@/app/admin/alerts/alerts.module.css";
 import { Search } from "lucide-react";
 import AdminSelect from "@/components/admin/AdminSelect";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
-import { acknowledgeAlert, deleteResolvedAlerts, dismissAlert, fetchAlerts, type AlertRecord, type AlertState, type AlertType } from "@/lib/alerts";
+import { acknowledgeAlert, deleteResolvedAlerts, dismissAlert, fetchAlerts, fetchAlertNotifications, type AlertRecord, type AlertState, type AlertType } from "@/lib/alerts";
+import { markAlertsSeen, unseenAlerts } from "@/lib/alert-notification-flow";
+import { alertColor, alertTitle, formatAlertMessage, formatAlertQuantity, isDepletedAlert } from "@/lib/alert-presentation";
 
 function formatDateTime(value: string | null | undefined) {
   if (!value) return "N/A";
@@ -25,9 +27,7 @@ function formatDateTime(value: string | null | undefined) {
 
 function tone(alert: AlertRecord) {
   if (alert.state === "RESOLVED") return styles.resolved;
-  if (alert.severity === "CRITICAL") return styles.critical;
-  if (alert.severity === "WARNING") return styles.warning;
-  return styles.info;
+  return styles[alertColor(alert)];
 }
 
 const STATE_OPTIONS: Array<{ value: AlertState | ""; label: string }> = [
@@ -51,8 +51,18 @@ function formatAlertState(state: AlertState) {
 }
 
 export default function AlertsFeature() {
+  return <Suspense fallback={<PageSkeleton page="alerts" header={false} />}><AlertsWorkspace /></Suspense>;
+}
+
+function AlertsWorkspace() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const focusedId = searchParams.get("alert");
+  const pendingOnly = searchParams.get("pending") === "1";
   const can = useAuthStore(state => state.can);
+  const userId = useAuthStore(state => state.user?.id);
+  const visitRef = useRef<{ userId: string; newIds: Set<string> } | null>(null);
+  const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const openingRef = useRef(false);
   const [alerts, setAlerts] = useState<AlertRecord[]>([]);
   const [stateFilter, setStateFilter] = useState<AlertState | "">("");
@@ -87,7 +97,7 @@ export default function AlertsFeature() {
   }, [selectedVisibleIds.length, allSelected, selectionMode]);
   const [error, setError] = useState<string | null>(null);
 
-  const loadAlerts = async () => {
+  const loadAlerts = useCallback(async () => {
     const request = ++requestRef.current;
     setLoading(true);
     try {
@@ -97,8 +107,34 @@ export default function AlertsFeature() {
         search: search || undefined,
         limit: stateFilter === "RESOLVED" ? 200 : 100,
       });
+      if (focusedId && !nextAlerts.some(alert => alert.id === focusedId)) {
+        const focusedAlerts = await fetchAlerts({ id: focusedId });
+        nextAlerts.unshift(...focusedAlerts);
+      }
       if (request !== requestRef.current) return;
-      setAlerts(nextAlerts);
+      if (userId) {
+        // Keep New badges for this visit, then clear them on the next opening.
+        // Viewing an alert does not acknowledge or resolve it.
+        if (visitRef.current?.userId !== userId) {
+          const snapshot = await fetchAlertNotifications(AbortSignal.timeout(10000)).catch(() => ({ alerts: [] }));
+          if (request !== requestRef.current) return;
+          const viewed = [...snapshot.alerts, ...nextAlerts];
+          const ids = new Set(unseenAlerts(userId, viewed).map(alert => alert.id));
+          visitRef.current = { userId, newIds: ids };
+          setNewIds(ids);
+          markAlertsSeen(userId, viewed);
+        } else {
+          const fresh = unseenAlerts(userId, nextAlerts);
+          if (fresh.length) {
+            const ids = new Set([...visitRef.current.newIds, ...fresh.map(alert => alert.id)]);
+            visitRef.current.newIds = ids;
+            setNewIds(ids);
+            markAlertsSeen(userId, fresh);
+          }
+        }
+        window.dispatchEvent(new CustomEvent("alerts-viewed", { detail: { userId } }));
+      }
+      setAlerts(pendingOnly ? nextAlerts.filter(alert => alert.state !== "RESOLVED") : nextAlerts);
       setSelectedIds(current => current.filter(id => nextAlerts.some(alert => alert.id === id && alert.state === "RESOLVED")));
       setError(null);
     } catch (nextError) {
@@ -106,19 +142,23 @@ export default function AlertsFeature() {
     } finally {
       if (request === requestRef.current) setLoading(false);
     }
-  };
+  }, [stateFilter, typeFilter, search, focusedId, pendingOnly, userId]);
 
   useEffect(() => {
-    void loadAlerts();
-  }, [stateFilter, typeFilter]);
+    const requests = requestRef;
+    const timer = window.setTimeout(() => void loadAlerts(), 250);
+    return () => {
+      window.clearTimeout(timer);
+      requests.current++;
+    };
+  }, [loadAlerts]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadAlerts();
-    }, 250);
-
-    return () => window.clearTimeout(timer);
-  }, [search]);
+    if (loading || !focusedId) return;
+    const card = document.getElementById(`alert-${focusedId}`);
+    card?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "center" });
+    card?.focus({ preventScroll: true });
+  }, [loading, focusedId, alerts]);
 
   const handleAction = async (alertId: string, action: "acknowledge" | "dismiss") => {
     setActionId(alertId);
@@ -267,7 +307,9 @@ export default function AlertsFeature() {
             alerts.map((alert) => (
               <article
                 key={alert.id}
-                className={`${styles.alert} ${tone(alert)} ${styles.lift} ${selectionMode && selectedIds.includes(alert.id) ? styles.selected : ""} ${alert.state !== "RESOLVED" && can("inventory.view") ? styles.clickable : ""}`}
+                id={`alert-${alert.id}`}
+                tabIndex={focusedId === alert.id ? -1 : undefined}
+                className={`${styles.alert} ${tone(alert)} ${styles.lift} ${focusedId === alert.id ? styles.notificationFocus : ""} ${selectionMode && selectedIds.includes(alert.id) ? styles.selected : ""} ${alert.state !== "RESOLVED" && can("inventory.view") ? styles.clickable : ""}`}
                 onClick={alert.state !== "RESOLVED" && can("inventory.view") ? () => void openAlert(alert) : undefined}
                 aria-busy={actionId === alert.id}
               >
@@ -280,11 +322,12 @@ export default function AlertsFeature() {
                         </label>
                       ) : null}
                       <h2 className="text-lg font-semibold text-neutral-900">
-                        {alert.state !== "RESOLVED" && can("inventory.view") ? <button type="button" className={styles.alertLink} disabled={actionId !== null} onClick={(event) => { event.stopPropagation(); void openAlert(alert); }}>{alert.title}</button> : alert.title}
+                        {alert.state !== "RESOLVED" && can("inventory.view") ? <button type="button" className={styles.alertLink} disabled={actionId !== null} onClick={(event) => { event.stopPropagation(); void openAlert(alert); }}>{alertTitle(alert)}</button> : alertTitle(alert)}
                       </h2>
+                      {newIds.has(alert.id) ? <span className={styles.newBadge}>New</span> : null}
                       {alert.state !== "RESOLVED" ? (
                         <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
-                          {alert.type.replaceAll("_", " ")}
+                          {isDepletedAlert(alert) ? "DEPLETED" : alert.type.replaceAll("_", " ")}
                         </span>
                       ) : null}
                       <span className="rounded-full bg-white/70 px-3 py-1 text-[13px] font-semibold uppercase tracking-wide text-neutral-700">
@@ -296,7 +339,7 @@ export default function AlertsFeature() {
                         </span>
                       ) : null}
                     </div>
-                    <p className="text-sm text-neutral-700">{alert.message}</p>
+                    <p className="text-sm text-neutral-700">{formatAlertMessage(alert.message)}</p>
                     {alert.acknowledgedAt ? (
                       <p className="text-xs font-medium text-neutral-600">
                         Marked as read: <time dateTime={alert.acknowledgedAt}>{formatDateTime(alert.acknowledgedAt)}</time>
@@ -314,7 +357,7 @@ export default function AlertsFeature() {
                       </p>
                       <p>
                         Batch: {alert.stockBatch?.reference ?? (alert.stockBatchId ? alert.stockBatchId.slice(0, 8) : "N/A")} •
-                        Remaining: {alert.remainingQuantity ?? "N/A"}
+                        Remaining: {formatAlertQuantity(alert.remainingQuantity)}
                       </p>
                       <p>
                         Expiry: {formatDateTime(alert.expiryDate)} • Last triggered: {formatDateTime(alert.lastTriggeredAt)}

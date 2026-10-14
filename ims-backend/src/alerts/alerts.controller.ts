@@ -25,6 +25,12 @@ export class AlertsController {
     return this.alertsService.getUnreadCount();
   }
 
+  @Get('notifications')
+  @RequirePermission('alerts.view')
+  async getNotifications() {
+    return this.alertsService.getNotifications();
+  }
+
   @Post('resolved/delete')
   @RequirePermission('alerts.dismiss')
   async deleteResolvedAlerts(@Body() dto: DeleteResolvedAlertsDto) {

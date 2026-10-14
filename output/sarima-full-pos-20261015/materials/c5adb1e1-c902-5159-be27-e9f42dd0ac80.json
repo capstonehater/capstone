@@ -1,0 +1,10 @@
+{
+  "materialId": "c5adb1e1-c902-5159-be27-e9f42dd0ac80",
+  "name": "Food Grade PET Sauce Bottle 150ml",
+  "sku": "RM-FGPSB1-001",
+  "unit": "pcs",
+  "status": "excluded",
+  "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Food Grade PET Sauce Bottle 150ml (pcs): SARIMA requires varying usage history; constant history cannot be Box-Cox transformed",
+  "convergenceWarnings": 0,
+  "seconds": 0.05
+}

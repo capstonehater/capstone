@@ -1,0 +1,10 @@
+{
+  "materialId": "bbee1ca9-c4b4-504e-ae8c-a401d2df4d25",
+  "name": "ChaTraMue Original Thai Tea Mix 400g",
+  "sku": "RM-COTTM4-001",
+  "unit": "g",
+  "status": "excluded",
+  "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. ChaTraMue Original Thai Tea Mix 400g (g): object of type 'NoneType' has no len()",
+  "convergenceWarnings": 3,
+  "seconds": 59.98
+}

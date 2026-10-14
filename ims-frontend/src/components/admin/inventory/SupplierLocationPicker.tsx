@@ -1,5 +1,6 @@
 "use client";
 
+import { cacheLocation, clearCachedLocation, getCachedLocation } from "@/lib/store-distance";
 import SearchInput from "@/components/ui/SearchInput";
 import { useEffect, useRef, useState } from "react";
 import { Copy, ExternalLink, Loader2, Navigation } from "lucide-react";
@@ -84,11 +85,14 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
           setLocationStatus("Waiting for a fresh location reading from your device.");
           return;
         }
+        cacheLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy, timestamp: position.timestamp });
         setCurrentPosition(position);
         setLocationStatus("");
       };
     const receiveError = (error: GeolocationPositionError) => {
         if (disposed) return;
+        if (error.code === 1) clearCachedLocation();
         setCurrentPosition(null);
         setLocationStatus(error.code === 1
           ? "Location permission is blocked. Enable location access to use your current position. You can still open Google Maps."
@@ -170,43 +174,59 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
   const openJourney = async () => {
     if (!journeyUrl || openingJourney) return;
     const destination = `${lat.toFixed(6)},${lon.toFixed(6)}`;
-    // Launch directly from the click so mobile browsers retain user activation.
-    // No Android package is specified: the device chooses its preferred map app.
-    if (/Android/i.test(navigator.userAgent)) {
-      window.location.assign(`geo:${destination}?q=${encodeURIComponent(destination)}`);
-      return;
-    }
-    if (/iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
-      const params = new URLSearchParams({ daddr: destination, dirflg: "d" });
-      if (isFreshPosition(currentPosition)) {
-        params.set("saddr", `${currentPosition.coords.latitude},${currentPosition.coords.longitude}`);
-      }
-      window.location.assign(`https://maps.apple.com/?${params}`);
-      return;
-    }
     if (!window.isSecureContext || !navigator.geolocation) {
       setLocationStatus("Enable location access on HTTPS to start driving from your live coordinates.");
       return;
     }
-    setOpeningJourney(!isFreshPosition(currentPosition));
-    setLocationStatus(isFreshPosition(currentPosition) ? "" : "Refreshing your coordinates for driving directions...");
+    const cached = getCachedLocation();
+    setOpeningJourney(!isFreshPosition(currentPosition) && !cached);
+    setLocationStatus(cached && !isFreshPosition(currentPosition)
+      ? "Using your last known location. Updating in the background..."
+      : isFreshPosition(currentPosition) ? "" : "Refreshing your coordinates for driving directions...");
     try {
-      // The live watcher already supplies recent coordinates; avoid another GPS wait on click.
-      const position = isFreshPosition(currentPosition) ? currentPosition : await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true, maximumAge: MAX_LOCATION_AGE_MS, timeout: 5000,
-        });
-      }).catch(() => isFreshPosition(currentPosition) ? currentPosition : null);
+      // Keep the loading dialog open through recoverable GPS timeouts.
+      let position = isFreshPosition(currentPosition) ? currentPosition : null;
+      while (!cached && !isFreshPosition(position) && mounted.current) {
+        try {
+          position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true, maximumAge: MAX_LOCATION_AGE_MS, timeout: 5000,
+            });
+          });
+        } catch (error) {
+          if (!mounted.current) return;
+          if ((error as GeolocationPositionError).code === 1) {
+            clearCachedLocation();
+            setLocationStatus("Location permission is blocked. Enable location access before opening driving directions.");
+            return;
+          }
+          setLocationStatus("Still getting your location. Maps will open automatically when it is ready.");
+          // Pace retries when a device reports unavailable immediately.
+          if ((error as GeolocationPositionError).code !== 3) {
+            await new Promise(resolve => window.setTimeout(resolve, 1000));
+          }
+        }
+      }
       if (!mounted.current) return;
-      if (!isFreshPosition(position)) {
-        setLocationStatus("No fresh coordinates available. Allow location access and select Refresh location before starting your drive.");
+      const origin = isFreshPosition(position) ? {
+        latitude: position.coords.latitude, longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy, timestamp: position.timestamp,
+      } : cached;
+      if (!origin) return;
+      if (isFreshPosition(position)) {
+        cacheLocation(origin);
+        setCurrentPosition(position);
+        setLocationStatus("");
+      }
+      if (/iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
+        window.location.assign(`https://maps.apple.com/?${new URLSearchParams({
+          daddr: destination, dirflg: "d", saddr: `${origin.latitude},${origin.longitude}`,
+        })}`);
         return;
       }
-      setCurrentPosition(position);
-      setLocationStatus("");
       const url = new URL(journeyUrl);
-      url.searchParams.set("origin", `${position.coords.latitude},${position.coords.longitude}`);
+      url.searchParams.set("origin", `${origin.latitude},${origin.longitude}`);
       // Open only once location permission and the route are ready.
       const journeyTab = window.open(url.toString(), "_blank");
       if (journeyTab) journeyTab.opener = null;
@@ -357,7 +377,7 @@ export default function SupplierLocationPicker({ latitude, longitude, address, o
         <Loader2 aria-hidden="true" className="mx-auto h-10 w-10 animate-spin text-[#232d46] motion-reduce:animate-none" />
         <h2 id="journey-loading-title" className="mt-4 text-lg font-semibold text-slate-900">Finding your current location</h2>
         <p id="journey-loading-description" role="status" className="mt-2 text-sm leading-6 text-slate-600">
-          Getting a fresh location for your journey. This may take up to 5 seconds. Google Maps will open automatically when your location is ready.
+          Getting your location and preparing driving directions. Maps will open automatically when everything is ready.
         </p>
       </dialog>
       <label htmlFor="supplier-location-search" className="text-sm font-semibold text-slate-700">Supplier Location<span className="text-red-600" aria-hidden="true"> *</span></label>

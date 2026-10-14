@@ -1,0 +1,10 @@
+{
+  "materialId": "c6c09a97-0f92-4e99-bacc-590fcc605a02",
+  "name": "Cocoa Powder",
+  "sku": "RM-CP-001",
+  "unit": "g",
+  "status": "excluded",
+  "reason": "No compatible completed POS history is available",
+  "convergenceWarnings": 0,
+  "seconds": 0.01
+}

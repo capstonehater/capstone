@@ -268,8 +268,11 @@ export class AuthService {
     );
     const user = await this.usersService.findByEmailForAuth(dto.email);
 
+    if (!user) {
+      throw new BadRequestException('not an existing email');
+    }
+
     if (
-      !user ||
       user.accountStatus !== AccountStatus.ACTIVE ||
       !user.isActive
     ) {

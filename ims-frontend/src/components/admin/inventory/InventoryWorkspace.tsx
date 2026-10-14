@@ -1,4 +1,5 @@
 "use client";
+import { trackLocationInBackground } from "@/lib/store-distance";
 import { fetchProductCategories } from "@/lib/products/api";
 import type { ProductCategory } from "@/lib/products/types";
 import { getPresetDateRange, toManilaRangeIso } from "@/lib/report-date-range";
@@ -12,7 +13,6 @@ import AdminSectionHeader from "@/components/admin/AdminSectionHeader";
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
 import {
   Plus,
 } from "lucide-react";
@@ -199,6 +199,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
   const canViewStockRuns = useAuthStore(state => state.can("stockRuns.view"));
   const sectionNavRef = useRef<HTMLElement>(null);
   const sectionNavigationRef = useRef<HTMLDivElement>(null);
+  useEffect(() => trackLocationInBackground(), []);
   const [navigationDocked, setNavigationDocked] = useState(false);
   const [navigationMenuTop, setNavigationMenuTop] = useState(29);
   const [activeSection, setActiveSection] = useState<SectionView>("overview");
@@ -247,7 +248,6 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
       document.getElementById(initialView)?.scrollIntoView({ block: "start" });
     }
   }, [initialView]);
-  const router = useRouter();
   const search = useInventoryStore((state) => state.search);
   const statusFilter = useInventoryStore((state) => state.statusFilter);
   const supplierId = useInventoryStore((state) => state.supplierId);
@@ -901,7 +901,7 @@ export default function InventoryWorkspace({ initialView = "overview", initialDr
           onSelectRawMaterial={setSelectedRawMaterialId}
         /></PermissionAction>
 
-        {availabilityMaterial && <PermissionAction permission={"suppliers.searchAvailability"}><StoreAvailabilityModal key={availabilityMaterial.id} materialId={availabilityMaterial.id} materialName={availabilityMaterial.name} onClose={() => setAvailabilityMaterial(null)} onJourney={() => { setAvailabilityMaterial(null); router.push("/suppliers"); }} /></PermissionAction>}
+        {availabilityMaterial && <PermissionAction permission={"suppliers.searchAvailability"}><StoreAvailabilityModal key={availabilityMaterial.id} materialId={availabilityMaterial.id} materialName={availabilityMaterial.name} onClose={() => setAvailabilityMaterial(null)} /></PermissionAction>}
 
         <BatchTransactionModal
           batch={selectedBatch}

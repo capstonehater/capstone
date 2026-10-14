@@ -72,7 +72,9 @@ def point_forecast(series, method, horizon, sarima_spec=None):
             if not model.mle_retvals.get('success', True):
                 raise ValueError('ETS did not converge')
             values = np.asarray(model.forecast(horizon))
-    elif method == 'sarima':
+    elif method in ('sarima', 'sarima_reference'):
+        if method == 'sarima_reference':
+            sarima_spec = (sarima_spec or {}).get('_reference')
         if sarima_spec is None:
             raise ValueError('SARIMA configuration unavailable')
         import SARIMA
@@ -168,6 +170,7 @@ def run(series, horizon, dates, cached=None, conservative=False):
     discovery = series.iloc[:discovery_end]
     pattern = classify(discovery.qty)
     methods = BASELINES[:3] if conservative else BASELINES.copy()
+    baseline_methods = BASELINES.copy()
     if pattern['class'] in ('intermittent', 'lumpy'):
         methods += ['sba', 'tsb']
     sarima_spec = None
@@ -178,15 +181,24 @@ def run(series, horizon, dates, cached=None, conservative=False):
             if prior and prior_date and 0 <= (discovery.Date.max() - pd.Timestamp(prior_date)).days < 28:
                 sarima_spec = prior
             else:
-                old_horizon = SARIMA.CONFIG.get('CV_HORIZON')
-                SARIMA.CONFIG['CV_HORIZON'] = horizon
+                old_settings = {key: SARIMA.CONFIG.get(key) for key in
+                                ('CV_HORIZON', 'INTERVAL_VALIDATION_FOLDS')}
+                # The portfolio performs its own disjoint calibration and five
+                # promotion windows. Discovery only needs the selection grid;
+                # duplicating interval testing here doubles large-history fits.
+                SARIMA.CONFIG.update(CV_HORIZON=horizon, INTERVAL_VALIDATION_FOLDS=0)
                 try:
                     selected = SARIMA.train_sarima({'series': discovery})
                 finally:
-                    SARIMA.CONFIG['CV_HORIZON'] = old_horizon
+                    SARIMA.CONFIG.update(old_settings)
                 sarima_spec = {k: selected[k] for k in ('window', 'transform', 'features', 'order', 'seasonal', 'trend')}
+                if selected.get('historical_search_reference'):
+                    sarima_spec['_reference'] = selected['historical_search_reference']
                 prior_date = str(discovery.Date.max().date())
             methods += ['sarima', 'ensemble']
+            if sarima_spec.get('_reference'):
+                methods.append('sarima_reference')
+                baseline_methods.append('sarima_reference')
     except (ValueError, np.linalg.LinAlgError):
         pass
     folds = {method: [] for method in methods}
@@ -208,10 +220,10 @@ def run(series, horizon, dates, cached=None, conservative=False):
         raise ValueError('No portfolio method passed all selection folds')
     def loss(method):
         return float(np.mean([.5 * f['mae'] + .5 * f['period_absolute_error'] / f['observedDays'] for f in folds[method]]))
-    baseline = min([m for m in eligible if m in BASELINES], key=loss)
+    baseline = min([m for m in eligible if m in baseline_methods], key=loss)
     winner = min(eligible, key=loss)
     # Complex challengers need a 2% selection improvement over the best baseline.
-    if winner not in BASELINES and loss(winner) > loss(baseline) * .98:
+    if winner not in baseline_methods and loss(winner) > loss(baseline) * .98:
         winner = baseline
     comparison = {m: {'loss': loss(m), 'folds': folds[m],
         'errorDistribution': {key: distribution([f[key] for f in folds[m]]) for key in ('wape', 'mase', 'rmsse', 'bias', 'period_absolute_error')}} for m in eligible}
@@ -224,9 +236,13 @@ def run(series, horizon, dates, cached=None, conservative=False):
         base = point_forecast(training, baseline, horizon, sarima_spec)
         if start >= calibration_end and mask.any() and len(records) >= 3:
             scores = scaled_metrics(test.qty.to_numpy()[mask], center[mask], training.qty)
+            pos_mask = mask & test.get('history_source', pd.Series('', index=test.index)).eq('POS').to_numpy()
             evaluations.append({'start': str(test.Date.min().date()),
                 'trainingEnd': str(training.Date.max().date()), 'calibrationEnd': str(series.iloc[start - 1].Date.date()),
                 **scores, 'baselineMAE': float(np.mean(np.abs(test.qty.to_numpy()[mask] - base[mask]))),
+                'posDays': int(pos_mask.sum()),
+                'posMetrics': scaled_metrics(test.qty.to_numpy()[pos_mask], center[pos_mask], training.qty) if pos_mask.any() else None,
+                'baselinePOSMetrics': scaled_metrics(test.qty.to_numpy()[pos_mask], base[pos_mask], training.qty) if pos_mask.any() else None,
                 'probabilistic': probabilistic_scores(test.qty.to_numpy()[mask], center[mask], np.asarray(records[-calibration_count:])[:, mask]),
                 'baselineMetrics': scaled_metrics(test.qty.to_numpy()[mask], base[mask], training.qty),
                 'baselineProbabilistic': probabilistic_scores(test.qty.to_numpy()[mask], base[mask], np.asarray(baseline_records[-calibration_count:])[:, mask])})
@@ -240,7 +256,7 @@ def run(series, horizon, dates, cached=None, conservative=False):
     promoted = winner == baseline or (len(evaluations) >= 5 and candidate_error <= baseline_error * .98)
     chosen = winner if promoted else baseline
     deployed_evaluations = evaluations if promoted else [{**f, **f['baselineMetrics'],
-        'probabilistic': f['baselineProbabilistic']} for f in evaluations]
+        'probabilistic': f['baselineProbabilistic'], 'posMetrics': f['baselinePOSMetrics']} for f in evaluations]
     residuals = (records if promoted else baseline_records)[-calibration_count:]
     center = point_forecast(series, chosen, horizon, sarima_spec)
     paths = forecast_paths(center, residuals)
@@ -251,12 +267,16 @@ def run(series, horizon, dates, cached=None, conservative=False):
         'Lower95': np.maximum(0, center[offset:stop] - radius), 'Upper95': center[offset:stop] + radius}, index=dates)
     output['Lower95'] = np.minimum(output.Lower95, output.Forecast)
     output['Upper95'] = np.maximum(output.Upper95, output.Forecast)
-    report = {'version': 2, 'demandPattern': classify(series.qty), 'selectedMethod': chosen,
+    report = {'version': 2, 'demandPattern': classify(series.qty),
+        'selectedMethod': 'sarima' if chosen == 'sarima_reference' else chosen,
+        'sarimaSearchSource': 'previous_search' if chosen == 'sarima_reference' else 'expanded_search' if chosen == 'sarima' else None,
         'challengerMethod': winner, 'bestBaseline': baseline, 'promotionPassed': promoted,
         'selectionMetric': 'mean_daily_and_period_absolute_error', 'selectionFolds': 8,
         'selectionEnd': str(series.iloc[selection_end - 1].Date.date()),
         'configurationDiscoveryEnd': str(discovery.Date.max().date()),
         'comparison': comparison, 'outerEvaluation': deployed_evaluations, 'challengerEvaluation': evaluations,
+        'actualPOSEvaluation': [{'start': f['start'], 'days': f['posDays'], 'metrics': f['posMetrics']}
+                                for f in deployed_evaluations if f['posDays']],
         'forecastValueAdded': 1 - candidate_error / baseline_error if baseline_error > 0 else None,
         'targetCoverage': .95, 'coverageGuarantee': False,
         'calibrationBlocks': len(residuals), 'finiteSampleDailySupported': supported,
@@ -267,7 +287,9 @@ def run(series, horizon, dates, cached=None, conservative=False):
             'note': 'Zero and positive coverage are reported separately; future demand state is unknown, so calibration remains unconditional.'}}
     candidate = sarima_spec or {'window': None, 'transform': 'raw', 'features': 'level',
         'order': (0, 0, 0), 'seasonal': (0, 0, 0, 7), 'trend': 'n'}
-    if chosen != 'sarima':
+    if chosen == 'sarima_reference':
+        candidate = sarima_spec['_reference']
+    if chosen not in ('sarima', 'sarima_reference'):
         candidate = {'window': None, 'transform': 'raw', 'features': 'level',
             'order': (0, 0, 0), 'seasonal': (0, 0, 0, 7), 'trend': 'n'}
     selected_metrics = {k: float(np.mean([f[k] for f in deployed_evaluations if f[k] is not None])) if any(f[k] is not None for f in deployed_evaluations) else np.nan
@@ -285,7 +307,7 @@ def run(series, horizon, dates, cached=None, conservative=False):
         'biasPercent': selected_metrics['bias_pct'] if np.isfinite(selected_metrics['bias_pct']) else None,
         'minimumPeriodCoverage': min(f['coverage'] for f in counts)}
     training = {**candidate, 'metrics': selected_metrics, 'selection_mape': np.nan,
-        'selection_metric': report['selectionMetric'], 'model_label': chosen.upper().replace('_', ' '),
+        'selection_metric': report['selectionMetric'], 'model_label': report['selectedMethod'].upper().replace('_', ' '),
         'used_cv': True, 'candidate_count': len(methods), 'portfolio': report, '_forecast_paths': paths[:, offset:],
         '_portfolio_sarima_spec': sarima_spec, '_portfolio_discovery_end': prior_date,
         'interval_calibration': {'method': 'chronological_block_residuals', 'targetCoverage': .95,

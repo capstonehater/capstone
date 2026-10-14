@@ -48,6 +48,20 @@ describe('single-use password links', () => {
   it('sets the expiry to exactly 30 minutes', () => {
     expect(PASSWORD_RESET_TTL_MS).toBe(30 * 60 * 1000);
   });
+  it('rejects unknown emails without creating or sending a reset link', async () => {
+    const users = { findByEmailForAuth: jest.fn().mockResolvedValue(null) };
+    const throttle = { consumeForgotPasswordAttempt: jest.fn() };
+    const notifier = { sendResetLink: jest.fn() };
+    const resetService = new AuthService(
+      tx, users as any, {} as any, {} as any, {} as any,
+      throttle as any, notifier as any,
+    );
+    await expect(resetService.forgotPassword({ email: 'unknown@example.com' }, { ipAddress: '192.0.2.10' }))
+      .rejects.toThrow('not an existing email');
+    expect(throttle.consumeForgotPasswordAttempt).toHaveBeenCalledWith('192.0.2.10');
+    expect(tx.passwordResetToken.create).not.toHaveBeenCalled();
+    expect(notifier.sendResetLink).not.toHaveBeenCalled();
+  });
   it('consumes the email link and preserves its original deadline', async () => {
     const result = await service.redeemPasswordResetLink('email-token', {});
     expect(result).toEqual({ token: 'form-token', expiresAt: link.expiresAt });

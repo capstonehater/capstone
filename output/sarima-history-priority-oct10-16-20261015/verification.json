@@ -1,0 +1,14 @@
+{
+  "all84ActiveMaterialsRepresented": true,
+  "sarimaForecasts": 79,
+  "exclusions": 5,
+  "dailyPoints": 553,
+  "backendValidation": "passed",
+  "positiveHistoricalConsumptionPreserved": true,
+  "POSOnlyForZeroOrAbsentConsumption": true,
+  "noForecastPeriodObservationsUsed": true,
+  "forceFullRetrain": true,
+  "portfolio": "off",
+  "modelCache": "disabled",
+  "trainingThrough": "2026-10-06"
+}

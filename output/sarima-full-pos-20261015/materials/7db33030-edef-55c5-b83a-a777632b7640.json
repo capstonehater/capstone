@@ -1,0 +1,238 @@
+{
+  "materialId": "7db33030-edef-55c5-b83a-a777632b7640",
+  "name": "Real Lemon Lemon Juice 250ml",
+  "sku": "RM-RLLJ2-001",
+  "unit": "ml",
+  "status": "forecasted",
+  "total": 0.0,
+  "metrics": {
+    "mae": 35.190584204164686,
+    "rmse": 45.0220082214376,
+    "mape": 41.49945012171324,
+    "smape": 101.79991480908177,
+    "aic": 1721.3643647767249,
+    "bic": 1736.8295520197883
+  },
+  "series": {
+    "materialId": "7db33030-edef-55c5-b83a-a777632b7640",
+    "name": "Real Lemon Lemon Juice 250ml",
+    "unit": "ml",
+    "points": [
+      {
+        "date": "2026-10-15",
+        "forecast": 0.0,
+        "lower95": 0.0,
+        "upper95": 139.76
+      },
+      {
+        "date": "2026-10-16",
+        "forecast": 0.0,
+        "lower95": 0.0,
+        "upper95": 205.02
+      },
+      {
+        "date": "2026-10-17",
+        "forecast": 0.0,
+        "lower95": 0.0,
+        "upper95": 360.48
+      },
+      {
+        "date": "2026-10-18",
+        "forecast": 0.0,
+        "lower95": 0.0,
+        "upper95": 503.03
+      },
+      {
+        "date": "2026-10-19",
+        "forecast": 0.0,
+        "lower95": 0.0,
+        "upper95": 708.28
+      },
+      {
+        "date": "2026-10-20",
+        "forecast": 0.0,
+        "lower95": 0.0,
+        "upper95": 991.0
+      },
+      {
+        "date": "2026-10-21",
+        "forecast": 0.0,
+        "lower95": 0.0,
+        "upper95": 1325.34
+      }
+    ],
+    "metadata": {
+      "dataQuality": {
+        "outlierDatesForReview": [
+          "2025-12-19",
+          "2026-01-01",
+          "2026-03-07"
+        ],
+        "outlierTreatment": "flagged; observed quantities retained",
+        "verifiedStockoutDates": [],
+        "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+        "inventoryZeroIsNotProofOfZeroDemand": true,
+        "unknownCalendarDaysAreNotZeroDemand": true
+      },
+      "model": "SARIMA",
+      "order": [
+        2,
+        1,
+        0
+      ],
+      "seasonalOrder": [
+        0,
+        0,
+        0,
+        7
+      ],
+      "metrics": {
+        "mae": 35.190584204164686,
+        "rmse": 45.0220082214376,
+        "mape": 41.49945012171324,
+        "smape": 101.79991480908177,
+        "aic": 1721.3643647767249,
+        "bic": 1736.8295520197883
+      },
+      "trainingDays": 372,
+      "transformation": "log1p",
+      "trainingWindowDays": null,
+      "calendarFeatures": "level",
+      "predictionInterval": null,
+      "insights": {
+        "evidenceStatus": "limited",
+        "requirements": {
+          "minimumTestDays": 30,
+          "minimumPositiveDays": 20,
+          "maximumWAPE": 30.0,
+          "maximumHistoryGapDays": 7,
+          "minimumPeriodCoverage": 0.8
+        },
+        "reasons": [
+          "More held-out forecast days are needed to assess reliability.",
+          "There are too few held-out days with usage to assess demand-spike coverage."
+        ],
+        "recentDays": 90,
+        "recentPositiveDays": 52,
+        "recentUsageFrequency": 0.5777777777777777,
+        "historyGapDays": 1,
+        "estimatedTotalUsage": 0.0,
+        "estimatedShortfall": 0.0,
+        "dailyUpperStressTotal": 4232.91,
+        "stressShortfall": 1236.4813,
+        "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+        "validation": null,
+        "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+      },
+      "trend": "n",
+      "selectionMetric": null,
+      "selectionMAPE": null,
+      "constraints": {
+        "maeTolerance": 0.1,
+        "bestValidationMAE": null,
+        "maeGuardLimit": null,
+        "operationalGuards": null,
+        "rejectedByMAEGuard": null,
+        "requiresConvergence": false,
+        "stationarity": true,
+        "invertibility": true
+      },
+      "availableTrainingDays": 372,
+      "candidateCount": null,
+      "validationFolds": 3,
+      "audit": {
+        "version": 1,
+        "trainingStart": "2025-10-07",
+        "trainingEnd": "2026-10-13",
+        "csvDays": 0,
+        "posDays": 369,
+        "zeroFilledDays": 0,
+        "imputedDays": 3,
+        "zeroDemandDays": 166,
+        "bridgeCalendarDays": 1,
+        "weekdaysOnly": false,
+        "successfulCandidates": null,
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "rangeRejections": [],
+        "rangeCeiling": 27000.0,
+        "validationMethod": "rolling windows",
+        "validationWindows": [
+          {
+            "start": "2026-09-20",
+            "end": "2026-09-27",
+            "days": 8,
+            "mae": 37.089653273405105,
+            "mape": 56.88156593669855
+          },
+          {
+            "start": "2026-09-28",
+            "end": "2026-10-05",
+            "days": 8,
+            "mae": 32.41060168953639,
+            "mape": 41.38221242789805
+          },
+          {
+            "start": "2026-10-06",
+            "end": "2026-10-13",
+            "days": 8,
+            "mae": 36.07149764955257,
+            "mape": 26.234572000543128
+          }
+        ]
+      },
+      "historicalProducts": [
+        "Completed POS sales"
+      ],
+      "sourceUnit": "ml",
+      "trainingSource": "POS-only",
+      "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+      "posMaterialDays": 203,
+      "conversionFactor": 1.0,
+      "forecastDays": 7,
+      "previousPeriodDays": 7,
+      "previousPeriodUsage": 131.25,
+      "changePercent": -100.0
+    },
+    "recommendation": {
+      "Product": "Real Lemon Lemon Juice 250ml",
+      "Unit": "ml",
+      "ForecastTotal": 0.0,
+      "ForecastDays": 7,
+      "Forecast7Days": 0.0,
+      "DailyDemand": 0.0,
+      "MAE": 35.1905842042,
+      "RMSE": 45.0220082214,
+      "MAPE": 41.4994501217,
+      "SMAPE": 101.7999148091,
+      "CurrentStock": 2996.4287,
+      "SafetyStock": 0.0,
+      "LeadTime": 0.0,
+      "CatalogReorderPoint": 2500.0,
+      "HasInventoryData": true,
+      "LeadTimeDemand": 0.0,
+      "ReorderPoint": 2500.0,
+      "DaysRemaining": null,
+      "StockoutDay": null,
+      "RecommendedPurchase": 0,
+      "BuyOnNextRun": "No",
+      "ProjectedRemaining": 2996.43,
+      "Priority": "Healthy",
+      "Recommendation": "Inventory is sufficient.",
+      "stockSource": "live inventory snapshot",
+      "policySource": "raw-materials-and-products.csv"
+    }
+  },
+  "warnings": [
+    "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+    "SARIMA uses calendar-day totals with seven-day seasonality.",
+    "Product filters show store-wide ingredient demand, not predicted product sales.",
+    "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+    "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+    "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+    "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+    "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+  ],
+  "convergenceWarnings": 26,
+  "seconds": 54.43
+}

@@ -1,0 +1,11 @@
+{
+  "runId": "bdacf49e-cfa3-4429-9400-646f5a4c553a",
+  "startDate": "2026-10-10",
+  "endDate": "2026-10-16",
+  "forecastSeries": 79,
+  "dailyPoints": 553,
+  "models": "SARIMA only",
+  "databaseVerification": "passed",
+  "decimalPrecision": 4,
+  "backup": "replaced-run-backup.json"
+}

@@ -87,6 +87,29 @@ describe('security boundaries', () => {
       now.mockRestore();
     }
   });
+  it('blocks after five reset requests until 30 minutes after the fifth request', () => {
+    const service = new AuthThrottleService();
+    const now = jest.spyOn(Date, 'now').mockReturnValue(1000);
+    try {
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        service.consumeForgotPasswordAttempt('192.0.2.10');
+      }
+      const fifthRequestAt = 1000 + 10 * 60 * 1000;
+      now.mockReturnValue(fifthRequestAt);
+      service.consumeForgotPasswordAttempt('192.0.2.10');
+      expect(() => service.consumeForgotPasswordAttempt('192.0.2.10')).toThrow('limit of 5');
+      expect(() => service.consumeForgotPasswordAttempt('192.0.2.11')).not.toThrow();
+      now.mockReturnValue(fifthRequestAt + 30 * 60 * 1000 - 1);
+      expect(() => service.consumeForgotPasswordAttempt('192.0.2.10')).toThrow('limit of 5');
+      now.mockReturnValue(fifthRequestAt + 30 * 60 * 1000);
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        expect(() => service.consumeForgotPasswordAttempt('192.0.2.10')).not.toThrow();
+      }
+      expect(() => service.consumeForgotPasswordAttempt('192.0.2.10')).toThrow('limit of 5');
+    } finally {
+      now.mockRestore();
+    }
+  });
   it('binds SQL injection text as a value in the stock allocation query', async () => {
     const payload = "x') OR 1=1; DROP TABLE stock_batches; --";
     const query = jest.fn().mockResolvedValue([]);

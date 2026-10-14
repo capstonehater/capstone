@@ -103,7 +103,11 @@
 .introActions .search { min-width: 160px; border-radius: 12px; padding: 12px 22px; }
 .savedSearchButton { padding: 6px 12px; border: 0; border-radius: 8px; background: transparent; color: #5274a4; font-size: 12px; font-weight: 600; cursor: pointer; }
 .savedSearchButton:hover { background: #e8eef7; }
-.locationNotice { display: flex; align-items: flex-start; gap: 7px; margin: 0 0 14px; color: #64748b; font-size: 11px; line-height: 1.6; }
+.resultsList { display: grid; gap: 16px; margin-top: 16px; }
+.locationToolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid #e1e7f0; border-radius: 12px; background: #f8fafc; }
+.refreshLocation { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; min-height: 36px; padding: 8px 12px; border: 1px solid #bdcbe2; border-radius: 9px; background: white; color: #232d46; font-size: 12px; font-weight: 650; line-height: 1.4; cursor: pointer; }
+.refreshLocation:hover { background: #e8eef7; }
+.locationNotice { display: flex; align-items: flex-start; gap: 7px; margin: 0; min-width: 0; color: #64748b; font-size: 11px; line-height: 1.6; }
 .locationNotice svg { flex-shrink: 0; margin-top: 2px; }
 .loadingEyebrow { color: #5274a4; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 .loadingTitle { margin: 8px 0 10px; color: #232d46; font-size: 21px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.4; }
@@ -133,16 +137,13 @@
   .marketToggle svg { transition: none; }
 }
 
-.footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0; padding: 18px 32px; border-top: 1px solid #e4e9f2; background: white; }
-.journey { display: inline-flex; align-items: center; gap: 8px; max-width: 240px; padding: 4px 0; border: 0; background: transparent; color: #64748b; font-size: 14px; text-align: left; }
-.journey svg { flex-shrink: 0; color: #5274a4; }
+.footer { display: flex; align-items: center; justify-content: flex-end; gap: 16px; flex-shrink: 0; padding: 18px 32px; border-top: 1px solid #e4e9f2; background: white; }
 .actions { display: flex; align-items: center; gap: 10px; }
 .cancel { padding: 10px 14px; border: 0; border-radius: 10px; background: transparent; color: #475569; font-size: 14px; font-weight: 600; }
 .search { display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-width: 112px; padding: 11px 18px; border: 0; border-radius: 10px; background: #232d46; color: #ffffff; font-size: 14px; font-weight: 700; white-space: nowrap; }
 .search:hover:not(:disabled) { background: #1b2438; }
 .search:disabled { opacity: 0.55; cursor: not-allowed; }
 .cancel:hover { background: #e8eef7; color: #232d46; }
-.journey:hover { color: #232d46; }
 .dialog button:focus-visible, .body:focus-visible { outline: 2px solid #5274a4; outline-offset: 3px; }
 .body:focus-visible { outline-offset: -3px; }
 
@@ -166,10 +167,43 @@
   .card { padding: 16px; }
   .storeHeading { flex-wrap: wrap; gap: 10px; }
   .footer { flex-wrap: wrap; padding: 14px 20px; gap: 12px; }
-  .journey { max-width: none; }
   .actions { justify-content: flex-end; width: 100%; }
 }
 
 .headerRow { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .heading { min-width:0; }
 .heading .icon { flex-shrink:0; }
+
+.cardTop { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.recommendationBadges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.navigation { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; margin-left: auto; padding: 8px 10px; border: 1px solid #bdcbe2; border-radius: 10px; background: white; color: #232d46; font-size: 12px; font-weight: 700; cursor: pointer; }
+.navigation:hover:not(:disabled) { background: #e8eef7; }
+.navigation:disabled { opacity: 0.55; cursor: not-allowed; }
+.navigationNotice { margin: 0 0 14px; padding: 9px 12px; border-radius: 8px; background: #edf2f9; color: #64748b; font-size: 11px; line-height: 1.6; }
+@media (max-width: 540px) { .cardTop { flex-wrap: wrap; } .recommendationBadges { flex: 1; } }
+
+@media (max-width: 540px) {
+  .locationToolbar { flex-wrap: wrap; gap: 10px; }
+  .locationNotice { flex: 1 1 100%; }
+  .refreshLocation { margin-left: 21px; }
+}
+
+.storeActions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+.mapPreview { position: relative; }
+.mapToggle { display: inline-flex; align-items: center; gap: 7px; padding: 8px 10px; border: 1px solid #bdcbe2; border-radius: 9px; background: white; color: #405a80; font-size: 12px; font-weight: 650; cursor: pointer; }
+.mapToggle:hover:not(:disabled) { background: #e8eef7; }
+.mapToggle:disabled { opacity: 0.5; cursor: not-allowed; }
+.mapToggle svg:last-child { transition: transform 260ms ease; }
+.mapChevronOpen { transform: rotate(180deg); }
+.mapDropdown { position: absolute; top: calc(100% + 10px); right: 0; z-index: 20; width: min(380px, calc(100vw - 80px)); filter: drop-shadow(0 8px 14px #232d461f) drop-shadow(0 2px 4px #232d4610); display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden; transition: grid-template-rows 280ms ease, opacity 220ms ease, visibility 280ms; }
+.mapDropdown[data-expanded="true"] { grid-template-rows: 1fr; opacity: 1; visibility: visible; }
+.mapClip { min-height: 0; overflow: hidden; border-radius: 12px; }
+.mapFrame { position: relative; margin-top: 0; overflow: hidden; border: 1px solid #d5dfea; border-radius: 12px; background: white; }
+.storeMap { height: 210px; width: 100%; position: relative; z-index: 0; background: #e8eef3; }
+.mapCaption { margin: 0; padding: 8px 12px; border-top: 1px solid #d5dfea; color: #64748b; font-size: 11px; line-height: 1.6; }
+.mapStatus { position: absolute; inset: 0 0 34px; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 20px; background: #f4f7fb; color: #64748b; font-size: 12px; text-align: center; }
+.mapPin span { display: block; width: 26px; height: 26px; border: 3px solid white; border-radius: 50% 50% 50% 0; background: #5274a4; box-shadow: 0 3px 8px #232d4640; transform: rotate(-45deg); }
+@media (max-width: 540px) { .storeMap { height: 180px; } }
+@media (prefers-reduced-motion: reduce) { .mapDropdown, .mapToggle svg:last-child { transition: none; } }
+
+@media (max-width: 540px) { .storeActions { flex-wrap: wrap; } .mapDropdown { right: -110px; width: min(340px, calc(100vw - 76px)); } }

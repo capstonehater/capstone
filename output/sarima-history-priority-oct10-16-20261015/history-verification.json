@@ -1,0 +1,12 @@
+{
+  "positiveHistoricalDaysPreserved": 66961,
+  "posFallbackDays": 6143,
+  "positivePosFallbackDays": 1312,
+  "historicalStart": "2024-01-01",
+  "historicalEnd": "2026-08-31",
+  "trainingEnd": "2026-10-06",
+  "forecastStart": "2026-10-10",
+  "forecastEnd": "2026-10-16",
+  "historicalPriorityVerified": true,
+  "noForecastDatesInTraining": true
+}

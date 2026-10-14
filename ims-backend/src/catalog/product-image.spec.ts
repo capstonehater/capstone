@@ -8,8 +8,12 @@ import {
   saveProductImage,
 } from './product-image';
 
-const upload = (buffer: Buffer) =>
-  ({ buffer, size: buffer.length }) as Express.Multer.File;
+const upload = (buffer: Buffer, format = 'png') =>
+  ({
+    buffer,
+    size: buffer.length,
+    originalname: `image.${format}`,
+  }) as Express.Multer.File;
 
 describe('product image upload', () => {
   it.each(['png', 'jpeg', 'svg'])(
@@ -24,7 +28,7 @@ describe('product image upload', () => {
           : await sharp(svg)
               .toFormat(format as 'png' | 'jpeg')
               .toBuffer();
-      const result = await saveProductImage(upload(buffer));
+      const result = await saveProductImage(upload(buffer, format));
       const path = join(PRODUCT_IMAGE_DIRECTORY, basename(result.imageUrl));
       try {
         expect(result.imageUrl).toMatch(/^\/product-images\/[0-9a-f-]+\.webp$/);

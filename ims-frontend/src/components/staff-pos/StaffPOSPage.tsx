@@ -157,15 +157,15 @@ export default function StaffPOSPage() {
     .filter((product) => product.isEnabled && !isContainerCategory(product.category.name))
     .map((product) => ({
       ...product,
-      variants: product.variants.filter((variant) => variant.isEnabled && variant.availability?.isSellable === true),
+      variants: product.variants.filter((variant) => variant.isEnabled),
     }))
-    .filter((product) => product.variants.length > 0), [menuProducts]);
+    .filter((product) => product.variants.some((variant) => variant.availability?.isSellable === true)), [menuProducts]);
   const categories = useMemo(() => ["All", ...new Set(menuCategories.filter((item) => !isContainerCategory(item.name)).map((item) => item.name))], [menuCategories]);
   const filteredProducts = useMemo(() => {
     const term = search.trim().toLowerCase();
     return availableProducts.filter((product) => {
       const matchCategory = category === "All" || product.category.name === category;
-      const matchSearch = !term ? true : [product.name, product.category.name, ...product.variants.map((variant) => variant.sku)].join(" ").toLowerCase().includes(term);
+      const matchSearch = !term ? true : [product.name, product.category.name, ...product.variants.flatMap((variant) => [variant.name, variant.sku])].join(" ").toLowerCase().includes(term);
       return matchCategory && matchSearch;
     });
   }, [category, availableProducts, search]);
@@ -349,7 +349,7 @@ export default function StaffPOSPage() {
         <header className={`${focusStyles.posHeader} ${focusMode ? focusStyles.posHeaderFocused : ""}`}>
           <div className={focusStyles.posHeaderDetails} inert={focusMode} aria-hidden={focusMode}>
             <div className={focusStyles.retractInner}>
-              <h1 className="text-2xl font-bold">Staff POS</h1>
+              <h1 className="text-2xl font-bold">POS</h1>
               <p>Create orders, accept payments, and manage daily sales.</p>
             </div>
           </div>
@@ -407,7 +407,7 @@ export default function StaffPOSPage() {
                 {filteredProducts.map((product) => {
                   const CategoryIcon = categoryIcon(product.category.name);
                   const sellableVariants = product.variants.filter((variant) => variant.isEnabled && variant.availability?.isSellable);
-                  const cheapestVariant = [...product.variants].sort((left, right) => Number(left.price) - Number(right.price))[0];
+                  const cheapestVariant = [...sellableVariants].sort((left, right) => Number(left.price) - Number(right.price))[0];
                   const isSellable = sellableVariants.length > 0;
                   return (
                     <button key={product.id} onClick={() => { setConfiguratorProduct(product); setEditingCartItem(null); }} type="button" disabled={!product.isEnabled || !isSellable} className={styles.productCard}>
@@ -418,7 +418,8 @@ export default function StaffPOSPage() {
                           <CategoryIcon size={16} strokeWidth={1.75} aria-hidden="true" />
                         </div>
                         <h3 className={styles.productName}>{product.name}</h3>
-                        <p className={styles.productDescription}><span className={styles.availableDot} />Available {product.variants.length} variant{product.variants.length === 1 ? "" : "s"}</p>
+                        <p className={styles.productDescription}><span className={styles.availableDot} />Available {sellableVariants.length} variant{sellableVariants.length === 1 ? "" : "s"}</p>
+                        {product.variants.length >= 2 ? <p className={styles.productDescription}>{product.variants.map((variant) => variant.name).join(" / ")}</p> : null}
                         <div className={styles.productCardFooter}>
                           <p className={styles.productPrice}><strong>{formatPeso(cheapestVariant?.price ?? 0)}</strong><span>{product.variants.length > 1 ? " / from" : " / item"}</span></p>
                           <span className={styles.productAdd} aria-hidden="true"><Plus size={18} /></span>

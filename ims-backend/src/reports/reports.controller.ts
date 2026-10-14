@@ -9,17 +9,21 @@ import { PosSalesAnalyticsDto } from './dto/pos-sales-analytics.dto';
 import { PosTransactionHistoryDto } from './dto/pos-transaction-history.dto';
 import { ReportFiltersDto } from './dto/report-filters.dto';
 import { ReportsService } from './reports.service';
+import { CacheRead } from '../cache/cache-read.decorator';
 
 @Controller('reports')
+@CacheRead(10_000)
 @RequirePermission('reports.view')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Get('export-access/excel')
+  @CacheRead(0)
   @RequirePermission('reports.view', 'reports.export.excel')
   authorizeExcelExport() { return { allowed: true }; }
 
   @Get('export-access/pdf')
+  @CacheRead(0)
   @RequirePermission('reports.view', 'reports.export.pdf')
   authorizePdfExport() { return { allowed: true }; }
 

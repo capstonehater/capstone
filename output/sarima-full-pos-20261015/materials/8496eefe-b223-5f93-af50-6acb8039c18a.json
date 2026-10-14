@@ -1,0 +1,10 @@
+{
+  "materialId": "8496eefe-b223-5f93-af50-6acb8039c18a",
+  "name": "Oreo Original Cookies 133g",
+  "sku": "RM-OOC1-001",
+  "unit": "g",
+  "status": "excluded",
+  "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Oreo Original Cookies 133g (g): object of type 'NoneType' has no len()",
+  "convergenceWarnings": 27,
+  "seconds": 61.94
+}

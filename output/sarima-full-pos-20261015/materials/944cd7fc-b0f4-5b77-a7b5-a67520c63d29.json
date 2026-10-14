@@ -1,0 +1,10 @@
+{
+  "materialId": "944cd7fc-b0f4-5b77-a7b5-a67520c63d29",
+  "name": "Knorr Salted Egg Powder 500g",
+  "sku": "RM-KSEP5-001",
+  "unit": "g",
+  "status": "excluded",
+  "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Knorr Salted Egg Powder 500g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+  "convergenceWarnings": 18,
+  "seconds": 75.45
+}

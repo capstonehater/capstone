@@ -1,0 +1,4251 @@
+{
+  "startDate": "2026-10-15",
+  "endDate": "2026-10-21",
+  "capturedAt": "2026-10-14T16:00:28.985Z",
+  "source": "Actual database snapshot; completed POS usage; read-only run",
+  "materials": 84,
+  "forecasted": 15,
+  "excluded": 69,
+  "seconds": 1290.89,
+  "results": [
+    {
+      "materialId": "cada59d9-4ade-57ca-8f85-a45476b46fb8",
+      "name": "Alaska Classic Evaporated Filled Milk 370ml",
+      "sku": "RM-ACEFM3-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Alaska Classic Evaporated Filled Milk 370ml (ml): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 4,
+      "seconds": 47.9
+    },
+    {
+      "materialId": "84290ad2-a5cb-59cc-ba6f-f5bc6e543f07",
+      "name": "Alaska Condensed Milk 390g",
+      "sku": "RM-ACM3-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Alaska Condensed Milk 390g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 12,
+      "seconds": 57.27
+    },
+    {
+      "materialId": "7275a9ff-d8e0-5599-b64f-0b5aabcec31c",
+      "name": "Arla Mozzarella Cheese 200g",
+      "sku": "RM-AMC2-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Arla Mozzarella Cheese 200g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 16,
+      "seconds": 57.98
+    },
+    {
+      "materialId": "53c7eeb8-621b-4c22-a842-67fa8b687bb1",
+      "name": "Arla Whipping Cream 1L",
+      "sku": "RM-AWC1-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No compatible completed POS history is available",
+      "convergenceWarnings": 0,
+      "seconds": 0.02
+    },
+    {
+      "materialId": "4a5b2556-8ef6-5914-a5c6-40d52aa5d15a",
+      "name": "Bounty Fresh Large Eggs 12s",
+      "sku": "RM-BFLE1-001",
+      "unit": "pcs",
+      "status": "forecasted",
+      "total": 5.7,
+      "metrics": {
+        "mae": 0.6530746892135307,
+        "rmse": 0.9107884827032805,
+        "mape": 61.23249982712749,
+        "smape": 89.45905207684073,
+        "aic": 314.1546453306609,
+        "bic": 340.93534627697113
+      },
+      "series": {
+        "materialId": "4a5b2556-8ef6-5914-a5c6-40d52aa5d15a",
+        "name": "Bounty Fresh Large Eggs 12s",
+        "unit": "pcs",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 0.75,
+            "lower95": 0.0,
+            "upper95": 3.6
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 0.66,
+            "lower95": 0.0,
+            "upper95": 3.31
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 1.23,
+            "lower95": 0.0,
+            "upper95": 5.45
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 1.14,
+            "lower95": 0.0,
+            "upper95": 5.07
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 0.61,
+            "lower95": 0.0,
+            "upper95": 3.13
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 0.67,
+            "lower95": 0.0,
+            "upper95": 3.34
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 0.64,
+            "lower95": 0.0,
+            "upper95": 3.25
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            2,
+            1,
+            1
+          ],
+          "seasonalOrder": [
+            1,
+            1,
+            1,
+            7
+          ],
+          "metrics": {
+            "mae": 0.6530746892135307,
+            "rmse": 0.9107884827032805,
+            "mape": 61.23249982712749,
+            "smape": 89.45905207684073,
+            "aic": 314.1546453306609,
+            "bic": 340.93534627697113
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 71,
+            "recentUsageFrequency": 0.7888888888888889,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 5.7,
+            "estimatedShortfall": 0.0,
+            "dailyUpperStressTotal": 27.15,
+            "stressShortfall": 0.0,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 66,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 600.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 0.7487161408025016,
+                "mape": 43.78102054052073
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 0.8687326333040413,
+                "mape": 114.57504573786441
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 0.3417752935340492,
+                "mape": 25.341433202997337
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "pcs",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 303,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 3.5374999999999996,
+          "changePercent": 61.13
+        },
+        "recommendation": {
+          "Product": "Bounty Fresh Large Eggs 12s",
+          "Unit": "pcs",
+          "ForecastTotal": 5.7,
+          "ForecastDays": 7,
+          "Forecast7Days": 5.7,
+          "DailyDemand": 0.81,
+          "MAE": 0.6530746892,
+          "RMSE": 0.9107884827,
+          "MAPE": 61.2324998271,
+          "SMAPE": 89.4590520768,
+          "CurrentStock": 36.0,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 120.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 120.0,
+          "DaysRemaining": 44.4,
+          "StockoutDay": null,
+          "RecommendedPurchase": 90,
+          "BuyOnNextRun": "Yes",
+          "ProjectedRemaining": 120.3,
+          "Priority": "Low",
+          "Recommendation": "Restock 90 pcs on the next stock run to cover the forecast and configured stock target.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 14,
+      "seconds": 50.47
+    },
+    {
+      "materialId": "6c0dd915-f6cb-5ad3-84d3-9d0fed67268b",
+      "name": "Butterfly Pea Flower Dried 100g",
+      "sku": "RM-BPFD1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Butterfly Pea Flower Dried 100g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 31,
+      "seconds": 66.81
+    },
+    {
+      "materialId": "e366f6d3-bcfb-510e-b676-c792748cc491",
+      "name": "Campfire Mini Marshmallows 300g",
+      "sku": "RM-CMM3-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Campfire Mini Marshmallows 300g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 8,
+      "seconds": 52.78
+    },
+    {
+      "materialId": "3019c583-3ca2-5d2d-a9af-77c4053efbeb",
+      "name": "Century Tuna Flakes in Oil 180g",
+      "sku": "RM-CTFIO1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Century Tuna Flakes in Oil 180g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 19,
+      "seconds": 59.47
+    },
+    {
+      "materialId": "bbee1ca9-c4b4-504e-ae8c-a401d2df4d25",
+      "name": "ChaTraMue Original Thai Tea Mix 400g",
+      "sku": "RM-COTTM4-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. ChaTraMue Original Thai Tea Mix 400g (g): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 3,
+      "seconds": 59.98
+    },
+    {
+      "materialId": "c6c09a97-0f92-4e99-bacc-590fcc605a02",
+      "name": "Cocoa Powder",
+      "sku": "RM-CP-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No compatible completed POS history is available",
+      "convergenceWarnings": 0,
+      "seconds": 0.01
+    },
+    {
+      "materialId": "85da5541-8455-5b4d-9dc4-8c4a544a74c7",
+      "name": "Datu Puti Vinegar 1L",
+      "sku": "RM-DPV1-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Datu Puti Vinegar 1L (ml): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 2,
+      "seconds": 60.47
+    },
+    {
+      "materialId": "10ed045d-c61e-53ad-be63-2e23da1d7960",
+      "name": "Del Monte Peach Halves 825g",
+      "sku": "RM-DMPH8-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Del Monte Peach Halves 825g (g): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 21,
+      "seconds": 63.41
+    },
+    {
+      "materialId": "c7ed08bb-2773-5680-871d-3f8ff3593286",
+      "name": "Del Monte Tomato Sauce 1kg",
+      "sku": "RM-DMTS1-001",
+      "unit": "g",
+      "status": "forecasted",
+      "total": 410.99,
+      "metrics": {
+        "mae": 72.84455606119843,
+        "rmse": 96.8712803264926,
+        "mape": 74.91144777518024,
+        "smape": 107.11594632243462,
+        "aic": 2193.0561992704406,
+        "bic": 2212.3734940444765
+      },
+      "series": {
+        "materialId": "c7ed08bb-2773-5680-871d-3f8ff3593286",
+        "name": "Del Monte Tomato Sauce 1kg",
+        "unit": "g",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 61.07,
+            "lower95": 0.0,
+            "upper95": 503.64
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 58.97,
+            "lower95": 0.0,
+            "upper95": 494.77
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 58.37,
+            "lower95": 0.0,
+            "upper95": 492.16
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 58.19,
+            "lower95": 0.0,
+            "upper95": 491.39
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 58.14,
+            "lower95": 0.0,
+            "upper95": 491.17
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 58.13,
+            "lower95": 0.0,
+            "upper95": 491.1
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 58.12,
+            "lower95": 0.0,
+            "upper95": 491.08
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [
+              "2026-06-28"
+            ],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            1,
+            1,
+            2
+          ],
+          "seasonalOrder": [
+            0,
+            0,
+            0,
+            7
+          ],
+          "metrics": {
+            "mae": 72.84455606119843,
+            "rmse": 96.8712803264926,
+            "mape": 74.91144777518024,
+            "smape": 107.11594632243462,
+            "aic": 2193.0561992704406,
+            "bic": 2212.3734940444765
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 73,
+            "recentUsageFrequency": 0.8111111111111111,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 410.99,
+            "estimatedShortfall": 0.0,
+            "dailyUpperStressTotal": 3455.31,
+            "stressShortfall": 0.0,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 84,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 75500.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 71.8291998949498,
+                "mape": 73.26854156044149
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 77.34933516928136,
+                "mape": 66.47006203736336
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 69.35513311936417,
+                "mape": 84.99573972773582
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "g",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 285,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 586.875,
+          "changePercent": -29.97
+        },
+        "recommendation": {
+          "Product": "Del Monte Tomato Sauce 1kg",
+          "Unit": "g",
+          "ForecastTotal": 410.99,
+          "ForecastDays": 7,
+          "Forecast7Days": 410.99,
+          "DailyDemand": 58.71,
+          "MAE": 72.8445560612,
+          "RMSE": 96.8712803265,
+          "MAPE": 74.9114477752,
+          "SMAPE": 107.1159463224,
+          "CurrentStock": 16489.3206,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 3000.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 3000.0,
+          "DaysRemaining": 280.9,
+          "StockoutDay": null,
+          "RecommendedPurchase": 0,
+          "BuyOnNextRun": "No",
+          "ProjectedRemaining": 16078.33,
+          "Priority": "Healthy",
+          "Recommendation": "Inventory is sufficient.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 22,
+      "seconds": 63.07
+    },
+    {
+      "materialId": "443cc3da-8023-581a-ac05-2b0c940be522",
+      "name": "Do\u00c3\u00b1a Maria Jasponica Rice 5kg",
+      "sku": "RM-DMJR5-001",
+      "unit": "g",
+      "status": "forecasted",
+      "total": 0.04,
+      "metrics": {
+        "mae": 78.56660474588439,
+        "rmse": 87.74081628695967,
+        "mape": 44.79389348361894,
+        "smape": 126.25398685274365,
+        "aic": 1776.7403070050211,
+        "bic": 1795.9716096444788
+      },
+      "series": {
+        "materialId": "443cc3da-8023-581a-ac05-2b0c940be522",
+        "name": "Do\u00c3\u00b1a Maria Jasponica Rice 5kg",
+        "unit": "g",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 0.01,
+            "lower95": 0.0,
+            "upper95": 496.18
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 0.03,
+            "lower95": 0.0,
+            "upper95": 779.71
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 0.0,
+            "lower95": 0.0,
+            "upper95": 1699.58
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 0.0,
+            "lower95": 0.0,
+            "upper95": 2695.14
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 0.0,
+            "lower95": 0.0,
+            "upper95": 4273.48
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 0.0,
+            "lower95": 0.0,
+            "upper95": 6992.37
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 0.0,
+            "lower95": 0.0,
+            "upper95": 10794.7
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [
+              "2026-07-08"
+            ],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            2,
+            1,
+            0
+          ],
+          "seasonalOrder": [
+            1,
+            0,
+            0,
+            7
+          ],
+          "metrics": {
+            "mae": 78.56660474588439,
+            "rmse": 87.74081628695967,
+            "mape": 44.79389348361894,
+            "smape": 126.25398685274365,
+            "aic": 1776.7403070050211,
+            "bic": 1795.9716096444788
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 45,
+            "recentUsageFrequency": 0.5,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 0.04,
+            "estimatedShortfall": 0.0,
+            "dailyUpperStressTotal": 27731.16,
+            "stressShortfall": 14312.8824,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 179,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 76000.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 69.70807933015993,
+                "mape": 57.21812395524532
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 115.44923066376097,
+                "mape": 35.48896268254702
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 50.54250424373227,
+                "mape": 41.67459381306446
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "g",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 190,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 215.0,
+          "changePercent": -99.98
+        },
+        "recommendation": {
+          "Product": "Do\u00c3\u00b1a Maria Jasponica Rice 5kg",
+          "Unit": "g",
+          "ForecastTotal": 0.04,
+          "ForecastDays": 7,
+          "Forecast7Days": 0.04,
+          "DailyDemand": 0.01,
+          "MAE": 78.5666047459,
+          "RMSE": 87.740816287,
+          "MAPE": 44.7938934836,
+          "SMAPE": 126.2539868527,
+          "CurrentStock": 13418.2776,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 8000.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 8000.0,
+          "DaysRemaining": 1341827.8,
+          "StockoutDay": null,
+          "RecommendedPurchase": 0,
+          "BuyOnNextRun": "No",
+          "ProjectedRemaining": 13418.24,
+          "Priority": "Healthy",
+          "Recommendation": "Inventory is sufficient.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 16,
+      "seconds": 57.74
+    },
+    {
+      "materialId": "ae77fc9f-e132-509c-8f1a-85f2d861f3b9",
+      "name": "Eden Original Cheese 180g",
+      "sku": "RM-EOC1-001",
+      "unit": "g",
+      "status": "forecasted",
+      "total": 61.18,
+      "metrics": {
+        "mae": 46.650036754182814,
+        "rmse": 78.8015793032858,
+        "mape": 69.82983465418876,
+        "smape": 147.61464152641852,
+        "aic": 1559.8768348624806,
+        "bic": 1582.9543980298297
+      },
+      "series": {
+        "materialId": "ae77fc9f-e132-509c-8f1a-85f2d861f3b9",
+        "name": "Eden Original Cheese 180g",
+        "unit": "g",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 6.61,
+            "lower95": 0.0,
+            "upper95": 681.31
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 6.06,
+            "lower95": 0.0,
+            "upper95": 967.77
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 16.35,
+            "lower95": 0.0,
+            "upper95": 4154.12
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 10.67,
+            "lower95": 0.0,
+            "upper95": 3867.3
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 6.1,
+            "lower95": 0.0,
+            "upper95": 3486.86
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 7.03,
+            "lower95": 0.0,
+            "upper95": 5633.19
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 8.36,
+            "lower95": 0.0,
+            "upper95": 9756.65
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [
+              "2025-10-27",
+              "2025-12-10",
+              "2026-02-21",
+              "2026-02-23",
+              "2026-04-11",
+              "2026-07-12",
+              "2026-10-10",
+              "2026-10-11"
+            ],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            2,
+            1,
+            0
+          ],
+          "seasonalOrder": [
+            1,
+            0,
+            1,
+            7
+          ],
+          "metrics": {
+            "mae": 46.650036754182814,
+            "rmse": 78.8015793032858,
+            "mape": 69.82983465418876,
+            "smape": 147.61464152641852,
+            "aic": 1559.8768348624806,
+            "bic": 1582.9543980298297
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 50,
+            "recentUsageFrequency": 0.5555555555555556,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 61.18000000000001,
+            "estimatedShortfall": 0.0,
+            "dailyUpperStressTotal": 28547.199999999997,
+            "stressShortfall": 25361.677099999997,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 166,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 45000.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 14.504972548480195,
+                "mape": 51.28325436118985
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 22.180032655726556,
+                "mape": 89.01270395441156
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 103.26510505834167,
+                "mape": 69.19354564696485
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "g",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 203,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 853.125,
+          "changePercent": -92.83
+        },
+        "recommendation": {
+          "Product": "Eden Original Cheese 180g",
+          "Unit": "g",
+          "ForecastTotal": 61.18,
+          "ForecastDays": 7,
+          "Forecast7Days": 61.18,
+          "DailyDemand": 8.74,
+          "MAE": 46.6500367542,
+          "RMSE": 78.8015793033,
+          "MAPE": 69.8298346542,
+          "SMAPE": 147.6146415264,
+          "CurrentStock": 3185.5229,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 1800.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 1800.0,
+          "DaysRemaining": 364.5,
+          "StockoutDay": null,
+          "RecommendedPurchase": 0,
+          "BuyOnNextRun": "No",
+          "ProjectedRemaining": 3124.34,
+          "Priority": "Healthy",
+          "Recommendation": "Inventory is sufficient.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 17,
+      "seconds": 55.45
+    },
+    {
+      "materialId": "e4bef11b-2f98-5516-8da7-3ff6a3369984",
+      "name": "Farm Frites Frozen French Fries 1kg",
+      "sku": "RM-FFFFF1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Farm Frites Frozen French Fries 1kg (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 1,
+      "seconds": 64.08
+    },
+    {
+      "materialId": "cd12b4fb-c7fe-5c37-b2b5-2a5e04fc21a5",
+      "name": "Fidel Iodized Salt 1kg",
+      "sku": "RM-FIS1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Fidel Iodized Salt 1kg (g): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 187,
+      "seconds": 77.44
+    },
+    {
+      "materialId": "3c41a13e-53c6-554d-a044-a0fd0946cceb",
+      "name": "Filippo Berio Basil Pesto 190g",
+      "sku": "RM-FBBP1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Filippo Berio Basil Pesto 190g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 3,
+      "seconds": 46.7
+    },
+    {
+      "materialId": "c5adb1e1-c902-5159-be27-e9f42dd0ac80",
+      "name": "Food Grade PET Sauce Bottle 150ml",
+      "sku": "RM-FGPSB1-001",
+      "unit": "pcs",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Food Grade PET Sauce Bottle 150ml (pcs): SARIMA requires varying usage history; constant history cannot be Box-Cox transformed",
+      "convergenceWarnings": 0,
+      "seconds": 0.05
+    },
+    {
+      "materialId": "174f65ef-b892-524c-96bd-1d1da1f374e5",
+      "name": "Fresh Garlic 1kg",
+      "sku": "RM-FG1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Fresh Garlic 1kg (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 12,
+      "seconds": 56.59
+    },
+    {
+      "materialId": "76a9a5b3-71c3-50c5-b6d3-4ae6422c6c23",
+      "name": "Fresh Iceberg Lettuce 1kg",
+      "sku": "RM-FIL1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Fresh Iceberg Lettuce 1kg (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 7,
+      "seconds": 45.39
+    },
+    {
+      "materialId": "30032011-d593-5f06-b348-9d3b0011a327",
+      "name": "Fresh Lakatan Banana 1kg",
+      "sku": "RM-FLB1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Fresh Lakatan Banana 1kg (g): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 22,
+      "seconds": 65.08
+    },
+    {
+      "materialId": "4e9be677-86c7-5dc4-a867-eaa589b1e45f",
+      "name": "Fresh Medium Shrimp 1kg",
+      "sku": "RM-FMS1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Fresh Medium Shrimp 1kg (g): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 39,
+      "seconds": 78.17
+    },
+    {
+      "materialId": "48bfe80b-c90e-557e-a947-6ab9b151df1e",
+      "name": "Fresh Philippine Mango 1kg",
+      "sku": "RM-FPM1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Fresh Philippine Mango 1kg (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 18,
+      "seconds": 53.64
+    },
+    {
+      "materialId": "eb7c98b4-9660-597a-98aa-ef562157c017",
+      "name": "Fresh Philippine Red Chili Peppers 1kg",
+      "sku": "RM-FPRCP1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Fresh Philippine Red Chili Peppers 1kg (g): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 31,
+      "seconds": 93.9
+    },
+    {
+      "materialId": "82628128-a7df-5fde-9617-d5145be63a52",
+      "name": "Fresh Pizza Dough 250g",
+      "sku": "RM-FPD2-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Fresh Pizza Dough 250g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 19,
+      "seconds": 77.5
+    },
+    {
+      "materialId": "d54fe6a7-06c4-5178-8fe5-00408371e910",
+      "name": "Fresh Red Onion 1kg",
+      "sku": "RM-FRO1-001",
+      "unit": "g",
+      "status": "forecasted",
+      "total": 110.12,
+      "metrics": {
+        "mae": 28.926819019267587,
+        "rmse": 45.53363118874614,
+        "mape": 45.43465708637783,
+        "smape": 112.08867436742366,
+        "aic": 1714.474709685154,
+        "bic": 1745.0575825518238
+      },
+      "series": {
+        "materialId": "d54fe6a7-06c4-5178-8fe5-00408371e910",
+        "name": "Fresh Red Onion 1kg",
+        "unit": "g",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 6.9,
+            "lower95": 0.0,
+            "upper95": 100.44
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 10.71,
+            "lower95": 0.0,
+            "upper95": 125.55
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 31.16,
+            "lower95": 0.0,
+            "upper95": 230.73
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 22.09,
+            "lower95": 0.0,
+            "upper95": 187.87
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 14.3,
+            "lower95": 0.0,
+            "upper95": 146.73
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 11.73,
+            "lower95": 0.0,
+            "upper95": 131.81
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 13.23,
+            "lower95": 0.0,
+            "upper95": 140.85
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [
+              "2026-10-10"
+            ],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            2,
+            1,
+            2
+          ],
+          "seasonalOrder": [
+            1,
+            1,
+            1,
+            7
+          ],
+          "metrics": {
+            "mae": 28.926819019267587,
+            "rmse": 45.53363118874614,
+            "mape": 45.43465708637783,
+            "smape": 112.08867436742366,
+            "aic": 1714.474709685154,
+            "bic": 1745.0575825518238
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 65,
+            "recentUsageFrequency": 0.7222222222222222,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 110.12,
+            "estimatedShortfall": 0.0,
+            "dailyUpperStressTotal": 1063.98,
+            "stressShortfall": 573.9245000000001,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 108,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 22500.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 24.10808524655869,
+                "mape": 49.93312718378487
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 14.045393424927088,
+                "mape": 36.40410617127421
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 48.626978386316985,
+                "mape": 49.966737904074435
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "g",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 261,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 446.25,
+          "changePercent": -75.32
+        },
+        "recommendation": {
+          "Product": "Fresh Red Onion 1kg",
+          "Unit": "g",
+          "ForecastTotal": 110.12,
+          "ForecastDays": 7,
+          "Forecast7Days": 110.12,
+          "DailyDemand": 15.73,
+          "MAE": 28.9268190193,
+          "RMSE": 45.5336311887,
+          "MAPE": 45.4346570864,
+          "SMAPE": 112.0886743674,
+          "CurrentStock": 490.0555,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 1200.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 1200.0,
+          "DaysRemaining": 31.2,
+          "StockoutDay": null,
+          "RecommendedPurchase": 821,
+          "BuyOnNextRun": "Yes",
+          "ProjectedRemaining": 1200.94,
+          "Priority": "Low",
+          "Recommendation": "Restock 821 g on the next stock run to cover the forecast and configured stock target.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 12,
+      "seconds": 56.61
+    },
+    {
+      "materialId": "4e35b201-ab6f-5ac9-94d3-a61906c0ab9b",
+      "name": "Fresh Strawberries 500g",
+      "sku": "RM-FS5-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Fresh Strawberries 500g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 19,
+      "seconds": 53.94
+    },
+    {
+      "materialId": "24fac96f-ad19-56bc-801c-d992ae2a39c0",
+      "name": "Golden Fiesta Canola Oil 1L",
+      "sku": "RM-GFCO1-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Golden Fiesta Canola Oil 1L (ml): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 187,
+      "seconds": 77.41
+    },
+    {
+      "materialId": "63241c65-1edf-5905-9c3c-a28a43295c12",
+      "name": "Greenware 12oz Double Wall Paper Cup",
+      "sku": "RM-G1DWPC-001",
+      "unit": "pcs",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Greenware 12oz Double Wall Paper Cup (pcs): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 187,
+      "seconds": 98.26
+    },
+    {
+      "materialId": "a3244205-c593-5934-be2c-806ae7a25a5b",
+      "name": "Greenware 12oz Sip Hole Lid",
+      "sku": "RM-G1SHL-001",
+      "unit": "pcs",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Greenware 12oz Sip Hole Lid (pcs): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 187,
+      "seconds": 99.23
+    },
+    {
+      "materialId": "59bcb16f-c8cc-54f1-a81d-23e807621bf4",
+      "name": "Greenware 22oz Cold Drink Cup",
+      "sku": "RM-G2CDC-001",
+      "unit": "pcs",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Greenware 22oz Cold Drink Cup (pcs): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 187,
+      "seconds": 98.08
+    },
+    {
+      "materialId": "844b2095-61f1-55b3-af00-4e7fcefa04a4",
+      "name": "Greenware 22oz Dome Lid",
+      "sku": "RM-G2DL-001",
+      "unit": "pcs",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Greenware 22oz Dome Lid (pcs): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 187,
+      "seconds": 105.05
+    },
+    {
+      "materialId": "5ce7ff8e-29d7-5e98-ac1a-36f0a6045090",
+      "name": "Greenware Paper Drinking Straw 100s",
+      "sku": "RM-GPDS1-001",
+      "unit": "pcs",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Greenware Paper Drinking Straw 100s (pcs): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 187,
+      "seconds": 104.73
+    },
+    {
+      "materialId": "010de425-0037-5c04-8a04-c64b9b101c94",
+      "name": "Greenware Sugarcane Bagasse Bento Box",
+      "sku": "RM-GSBBB-001",
+      "unit": "pcs",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Greenware Sugarcane Bagasse Bento Box (pcs): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 187,
+      "seconds": 102.65
+    },
+    {
+      "materialId": "a6d6bfec-cbdc-5e26-97e8-b1ced83a6042",
+      "name": "Hershey's Chocolate Syrup 623g",
+      "sku": "RM-HSCS6-001",
+      "unit": "g",
+      "status": "forecasted",
+      "total": 154.5,
+      "metrics": {
+        "mae": 15.045861422352738,
+        "rmse": 19.40939760252991,
+        "mape": 36.16237543880933,
+        "smape": 85.37477129761415,
+        "aic": 2061.5338848580327,
+        "bic": 2076.9189269695994
+      },
+      "series": {
+        "materialId": "a6d6bfec-cbdc-5e26-97e8-b1ced83a6042",
+        "name": "Hershey's Chocolate Syrup 623g",
+        "unit": "g",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 22.5,
+            "lower95": 0.0,
+            "upper95": 86.95
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 23.04,
+            "lower95": 0.0,
+            "upper95": 87.99
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 20.81,
+            "lower95": 0.0,
+            "upper95": 83.67
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 22.85,
+            "lower95": 0.0,
+            "upper95": 87.62
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 22.27,
+            "lower95": 0.0,
+            "upper95": 86.5
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 20.68,
+            "lower95": 0.0,
+            "upper95": 83.41
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 22.35,
+            "lower95": 0.0,
+            "upper95": 86.76
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            0,
+            1,
+            1
+          ],
+          "seasonalOrder": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "metrics": {
+            "mae": 15.045861422352738,
+            "rmse": 19.40939760252991,
+            "mape": 36.16237543880933,
+            "smape": 85.37477129761415,
+            "aic": 2061.5338848580327,
+            "bic": 2076.9189269695994
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 71,
+            "recentUsageFrequency": 0.7888888888888889,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 154.49999999999997,
+            "estimatedShortfall": 0.0,
+            "dailyUpperStressTotal": 602.9,
+            "stressShortfall": 0.0,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 67,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 12600.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 15.071139644049026,
+                "mape": 41.904454882275374
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 14.844012777700621,
+                "mape": 34.49580720646918
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 15.222431845308572,
+                "mape": 32.086864227683435
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "g",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 302,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 135.75,
+          "changePercent": 13.81
+        },
+        "recommendation": {
+          "Product": "Hershey's Chocolate Syrup 623g",
+          "Unit": "g",
+          "ForecastTotal": 154.5,
+          "ForecastDays": 7,
+          "Forecast7Days": 154.5,
+          "DailyDemand": 22.07,
+          "MAE": 15.0458614224,
+          "RMSE": 19.4093976025,
+          "MAPE": 36.1623754388,
+          "SMAPE": 85.3747712976,
+          "CurrentStock": 4453.1323,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 1500.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 1500.0,
+          "DaysRemaining": 201.8,
+          "StockoutDay": null,
+          "RecommendedPurchase": 0,
+          "BuyOnNextRun": "No",
+          "ProjectedRemaining": 4298.63,
+          "Priority": "Healthy",
+          "Recommendation": "Inventory is sufficient.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 23,
+      "seconds": 61.53
+    },
+    {
+      "materialId": "329cb25d-8ff9-5a54-94f1-aebd2c1bbdd5",
+      "name": "Huy Fong Sriracha Hot Chili Sauce 481g",
+      "sku": "RM-HFSHCS4-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Huy Fong Sriracha Hot Chili Sauce 481g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 21,
+      "seconds": 78.7
+    },
+    {
+      "materialId": "404c5f13-6f9b-5cb9-b929-83be3223f8c5",
+      "name": "Kirkland Signature Macadamia Nuts 680g",
+      "sku": "RM-KSMN6-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Kirkland Signature Macadamia Nuts 680g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 1,
+      "seconds": 43.3
+    },
+    {
+      "materialId": "944cd7fc-b0f4-5b77-a7b5-a67520c63d29",
+      "name": "Knorr Salted Egg Powder 500g",
+      "sku": "RM-KSEP5-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Knorr Salted Egg Powder 500g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 18,
+      "seconds": 75.45
+    },
+    {
+      "materialId": "e7fa963d-8d5f-5827-8540-5fdabbd3a2ec",
+      "name": "Kraft Grated Parmesan Cheese 85g",
+      "sku": "RM-KGPC8-001",
+      "unit": "g",
+      "status": "forecasted",
+      "total": 99.78,
+      "metrics": {
+        "mae": 32.042882274806274,
+        "rmse": 55.150008813168405,
+        "mape": 55.65405229926964,
+        "smape": 136.26690938758264,
+        "aic": 1718.7126559570672,
+        "bic": 1745.6162119004737
+      },
+      "series": {
+        "materialId": "e7fa963d-8d5f-5827-8540-5fdabbd3a2ec",
+        "name": "Kraft Grated Parmesan Cheese 85g",
+        "unit": "g",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 14.98,
+            "lower95": 0.0,
+            "upper95": 214.17
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 13.63,
+            "lower95": 0.0,
+            "upper95": 202.83
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 17.84,
+            "lower95": 0.0,
+            "upper95": 237.42
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 12.52,
+            "lower95": 0.0,
+            "upper95": 193.32
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 13.33,
+            "lower95": 0.0,
+            "upper95": 200.37
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 12.6,
+            "lower95": 0.0,
+            "upper95": 194.06
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 14.88,
+            "lower95": 0.0,
+            "upper95": 214.24
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            2,
+            1,
+            2
+          ],
+          "seasonalOrder": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "metrics": {
+            "mae": 32.042882274806274,
+            "rmse": 55.150008813168405,
+            "mape": 55.65405229926964,
+            "smape": 136.26690938758264,
+            "aic": 1718.7126559570672,
+            "bic": 1745.6162119004737
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 52,
+            "recentUsageFrequency": 0.5777777777777777,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 99.77999999999999,
+            "estimatedShortfall": 0.0,
+            "dailyUpperStressTotal": 1456.41,
+            "stressShortfall": 0.0,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 132,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 27000.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 35.19014302296469,
+                "mape": 61.426653635333054
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 18.392979747914428,
+                "mape": 52.75596841393377
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 42.54552405353971,
+                "mape": 52.77953484854208
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "g",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 237,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 339.75,
+          "changePercent": -70.63
+        },
+        "recommendation": {
+          "Product": "Kraft Grated Parmesan Cheese 85g",
+          "Unit": "g",
+          "ForecastTotal": 99.78,
+          "ForecastDays": 7,
+          "Forecast7Days": 99.78,
+          "DailyDemand": 14.25,
+          "MAE": 32.0428822748,
+          "RMSE": 55.1500088132,
+          "MAPE": 55.6540522993,
+          "SMAPE": 136.2669093876,
+          "CurrentStock": 4708.4898,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 800.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 800.0,
+          "DaysRemaining": 330.4,
+          "StockoutDay": null,
+          "RecommendedPurchase": 0,
+          "BuyOnNextRun": "No",
+          "ProjectedRemaining": 4608.71,
+          "Priority": "Healthy",
+          "Recommendation": "Inventory is sufficient.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 20,
+      "seconds": 60.27
+    },
+    {
+      "materialId": "ce71173f-f580-5e51-8956-c245701cdf7e",
+      "name": "Lee Kum Kee Korean BBQ Sauce 240g",
+      "sku": "RM-LKKKBS2-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Lee Kum Kee Korean BBQ Sauce 240g (g): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 21,
+      "seconds": 73.01
+    },
+    {
+      "materialId": "fdd23c15-1ea2-5f0b-bdad-ae77d8ab2d9b",
+      "name": "Lipton Yellow Label Black Tea Bags 100s",
+      "sku": "RM-LYLBTB1-001",
+      "unit": "pcs",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Lipton Yellow Label Black Tea Bags 100s (pcs): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 49,
+      "seconds": 71.08
+    },
+    {
+      "materialId": "b125c7ba-8d4e-520f-8bbc-4da6a87fdcee",
+      "name": "Lotus Biscoff Spread 400g",
+      "sku": "RM-LBS4-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Lotus Biscoff Spread 400g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 20,
+      "seconds": 47.76
+    },
+    {
+      "materialId": "840de69a-f348-5800-a5dc-e724f6a8332f",
+      "name": "MILO Chocolate Malt Powder 300g",
+      "sku": "RM-MCMP3-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. MILO Chocolate Malt Powder 300g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 34,
+      "seconds": 65.48
+    },
+    {
+      "materialId": "1da34204-ae0d-57f1-aa40-428ee5e69ad8",
+      "name": "MONIN Caramel Syrup 700ml",
+      "sku": "RM-MCS7-001",
+      "unit": "ml",
+      "status": "forecasted",
+      "total": 76.27,
+      "metrics": {
+        "mae": 13.519874675146374,
+        "rmse": 16.51332687796075,
+        "mape": 42.73204290470495,
+        "smape": 107.21977616917877,
+        "aic": 1712.52525132681,
+        "bic": 1743.2721724049886
+      },
+      "series": {
+        "materialId": "1da34204-ae0d-57f1-aa40-428ee5e69ad8",
+        "name": "MONIN Caramel Syrup 700ml",
+        "unit": "ml",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 13.08,
+            "lower95": 0.0,
+            "upper95": 119.69
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 10.98,
+            "lower95": 0.0,
+            "upper95": 108.86
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 9.78,
+            "lower95": 0.0,
+            "upper95": 102.37
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 11.75,
+            "lower95": 0.0,
+            "upper95": 112.87
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 8.6,
+            "lower95": 0.0,
+            "upper95": 95.81
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 9.74,
+            "lower95": 0.0,
+            "upper95": 102.15
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 12.34,
+            "lower95": 0.0,
+            "upper95": 116.75
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [
+              "2025-11-01",
+              "2025-12-10",
+              "2025-12-11",
+              "2026-02-01",
+              "2026-03-01",
+              "2026-04-11"
+            ],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            2,
+            1,
+            2
+          ],
+          "seasonalOrder": [
+            1,
+            0,
+            1,
+            7
+          ],
+          "metrics": {
+            "mae": 13.519874675146374,
+            "rmse": 16.51332687796075,
+            "mape": 42.73204290470495,
+            "smape": 107.21977616917877,
+            "aic": 1712.52525132681,
+            "bic": 1743.2721724049886
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 57,
+            "recentUsageFrequency": 0.6333333333333333,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 76.27000000000001,
+            "estimatedShortfall": 0.0,
+            "dailyUpperStressTotal": 758.5,
+            "stressShortfall": 0.0,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 129,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 13400.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 13.381916626789945,
+                "mape": 46.691591807864306
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 16.487973734638,
+                "mape": 50.56023660706435
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 10.689733664011179,
+                "mape": 30.9443002991862
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "ml",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 240,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 88.75,
+          "changePercent": -14.06
+        },
+        "recommendation": {
+          "Product": "MONIN Caramel Syrup 700ml",
+          "Unit": "ml",
+          "ForecastTotal": 76.27,
+          "ForecastDays": 7,
+          "Forecast7Days": 76.27,
+          "DailyDemand": 10.9,
+          "MAE": 13.5198746751,
+          "RMSE": 16.513326878,
+          "MAPE": 42.7320429047,
+          "SMAPE": 107.2197761692,
+          "CurrentStock": 1809.1851,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 1500.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 1500.0,
+          "DaysRemaining": 166.0,
+          "StockoutDay": null,
+          "RecommendedPurchase": 0,
+          "BuyOnNextRun": "No",
+          "ProjectedRemaining": 1732.92,
+          "Priority": "Healthy",
+          "Recommendation": "Inventory is sufficient.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 14,
+      "seconds": 53.57
+    },
+    {
+      "materialId": "83f9bd66-295a-55ad-82ef-cc91f8742133",
+      "name": "MONIN French Vanilla Syrup 700ml",
+      "sku": "RM-MFVS7-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. MONIN French Vanilla Syrup 700ml (ml): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 2,
+      "seconds": 45.03
+    },
+    {
+      "materialId": "a37271b7-5914-5ed0-8900-e768b2c42c1f",
+      "name": "MONIN Hazelnut Syrup 700ml",
+      "sku": "RM-MHS7-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. MONIN Hazelnut Syrup 700ml (ml): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 12,
+      "seconds": 46.06
+    },
+    {
+      "materialId": "53fe890b-c088-5910-907e-5ee9be0bc26d",
+      "name": "MONIN Mango Syrup 700ml",
+      "sku": "RM-MMS7-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. MONIN Mango Syrup 700ml (ml): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 15,
+      "seconds": 59.11
+    },
+    {
+      "materialId": "2cfc67e3-6c54-5142-ab81-45b1f7322653",
+      "name": "MONIN Passion Fruit Syrup 700ml",
+      "sku": "RM-MPFS7-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. MONIN Passion Fruit Syrup 700ml (ml): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 18,
+      "seconds": 50.53
+    },
+    {
+      "materialId": "02bfc93c-5132-5568-88a4-5a761d3bbe01",
+      "name": "MONIN Peppermint Syrup 700ml",
+      "sku": "RM-MPS7-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. MONIN Peppermint Syrup 700ml (ml): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 22,
+      "seconds": 56.47
+    },
+    {
+      "materialId": "168e02ca-7f7c-5be2-af83-fc8b2acf23ad",
+      "name": "MONIN Strawberry Syrup 700ml",
+      "sku": "RM-MSS7-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. MONIN Strawberry Syrup 700ml (ml): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 12,
+      "seconds": 46.37
+    },
+    {
+      "materialId": "6bf77a9a-bcea-5933-b88c-aadec78fb278",
+      "name": "MONIN White Chocolate Sauce 500ml",
+      "sku": "RM-MWCS5-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. MONIN White Chocolate Sauce 500ml (ml): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 14,
+      "seconds": 59.58
+    },
+    {
+      "materialId": "0ed393a6-4b95-5a7c-bd00-4553c87d9904",
+      "name": "Magnolia Chicken Wings 1kg",
+      "sku": "RM-MCW1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Magnolia Chicken Wings 1kg (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 18,
+      "seconds": 60.08
+    },
+    {
+      "materialId": "fffbae8f-57f1-57cc-b4b4-4e454f350836",
+      "name": "Magnolia Cream Cheese 225g",
+      "sku": "RM-MCC2-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Magnolia Cream Cheese 225g (g): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 16,
+      "seconds": 53.59
+    },
+    {
+      "materialId": "7f6d16a0-e3bd-5b03-aed4-809246baeb76",
+      "name": "Magnolia Fresh Milk 1L",
+      "sku": "RM-MFM1-001",
+      "unit": "ml",
+      "status": "forecasted",
+      "total": 9736.19,
+      "metrics": {
+        "mae": 746.6832736010277,
+        "rmse": 1176.5302359634989,
+        "mape": 88.49371386352,
+        "smape": 43.17623096204634,
+        "aic": 1692.5804737338792,
+        "bic": 1711.9119577877088
+      },
+      "series": {
+        "materialId": "7f6d16a0-e3bd-5b03-aed4-809246baeb76",
+        "name": "Magnolia Fresh Milk 1L",
+        "unit": "ml",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 1073.53,
+            "lower95": 395.12,
+            "upper95": 2361.72
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 1327.55,
+            "lower95": 515.33,
+            "upper95": 2824.73
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 1505.37,
+            "lower95": 605.25,
+            "upper95": 3131.97
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 1477.66,
+            "lower95": 590.9,
+            "upper95": 3085.07
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 1448.27,
+            "lower95": 575.88,
+            "upper95": 3034.68
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 1449.68,
+            "lower95": 576.6,
+            "upper95": 3037.12
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 1454.13,
+            "lower95": 578.86,
+            "upper95": 3044.8
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [
+              "2026-10-13"
+            ],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            2,
+            1,
+            1
+          ],
+          "seasonalOrder": [
+            0,
+            0,
+            0,
+            7
+          ],
+          "metrics": {
+            "mae": 746.6832736010277,
+            "rmse": 1176.5302359634989,
+            "mape": 88.49371386352,
+            "smape": 43.17623096204634,
+            "aic": 1692.5804737338792,
+            "bic": 1711.9119577877088
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 90,
+            "recentUsageFrequency": 1.0,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 9736.189999999999,
+            "estimatedShortfall": 3930.4344999999985,
+            "dailyUpperStressTotal": 20520.09,
+            "stressShortfall": 14714.3345,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 0,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 836000.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 355.7767110173029,
+                "mape": 20.471087892413756
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 351.48006961311967,
+                "mape": 27.33080373674121
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 1532.7930401726603,
+                "mape": 217.67924996140508
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "ml",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 369,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 13196.25,
+          "changePercent": -26.22
+        },
+        "recommendation": {
+          "Product": "Magnolia Fresh Milk 1L",
+          "Unit": "ml",
+          "ForecastTotal": 9736.19,
+          "ForecastDays": 7,
+          "Forecast7Days": 9736.19,
+          "DailyDemand": 1390.88,
+          "MAE": 746.683273601,
+          "RMSE": 1176.5302359635,
+          "MAPE": 88.4937138635,
+          "SMAPE": 43.176230962,
+          "CurrentStock": 5805.7555,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 12000.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 12000.0,
+          "DaysRemaining": 4.2,
+          "StockoutDay": 5,
+          "RecommendedPurchase": 15931,
+          "BuyOnNextRun": "Yes",
+          "ProjectedRemaining": 12000.57,
+          "Priority": "Medium",
+          "Recommendation": "Restock 15931 ml on the next stock run; current stock reaches zero by forecast day 5.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 24,
+      "seconds": 59.53
+    },
+    {
+      "materialId": "c56a602d-1e26-5e84-a18e-14cb7085c455",
+      "name": "Magnolia Gold Butter Salted 225g",
+      "sku": "RM-MGBS2-001",
+      "unit": "g",
+      "status": "forecasted",
+      "total": 77.03,
+      "metrics": {
+        "mae": 14.446326270097712,
+        "rmse": 21.482774652856545,
+        "mape": 40.95600803665397,
+        "smape": 94.38326938389878,
+        "aic": 1684.4259734372129,
+        "bic": 1715.1728945153918
+      },
+      "series": {
+        "materialId": "c56a602d-1e26-5e84-a18e-14cb7085c455",
+        "name": "Magnolia Gold Butter Salted 225g",
+        "unit": "g",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 12.35,
+            "lower95": 0.0,
+            "upper95": 87.84
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 10.5,
+            "lower95": 0.0,
+            "upper95": 80.61
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 9.86,
+            "lower95": 0.0,
+            "upper95": 78.04
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 12.1,
+            "lower95": 0.0,
+            "upper95": 87.03
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 11.62,
+            "lower95": 0.0,
+            "upper95": 85.14
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 9.57,
+            "lower95": 0.0,
+            "upper95": 76.84
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 11.03,
+            "lower95": 0.0,
+            "upper95": 83.06
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            2,
+            1,
+            2
+          ],
+          "seasonalOrder": [
+            1,
+            0,
+            1,
+            7
+          ],
+          "metrics": {
+            "mae": 14.446326270097712,
+            "rmse": 21.482774652856545,
+            "mape": 40.95600803665397,
+            "smape": 94.38326938389878,
+            "aic": 1684.4259734372129,
+            "bic": 1715.1728945153918
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 60,
+            "recentUsageFrequency": 0.6666666666666666,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 77.03,
+            "estimatedShortfall": 0.0,
+            "dailyUpperStressTotal": 578.56,
+            "stressShortfall": 0.0,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 125,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 10200.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 21.407069224910998,
+                "mape": 44.461528650003515
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 10.601555878077122,
+                "mape": 37.62944230445554
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 11.330353707305013,
+                "mape": 40.777053155502855
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "g",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 244,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 112.0,
+          "changePercent": -31.22
+        },
+        "recommendation": {
+          "Product": "Magnolia Gold Butter Salted 225g",
+          "Unit": "g",
+          "ForecastTotal": 77.03,
+          "ForecastDays": 7,
+          "Forecast7Days": 77.03,
+          "DailyDemand": 11.0,
+          "MAE": 14.4463262701,
+          "RMSE": 21.4827746529,
+          "MAPE": 40.9560080367,
+          "SMAPE": 94.3832693839,
+          "CurrentStock": 2512.0352,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 3000.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 3000.0,
+          "DaysRemaining": 228.4,
+          "StockoutDay": null,
+          "RecommendedPurchase": 565,
+          "BuyOnNextRun": "Yes",
+          "ProjectedRemaining": 3000.01,
+          "Priority": "Low",
+          "Recommendation": "Restock 565 g on the next stock run to cover the forecast and configured stock target.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 34,
+      "seconds": 59.65
+    },
+    {
+      "materialId": "ef67ce98-9572-4ec8-8f6d-9babf9b37e47",
+      "name": "Mascarpone Cheese 250g",
+      "sku": "RM-CMC2-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No compatible completed POS history is available",
+      "convergenceWarnings": 0,
+      "seconds": 0.01
+    },
+    {
+      "materialId": "27738ae9-8b3e-4424-9879-5e67f25d326e",
+      "name": "Matilde Vicenzi Vicenzovo Ladyfingers",
+      "sku": "RM-MVVL-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No compatible completed POS history is available",
+      "convergenceWarnings": 0,
+      "seconds": 0.02
+    },
+    {
+      "materialId": "88c341c8-12e3-5c0e-bcb0-015cedf683be",
+      "name": "Maya All Purpose Flour 2kg",
+      "sku": "RM-MAPF2-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Maya All Purpose Flour 2kg (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 32,
+      "seconds": 65.45
+    },
+    {
+      "materialId": "768fdba4-80bc-5bf2-9a50-2ea9d677ec3b",
+      "name": "Maya Japanese Bread Crumbs 200g",
+      "sku": "RM-MJBC2-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Maya Japanese Bread Crumbs 200g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 32,
+      "seconds": 72.29
+    },
+    {
+      "materialId": "7d834e9c-4b13-56ad-a679-5db6b2946e5a",
+      "name": "McCormick Ground Black Pepper 80g",
+      "sku": "RM-MGBP8-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. McCormick Ground Black Pepper 80g (g): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 187,
+      "seconds": 77.4
+    },
+    {
+      "materialId": "d3d83926-f0a2-4fb2-b620-7305fe0e77f0",
+      "name": "Milktea Powder",
+      "sku": "RM-MP-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No compatible completed POS history is available",
+      "convergenceWarnings": 0,
+      "seconds": 0.01
+    },
+    {
+      "materialId": "151b8128-22b5-5317-b9ca-9f85907273d7",
+      "name": "Mission Soft Flour Tortillas 10s",
+      "sku": "RM-MSFT1-001",
+      "unit": "pcs",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Mission Soft Flour Tortillas 10s (pcs): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 9,
+      "seconds": 79.71
+    },
+    {
+      "materialId": "9ce35695-723f-5708-8498-6989961751c3",
+      "name": "Monterey Beef Sirloin 1kg",
+      "sku": "RM-MBS1-001",
+      "unit": "g",
+      "status": "forecasted",
+      "total": 120.06,
+      "metrics": {
+        "mae": 77.23629746868575,
+        "rmse": 131.48003037213627,
+        "mape": 76.7850074817281,
+        "smape": 164.66830764373177,
+        "aic": 1720.7879125734805,
+        "bic": 1740.0047382473424
+      },
+      "series": {
+        "materialId": "9ce35695-723f-5708-8498-6989961751c3",
+        "name": "Monterey Beef Sirloin 1kg",
+        "unit": "g",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 17.64,
+            "lower95": 0.0,
+            "upper95": 1535.9
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 19.71,
+            "lower95": 0.0,
+            "upper95": 1673.3
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 13.57,
+            "lower95": 0.0,
+            "upper95": 1256.82
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 24.06,
+            "lower95": 0.0,
+            "upper95": 1955.11
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 13.66,
+            "lower95": 0.0,
+            "upper95": 1262.95
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 13.76,
+            "lower95": 0.0,
+            "upper95": 1269.67
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 17.66,
+            "lower95": 0.0,
+            "upper95": 1559.63
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [
+              "2026-06-06",
+              "2026-06-28"
+            ],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            0,
+            1,
+            2
+          ],
+          "seasonalOrder": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "metrics": {
+            "mae": 77.23629746868575,
+            "rmse": 131.48003037213627,
+            "mape": 76.7850074817281,
+            "smape": 164.66830764373177,
+            "aic": 1720.7879125734805,
+            "bic": 1740.0047382473424
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 49,
+            "recentUsageFrequency": 0.5444444444444444,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 120.06,
+            "estimatedShortfall": 120.06,
+            "dailyUpperStressTotal": 10513.380000000001,
+            "stressShortfall": 10513.380000000001,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 163,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 99000.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 38.20996036487652,
+                "mape": 84.15198401294823
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 80.05883836198274,
+                "mape": 80.56862518248298
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 113.44009367919797,
+                "mape": 65.63441324975307
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "g",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 206,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 889.375,
+          "changePercent": -86.5
+        },
+        "recommendation": {
+          "Product": "Monterey Beef Sirloin 1kg",
+          "Unit": "g",
+          "ForecastTotal": 120.06,
+          "ForecastDays": 7,
+          "Forecast7Days": 120.06,
+          "DailyDemand": 17.15,
+          "MAE": 77.2362974687,
+          "RMSE": 131.4800303721,
+          "MAPE": 76.7850074817,
+          "SMAPE": 164.6683076437,
+          "CurrentStock": 0.0,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 3000.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 3000.0,
+          "DaysRemaining": 0.0,
+          "StockoutDay": 1,
+          "RecommendedPurchase": 3121,
+          "BuyOnNextRun": "Yes",
+          "ProjectedRemaining": 3000.94,
+          "Priority": "Critical",
+          "Recommendation": "Restock 3121 g on the next stock run; current stock reaches zero by forecast day 1.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 16,
+      "seconds": 60.79
+    },
+    {
+      "materialId": "91bd447c-da72-580b-ac1e-683cf9798b2a",
+      "name": "Nestl\u00c3\u00a9 All Purpose Cream 250ml",
+      "sku": "RM-NAPC2-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Nestl\u00c3\u00a9 All Purpose Cream 250ml (ml): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 34,
+      "seconds": 68.33
+    },
+    {
+      "materialId": "4f708505-240b-58a0-b877-12f276ee86d9",
+      "name": "Oatside Barista Blend Oat Milk 1L",
+      "sku": "RM-OBBOM1-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Oatside Barista Blend Oat Milk 1L (ml): SARIMA requires varying usage history; constant history cannot be Box-Cox transformed",
+      "convergenceWarnings": 0,
+      "seconds": 1.64
+    },
+    {
+      "materialId": "8496eefe-b223-5f93-af50-6acb8039c18a",
+      "name": "Oreo Original Cookies 133g",
+      "sku": "RM-OOC1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Oreo Original Cookies 133g (g): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 27,
+      "seconds": 61.94
+    },
+    {
+      "materialId": "cb8a5621-74dc-519d-9f87-3b3f4a5e89a3",
+      "name": "Pampanga\u00e2\u20ac\u2122s Best Pork Tocino 450g",
+      "sku": "RM-PSBPT4-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Pampanga\u00e2\u20ac\u2122s Best Pork Tocino 450g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 4,
+      "seconds": 56.26
+    },
+    {
+      "materialId": "72ef8e1a-439f-594f-a817-ca376501eeda",
+      "name": "Pampanga\u00e2\u20ac\u2122s Best Skinless Longganisa 450g",
+      "sku": "RM-PSBSL4-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Pampanga\u00e2\u20ac\u2122s Best Skinless Longganisa 450g (g): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 1,
+      "seconds": 51.91
+    },
+    {
+      "materialId": "4956fe2e-6b98-5ecd-922c-9fa8c6e2d2c6",
+      "name": "Pure Ice Food Grade Ice 5kg",
+      "sku": "RM-PIFGI5-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Pure Ice Food Grade Ice 5kg (g): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 187,
+      "seconds": 78.68
+    },
+    {
+      "materialId": "fb83d0c2-5bcb-543b-adf7-3f94d624671d",
+      "name": "Purefoods Pepperoni 250g",
+      "sku": "RM-PP2-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Purefoods Pepperoni 250g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 30,
+      "seconds": 73.23
+    },
+    {
+      "materialId": "7db33030-edef-55c5-b83a-a777632b7640",
+      "name": "Real Lemon Lemon Juice 250ml",
+      "sku": "RM-RLLJ2-001",
+      "unit": "ml",
+      "status": "forecasted",
+      "total": 0.0,
+      "metrics": {
+        "mae": 35.190584204164686,
+        "rmse": 45.0220082214376,
+        "mape": 41.49945012171324,
+        "smape": 101.79991480908177,
+        "aic": 1721.3643647767249,
+        "bic": 1736.8295520197883
+      },
+      "series": {
+        "materialId": "7db33030-edef-55c5-b83a-a777632b7640",
+        "name": "Real Lemon Lemon Juice 250ml",
+        "unit": "ml",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 0.0,
+            "lower95": 0.0,
+            "upper95": 139.76
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 0.0,
+            "lower95": 0.0,
+            "upper95": 205.02
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 0.0,
+            "lower95": 0.0,
+            "upper95": 360.48
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 0.0,
+            "lower95": 0.0,
+            "upper95": 503.03
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 0.0,
+            "lower95": 0.0,
+            "upper95": 708.28
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 0.0,
+            "lower95": 0.0,
+            "upper95": 991.0
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 0.0,
+            "lower95": 0.0,
+            "upper95": 1325.34
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [
+              "2025-12-19",
+              "2026-01-01",
+              "2026-03-07"
+            ],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            2,
+            1,
+            0
+          ],
+          "seasonalOrder": [
+            0,
+            0,
+            0,
+            7
+          ],
+          "metrics": {
+            "mae": 35.190584204164686,
+            "rmse": 45.0220082214376,
+            "mape": 41.49945012171324,
+            "smape": 101.79991480908177,
+            "aic": 1721.3643647767249,
+            "bic": 1736.8295520197883
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 52,
+            "recentUsageFrequency": 0.5777777777777777,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 0.0,
+            "estimatedShortfall": 0.0,
+            "dailyUpperStressTotal": 4232.91,
+            "stressShortfall": 1236.4813,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 166,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 27000.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 37.089653273405105,
+                "mape": 56.88156593669855
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 32.41060168953639,
+                "mape": 41.38221242789805
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 36.07149764955257,
+                "mape": 26.234572000543128
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "ml",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 203,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 131.25,
+          "changePercent": -100.0
+        },
+        "recommendation": {
+          "Product": "Real Lemon Lemon Juice 250ml",
+          "Unit": "ml",
+          "ForecastTotal": 0.0,
+          "ForecastDays": 7,
+          "Forecast7Days": 0.0,
+          "DailyDemand": 0.0,
+          "MAE": 35.1905842042,
+          "RMSE": 45.0220082214,
+          "MAPE": 41.4994501217,
+          "SMAPE": 101.7999148091,
+          "CurrentStock": 2996.4287,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 2500.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 2500.0,
+          "DaysRemaining": null,
+          "StockoutDay": null,
+          "RecommendedPurchase": 0,
+          "BuyOnNextRun": "No",
+          "ProjectedRemaining": 2996.43,
+          "Priority": "Healthy",
+          "Recommendation": "Inventory is sufficient.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 26,
+      "seconds": 54.43
+    },
+    {
+      "materialId": "68267fdb-bcaa-54f1-9fdb-46ed9c79c4e6",
+      "name": "San Remo Spaghetti Pasta 500g",
+      "sku": "RM-SRSP5-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. San Remo Spaghetti Pasta 500g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 15,
+      "seconds": 58.52
+    },
+    {
+      "materialId": "f8e3559c-c75e-56f2-a8f5-f241cbf2aaec",
+      "name": "Sarangani Bay Boneless Bangus 450g",
+      "sku": "RM-SBBB4-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Sarangani Bay Boneless Bangus 450g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 14,
+      "seconds": 58.96
+    },
+    {
+      "materialId": "9391bd64-f598-501d-9c66-2346dc87da45",
+      "name": "Soy Taho with Arnibal 1kg",
+      "sku": "RM-STWA1-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Soy Taho with Arnibal 1kg (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 0,
+      "seconds": 40.91
+    },
+    {
+      "materialId": "d4647d01-1027-5e86-b0ff-de19c3c0a359",
+      "name": "Spanish Sardines in Olive Oil 220g",
+      "sku": "RM-SSIOO2-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Spanish Sardines in Olive Oil 220g (g): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 17,
+      "seconds": 63.2
+    },
+    {
+      "materialId": "418433e7-4166-53e5-98d9-cb4af3253feb",
+      "name": "TOP Creamery Atok Benguet Arabica Coffee Beans Premium Grade 1kg",
+      "sku": "RM-TCABACBPG1-001",
+      "unit": "g",
+      "status": "forecasted",
+      "total": 890.06,
+      "metrics": {
+        "mae": 59.71289121090723,
+        "rmse": 67.6468295916122,
+        "mape": 160.93798421412632,
+        "smape": 52.914200729159425,
+        "aic": 2433.8034158593614,
+        "bic": 2453.1348999131906
+      },
+      "series": {
+        "materialId": "418433e7-4166-53e5-98d9-cb4af3253feb",
+        "name": "TOP Creamery Atok Benguet Arabica Coffee Beans Premium Grade 1kg",
+        "unit": "g",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 134.92,
+            "lower95": 35.2,
+            "upper95": 285.96
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 126.56,
+            "lower95": 30.54,
+            "upper95": 274.39
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 125.44,
+            "lower95": 29.92,
+            "upper95": 272.84
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 125.74,
+            "lower95": 30.07,
+            "upper95": 273.31
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 125.81,
+            "lower95": 30.1,
+            "upper95": 273.43
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 125.8,
+            "lower95": 30.08,
+            "upper95": 273.45
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 125.79,
+            "lower95": 30.07,
+            "upper95": 273.47
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            2,
+            1,
+            1
+          ],
+          "seasonalOrder": [
+            0,
+            0,
+            0,
+            7
+          ],
+          "metrics": {
+            "mae": 59.71289121090723,
+            "rmse": 67.6468295916122,
+            "mape": 160.93798421412632,
+            "smape": 52.914200729159425,
+            "aic": 2433.8034158593614,
+            "bic": 2453.1348999131906
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 89,
+            "recentUsageFrequency": 0.9888888888888889,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 890.06,
+            "estimatedShortfall": 0.0,
+            "dailyUpperStressTotal": 1926.85,
+            "stressShortfall": 0.0,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 1,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 53000.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 70.49933871817954,
+                "mape": 59.89936511090248
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 26.693818295933944,
+                "mape": 22.929796969999597
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 81.9455166186082,
+                "mape": 399.9847905614768
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "g",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 368,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 451.5,
+          "changePercent": 97.13
+        },
+        "recommendation": {
+          "Product": "TOP Creamery Atok Benguet Arabica Coffee Beans Premium Grade 1kg",
+          "Unit": "g",
+          "ForecastTotal": 890.06,
+          "ForecastDays": 7,
+          "Forecast7Days": 890.06,
+          "DailyDemand": 127.15,
+          "MAE": 59.7128912109,
+          "RMSE": 67.6468295916,
+          "MAPE": 160.9379842141,
+          "SMAPE": 52.9142007292,
+          "CurrentStock": 10120.5836,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 5000.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 5000.0,
+          "DaysRemaining": 79.6,
+          "StockoutDay": null,
+          "RecommendedPurchase": 0,
+          "BuyOnNextRun": "No",
+          "ProjectedRemaining": 9230.52,
+          "Priority": "Healthy",
+          "Recommendation": "Inventory is sufficient.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 20,
+      "seconds": 63.7
+    },
+    {
+      "materialId": "f9cfefaf-c2e1-5d6d-a4e1-d5d576e7645d",
+      "name": "TOP Creamery Milk Tea Series Matcha Powder 500g",
+      "sku": "RM-TCMTSMP5-001",
+      "unit": "g",
+      "status": "forecasted",
+      "total": 3004.09,
+      "metrics": {
+        "mae": 44.24030801581955,
+        "rmse": 98.69040614813692,
+        "mape": 60.2341069347471,
+        "smape": 144.21707432835015,
+        "aic": 1740.0365379755685,
+        "bic": 1755.3515820639702
+      },
+      "series": {
+        "materialId": "f9cfefaf-c2e1-5d6d-a4e1-d5d576e7645d",
+        "name": "TOP Creamery Milk Tea Series Matcha Powder 500g",
+        "unit": "g",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 525.87,
+            "lower95": 14.94,
+            "upper95": 5206.39
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 218.12,
+            "lower95": 0.0,
+            "upper95": 4287.46
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 53.41,
+            "lower95": 0.0,
+            "upper95": 2390.79
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 117.48,
+            "lower95": 0.0,
+            "upper95": 4938.21
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 48.96,
+            "lower95": 0.0,
+            "upper95": 3857.25
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 1428.75,
+            "lower95": 2.54,
+            "upper95": 32466.82
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 611.5,
+            "lower95": 0.0,
+            "upper95": 30740.96
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [
+              "2025-11-15",
+              "2026-01-24",
+              "2026-01-25",
+              "2026-09-23",
+              "2026-10-13"
+            ],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            1,
+            1,
+            0
+          ],
+          "seasonalOrder": [
+            1,
+            1,
+            0,
+            7
+          ],
+          "metrics": {
+            "mae": 44.24030801581955,
+            "rmse": 98.69040614813692,
+            "mape": 60.2341069347471,
+            "smape": 144.21707432835015,
+            "aic": 1740.0365379755685,
+            "bic": 1755.3515820639702
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 59,
+            "recentUsageFrequency": 0.6555555555555556,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 3004.09,
+            "estimatedShortfall": 1924.1171000000002,
+            "dailyUpperStressTotal": 83887.88,
+            "stressShortfall": 82807.90710000001,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 133,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 68400.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 25.835508841246618,
+                "mape": 57.53528681174211
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 13.212893294942837,
+                "mape": 47.84371687583479
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 93.67252191126921,
+                "mape": 75.32331711666443
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "g",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 236,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 740.25,
+          "changePercent": 305.82
+        },
+        "recommendation": {
+          "Product": "TOP Creamery Milk Tea Series Matcha Powder 500g",
+          "Unit": "g",
+          "ForecastTotal": 3004.09,
+          "ForecastDays": 7,
+          "Forecast7Days": 3004.09,
+          "DailyDemand": 429.16,
+          "MAE": 44.2403080158,
+          "RMSE": 98.6904061481,
+          "MAPE": 60.2341069347,
+          "SMAPE": 144.2170743284,
+          "CurrentStock": 1079.9729,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 1500.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 1500.0,
+          "DaysRemaining": 2.5,
+          "StockoutDay": 6,
+          "RecommendedPurchase": 3425,
+          "BuyOnNextRun": "Yes",
+          "ProjectedRemaining": 1500.88,
+          "Priority": "Medium",
+          "Recommendation": "Restock 3425 g on the next stock run; current stock reaches zero by forecast day 6.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 13,
+      "seconds": 51.25
+    },
+    {
+      "materialId": "9979b8fd-1eac-5e3d-b5ee-5225de9163ef",
+      "name": "TOP Creamery Pre-Cut Tissue Napkins 100pcs",
+      "sku": "RM-TCPCTN1-001",
+      "unit": "pcs",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. TOP Creamery Pre-Cut Tissue Napkins 100pcs (pcs): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 187,
+      "seconds": 98.91
+    },
+    {
+      "materialId": "21fa4ad3-26dd-5166-8a0d-429f7e327d41",
+      "name": "Tostitos Restaurant Style Tortilla Chips 283g",
+      "sku": "RM-TRSTC2-001",
+      "unit": "g",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Tostitos Restaurant Style Tortilla Chips 283g (g): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 30,
+      "seconds": 71.99
+    },
+    {
+      "materialId": "8326fb1b-1598-5d3b-bc48-1a687f747fc7",
+      "name": "Twinings Chai Tea Bags 20s",
+      "sku": "RM-TCTB2-001",
+      "unit": "pcs",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Twinings Chai Tea Bags 20s (pcs): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 40,
+      "seconds": 64.22
+    },
+    {
+      "materialId": "0ddf6b21-8c25-5fdc-9679-b762c6e99952",
+      "name": "Victorias Refined Sugar 1kg",
+      "sku": "RM-VRS1-001",
+      "unit": "g",
+      "status": "forecasted",
+      "total": 308.04,
+      "metrics": {
+        "mae": 43.84689865838849,
+        "rmse": 74.01703630127082,
+        "mape": 62.72538793385783,
+        "smape": 62.0257824106878,
+        "aic": 1645.8258316962153,
+        "bic": 1672.5858454545516
+      },
+      "series": {
+        "materialId": "0ddf6b21-8c25-5fdc-9679-b762c6e99952",
+        "name": "Victorias Refined Sugar 1kg",
+        "unit": "g",
+        "points": [
+          {
+            "date": "2026-10-15",
+            "forecast": 37.43,
+            "lower95": 4.41,
+            "upper95": 116.8
+          },
+          {
+            "date": "2026-10-16",
+            "forecast": 35.34,
+            "lower95": 3.77,
+            "upper95": 112.82
+          },
+          {
+            "date": "2026-10-17",
+            "forecast": 59.79,
+            "lower95": 11.93,
+            "upper95": 160.12
+          },
+          {
+            "date": "2026-10-18",
+            "forecast": 54.18,
+            "lower95": 9.85,
+            "upper95": 149.72
+          },
+          {
+            "date": "2026-10-19",
+            "forecast": 39.23,
+            "lower95": 4.88,
+            "upper95": 120.79
+          },
+          {
+            "date": "2026-10-20",
+            "forecast": 45.36,
+            "lower95": 6.81,
+            "upper95": 132.88
+          },
+          {
+            "date": "2026-10-21",
+            "forecast": 36.71,
+            "lower95": 4.14,
+            "upper95": 115.71
+          }
+        ],
+        "metadata": {
+          "dataQuality": {
+            "outlierDatesForReview": [
+              "2026-10-13"
+            ],
+            "outlierTreatment": "flagged; observed quantities retained",
+            "verifiedStockoutDates": [],
+            "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+            "inventoryZeroIsNotProofOfZeroDemand": true,
+            "unknownCalendarDaysAreNotZeroDemand": true
+          },
+          "model": "SARIMA",
+          "order": [
+            2,
+            1,
+            2
+          ],
+          "seasonalOrder": [
+            0,
+            1,
+            1,
+            7
+          ],
+          "metrics": {
+            "mae": 43.84689865838849,
+            "rmse": 74.01703630127082,
+            "mape": 62.72538793385783,
+            "smape": 62.0257824106878,
+            "aic": 1645.8258316962153,
+            "bic": 1672.5858454545516
+          },
+          "trainingDays": 372,
+          "transformation": "log1p",
+          "trainingWindowDays": null,
+          "calendarFeatures": "level",
+          "predictionInterval": null,
+          "insights": {
+            "evidenceStatus": "limited",
+            "requirements": {
+              "minimumTestDays": 30,
+              "minimumPositiveDays": 20,
+              "maximumWAPE": 30.0,
+              "maximumHistoryGapDays": 7,
+              "minimumPeriodCoverage": 0.8
+            },
+            "reasons": [
+              "More held-out forecast days are needed to assess reliability.",
+              "There are too few held-out days with usage to assess demand-spike coverage."
+            ],
+            "recentDays": 90,
+            "recentPositiveDays": 89,
+            "recentUsageFrequency": 0.9888888888888889,
+            "historyGapDays": 1,
+            "estimatedTotalUsage": 308.03999999999996,
+            "estimatedShortfall": 0.0,
+            "dailyUpperStressTotal": 908.84,
+            "stressShortfall": 0.0,
+            "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+            "validation": null,
+            "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+          },
+          "trend": "n",
+          "selectionMetric": null,
+          "selectionMAPE": null,
+          "constraints": {
+            "maeTolerance": 0.1,
+            "bestValidationMAE": null,
+            "maeGuardLimit": null,
+            "operationalGuards": null,
+            "rejectedByMAEGuard": null,
+            "requiresConvergence": false,
+            "stationarity": true,
+            "invertibility": true
+          },
+          "availableTrainingDays": 372,
+          "candidateCount": null,
+          "validationFolds": 3,
+          "audit": {
+            "version": 1,
+            "trainingStart": "2025-10-07",
+            "trainingEnd": "2026-10-13",
+            "csvDays": 0,
+            "posDays": 369,
+            "zeroFilledDays": 0,
+            "imputedDays": 3,
+            "zeroDemandDays": 5,
+            "bridgeCalendarDays": 1,
+            "weekdaysOnly": false,
+            "successfulCandidates": null,
+            "selectionMetric": null,
+            "selectionMAPE": null,
+            "rangeRejections": [],
+            "rangeCeiling": 45600.0,
+            "validationMethod": "rolling windows",
+            "validationWindows": [
+              {
+                "start": "2026-09-20",
+                "end": "2026-09-27",
+                "days": 8,
+                "mae": 30.80923694029915,
+                "mape": 61.285728063635624
+              },
+              {
+                "start": "2026-09-28",
+                "end": "2026-10-05",
+                "days": 8,
+                "mae": 30.01397460026964,
+                "mape": 49.53954655593566
+              },
+              {
+                "start": "2026-10-06",
+                "end": "2026-10-13",
+                "days": 8,
+                "mae": 70.71748443459668,
+                "mape": 77.35088918200222
+              }
+            ]
+          },
+          "historicalProducts": [
+            "Completed POS sales"
+          ],
+          "sourceUnit": "g",
+          "trainingSource": "POS-only",
+          "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+          "posMaterialDays": 364,
+          "conversionFactor": 1.0,
+          "forecastDays": 7,
+          "previousPeriodDays": 7,
+          "previousPeriodUsage": 646.5,
+          "changePercent": -52.35
+        },
+        "recommendation": {
+          "Product": "Victorias Refined Sugar 1kg",
+          "Unit": "g",
+          "ForecastTotal": 308.04,
+          "ForecastDays": 7,
+          "Forecast7Days": 308.04,
+          "DailyDemand": 44.01,
+          "MAE": 43.8468986584,
+          "RMSE": 74.0170363013,
+          "MAPE": 62.7253879339,
+          "SMAPE": 62.0257824107,
+          "CurrentStock": 7971.2042,
+          "SafetyStock": 0.0,
+          "LeadTime": 0.0,
+          "CatalogReorderPoint": 7000.0,
+          "HasInventoryData": true,
+          "LeadTimeDemand": 0.0,
+          "ReorderPoint": 7000.0,
+          "DaysRemaining": 181.1,
+          "StockoutDay": null,
+          "RecommendedPurchase": 0,
+          "BuyOnNextRun": "No",
+          "ProjectedRemaining": 7663.16,
+          "Priority": "Healthy",
+          "Recommendation": "Inventory is sufficient.",
+          "stockSource": "live inventory snapshot",
+          "policySource": "raw-materials-and-products.csv"
+        }
+      },
+      "warnings": [
+        "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+        "SARIMA uses calendar-day totals with seven-day seasonality.",
+        "Product filters show store-wide ingredient demand, not predicted product sales.",
+        "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+        "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+        "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+        "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+        "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+      ],
+      "convergenceWarnings": 26,
+      "seconds": 60.18
+    },
+    {
+      "materialId": "e34a06e5-39fe-51a9-b3f9-667f986c8fbf",
+      "name": "Wilkins Pure Bottled Water 500ml",
+      "sku": "RM-WPBW5-001",
+      "unit": "pcs",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Wilkins Pure Bottled Water 500ml (pcs): No validated SARIMA model passed the forecast range checks (1 candidates); material excluded from this run",
+      "convergenceWarnings": 22,
+      "seconds": 97.19
+    },
+    {
+      "materialId": "3c0eb795-db9d-5c95-9683-9b3386600710",
+      "name": "Wilkins Purified Water 6L",
+      "sku": "RM-WPW6-001",
+      "unit": "ml",
+      "status": "excluded",
+      "reason": "No forecasts could be generated. Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded. 3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales. Historical data ends 2026-10-13; forecasting bridges a 1-day gap. Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero. Wilkins Purified Water 6L (ml): object of type 'NoneType' has no len()",
+      "convergenceWarnings": 187,
+      "seconds": 80.22
+    }
+  ]
+}

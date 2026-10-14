@@ -25,7 +25,9 @@ export class AuthThrottleService {
   consumeForgotPasswordAttempt(ipAddress?: string | null): void {
     this.consume({
       key: `forgot-password:${ipAddress ?? 'unknown'}`,
-      maxAttempts: env.PASSWORD_RESET_REQUEST_MAX_ATTEMPTS,
+      maxAttempts: 5,
+      cooldownAfterLimitMs: 30 * 60 * 1000,
+      message: 'You have reached the limit of 5 password reset requests. Please try again after 30 minutes.',
     });
   }
 
@@ -40,6 +42,7 @@ export class AuthThrottleService {
     key: string;
     maxAttempts: number;
     message?: string;
+    cooldownAfterLimitMs?: number;
   }): void {
     const now = Date.now();
     const current = this.buckets.get(options.key);
@@ -47,7 +50,7 @@ export class AuthThrottleService {
     if (!current || current.resetAt <= now) {
       this.buckets.set(options.key, {
         count: 1,
-        resetAt: now + PASSWORD_RESET_RATE_LIMIT_WINDOW_MS,
+        resetAt: now + (options.cooldownAfterLimitMs ?? PASSWORD_RESET_RATE_LIMIT_WINDOW_MS),
       });
       this.pruneExpiredBuckets(now);
       return;
@@ -61,6 +64,9 @@ export class AuthThrottleService {
     }
 
     current.count += 1;
+    if (current.count === options.maxAttempts && options.cooldownAfterLimitMs) {
+      current.resetAt = now + options.cooldownAfterLimitMs;
+    }
     this.buckets.set(options.key, current);
   }
 

@@ -15,11 +15,13 @@ import { ReportsModule } from './reports/reports.module';
 import { AlertsModule } from './alerts/alerts.module';
 import { SettingsModule } from './settings/settings.module';
 import { HealthController } from './health/health.controller';
+import { ReadCacheModule } from './cache/read-cache.module';
 
 @Module({
   controllers: [HealthController],
   imports: [
     PrismaModule,
+    ReadCacheModule,
     RolesModule,
     UsersModule,
     AuthModule,

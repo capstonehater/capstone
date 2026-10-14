@@ -108,6 +108,18 @@ export class AlertsService {
     return { count };
   }
 
+  async getNotifications() {
+    const [alerts, pendingCount] = await Promise.all([
+      this.prisma.alert.findMany({
+        where: { state: AlertState.ACTIVE },
+        select: { id: true, type: true, severity: true, title: true, message: true, firstTriggeredAt: true, remainingQuantity: true },
+        orderBy: { firstTriggeredAt: 'desc' },
+      }),
+      this.prisma.alert.count({ where: { state: { not: AlertState.RESOLVED } } }),
+    ]);
+    return { alerts, pendingCount };
+  }
+
   async acknowledgeAlert(alertId: string, userId: string, note?: string) {
     const alert = await this.getAlertForStateTransition(alertId);
 
@@ -245,7 +257,7 @@ export class AlertsService {
         severity: usableQuantity.lessThanOrEqualTo(0)
           ? AlertSeverity.CRITICAL
           : AlertSeverity.WARNING,
-        title: `${material.name} is running low`,
+        title: `${material.name} is ${usableQuantity.lessThanOrEqualTo(0) ? 'depleted' : 'running low'}`,
         message: `Usable quantity is ${usableQuantity.toString()} with a reorder point of ${reorderPoint.toString()}.`,
         rawMaterialId: material.id,
         remainingQuantity: usableQuantity,
@@ -444,6 +456,9 @@ export class AlertsService {
     readVisibilityCutoff: Date,
   ): Prisma.AlertWhereInput {
     const conditions: Prisma.AlertWhereInput[] = [];
+
+    // A notification link must still locate its alert after it is handled.
+    if (filters.id) return { id: filters.id };
 
     conditions.push(
       filters.state

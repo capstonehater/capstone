@@ -3,10 +3,11 @@ import ModalCloseButton from "@/components/ModalCloseButton";
 
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, ChevronDown, ExternalLink, Store, Package, MapPin, Bot, ChartNoAxesCombined, Search as SearchIcon, Check, CircleAlert } from "lucide-react";
+import { Loader2, ChevronDown, ExternalLink, Store, Package, MapPin, Bot, ChartNoAxesCombined, Search as SearchIcon, Check, CircleAlert, Navigation } from "lucide-react";
 import { apiJsonFetch } from "@/lib/api";
-import { freshLocation, readLiveLocation, storeDistance, type UserLocation } from "@/lib/store-distance";
+import { cacheLocation, clearCachedLocation, getCachedLocation, freshLocation, validLocation, storeDistance, type UserLocation } from "@/lib/store-distance";
 import styles from "./StoreAvailabilityModal.module.css";
+import StoreMapPreview from "./StoreMapPreview";
 import motion from "./InventoryModalMotion.module.css";
 
 type StoreResult = {
@@ -49,6 +50,7 @@ type Search = {
   productName: string;
   status: string;
   error: string | null;
+  createdAt?: string | null;
   completedAt: string | null;
   results: { id: string; payload: StoreResult }[];
 };
@@ -57,6 +59,31 @@ function storeName(result: StoreResult): string {
   return typeof result.store_name === "string" && result.store_name.trim()
     ? result.store_name.trim()
     : "Unknown store";
+}
+
+function navigationDestination(result: StoreResult): string | null {
+  if (result.latitude == null || result.longitude == null
+    || String(result.latitude).trim() === "" || String(result.longitude).trim() === "") return null;
+  const latitude = Number(result.latitude), longitude = Number(result.longitude);
+  if (!Number.isFinite(latitude) || Math.abs(latitude) > 90
+    || !Number.isFinite(longitude) || Math.abs(longitude) > 180) return null;
+  return `${latitude},${longitude}`;
+}
+
+function openNavigation(destination: string, location: UserLocation | null) {
+  const current = getCachedLocation() ?? (freshLocation(location) ? location : null);
+  const origin = current ? `${current.latitude},${current.longitude}` : null;
+  if (/Android/i.test(navigator.userAgent) && !origin) {
+    // No package is forced; Android resolves the installed navigation handler.
+    window.open(`google.navigation:q=${encodeURIComponent(destination)}&mode=d`, "_blank", "noopener,noreferrer");
+  } else if (/iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
+    window.open(`https://maps.apple.com/?${new URLSearchParams({ daddr: destination, dirflg: "d", ...(origin ? { saddr: origin } : {}) })}`, "_blank", "noopener,noreferrer");
+  } else {
+    window.open(`https://www.google.com/maps/dir/?${new URLSearchParams({
+      api: "1", destination, ...(origin ? { origin } : {}), travelmode: "driving", dir_action: "navigate",
+    })}`, "_blank", "noopener,noreferrer");
+  }
 }
 
 function PricingSources({ result }: { result: StoreResult }) {
@@ -103,8 +130,8 @@ function PricingSources({ result }: { result: StoreResult }) {
   );
 }
 
-export default function StoreAvailabilityModal({ materialId, materialName, onClose, onJourney }: {
-  materialId: string; materialName: string; onClose: () => void; onJourney: () => void;
+export default function StoreAvailabilityModal({ materialId, materialName, onClose }: {
+  materialId: string; materialName: string; onClose: () => void;
 }) {
   const [search, setSearch] = useState<Search | null>(null);
   const [loading, setLoading] = useState(true);
@@ -113,32 +140,67 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
   const [error, setError] = useState<string | null>(null);
   const [showOtherStores, setShowOtherStores] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [location, setLocation] = useState<UserLocation | null>(null);
+  const [location, setLocation] = useState<UserLocation | null>(() => getCachedLocation());
   const [locationError, setLocationError] = useState("");
+  const [locationRequest, setLocationRequest] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null);
   const endpoint = `/raw-materials/${encodeURIComponent(materialId)}/store-availability`;
 
   useEffect(() => {
+    setLocation(getCachedLocation());
+    setLocationError("");
     if (!window.isSecureContext || !navigator.geolocation) {
       setLocationError("Live location requires HTTPS and device location support.");
       return;
     }
     let disposed = false;
-    const watch = navigator.geolocation.watchPosition(position => {
+    let refreshing = false;
+    const receivePosition = (position: GeolocationPosition) => {
       if (disposed) return;
       const next = { latitude: position.coords.latitude, longitude: position.coords.longitude,
         accuracy: position.coords.accuracy, timestamp: position.timestamp };
-      setLocation(freshLocation(next) ? next : null);
-      setLocationError(freshLocation(next) ? "" : "Waiting for a fresh location reading.");
-    }, error => {
+      if (freshLocation(next)) cacheLocation(next);
+      setLocation(freshLocation(next) ? next : getCachedLocation());
+      setLocationError("");
+    };
+    const receiveError = (error: GeolocationPositionError) => {
       if (disposed) return;
-      setLocation(null);
+      if (error.code === 1) clearCachedLocation();
+      setLocation(current => error.code !== 1 && validLocation(current) ? current : null);
       setLocationError(error.code === 1 ? "Allow location access to calculate supplier distances."
-        : "Your live location is unavailable. Check device location services.");
-    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 });
-    const expiry = window.setInterval(() => setLocation(current => freshLocation(current) ? current : null), 1000);
-    return () => { disposed = true; navigator.geolocation.clearWatch(watch); window.clearInterval(expiry); };
-  }, []);
+        : error.code === 3 ? "Location request timed out. Retrying automatically..."
+        : "Your live location is unavailable. Check device location services or refresh your location.");
+    };
+    const options = { enableHighAccuracy: true, maximumAge: 30000, timeout: 10000 };
+    const watch = navigator.geolocation.watchPosition(receivePosition, receiveError, options);
+    // Stationary devices may stop emitting watch updates; keep distances fresh.
+    const refreshPosition = () => {
+      if (disposed || refreshing || document.visibilityState === "hidden") return;
+      refreshing = true;
+      navigator.geolocation.getCurrentPosition(
+        position => { refreshing = false; receivePosition(position); },
+        error => { refreshing = false; receiveError(error); }, options);
+    };
+    // Get a quick network/device fix while the high-accuracy watcher refines it.
+    if (!getCachedLocation()) {
+      navigator.geolocation.getCurrentPosition(receivePosition, receiveError,
+        { enableHighAccuracy: false, maximumAge: 30000, timeout: 5000 });
+    }
+    const refreshLocation = window.setInterval(refreshPosition, 15000);
+    document.addEventListener("visibilitychange", refreshPosition);
+    const expiry = window.setInterval(() => setLocation(current => {
+      const cached = getCachedLocation();
+      return cached && (!validLocation(current) || cached.timestamp > current.timestamp)
+        ? cached : validLocation(current) ? current : null;
+    }), 1000);
+    return () => {
+      disposed = true;
+      navigator.geolocation.clearWatch(watch);
+      window.clearInterval(expiry);
+      window.clearInterval(refreshLocation);
+      document.removeEventListener("visibilitychange", refreshPosition);
+    };
+  }, [locationRequest]);
 
   useEffect(() => {
     const node = dialog.current;
@@ -175,16 +237,10 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
   async function start() {
     setStarting(true);
     setError(null);
+    setLocationError("");
     try {
-      let origin: UserLocation | null = null;
-      try {
-        origin = await readLiveLocation();
-        setLocation(origin);
-        setLocationError("");
-      } catch (err) {
-        setLocation(null);
-        setLocationError(err instanceof Error ? err.message : "Your live location is unavailable.");
-      }
+      // Store search must not wait for a device GPS fix. Distances update live.
+      const origin = freshLocation(location) ? location : getCachedLocation();
       const response = await apiJsonFetch<{ search: Search }>(endpoint, {
         method: "POST", body: JSON.stringify(origin ? { latitude: origin.latitude, longitude: origin.longitude } : {}),
       });
@@ -197,6 +253,9 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
 
   const pending = starting || search?.status === "PENDING" || search?.status === "RANKING";
   const displayingResults = showResults || pending;
+  const searchDate = search?.createdAt || search?.completedAt;
+  const searchedAt = searchDate && !Number.isNaN(Date.parse(searchDate)) ? new Date(searchDate) : null;
+  const locationLoading = !validLocation(location) && !locationError;
   const savedResults = [...(search?.results ?? [])].sort((a, b) =>
     (a.payload.recommendation?.rank ?? Infinity) - (b.payload.recommendation?.rank ?? Infinity)
     || storeName(a.payload).localeCompare(storeName(b.payload)));
@@ -236,6 +295,9 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
         <ModalCloseButton onClose={onClose} />
         </div>
         <div className={styles.product}><Package size={15} aria-hidden="true" /><span>{search?.productName ?? materialName}</span></div>
+        {displayingResults && !pending && searchedAt && <p className="mt-2 text-xs text-slate-600">
+          Search date: <time dateTime={searchedAt.toISOString()}>{searchedAt.toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" })}</time>
+        </p>}
       </header>
       <div className={styles.body} tabIndex={0} role="region" aria-label="Store availability results">
         {displayingResults && search?.results[0]?.payload.selected_brand && <p className="mt-2 text-sm font-semibold text-slate-700">Selected brand: {search.results[0].payload.selected_brand} · Same brand searched across stores</p>}
@@ -268,14 +330,14 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
         {displayingResults && recommendationNotice && <p className="mt-2 rounded-xl bg-[#e8eef7] p-3 text-sm text-[#232d46]">{recommendationNotice}</p>}
         <div aria-live="polite">
           {(error || search?.error) && <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error || search?.error}</p>}
-          {(!showResults || loading || pending) && <section className={styles.loadingPanel} aria-busy={loading || pending} aria-label={pending ? "Store search in progress" : "Start a store search"}>
+          {(!showResults || loading || pending) && <section className={styles.loadingPanel} aria-busy={loading || pending} aria-label={loading ? "Loading saved store information" : pending ? "Store search in progress" : "Start a store search"}>
             <div className={styles.loadingEmblem}>
               <span className={`${styles.loadingRing} ${!loading && !pending ? styles.idleRing : ""}`} aria-hidden="true" />
               <Bot size={28} aria-hidden="true" />
             </div>
             <span className={styles.loadingEyebrow}>Store availability search</span>
-            <h3 className={styles.loadingTitle}>{!pending ? "Find your best store options" : search?.status === "RANKING" ? "Finding your best store options" : "Checking registered stores"}</h3>
-            <p className={styles.loadingDescription}>{!pending ? "Search registered suppliers for product listings and prices, and compare their distance from your live location." : search?.status === "RANKING" ? "Search evidence is saved. We are comparing results to prepare your recommendations." : "Looking for product listings, prices and availability. Results will appear here as the search progresses."}</p>
+            <h3 className={styles.loadingTitle}>{loading ? "Loading store information" : starting && locationLoading ? "Getting your current location" : !pending ? "Find your best store options" : search?.status === "RANKING" ? "Finding your best store options" : "Checking registered stores"}</h3>
+            <p className={styles.loadingDescription}>{loading ? "Retrieving saved listings, prices and supplier information..." : starting && locationLoading ? "Waiting for your device location to calculate supplier distances..." : !pending ? "Search registered suppliers for product listings and prices, and compare their distance from your live location." : search?.status === "RANKING" ? "Search evidence is saved. We are comparing results to prepare your recommendations." : "Looking for product listings, prices and availability. Results will appear here as the search progresses."}</p>
             {pending && <ol className={styles.searchSteps} aria-label="Search stages">
               <li className={styles.stepComplete}><span className={styles.stepDot}><Check size={13} aria-hidden="true" /></span><span>Start search</span></li>
               <li className={search?.status === "RANKING" ? styles.stepComplete : styles.stepActive} aria-current={search?.status !== "RANKING" ? "step" : undefined}><span className={styles.stepDot}>{search?.status === "RANKING" ? <Check size={13} aria-hidden="true" /> : <Loader2 size={13} className={styles.stepSpinner} aria-hidden="true" />}</span><span>Check listings</span></li>
@@ -289,24 +351,46 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
             {(loading || pending) && !savedResults.length && <div className={styles.skeletonList} aria-hidden="true">{[0, 1].map(index => <div key={index} className={styles.skeletonCard}><span className={styles.skeletonIcon} /><div><span className={styles.skeletonLine} /><span className={styles.skeletonLineShort} /></div><span className={styles.skeletonPrice} /></div>)}</div>}
           </section>}
         </div>
-        <div className="mt-4 space-y-4">
-          {displayingResults && <p className={styles.locationNotice}><MapPin size={14} aria-hidden="true" />{freshLocation(location) ? `Live location accuracy: approximately ${Math.ceil(location.accuracy)} m. Distances are straight-line estimates.` : locationError || "Waiting for your live location to calculate supplier distances."}</p>}
+        <div className={styles.resultsList}>
+          <div className={styles.locationToolbar}>
+          <p className={styles.locationNotice} role="status">
+            {locationLoading ? <Loader2 size={14} className={styles.stepSpinner} aria-hidden="true" /> : <MapPin size={14} aria-hidden="true" />}
+            {validLocation(location) ? `${freshLocation(location) ? "Live location" : "Last known location ? updating in the background"}. Accuracy: approximately ${Math.ceil(location.accuracy)} m. Distances are straight-line estimates.` : locationError || "Loading your current location and supplier distances..."}
+          </p>
+          <button type="button" className={styles.refreshLocation} onClick={() => setLocationRequest(value => value + 1)}>Refresh location</button>
+          </div>
           {visibleResults.map(({ id, payload: row }) => {
             const distance = storeDistance(location, row.latitude, row.longitude);
+            const destination = navigationDestination(row);
+            const navigationNotice = !destination ? "Navigation unavailable: supplier coordinates are not registered."
+              : "";
             return (
             <article key={id} className={styles.card}>
-              {row.recommendation && <div className="mb-3 flex flex-wrap items-center gap-2">
+              <div className={styles.cardTop}>
+              {row.recommendation && <div className={styles.recommendationBadges}>
                 <span className={styles.rank}>{row.recommendation.rank !== null ? `Top ${row.recommendation.rank}` : "Other registered store"}</span>
                 {row.recommendation.source === "rules" ? <span className="text-xs text-slate-700">Rule-based fallback</span> : <span title="AI recommendation" aria-label="AI recommendation" className="inline-flex rounded-full bg-blue-100 p-1.5 text-blue-800"><Bot size={17} aria-hidden="true" /></span>}
                 <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${(row.recommendation.confidence?.percentage ?? 0) >= 60 ? "bg-blue-100 text-blue-800" : "bg-amber-100 text-amber-900"}`}>{typeof row.recommendation.confidence?.percentage === "number" ? `${row.recommendation.confidence.percentage}% confidence` : "Search again to assess confidence"}</span>
               </div>}
+              <div className={styles.storeActions}>
+              <StoreMapPreview name={storeName(row)} latitude={row.latitude} longitude={row.longitude} />
+              <button type="button" className={styles.navigation} disabled={!destination}
+                aria-label={`Navigation to ${storeName(row)} (opens in a new tab)`}
+                title={navigationNotice || "Open driving navigation from your current location in a new tab"}
+                onClick={() => { if (destination) openNavigation(destination, location); }}>
+                <Navigation size={15} aria-hidden="true" />Navigation
+              </button>
+              </div>
+              </div>
+              {navigationNotice && <p className={styles.navigationNotice}>{navigationNotice}</p>}
               <div className={styles.storeHeading}>
                 <div className="min-w-0">
                   <h4 className={styles.storeName}>{storeName(row)}</h4>
                   <p className="mt-1 text-xs text-slate-700">{row.address}</p>
-                  <p className="mt-2 text-xs font-semibold text-slate-700">
-                    {distance !== null
-                      ? `${new Intl.NumberFormat("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(distance)} km from your current location (straight-line)`
+                  <p className="mt-2 flex items-center gap-2 text-xs font-semibold text-slate-700" aria-busy={!!destination && locationLoading}>
+                    {destination && locationLoading && <Loader2 size={14} className={styles.stepSpinner} aria-hidden="true" />}
+                    {destination && locationLoading ? "Calculating distance from your current location..." : distance !== null
+                      ? `${new Intl.NumberFormat("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(distance)} km from your ${freshLocation(location) ? "current" : "last known"} location (straight-line)`
                       : "Distance unavailable. Allow live location access and check the supplier coordinates."}
                   </p>
                 </div>
@@ -346,12 +430,11 @@ export default function StoreAvailabilityModal({ materialId, materialName, onClo
         </button>}
         {showResults && !loading && !pending && !savedResults.length && !error && !search?.error && <p className={styles.empty}>No saved store listings yet. Search to check prices and availability.</p>}
       </div>
-      <footer className={styles.footer}>
-        <button type="button" onClick={onJourney} className={styles.journey}><MapPin size={16} aria-hidden="true" /><span>Journey? Manage Suppliers → Google Maps</span></button>
-        {displayingResults && search && <div className={styles.actions}>
+      {displayingResults && search && <footer className={styles.footer}>
+        <div className={styles.actions}>
           <button type="button" disabled={loading || pending} onClick={() => void start()} className={styles.search}>{pending && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}{pending ? "Searching…" : search ? "Search again" : "Search"}</button>
-        </div>}
-      </footer>
+        </div>
+      </footer>}
       </div>
     </dialog>
   );

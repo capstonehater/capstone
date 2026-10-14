@@ -8,6 +8,52 @@ from inventory_policy import recommend
 
 
 class PortfolioTests(unittest.TestCase):
+    def test_previous_sarima_search_survives_a_historical_challenger_regression(self):
+        series = self.series(np.arange(1., 365.))
+        dates = pd.date_range(series.Date.max() + pd.Timedelta(days=1), periods=7)
+        reference = {'window': 182, 'transform': 'raw', 'features': 'level',
+                     'order': (1, 0, 0), 'seasonal': (1, 0, 0, 7), 'trend': 'c'}
+        selected = {**reference, 'window': None, 'historical_search_reference': reference}
+        def forecasts(history, method, horizon, spec=None):
+            future = history.qty.iloc[-1] + np.arange(1., horizon + 1.)
+            if method == 'sarima_reference':
+                return future
+            if method == 'sarima':
+                # Challenger ties the reference during selection but fails later.
+                return future if len(history) < 189 else future * 2
+            return np.repeat(history.qty.iloc[-1], horizon)
+        with patch('SARIMA.train_sarima', return_value=selected), \
+                patch('demand_portfolio.point_forecast', side_effect=forecasts):
+            training, future = run(series, 7, dates)
+        report = training['portfolio']
+        self.assertEqual(report['bestBaseline'], 'sarima_reference')
+        self.assertFalse(report['promotionPassed'])
+        self.assertEqual(report['selectedMethod'], 'sarima')
+        self.assertEqual(report['sarimaSearchSource'], 'previous_search')
+        self.assertEqual(training['window'], 182)
+        self.assertEqual(future.Forecast.tolist(), list(np.arange(365., 372.)))
+
+    def test_reference_forecasts_use_the_preserved_configuration(self):
+        reference = {'window': 182}
+        with patch('demand_portfolio.fit') as fitted, \
+                patch('demand_portfolio.predict', return_value=np.ones(7)):
+            point_forecast(self.series(np.arange(1., 70.)), 'sarima_reference', 7,
+                           {'window': None, '_reference': reference})
+        self.assertEqual(fitted.call_args.args[1], reference)
+
+    def test_portfolio_discovery_does_not_duplicate_interval_testing(self):
+        import SARIMA
+        series = self.series(np.arange(1., 365.))
+        dates = pd.date_range(series.Date.max() + pd.Timedelta(days=1), periods=7)
+        previous = SARIMA.CONFIG['INTERVAL_VALIDATION_FOLDS']
+        def discover(stationary):
+            self.assertEqual(SARIMA.CONFIG['INTERVAL_VALIDATION_FOLDS'], 0)
+            raise ValueError('No candidate')
+        with patch('SARIMA.train_sarima', side_effect=discover):
+            training, _ = run(series, 7, dates)
+        self.assertEqual(SARIMA.CONFIG['INTERVAL_VALIDATION_FOLDS'], previous)
+        self.assertEqual(len(training['portfolio']['outerEvaluation']), 5)
+
     def series(self, y):
         return pd.DataFrame({'Date': pd.date_range('2025-01-01', periods=len(y)), 'qty': y, 'is_holiday': np.zeros(len(y))})
 
@@ -70,11 +116,14 @@ class PortfolioTests(unittest.TestCase):
     def test_unknown_targets_do_not_count_as_accuracy_observations(self):
         series = self.series(np.tile([0., 1., 2., 0., 1., 0., 3.], 52))
         series['is_observed'] = True
+        series['history_source'] = 'CSV'
+        series.loc[len(series) - 35:, 'history_source'] = 'POS'
         series.loc[len(series) - 3:len(series) - 2, 'is_observed'] = False
         dates = pd.date_range(series.Date.max() + pd.Timedelta(days=1), periods=7)
         with patch('SARIMA.train_sarima', side_effect=ValueError('No converged candidate')):
             training, _ = run(series, 7, dates)
         self.assertEqual(training['interval_calibration']['validation']['days'], 33)
+        self.assertEqual(sum(f['days'] for f in training['portfolio']['actualPOSEvaluation']), 33)
 
     def test_legacy_switch_ignores_a_portfolio_cache(self):
         from operational_forecast import forecast

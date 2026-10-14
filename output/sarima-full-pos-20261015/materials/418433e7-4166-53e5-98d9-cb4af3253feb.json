@@ -1,0 +1,234 @@
+{
+  "materialId": "418433e7-4166-53e5-98d9-cb4af3253feb",
+  "name": "TOP Creamery Atok Benguet Arabica Coffee Beans Premium Grade 1kg",
+  "sku": "RM-TCABACBPG1-001",
+  "unit": "g",
+  "status": "forecasted",
+  "total": 890.06,
+  "metrics": {
+    "mae": 59.71289121090723,
+    "rmse": 67.6468295916122,
+    "mape": 160.93798421412632,
+    "smape": 52.914200729159425,
+    "aic": 2433.8034158593614,
+    "bic": 2453.1348999131906
+  },
+  "series": {
+    "materialId": "418433e7-4166-53e5-98d9-cb4af3253feb",
+    "name": "TOP Creamery Atok Benguet Arabica Coffee Beans Premium Grade 1kg",
+    "unit": "g",
+    "points": [
+      {
+        "date": "2026-10-15",
+        "forecast": 134.92,
+        "lower95": 35.2,
+        "upper95": 285.96
+      },
+      {
+        "date": "2026-10-16",
+        "forecast": 126.56,
+        "lower95": 30.54,
+        "upper95": 274.39
+      },
+      {
+        "date": "2026-10-17",
+        "forecast": 125.44,
+        "lower95": 29.92,
+        "upper95": 272.84
+      },
+      {
+        "date": "2026-10-18",
+        "forecast": 125.74,
+        "lower95": 30.07,
+        "upper95": 273.31
+      },
+      {
+        "date": "2026-10-19",
+        "forecast": 125.81,
+        "lower95": 30.1,
+        "upper95": 273.43
+      },
+      {
+        "date": "2026-10-20",
+        "forecast": 125.8,
+        "lower95": 30.08,
+        "upper95": 273.45
+      },
+      {
+        "date": "2026-10-21",
+        "forecast": 125.79,
+        "lower95": 30.07,
+        "upper95": 273.47
+      }
+    ],
+    "metadata": {
+      "dataQuality": {
+        "outlierDatesForReview": [],
+        "outlierTreatment": "flagged; observed quantities retained",
+        "verifiedStockoutDates": [],
+        "stockoutTreatment": "requires a censored-demand model before these dates can be treated as demand observations",
+        "inventoryZeroIsNotProofOfZeroDemand": true,
+        "unknownCalendarDaysAreNotZeroDemand": true
+      },
+      "model": "SARIMA",
+      "order": [
+        2,
+        1,
+        1
+      ],
+      "seasonalOrder": [
+        0,
+        0,
+        0,
+        7
+      ],
+      "metrics": {
+        "mae": 59.71289121090723,
+        "rmse": 67.6468295916122,
+        "mape": 160.93798421412632,
+        "smape": 52.914200729159425,
+        "aic": 2433.8034158593614,
+        "bic": 2453.1348999131906
+      },
+      "trainingDays": 372,
+      "transformation": "log1p",
+      "trainingWindowDays": null,
+      "calendarFeatures": "level",
+      "predictionInterval": null,
+      "insights": {
+        "evidenceStatus": "limited",
+        "requirements": {
+          "minimumTestDays": 30,
+          "minimumPositiveDays": 20,
+          "maximumWAPE": 30.0,
+          "maximumHistoryGapDays": 7,
+          "minimumPeriodCoverage": 0.8
+        },
+        "reasons": [
+          "More held-out forecast days are needed to assess reliability.",
+          "There are too few held-out days with usage to assess demand-spike coverage."
+        ],
+        "recentDays": 90,
+        "recentPositiveDays": 89,
+        "recentUsageFrequency": 0.9888888888888889,
+        "historyGapDays": 1,
+        "estimatedTotalUsage": 890.06,
+        "estimatedShortfall": 0.0,
+        "dailyUpperStressTotal": 1926.85,
+        "stressShortfall": 0.0,
+        "stressScenarioInterpretation": "Sum of daily upper bounds: a stock stress scenario, not a 95% interval for total usage.",
+        "validation": null,
+        "scope": "Earlier held-out forecasting procedure; evidence is not a future accuracy probability."
+      },
+      "trend": "n",
+      "selectionMetric": null,
+      "selectionMAPE": null,
+      "constraints": {
+        "maeTolerance": 0.1,
+        "bestValidationMAE": null,
+        "maeGuardLimit": null,
+        "operationalGuards": null,
+        "rejectedByMAEGuard": null,
+        "requiresConvergence": false,
+        "stationarity": true,
+        "invertibility": true
+      },
+      "availableTrainingDays": 372,
+      "candidateCount": null,
+      "validationFolds": 3,
+      "audit": {
+        "version": 1,
+        "trainingStart": "2025-10-07",
+        "trainingEnd": "2026-10-13",
+        "csvDays": 0,
+        "posDays": 369,
+        "zeroFilledDays": 0,
+        "imputedDays": 3,
+        "zeroDemandDays": 1,
+        "bridgeCalendarDays": 1,
+        "weekdaysOnly": false,
+        "successfulCandidates": null,
+        "selectionMetric": null,
+        "selectionMAPE": null,
+        "rangeRejections": [],
+        "rangeCeiling": 53000.0,
+        "validationMethod": "rolling windows",
+        "validationWindows": [
+          {
+            "start": "2026-09-20",
+            "end": "2026-09-27",
+            "days": 8,
+            "mae": 70.49933871817954,
+            "mape": 59.89936511090248
+          },
+          {
+            "start": "2026-09-28",
+            "end": "2026-10-05",
+            "days": 8,
+            "mae": 26.693818295933944,
+            "mape": 22.929796969999597
+          },
+          {
+            "start": "2026-10-06",
+            "end": "2026-10-13",
+            "days": 8,
+            "mae": 81.9455166186082,
+            "mape": 399.9847905614768
+          }
+        ]
+      },
+      "historicalProducts": [
+        "Completed POS sales"
+      ],
+      "sourceUnit": "g",
+      "trainingSource": "POS-only",
+      "posSnapshotAt": "2026-10-14T16:00:28.985Z",
+      "posMaterialDays": 368,
+      "conversionFactor": 1.0,
+      "forecastDays": 7,
+      "previousPeriodDays": 7,
+      "previousPeriodUsage": 451.5,
+      "changePercent": 97.13
+    },
+    "recommendation": {
+      "Product": "TOP Creamery Atok Benguet Arabica Coffee Beans Premium Grade 1kg",
+      "Unit": "g",
+      "ForecastTotal": 890.06,
+      "ForecastDays": 7,
+      "Forecast7Days": 890.06,
+      "DailyDemand": 127.15,
+      "MAE": 59.7128912109,
+      "RMSE": 67.6468295916,
+      "MAPE": 160.9379842141,
+      "SMAPE": 52.9142007292,
+      "CurrentStock": 10120.5836,
+      "SafetyStock": 0.0,
+      "LeadTime": 0.0,
+      "CatalogReorderPoint": 5000.0,
+      "HasInventoryData": true,
+      "LeadTimeDemand": 0.0,
+      "ReorderPoint": 5000.0,
+      "DaysRemaining": 79.6,
+      "StockoutDay": null,
+      "RecommendedPurchase": 0,
+      "BuyOnNextRun": "No",
+      "ProjectedRemaining": 9230.52,
+      "Priority": "Healthy",
+      "Recommendation": "Inventory is sufficient.",
+      "stockSource": "live inventory snapshot",
+      "policySource": "raw-materials-and-products.csv"
+    }
+  },
+  "warnings": [
+    "Training source: completed POS ingredient consumption only; stock source: live inventory snapshot.",
+    "SARIMA uses calendar-day totals with seven-day seasonality.",
+    "Product filters show store-wide ingredient demand, not predicted product sales.",
+    "Prediction intervals are the SARIMA model intervals; measured 95% coverage has not been established.",
+    "Operational training: 369 covered POS days through 2026-10-13; generated CSV usage is excluded.",
+    "3 unknown calendar days are causally estimated from earlier covered weekday amounts for model continuity. They are marked IMPUTED, are not POS observations, and are not measured sales.",
+    "Historical data ends 2026-10-13; forecasting bridges a 1-day gap.",
+    "Catalog identities, units and reorder points use raw-materials-and-products.csv; current stock uses the live snapshot. The catalog supplies no lead time or safety stock, so these default to zero."
+  ],
+  "convergenceWarnings": 20,
+  "seconds": 63.7
+}

@@ -90,7 +90,7 @@ CONFIG = {
     "CONSTRAINED_SELECTION": True,
     "MAE_TOLERANCE": 0.10,
     "VOLUME_ESTIMATION": True,
-    "OPERATIONAL_ERROR_TOLERANCE": 0.10,
+    "OPERATIONAL_ERROR_TOLERANCE": 0.03,
     # Reserve an interval test from earlier selection; production selection
     # still uses the latest folds. Update calibration with completed errors.
     "INTERVAL_CALIBRATION_FOLDS": 12,
@@ -141,7 +141,7 @@ CONFIG = {
     # CV_HORIZON matches FORECAST_DAYS on purpose: it validates each
     # candidate model at the exact horizon it will actually be used to
     # forecast, which is the most meaningful test of real-world accuracy.
-    "CV_FOLDS": 3,
+    "CV_FOLDS": 4,
     "CV_HORIZON": None,  # None -> defaults to FORECAST_DAYS at runtime
 }
 
@@ -193,6 +193,7 @@ def load_dataset():
         df["transaction_date"],
         errors="raise"
     )
+    df = df[df.transaction_date.ge('2024-01-01') & df.transaction_date.lt('2027-01-01')].copy()
     df["transaction_qty"] = pd.to_numeric(
         df["transaction_qty"],
         errors="raise"
@@ -285,6 +286,8 @@ def build_daily_series(
         fill_value=0
     )
     series.index.name = "Date"
+    # Preserve the supplied store calendar, including recorded initial zeros.
+    # The bridge marks genuinely uncovered days separately as IMPUTED.
     series = series.reset_index()
     series["is_holiday"] = (
         series["Date"]
@@ -990,6 +993,16 @@ def train_sarima_legacy(stationary_result):
 
 def display_interval_validation(training):
     interval = training.get("interval_calibration", {})
+    point = (interval.get("validation") or {}).get("pointMetrics") or {}
+    if point.get("mape") is not None:
+        print(f"Held-out MAPE (not used for selection): {point['mape']:.2f}%")
+    week = (interval.get("validation") or {}).get("weeklyTotal") or {}
+    if week.get("wape") is not None:
+        print(f"Held-out 7-day total error (WAPE): {week['wape']:.2f}%  "
+              f"(repeat-last-week baseline: {week['baselineWape']:.2f}%)")
+    ens = training.get("ensemble_top3")
+    if ens and ens.get("mape") is not None:
+        print(f"Top-3 blend MAPE (selection folds): {ens['mape']:.2f}%")
     print("Daily interval target: 95% (not a guarantee)")
     validation = interval.get("requestedValidation") or interval.get("validation")
     if validation:
@@ -1011,6 +1024,28 @@ def display_interval_validation(training):
             print("Evidence is limited by the number of held-out days or positive-usage observations.")
     else:
         print("Held-out coverage: unavailable")
+
+
+def heldout_summary(db):
+    """Median/mean held-out accuracy across all materials (selection-independent)."""
+    rows = []
+    for key, r in db.items():
+        v = (r["training"].get("interval_calibration") or {}).get("validation") or {}
+        p = v.get("pointMetrics") or {}
+        rows.append({"material": key, "mape": p.get("mape"),
+                     "wape": p.get("wape"), "bias": p.get("bias_pct"),
+                     "week_wape": (v.get("weeklyTotal") or {}).get("wape"),
+                     "week_bias": (v.get("weeklyTotal") or {}).get("biasPercent"),
+                     "naive_week_wape": (v.get("weeklyTotal") or {}).get("baselineWape")})
+    df = pd.DataFrame(rows)
+    print("\n" + "=" * 70)
+    print("HELD-OUT SUMMARY (all materials)")
+    print("=" * 70)
+    cols = df[["mape", "wape", "bias", "week_wape", "week_bias", "naive_week_wape"]].apply(pd.to_numeric, errors="coerce")
+    print(cols.describe().loc[["count", "mean", "50%"]].round(2).to_string())
+    print("=" * 70)
+    df.to_csv("heldout_summary.csv", index=False)
+    return df
 
 
 def evaluate_training(result):
@@ -1359,6 +1394,8 @@ def generate_forecast(
         unit,
         holiday_lookup
     )
+    if len(history) < CONFIG["MIN_HISTORY"]:
+        return {"history": history}   # caller skips it; avoids a wasted grid search
     stationary = make_stationary(
         history
     )
@@ -1668,6 +1705,7 @@ def run_once(interactive=True):
     # ----------------------------------------------------------
 
     rank_models(forecast_database)
+    heldout_summary(forecast_database)
 
     # ----------------------------------------------------------
     # Product Viewer
